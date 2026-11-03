@@ -1,0 +1,355 @@
+#!/usr/bin/env lua
+-- padilha-config — compile the Lua user config into the shell's JSON.
+--
+-- See CONFIG.md for the contract. Short version: init.lua returns a table, an
+-- optional local.lua overrides it, and the merged result is written as JSON
+-- that the shell and its C++ config schema already know how to read.
+--
+--   padilha-config compile [--config PATH] [--out PATH] [--check] [--print] [--quiet]
+--
+-- Exit codes: 0 ok, 1 config error, 2 usage.
+
+local ARRAY_MT = { __padilha_array = true }
+
+local function array(t)
+    return setmetatable(t or {}, ARRAY_MT)
+end
+
+local function is_array(t)
+    return getmetatable(t) == ARRAY_MT
+end
+
+local function quote(s)
+    return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
+local function dirname(path)
+    return path:match("^(.*)/[^/]+$") or "."
+end
+
+local function exists(path)
+    local f = io.open(path, "rb")
+    if f then
+        f:close()
+        return true
+    end
+    return false
+end
+
+--------------------------------------------------------------------------
+-- JSON encoding
+--------------------------------------------------------------------------
+
+local ESCAPES = {
+    ['"'] = '\\"',
+    ["\\"] = "\\\\",
+    ["\b"] = "\\b",
+    ["\f"] = "\\f",
+    ["\n"] = "\\n",
+    ["\r"] = "\\r",
+    ["\t"] = "\\t",
+}
+
+local function encode_string(s)
+    return '"' .. s:gsub('[%z\1-\31"\\]', function(c)
+        return ESCAPES[c] or string.format("\\u%04x", c:byte())
+    end) .. '"'
+end
+
+local function encode_number(n)
+    if n ~= n or n == math.huge or n == -math.huge then
+        return nil, "is not a finite number"
+    end
+    if math.type(n) == "integer" then
+        return tostring(n)
+    end
+    -- %.14g keeps 0.95 as 0.95 instead of 0.94999999999999996
+    return (string.format("%.14g", n):gsub(",", "."))
+end
+
+local encode_value
+
+local function sorted_keys(t)
+    local keys = {}
+    for k in pairs(t) do
+        keys[#keys + 1] = k
+    end
+    table.sort(keys, function(a, b)
+        return tostring(a) < tostring(b)
+    end)
+    return keys
+end
+
+local function looks_like_array(t)
+    local count, max = 0, 0
+    for k in pairs(t) do
+        if type(k) ~= "number" or math.type(k) ~= "integer" or k < 1 then
+            return false
+        end
+        count = count + 1
+        if k > max then
+            max = k
+        end
+    end
+    return count > 0 and count == max
+end
+
+local function encode_table(t, indent, seen, path)
+    if seen[t] then
+        error(path .. ": table refers to itself", 0)
+    end
+    seen[t] = true
+
+    local pad = string.rep(" ", indent)
+    local inner = string.rep(" ", indent + 4)
+    local out = {}
+
+    if is_array(t) or looks_like_array(t) then
+        if #t == 0 then
+            seen[t] = nil
+            return "[]"
+        end
+        for i = 1, #t do
+            local v = encode_value(t[i], indent + 4, seen, ("%s[%d]"):format(path, i))
+            out[i] = inner .. v
+        end
+        seen[t] = nil
+        return "[\n" .. table.concat(out, ",\n") .. "\n" .. pad .. "]"
+    end
+
+    if next(t) == nil then
+        seen[t] = nil
+        return "{}"
+    end
+
+    for _, k in ipairs(sorted_keys(t)) do
+        local key = tostring(k)
+        local child = path .. "." .. key
+        local v = encode_value(t[k], indent + 4, seen, child)
+        out[#out + 1] = inner .. encode_string(key) .. ": " .. v
+    end
+
+    seen[t] = nil
+    return "{\n" .. table.concat(out, ",\n") .. "\n" .. pad .. "}"
+end
+
+encode_value = function(v, indent, seen, path)
+    local tv = type(v)
+    if tv == "nil" then
+        error(path .. ": is nil (remove the key instead)", 0)
+    elseif tv == "boolean" then
+        return tostring(v)
+    elseif tv == "number" then
+        local n, err = encode_number(v)
+        if not n then
+            error(path .. " " .. err, 0)
+        end
+        return n
+    elseif tv == "string" then
+        return encode_string(v)
+    elseif tv == "table" then
+        return encode_table(v, indent, seen, path)
+    elseif tv == "function" then
+        error(path .. ": is a function; init.lua takes data only (hooks are not implemented yet)", 0)
+    else
+        error(path .. ": cannot be serialised (" .. tv .. ")", 0)
+    end
+end
+
+local function encode(root)
+    return encode_value(root, 0, {}, "config") .. "\n"
+end
+
+--------------------------------------------------------------------------
+-- Loading and merging
+--------------------------------------------------------------------------
+
+local function make_env()
+    local env = {
+        padilha = {
+            array = array,
+        },
+    }
+    return setmetatable(env, { __index = _G })
+end
+
+local function load_table(path)
+    local chunk, err = loadfile(path, "t", make_env())
+    if not chunk then
+        return nil, err
+    end
+
+    local ok, result = pcall(chunk)
+    if not ok then
+        return nil, tostring(result)
+    end
+
+    if type(result) ~= "table" then
+        return nil, ("%s: must return a table, got %s"):format(path, type(result))
+    end
+
+    if result.hooks ~= nil then
+        return nil, ("%s: `hooks` is reserved and not implemented yet; leave it out for now"):format(path)
+    end
+
+    return result
+end
+
+local function deep_merge(base, override)
+    if type(base) ~= "table" or type(override) ~= "table" then
+        return override
+    end
+    if is_array(override) then
+        return override
+    end
+
+    local merged = {}
+    for k, v in pairs(base) do
+        merged[k] = v
+    end
+    for k, v in pairs(override) do
+        if type(v) == "table" and type(merged[k]) == "table" and not is_array(v) then
+            merged[k] = deep_merge(merged[k], v)
+        else
+            merged[k] = v
+        end
+    end
+    return merged
+end
+
+--------------------------------------------------------------------------
+-- CLI
+--------------------------------------------------------------------------
+
+local function usage()
+    io.stderr:write([[
+usage: padilha-config compile [--config PATH] [--out PATH] [--check] [--print] [--quiet]
+
+  --config PATH  Lua config to compile  (default: $XDG_CONFIG_HOME/padilha/init.lua)
+  --out PATH     JSON to write         (default: $XDG_CONFIG_HOME/caelestia/shell.json)
+  --check        parse and validate only, write nothing
+  --print        write the JSON to stdout instead of a file
+  --quiet        no success message
+]])
+    os.exit(2)
+end
+
+local function parse_args(argv)
+    local opts = { command = nil, check = false, print = false, quiet = false }
+
+    local i = 1
+    while i <= #argv do
+        local arg = argv[i]
+        if arg == "--config" or arg == "--out" then
+            i = i + 1
+            if not argv[i] then
+                usage()
+            end
+            opts[arg:sub(3)] = argv[i]
+        elseif arg == "--check" then
+            opts.check = true
+        elseif arg == "--print" then
+            opts.print = true
+        elseif arg == "--quiet" then
+            opts.quiet = true
+        elseif arg == "-h" or arg == "--help" then
+            usage()
+        elseif arg:sub(1, 1) == "-" then
+            io.stderr:write("padilha-config: unknown option " .. arg .. "\n")
+            usage()
+        else
+            if opts.command then
+                usage()
+            end
+            opts.command = arg
+        end
+        i = i + 1
+    end
+
+    return opts
+end
+
+local function fail(message)
+    io.stderr:write("padilha-config: " .. message .. "\n")
+    os.exit(1)
+end
+
+local function config_home()
+    return os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or ".") .. "/.config")
+end
+
+local function main(argv)
+    local opts = parse_args(argv)
+
+    if opts.command ~= "compile" then
+        usage()
+    end
+
+    local config = opts.config or (config_home() .. "/padilha/init.lua")
+    local out = opts.out or (config_home() .. "/caelestia/shell.json")
+
+    if not exists(config) then
+        fail(("no config at %s (see examples/init.lua)"):format(config))
+    end
+
+    local root, err = load_table(config)
+    if not root then
+        fail(err)
+    end
+
+    local overlay = dirname(config) .. "/local.lua"
+    local used_overlay = false
+    if exists(overlay) then
+        local local_cfg, lerr = load_table(overlay)
+        if not local_cfg then
+            fail(lerr)
+        end
+        root = deep_merge(root, local_cfg)
+        used_overlay = true
+    end
+
+    local ok, json = pcall(encode, root)
+    if not ok then
+        fail(config .. ": " .. tostring(json))
+    end
+
+    if opts.check then
+        if not opts.quiet then
+            io.write(("ok: %s%s\n"):format(config, used_overlay and " (+ local.lua)" or ""))
+        end
+        return
+    end
+
+    if opts.print then
+        io.write(json)
+        return
+    end
+
+    local dir = dirname(out)
+    os.execute("mkdir -p -- " .. quote(dir) .. " 2>/dev/null")
+
+    local tmp = out .. ".tmp"
+    local f, werr = io.open(tmp, "wb")
+    if not f then
+        fail(("cannot write %s: %s"):format(tmp, tostring(werr)))
+    end
+    f:write(json)
+    f:close()
+
+    local renamed, rerr = os.rename(tmp, out)
+    if not renamed then
+        os.remove(tmp)
+        fail(("cannot replace %s: %s"):format(out, tostring(rerr)))
+    end
+
+    if not opts.quiet then
+        io.write(("compiled %s%s -> %s (%d bytes)\n"):format(
+            config,
+            used_overlay and " (+ local.lua)" or "",
+            out,
+            #json
+        ))
+    end
+end
+
+main(arg)

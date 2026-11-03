@@ -22,6 +22,10 @@ v2.5.0 as our base. It builds with the system toolchain (`tools/build.sh`,
 What runs the desktop today is still the `caelestia-shell` package plus
 patches; the fork is not installed yet.
 
+The user-facing config exists too: `bin/padilha-config` compiles
+`~/.config/padilha/init.lua` into the shell's JSON, with contract tests. The
+shell does not consume its output by default yet — that lands with the fork.
+
 ## What "ours" means
 
 - **Owned**: shell behaviour and layout, theme engine, session, settings,
@@ -49,8 +53,12 @@ what moved since our pins.
 | path | what |
 | --- | --- |
 | `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
+| `bin/` | `padilha-config`, the Lua config compiler |
+| `examples/` | a reference `init.lua` |
+| `tests/` | contract tests for the compiler |
 | `tools/` | maintenance scripts |
 | `upstream.json` | pinned versions of everything we sit on |
+| `CONFIG.md` | the user-facing config contract (Lua in, JSON out) |
 | `ARCHITECTURE.md` | how the pieces fit and where data flows |
 | `UPSTREAM.md` | what we track and how we absorb it |
 
