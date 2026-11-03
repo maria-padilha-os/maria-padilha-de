@@ -78,6 +78,8 @@ mc="$tmp/tree/home/machine/.local/share/mc/skins/caelestia.ini"
 mc_surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
 check "mc gets a skin" "test -s '$mc'"
 check "the mc skin follows the scheme" "grep -q \"^    Main = #$mc_surface\" '$mc'"
+check "mc sections use the generated aliases" "grep -q '^    _default_ = MainFg;Main$' '$mc'"
+check "mc sections carry no frozen colours" "! sed -n '/^\\[core\\]/,\$p' '$mc' | grep -Eq '#[0-9a-fA-F]{6}'"
 
 bar="$tmp/tree/home/machine/.local/state/caelestia/scheme-bar.json"
 check "the pinned bar palette is written" "test -s '$bar'"
