@@ -115,9 +115,8 @@ PY
 
         count=$(git -C "$cache/shell.git" rev-list --count "$shell_pin..$shell_latest")
         echo "shell: $shell_pin..$shell_latest ($count commits)"
-        git -C "$cache/shell.git" log --oneline --no-decorate "$shell_pin..$shell_latest" |
-            sed 's/^/  /' |
-            head -60
+        git -C "$cache/shell.git" log --oneline --no-decorate -n 60 "$shell_pin..$shell_latest" |
+            sed 's/^/  /'
         [ "$count" -gt 60 ] && echo "  ... $((count - 60)) more"
     fi
 fi
