@@ -4,7 +4,7 @@
 # here is the release tarball exported by tools/release.sh, which is why there
 # is a local source and no URL yet.
 pkgname=padilha
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Desktop Maria Padilha: a Wayland desktop on Hyprland and Quickshell"
 arch=('x86_64')
