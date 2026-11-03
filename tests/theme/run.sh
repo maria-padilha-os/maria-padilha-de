@@ -72,6 +72,13 @@ seq="$tmp/tree/home/machine/.local/state/caelestia/sequences.txt"
 check "gtk gets hashed colours" "grep -q 'window_bg_color #' '$gtk'"
 check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
 check "terminals get OSC 11" "grep -q ']11;rgb:' '$seq'"
+check "spicetify gets a colour.ini" "test -s '$tmp/tree/home/machine/.config/spicetify/Themes/caelestia/color.ini'"
+
+mkdir -p "$tmp/tree/home/machine/.config/Equicord"
+"$theme" apply --seed ff1a1a --mode dark --prefix "$tmp/tree" --no-signals > /dev/null 2>&1
+discord="$tmp/tree/home/machine/.config/Equicord/themes/caelestia.theme.css"
+check "discord clients get a compiled theme" "test -s '$discord'"
+check "the discord theme carries the palette" "grep -q '#ffb4a6\|#ffb4ab\|#ffb4a9' '$discord'"
 
 echo "modes differ"
 

@@ -12,4 +12,8 @@ if ! "$config" compile --quiet; then
         notify-send -a padilha-config "Config not applied" "init.lua failed to compile; keeping the previous shell.json"
 fi
 
+# Colours before the first paint: apply the current period's wallpaper and
+# palette. The daylight daemon repeats this later only when the period moves.
+"$HOME/.config/padilha/bin/padilha-daylight" --once >/dev/null 2>&1 || true
+
 exec caelestia shell -d

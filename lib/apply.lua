@@ -194,6 +194,64 @@ function M.apply(scheme, opts)
         ::continue::
     end
 
+    -- Spicetify: one ini per mode.
+    if config_value(config, "enableSpicetify", true) ~= false then
+        local template = read_template("spicetify-" .. scheme.mode .. ".ini")
+        if template then
+            local text = T.render(template, colours, { mode = scheme.mode })
+            local ok, err = M.write(bases.config .. "/spicetify/Themes/caelestia/color.ini", text)
+            if ok then
+                written[#written + 1] = "spicetify/Themes/caelestia/color.ini"
+            else
+                errors[#errors + 1] = "spicetify: " .. tostring(err)
+            end
+        end
+    end
+
+    -- Discord clients: the theme is SCSS because the upstream stylesheet is;
+    -- compile it once, then drop the CSS into whichever clients exist.
+    if config_value(config, "enableDiscord", true) ~= false then
+        local template = read_template("discord.scss")
+        if template then
+            local stamp = tostring(os.time()) .. "-" .. tostring(math.random(100000))
+            local tmp = (os.getenv("TMPDIR") or "/tmp") .. "/padilha-scss-" .. stamp
+            os.execute("mkdir -p " .. quote(tmp))
+
+            local vars = {}
+            for name, value in pairs(colours) do
+                vars[#vars + 1] = "$" .. name .. ": #" .. value .. ";"
+            end
+            table.sort(vars)
+            local wrote = M.write(tmp .. "/_colours.scss", table.concat(vars, "\n") .. "\n")
+                and M.write(tmp .. "/main.scss", template)
+                and os.execute("sass --no-source-map " .. quote(tmp .. "/main.scss") .. " " .. quote(tmp .. "/out.css")
+                    .. " 2>/dev/null") == true
+
+            local f = wrote and io.open(tmp .. "/out.css", "r")
+            local css = f and f:read("*a")
+            if f then
+                f:close()
+            end
+
+            if css then
+                for _, client in ipairs({ "Equicord", "Vencord", "BetterDiscord", "equibop", "vesktop", "legcord" }) do
+                    local dir = bases.config .. "/" .. client
+                    if os.execute("test -d " .. quote(dir)) == true then
+                        local ok, err = M.write(dir .. "/themes/caelestia.theme.css", css)
+                        if ok then
+                            written[#written + 1] = client .. "/themes/caelestia.theme.css"
+                        else
+                            errors[#errors + 1] = "discord " .. client .. ": " .. tostring(err)
+                        end
+                    end
+                end
+            else
+                errors[#errors + 1] = "discord: sass did not produce a stylesheet"
+            end
+            os.execute("rm -rf " .. quote(tmp))
+        end
+    end
+
     -- foot keeps both palettes in one config and switches with a signal.
     local foot_theme = scheme.mode == "light" and "light" or "dark"
     local foot_ok = M.write(bases.config .. "/foot/theme-default.ini",
