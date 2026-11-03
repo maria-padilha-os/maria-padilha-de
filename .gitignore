@@ -1,0 +1,7 @@
+# build output
+build/
+result/
+result-*
+
+# upstream cache used by tools/upstream-watch.sh
+.upstream/

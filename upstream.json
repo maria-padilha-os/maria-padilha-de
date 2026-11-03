@@ -1,0 +1,21 @@
+{
+  "$comment": "What Padilha sits on. Updated by hand; checked by tools/upstream-watch.sh.",
+  "shell": {
+    "repo": "https://github.com/caelestia-dots/shell",
+    "pin": "v2.5.0",
+    "sha": "d999d4878ee4cec134168e60d913714566a8cfa6",
+    "imported": "2026-11-02"
+  },
+  "cli": {
+    "repo": "https://github.com/caelestia-dots/cli",
+    "pin": "v1.1.3"
+  },
+  "quickshell": {
+    "repo": "https://github.com/quickshell-mirror/quickshell",
+    "pin": "v0.3.2"
+  },
+  "hyprland": {
+    "repo": "https://github.com/hyprwm/Hyprland",
+    "pin": "v0.56.2"
+  }
+}

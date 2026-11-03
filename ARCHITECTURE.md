@@ -1,0 +1,58 @@
+# Architecture
+
+## Layers, bottom up
+
+| # | layer | who owns it |
+| --- | --- | --- |
+| 1 | Linux, Wayland, Qt 6, Quickshell runtime | platform — pinned, never carried |
+| 2 | Hyprland: windows, workspaces, input, layer surfaces, IPC | configured by us, not forked |
+| 3 | Shell (`shell/`): bar, launcher, notifications, OSD, dashboard, lock | ours |
+| 4 | Session: start, lock, suspend, log out | ours (planned) |
+| 5 | Theme: wallpaper → palette → every application | ours (planned) |
+| 6 | Settings: the UI that writes what 3–5 read | ours (planned) |
+
+Layer 3 is a QML tree plus one C++ plugin (`Caelestia`: blob shaders, config
+schema, services). The plugin links Qt and a handful of system libraries
+(qalculate, pipewire, aubio, libcava) — not Quickshell's C++ headers, so the
+fork builds without rebuilding the runtime.
+
+## The palette loop
+
+The reason the desktop reads as one product rather than twelve themed apps:
+
+```
+wallpaper
+  └─ scheme      Material You: HCT seeded from the image, variant + day/night
+      └─ palette JSON   ~/.local/state/caelestia/scheme.json
+          ├─ Hyprland scheme (lua)      ├─ GTK 3 / GTK 4 css
+          ├─ btop theme                 ├─ Qt / Kvantum
+          ├─ cava gradient              ├─ foot escape sequences
+          ├─ fuzzel, htop, nvtop        ├─ nvim, zed, discord
+          └─ postHook: formats that don't fit the template language (mc skin)
+```
+
+The shell consumes the same JSON live (`services/Colours.qml`). Applications
+that can't reload need a signal (btop and htop take `SIGUSR2`) or a restart.
+
+Invariant: one input, every surface. Any colour on screen that didn't come
+through this loop is a bug, not a preference.
+
+## Rules
+
+1. **No patch stacks.** Upstream enters exactly once, at import (`v2.5.0`).
+   After that the tree is ours; changes are commits, not patches.
+2. **One source of truth per artifact.** Shell code in `shell/`, palette logic
+   in the theme engine, defaults in this repo. Never a hand-edited copy under
+   `/usr` or a second checkout under `~/.config/quickshell`.
+3. **Adapt at the boundary.** For anything we don't own — Hyprland, Quickshell
+   — we change config and IPC, not source.
+
+## Boundaries that bite
+
+- **The config schema is C++.** `libcaelestia-config` defines every valid key
+  and its default. A new *setting* is a C++ change; only layout and behaviour
+  are QML.
+- **Quickshell is the floor under 284 files.** A breaking release there is a
+  tree-wide edit, which is why it is pinned and watched.
+- **Hyprland's Lua config is young.** Dispatcher names and environment
+  handling still move between minor versions; the keybinds are the canary.
