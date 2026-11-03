@@ -199,13 +199,6 @@ PageBase {
             onMoved: v => GlobalConfig.services.visualiserBars = v
         }
 
-        ToggleRow {
-            text: Tr.tr("Smart colour scheme")
-            subtext: Tr.tr("Derive theme mode and variant from the wallpaper")
-            checked: GlobalConfig.services.smartScheme
-            onToggled: GlobalConfig.services.smartScheme = checked
-        }
-
         SelectRow {
             last: true
             label: Tr.tr("GPU")

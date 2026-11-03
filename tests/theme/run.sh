@@ -96,8 +96,14 @@ check "light mode has a light surface" "[ $light_surface -ge 90 ]" "tone $light_
 echo "daylight"
 
 daylight="$root/bin/padilha-daylight"
+hour=$((10#$(date +%H)))
+if [ "$hour" -ge 6 ] && [ "$hour" -lt 18 ]; then
+    want=day; wantmode=light; wantwall=day.jpg
+else
+    want=night; wantmode=dark; wantwall=night.jpg
+fi
 out=$("$daylight" --dry-run 2>&1)
-check "dry run names a period, mode and wallpaper" "printf '%s' \"$out\" | grep -q 'period=night mode=dark wallpaper=.*night.jpg'"
+check "dry run follows the clock" "printf '%s' \"$out\" | grep -q \"period=$want mode=$wantmode wallpaper=.*$wantwall\"" "$out"
 
 rm -rf "$tmp/day"
 "$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
@@ -105,7 +111,11 @@ check "a switch writes the wallpaper state" "test -s '$tmp/day/home/machine/.loc
 check "a switch writes the scheme" "test -s '$tmp/day/home/machine/.local/state/caelestia/scheme.json'"
 
 surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/day/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
-check "the shipped default is black" "[ $(tone "$surface") -le 12 ]" "tone $(tone "$surface")"
+if [ "$wantmode" = dark ]; then
+    check "the shipped default is black" "[ $(tone "$surface") -le 12 ]" "tone $(tone "$surface")"
+else
+    check "the shipped default is white" "[ $(tone "$surface") -ge 90 ]" "tone $(tone "$surface")"
+fi
 
 echo "unknown colours fail loudly"
 
