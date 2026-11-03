@@ -229,7 +229,6 @@ function M.diagnostics()
     for _, pair in ipairs({
         { "Hyprland colours", M.config .. "/hypr/scheme/current.lua" },
         { "GTK colours", M.config .. "/gtk-3.0/gtk.css" },
-        { "foot theme", M.config .. "/foot/theme-default.ini" },
     }) do
         if exists(pair[2]) then
             add("ok", pair[1], pair[2])

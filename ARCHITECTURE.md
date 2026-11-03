@@ -27,7 +27,7 @@ wallpaper
           └─ palette JSON   ~/.local/state/caelestia/scheme.json
           ├─ Hyprland scheme (lua)      ├─ GTK 3 / GTK 4 css
           ├─ btop theme                 ├─ Qt / Kvantum
-          ├─ cava gradient              ├─ foot escape sequences
+          ├─ cava gradient              ├─ terminal escape sequences
           ├─ fuzzel, spicetify          ├─ nvim, discord
           └─ postHook: formats that don't fit the template language (mc skin)
 ```
