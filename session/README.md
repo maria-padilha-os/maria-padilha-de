@@ -15,17 +15,29 @@ letting the user manager own the lifetime instead.
 | `padilha-shell.service` | compile config, paint colours, run `qs -c caelestia -n` |
 | `padilha-daylight.service` | the two-wallpaper clock, restarted on failure |
 
-They are installed to `/usr/lib/systemd/user` by the package. Enabling them is
-a user operation, no root:
+They are installed by the package and are inert until something starts
+`graphical-session.target`. That something is `uwsm`, and it is the honest
+limit of this layer today:
+
+- `uwsm` is not installed here, and LightDM's `hyprland.desktop` starts
+  Hyprland directly, without a user manager. `systemctl --user` does not even
+  answer in that setup (checked: "Failed to connect to user scope bus"), so
+  enabling these units would do nothing.
+- What actually starts the desktop is `execs.lua` calling `padilha-session`,
+  and that path is Python-free and tested.
+
+Switching to the units, once `uwsm` is installed:
 
 ```sh
+# log out, pick "Hyprland (uwsm-managed)" at the greeter, log in, then:
 systemctl --user daemon-reload
 systemctl --user enable --now padilha-session.target
+# and remove the padilha-session line from hyprland/execs.lua
 ```
 
-The units hook into `graphical-session.target`, which is what `uwsm` (or
-Hyprland's own systemd integration) brings up. Without either, `lightdm` starts
-Hyprland directly and `execs.lua` remains the thing that starts the shell.
+The repo's copies point at `%h/.config/padilha/bin`, so
+`systemd-analyze --user verify` passes in the checkout; the package rewrites
+that prefix to `/usr/bin` when it installs them.
 
 ## Restore
 
@@ -34,6 +46,9 @@ reopens them on the next login from a fixed allowlist of commands. It never
 stores or runs arbitrary command lines, caps the number of windows
 (`PADILHA_RESTORE_MAX`, default 8), skips special workspaces, and waits
 `PADILHA_RESTORE_WAIT` seconds for the session to settle.
+
+Restore is opt-in: nothing calls it at login yet, because reopening windows
+behind someone's back is worse than a fresh session.
 
 ```sh
 session/restore.sh snapshot        # save now

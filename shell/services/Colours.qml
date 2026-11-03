@@ -117,7 +117,7 @@ Singleton {
         // Wallpaper-following by default. `bar.palette = "fixed"` pins the bar
         // to the static matte palette instead, while every other surface keeps
         // following the wallpaper.
-        path: Config.bar.palette === BarPalette.Fixed ? `${Paths.state}/scheme-bar.json` : `${Paths.state}/scheme.json`
+        path: GlobalConfig.bar.palette === BarPalette.Fixed ? `${Paths.state}/scheme-bar.json` : `${Paths.state}/scheme.json`
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.load(text(), false)

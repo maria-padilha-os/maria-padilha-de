@@ -130,7 +130,8 @@ cmd_snapshot() {
 
 cmd_restore() {
     require_tools hyprctl jq
-    [ -r "$SNAP" ] || die "no snapshot at $SNAP"
+    # Nothing to restore is not an error: this may be run from a login hook.
+    [ -r "$SNAP" ] || return 0
     jq -e '.version == 1 and (.apps | type == "array")' "$SNAP" >/dev/null 2>&1 ||
         die "invalid snapshot at $SNAP"
 
@@ -194,9 +195,11 @@ cmd_restore() {
         if [ "$DRY_RUN" -eq 1 ]; then
             say "restore: would open $app on workspace $workspace"
         else
-            # The dispatcher takes a rule and a known command, never snapshot
-            # text. The workspace id was checked to be a positive integer.
-            if hyprctl dispatch exec "[workspace $workspace] $app" >/dev/null 2>&1; then
+            # Hyprland 0.56 with the Lua config takes dispatchers as Lua calls,
+            # not the old bracket syntax. $app comes from the fixed allowlist
+            # and $workspace was checked to be a positive integer, so the
+            # string cannot carry snapshot text into the dispatcher.
+            if hyprctl dispatch "hl.dsp.exec_cmd('[workspace $workspace] $app')" >/dev/null 2>&1; then
                 say "restore: opened $app on workspace $workspace"
             else
                 say "restore: failed to open $app on workspace $workspace"
