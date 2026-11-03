@@ -5,7 +5,12 @@
 # shell.json and the session still starts. Run from hyprland/execs.lua.
 set -u
 
-config="$HOME/.config/padilha/bin/padilha-config"
+# Follow the symlink: a packaged install keeps the real file in
+# /usr/lib/padilha/bin and only links it into /usr/bin.
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+bin_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || exit 1
+
+config="$bin_dir/padilha-config"
 
 if ! "$config" compile --quiet; then
     command -v notify-send >/dev/null 2>&1 &&
@@ -14,6 +19,6 @@ fi
 
 # Colours before the first paint: apply the current period's wallpaper and
 # palette. The daylight daemon repeats this later only when the period moves.
-"$HOME/.config/padilha/bin/padilha-daylight" --once >/dev/null 2>&1 || true
+"$bin_dir/padilha-daylight" --once >/dev/null 2>&1 || true
 
 exec qs -c caelestia -n -d
