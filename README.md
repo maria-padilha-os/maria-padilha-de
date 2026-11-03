@@ -81,8 +81,8 @@ what moved since our pins.
 1. The greeter: the session entry is packaged; the display-manager side and a
    greeter theme are still the distribution's, and are the last pieces that
    need root.
-2. The settings application as a *writer of `init.lua`*, now that the compiler
-   carries UI edits instead of overwriting them.
+2. Wire Nexus to `padilha-config set` / `unset`, so the settings UI writes
+   `ui.lua` instead of `shell.json`; the command and precedence are in place.
 3. Live config: watch `init.lua`, recompile and reload the shell on save;
    `settings.watchFiles` is deliberately off today.
 

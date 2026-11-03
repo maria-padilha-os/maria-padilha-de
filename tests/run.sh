@@ -61,6 +61,57 @@ else
     bad "local.lua overrides, keeps the rest" "$out"
 fi
 
+echo "settings write Lua"
+
+mkdir -p "$tmp/uiwrite"
+cat > "$tmp/uiwrite/init.lua" <<'LUA'
+return { enabled = true }
+LUA
+cat > "$tmp/uiwrite/local.lua" <<'LUA'
+return { enabled = true }
+LUA
+"$padilha_config" set enabled false --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
+if [ -s "$tmp/uiwrite/ui.lua" ] && grep -q 'enabled = false' "$tmp/uiwrite/ui.lua"; then
+    ok "set writes a readable Lua overlay"
+else
+    bad "set writes a readable Lua overlay" "$(cat "$tmp/uiwrite/ui.lua" 2>/dev/null)"
+fi
+out=$("$padilha_config" compile --config "$tmp/uiwrite/init.lua" --print --no-schema 2>&1)
+if printf '%s' "$out" | grep -q '"enabled": false'; then
+    ok "ui.lua overrides local.lua"
+else
+    bad "ui.lua overrides local.lua" "$out"
+fi
+
+"$padilha_config" set general.idle.timeouts '[]' --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
+if grep -q 'padilha.array {}' "$tmp/uiwrite/ui.lua"; then
+    ok "set preserves an empty list"
+else
+    bad "set preserves an empty list" "$(cat "$tmp/uiwrite/ui.lua" 2>/dev/null)"
+fi
+out=$("$padilha_config" compile --config "$tmp/uiwrite/init.lua" --print --no-schema 2>&1)
+if printf '%s' "$out" | grep -q '"timeouts": \[\]'; then
+    ok "the list survives the compile"
+else
+    bad "the list survives the compile" "$out"
+fi
+
+before=$(cat "$tmp/uiwrite/ui.lua")
+if "$padilha_config" set appearanc.enabled false --config "$tmp/uiwrite/init.lua" \
+    --schema "$root/tests/fixtures/schema.qmltypes" >/dev/null 2>&1; then
+    bad "set validates before writing"
+else
+    after=$(cat "$tmp/uiwrite/ui.lua")
+    if [ "$before" = "$after" ]; then ok "set validates before writing"; else bad "set validates before writing" "ui.lua changed"; fi
+fi
+
+"$padilha_config" unset enabled --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
+if ! grep -q 'enabled' "$tmp/uiwrite/ui.lua"; then
+    ok "unset removes the key"
+else
+    bad "unset removes the key" "$(cat "$tmp/uiwrite/ui.lua" 2>/dev/null)"
+fi
+
 echo "broken configs"
 
 printf 'return { appearance = }\n' > "$tmp/syntax.lua"
