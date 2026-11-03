@@ -9,6 +9,11 @@ theme="$root/bin/padilha-theme"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
+# Templates are written under --prefix + the absolute HOME, and the assertions
+# below name /home/machine. Pin it so the suite passes as any user (CI is root).
+export HOME=/home/machine
+unset XDG_CONFIG_HOME XDG_STATE_HOME XDG_DATA_HOME XDG_PICTURES_DIR
+
 pass=0
 fail=0
 ok() { pass=$((pass + 1)); printf '  ok   %s\n' "$1"; }

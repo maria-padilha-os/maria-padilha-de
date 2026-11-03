@@ -41,7 +41,9 @@ return {
     general = { idle = { timeouts = padilha.array {} } },
 }
 LUA
-out=$("$padilha_config" compile --config "$tmp/good.lua" --print 2>&1)
+# --no-schema: this test is about the JSON, and a checkout that has not been
+# built yet must still pass the compiler suite.
+out=$("$padilha_config" compile --config "$tmp/good.lua" --print --no-schema 2>&1)
 if printf '%s' "$out" | python3 -m json.tool >/dev/null 2>&1; then ok "emits valid JSON"; else bad "emits valid JSON" "$out"; fi
 if printf '%s' "$out" | grep -q '"timeouts": \[\]'; then ok "padilha.array{} is a list"; else bad "padilha.array{} is a list" "$out"; fi
 
@@ -110,6 +112,34 @@ if ! grep -q 'enabled' "$tmp/uiwrite/ui.lua"; then
     ok "unset removes the key"
 else
     bad "unset removes the key" "$(cat "$tmp/uiwrite/ui.lua" 2>/dev/null)"
+fi
+
+echo "capture"
+
+mkdir -p "$tmp/capture"
+cat > "$tmp/capture/init.lua" <<'LUA'
+return { enabled = true }
+LUA
+"$padilha_config" compile --config "$tmp/capture/init.lua" --out "$tmp/capture/shell.json" --no-schema --quiet
+printf '{\n  "enabled": false\n}\n' > "$tmp/capture/shell.json"
+"$padilha_config" capture --shell "$tmp/capture/shell.json" --ui "$tmp/capture/ui.lua" --no-schema >/dev/null 2>&1
+if grep -q 'enabled = false' "$tmp/capture/ui.lua"; then
+    ok "capture promotes a UI edit"
+else
+    bad "capture promotes a UI edit" "$(cat "$tmp/capture/ui.lua" 2>/dev/null)"
+fi
+out=$("$padilha_config" compile --config "$tmp/capture/init.lua" --print --no-schema 2>&1)
+if printf '%s' "$out" | grep -q '"enabled": false'; then
+    ok "the captured edit is compiled"
+else
+    bad "the captured edit is compiled" "$out"
+fi
+cp "$tmp/capture/shell.json.base" "$tmp/capture/shell.json"
+"$padilha_config" capture --shell "$tmp/capture/shell.json" --ui "$tmp/capture/ui.lua" --no-schema >/dev/null 2>&1
+if grep -q 'return {}' "$tmp/capture/ui.lua"; then
+    ok "capture clears an edit that returned to the baseline"
+else
+    bad "capture clears an edit that returned to the baseline" "$(cat "$tmp/capture/ui.lua" 2>/dev/null)"
 fi
 
 echo "broken configs"

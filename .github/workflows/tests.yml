@@ -31,7 +31,7 @@ jobs:
           pacman-key --init
           pacman-key --populate archlinux
           pacman -Syu --noconfirm --needed \
-            ca-certificates git lua imagemagick python python-pip
+            ca-certificates diffutils git lua imagemagick python python-pip
 
       # The colour oracle is test-only and not in the Arch repos; the wheel
       # keeps the job from needing a compiler.
