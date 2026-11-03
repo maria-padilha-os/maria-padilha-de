@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Bluetooth
 import Caelestia.Config
 import qs.components
 import qs.services
@@ -40,7 +41,14 @@ StyledRect {
         return false;
     }
 
-    color: Colours.tPalette.m3surfaceContainer
+    HoverHandler {
+        id: hover
+    }
+
+    color: hover.hovered ? Qt.lighter(Colours.tPalette.m3surfaceContainer, 1.6) : Colours.tPalette.m3surfaceContainer
+    Behavior on color {
+        CAnim {}
+    }
     radius: Tokens.rounding.full
 
     clip: true
@@ -61,7 +69,28 @@ StyledRect {
             model: ScriptModel {
                 id: model
 
-                values: root.Config.bar.statusIcons.values.filter(e => e.enabled)
+                values: {
+                    const entries = root.Config.bar.statusIcons.values.filter(e =>
+                        e.enabled &&
+                        !["brightness", "quicksettings", "microphone", "lockStatus"].includes(e.id) &&
+                        (e.id !== "kbLayout" || (Hypr.keyboard?.layout?.split(",") ?? []).length > 1) &&
+                        (e.id !== "bluetooth" || (Bluetooth.devices.values ?? []).some(d => d.connected))
+                    );
+
+                    const networkIndex = entries.findIndex(e => e.id === "network");
+                    const insertAt = networkIndex < 0 ? 0 : networkIndex + 1;
+
+                    // GNOME keeps volume in the status cluster; Caelestia's
+                    // default list doesn't always include it.
+                    if (Audio.sink && !entries.some(e => e.id === "audio"))
+                        entries.splice(insertAt, 0, { id: "audio", enabled: true });
+
+                    // Bluetooth only appears while a device is connected.
+                    if ((Bluetooth.devices.values ?? []).some(d => d.connected) && !entries.some(e => e.id === "bluetooth"))
+                        entries.splice(insertAt, 0, { id: "bluetooth", enabled: true });
+
+                    return entries;
+                }
             }
 
             DelegateChooser {
@@ -79,6 +108,7 @@ StyledRect {
                 DelegateChoice {
                     roleValue: "audio"
                     delegate: EntryWrapper {
+                        name: "quicksettings"
                         margin: Tokens.spacing.extraSmall / 2
 
                         MaterialIcon {
@@ -119,6 +149,8 @@ StyledRect {
                 DelegateChoice {
                     roleValue: "network"
                     delegate: EntryWrapper {
+                        name: "quicksettings"
+
                         MaterialIcon {
                             animate: true
                             text: Nmcli.activeEthernet ? "cable" : Nmcli.active ? Icons.getNetworkIcon(Nmcli.active.strength ?? 0) : "wifi_off"
@@ -129,6 +161,8 @@ StyledRect {
                 DelegateChoice {
                     roleValue: "bluetooth"
                     delegate: EntryWrapper {
+                        name: "quicksettings"
+
                         BluetoothStatus {
                             colour: root.colour
                         }
@@ -137,6 +171,8 @@ StyledRect {
                 DelegateChoice {
                     roleValue: "battery"
                     delegate: EntryWrapper {
+                        name: "quicksettings"
+
                         BatteryStatus {
                             colour: root.colour
                         }

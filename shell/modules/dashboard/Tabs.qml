@@ -137,6 +137,10 @@ Item {
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
 
+            // Follow the pointer across the tab strip instead of waiting for a
+            // click. Uses positionChanged rather than entered so a panel that
+            // opens under a stationary cursor keeps the tab that was asked for.
+            onPositionChanged: root.screenState.dashboardTab = tab.TabBar.index
             onPressed: root.screenState.dashboardTab = tab.TabBar.index
 
             StateLayer {

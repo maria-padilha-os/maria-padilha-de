@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Caelestia
+import Caelestia.Config
 import qs.components.misc
 import qs.services
 import qs.modules.nexus
@@ -11,6 +12,52 @@ Scope {
 
     property bool launcherInterrupted
     readonly property bool hasFullscreen: Hypr.focusedWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen > 1) ?? false
+
+    // Open the dashboard directly on `tab`; pressing the same shortcut again
+    // closes it. The index is built from the enabled tabs only, matching the
+    // order in the dashboard's tab bar (Content.qml).
+    function openDashboard(tab: string): void {
+        if (root.hasFullscreen)
+            return;
+        const tabs = [
+            {
+                id: "dash",
+                enabled: GlobalConfig.dashboard.showDashboard
+            },
+            {
+                id: "media",
+                enabled: GlobalConfig.dashboard.showMedia
+            },
+            {
+                id: "performance",
+                enabled: GlobalConfig.dashboard.showPerformance
+            },
+            {
+                id: "weather",
+                enabled: GlobalConfig.dashboard.showWeather
+            }
+        ];
+        let index = 0;
+        let target = -1;
+        for (const t of tabs) {
+            if (!t.enabled)
+                continue;
+            if (t.id === tab) {
+                target = index;
+                break;
+            }
+            index++;
+        }
+        if (target < 0)
+            return;
+        const screenState = ShellState.forActive();
+        if (screenState.dashboard && screenState.dashboardTab === target) {
+            screenState.dashboard = false;
+            return;
+        }
+        screenState.dashboardTab = target;
+        screenState.dashboard = true;
+    }
 
     // qmllint disable unresolved-type
     CustomShortcut {
@@ -44,6 +91,38 @@ Scope {
             const screenState = ShellState.forActive();
             screenState.dashboard = !screenState.dashboard;
         }
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "dashboardDash"
+        description: "Open dashboard on the dashboard tab"
+        onPressed: root.openDashboard("dash")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "dashboardMedia"
+        description: "Open dashboard on the media tab"
+        onPressed: root.openDashboard("media")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "dashboardPerformance"
+        description: "Open dashboard on the performance tab"
+        onPressed: root.openDashboard("performance")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "dashboardWeather"
+        description: "Open dashboard on the weather tab"
+        onPressed: root.openDashboard("weather")
     }
 
     // qmllint disable unresolved-type
@@ -105,6 +184,43 @@ Scope {
                 return;
             const screenState = ShellState.forActive();
             screenState.utilities = !screenState.utilities;
+        }
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "quicksettings"
+        description: "Toggle quick settings"
+        onPressed: {
+            const comps = ShellState.componentsForActive();
+            const icons = comps?.find("taskbarStatusIcons");
+            const popouts = comps?.bar?.popouts;
+            if (!icons || !popouts)
+                return;
+
+            if (popouts.hasCurrent && popouts.currentName === "quicksettings") {
+                popouts.hasCurrent = false;
+                return;
+            }
+
+            const items = icons.items.children;
+            let icon = null;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].name === "quicksettings") {
+                    icon = items[i];
+                    break;
+                }
+            }
+            // The whole status cluster is the button; fall back to its first icon.
+            if (!icon)
+                icon = items[0] ?? null;
+            if (!icon)
+                return;
+
+            popouts.currentName = "quicksettings";
+            popouts.currentCenter = icon.mapToItem(comps.bar, 0, icon.implicitHeight / 2).y;
+            popouts.hasCurrent = true;
         }
     }
 
