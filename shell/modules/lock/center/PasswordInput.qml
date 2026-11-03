@@ -6,6 +6,7 @@ import M3Shapes
 import Caelestia.Config
 import qs.components
 import qs.components.controls
+import qs.modules.lock
 import qs.services
 
 StyledRect {
@@ -24,20 +25,60 @@ StyledRect {
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.full
 
-    focus: true
+    // The lock UI draws the password from pam.buffer itself, so typing goes
+    // through an invisible TextInput. A real text control is what lets Qt's
+    // input method (QT_IM_MODULE=compose) turn ABNT2 dead-key sequences such
+    // as ' + a into á, instead of dropping the accent on the floor.
+    focus: false
     onActiveFocusChanged: {
-        if (!activeFocus)
-            forceActiveFocus();
+        if (!activeFocus && !textInput.activeFocus)
+            textInput.forceActiveFocus();
     }
 
-    Keys.onPressed: event => {
-        if (root.lock.unlocking)
-            return;
+    TextInput {
+        id: textInput
 
-        if (event.key === Qt.Key_Enter || event.key === Qt.Key_Return)
+        width: 1
+        height: 1
+        opacity: 0
+        focus: true
+        echoMode: TextInput.Password
+        selectByMouse: false
+
+        Component.onCompleted: forceActiveFocus()
+
+        onTextChanged: {
+            if (root.lock.pam.buffer !== text)
+                root.lock.pam.buffer = text;
+        }
+
+        onAccepted: {
+            if (root.lock.unlocking || root.lock.pam.passwd.active || root.lock.pam.state === Pam.MaxTries)
+                return;
+
             inputField.placeholder.animate = false;
 
-        root.lock.pam.handleKey(event);
+            if (root.lock.pam.howdy.canAttempt && !root.lock.pam.howdy.active && text.length === 0)
+                root.lock.pam.howdy.start();
+            else
+                root.lock.pam.passwd.start();
+        }
+
+        Keys.onPressed: event => {
+            if (event.key === Qt.Key_Backspace && (event.modifiers & Qt.ControlModifier)) {
+                text = "";
+                event.accepted = true;
+            }
+        }
+    }
+
+    Connections {
+        target: root.lock.pam
+
+        function onBufferChanged(): void {
+            if (root.lock.pam.buffer === "" && textInput.text !== "")
+                textInput.text = "";
+        }
     }
 
     Behavior on implicitWidth {
@@ -47,7 +88,7 @@ StyledRect {
     StateLayer {
         hoverEnabled: false
         cursorShape: Qt.IBeamCursor
-        onClicked: parent.forceActiveFocus()
+        onClicked: textInput.forceActiveFocus()
     }
 
     RowLayout {
