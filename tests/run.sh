@@ -188,6 +188,26 @@ printf 'return { a = 1 }\n' > "$tmp/carry/init.lua"
 "$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
 if grep -q '"b"' "$tmp/carry.json"; then bad "a key dropped from init.lua goes away"; else ok "a key dropped from init.lua goes away"; fi
 
+echo "first run"
+
+init_home="$tmp/fresh"
+mkdir -p "$init_home"
+XDG_CONFIG_HOME="$init_home" "$padilha_config" init > /dev/null 2>&1
+check=""
+if [ -s "$init_home/padilha/init.lua" ]; then ok "init writes a default config"; else bad "init writes a default config"; fi
+
+if XDG_CONFIG_HOME="$init_home" "$padilha_config" init > /dev/null 2>&1; then
+    bad "init refuses to overwrite an existing config"
+else
+    ok "init refuses to overwrite an existing config"
+fi
+
+if XDG_CONFIG_HOME="$init_home" "$padilha_config" compile --quiet; then
+    ok "the default config compiles"
+else
+    bad "the default config compiles"
+fi
+
 echo "nothing is replaced on failure"
 
 printf '{"kept": true}\n' > "$tmp/out.json"

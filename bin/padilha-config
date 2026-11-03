@@ -42,6 +42,22 @@ local function fail(message)
 end
 
 
+
+--------------------------------------------------------------------------
+-- First run: write the default config
+--------------------------------------------------------------------------
+
+local function real_dir()
+    local raw = arg[0] or "padilha-config"
+    local p = io.popen("readlink -f -- '" .. raw:gsub("'", "'\\''") .. "' 2>/dev/null")
+    local resolved = p and p:read("*l")
+    if p then
+        p:close()
+    end
+    local path = (resolved and resolved ~= "") and resolved or raw
+    return path:match("^(.*)/[^/]+$") or "."
+end
+
 --------------------------------------------------------------------------
 -- JSON encoding
 --------------------------------------------------------------------------
@@ -708,7 +724,8 @@ end
 
 local function usage()
     io.stderr:write([[
-usage: padilha-config compile [--config PATH] [--out PATH] [--schema PATH]
+usage: padilha-config init [--force]        write the default ~/.config/padilha/init.lua
+       padilha-config compile [--config PATH] [--out PATH] [--schema PATH]
                               [--no-schema] [--check] [--print] [--quiet]
 
   --config PATH  Lua config to compile  (default: $XDG_CONFIG_HOME/padilha/init.lua)
@@ -739,6 +756,8 @@ local function parse_args(argv)
             opts.no_schema = true
         elseif arg == "--no-merge" then
             opts.no_merge = true
+        elseif arg == "--force" then
+            opts.force = true
         elseif arg == "--check" then
             opts.check = true
         elseif arg == "--print" then
@@ -766,9 +785,43 @@ local function config_home()
     return os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or ".") .. "/.config")
 end
 
+local function write_default_config(force)
+    local target = config_home() .. "/padilha/init.lua"
+    if exists(target) and not force then
+        io.stderr:write(("padilha-config: %s already exists (use --force to replace it)\n"):format(target))
+        os.exit(1)
+    end
+
+    local source = real_dir() .. "/../share/init.lua"
+    local f = io.open(source, "rb")
+    if not f then
+        fail(("cannot find the default config at %s"):format(source))
+    end
+    local text = f:read("*a")
+    f:close()
+
+    os.execute("mkdir -p -- " .. quote(dirname(target)) .. " 2>/dev/null")
+    local tmp = target .. ".tmp"
+    local out = io.open(tmp, "wb")
+    if not out then
+        fail(("cannot write %s"):format(tmp))
+    end
+    out:write(text)
+    out:close()
+    if not os.rename(tmp, target) then
+        os.remove(tmp)
+        fail(("cannot replace %s"):format(target))
+    end
+    io.write(("wrote %s\n"):format(target))
+end
+
 local function main(argv)
     local opts = parse_args(argv)
 
+    if opts.command == "init" then
+        write_default_config(opts.force)
+        return
+    end
     if opts.command ~= "compile" then
         usage()
     end
