@@ -17,8 +17,10 @@ that line is ours.
 ## Status
 
 Foundation. `shell/` is the upstream Caelestia QML/C++ tree, imported at
-v2.5.0 as our base. It is not built yet: the desktop currently running comes
-from the `caelestia-shell` package plus patches.
+v2.5.0 as our base. It builds with the system toolchain (`tools/build.sh`,
+223 targets, Qt 6.11) and the result loads as a Quickshell configuration.
+What runs the desktop today is still the `caelestia-shell` package plus
+patches; the fork is not installed yet.
 
 ## What "ours" means
 
