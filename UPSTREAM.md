@@ -6,7 +6,7 @@ changed and why it matters to us, before it breaks a build.
 | project | pin | role here | what to watch |
 | --- | --- | --- | --- |
 | [caelestia-shell](https://github.com/caelestia-dots/shell) | v2.5.0 | the base of `shell/` | every QML/C++ change is a merge into our tree; config schema additions are C++ |
-| [caelestia-cli](https://github.com/caelestia-dots/cli) | v1.1.3 | replaced by `bin/padilha-theme`; kept as the reference for `scheme.json` | role names and JSON shape, not code we link |
+| [caelestia-cli](https://github.com/caelestia-dots/cli) | v1.1.3 | replaced: no code path executes it now | the `scheme.json` role names, which the shell still reads |
 | [quickshell](https://github.com/quickshell-mirror/quickshell) | v0.3.2 | the QML runtime under the whole shell | API breaks, new modules, scene-graph changes |
 | [Hyprland](https://github.com/hyprwm/Hyprland) | v0.56.2 | compositor, IPC, Lua config | dispatcher renames, config semantics, IPC surface |
 

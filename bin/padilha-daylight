@@ -136,7 +136,10 @@ local function switch(period_name, config, opts)
     end
 
     local h, c = colour.hct_from_hex(seed_hex)
-    local scheme = schememod.build(h, c, mode, entry.variant or "tonalspot")
+    -- The variant chosen in the launcher belongs to the machine, not to the
+    -- wallpaper, so it outlives a period switch.
+    local variant = entry.variant or require("desktop").variant()
+    local scheme = schememod.build(h, c, mode, variant)
 
     if opts.dry_run then
         io.write(string.format("period=%s mode=%s wallpaper=%s seed=%s\n", period_name, mode, wallpaper, seed_hex))

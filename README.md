@@ -36,6 +36,11 @@ colours the way Material does, builds the HCT tonal palettes in Lua and writes
 black for the night, both painted by Maria Padilha, both seeded from the red
 of their candles.
 
+Nothing in the session or the shell executes the Python `caelestia` CLI any
+more: the launcher is `qs`, and wallpaper, scheme, lock, toasts, screenshots,
+recording, the clipboard and the emoji picker are our own commands. The
+package is only still installed because removing it needs root.
+
 ## What "ours" means
 
 - **Owned**: shell behaviour and layout, theme engine, session, settings,
@@ -59,7 +64,7 @@ what moved since our pins.
 | path | what |
 | --- | --- |
 | `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
-| `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock) |
+| `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock), `padilha` (the small command surface), `padilha-shot` / `-record` / `-clipboard` / `-emoji` (utilities) |
 | `lib/` | the Lua under `padilha-theme`: colour maths, scheme roles, templates, apply |
 | `share/` | templates, the two default wallpapers, theme defaults |
 | `examples/` | a reference `init.lua` |
