@@ -156,6 +156,24 @@ function M.apply(scheme, opts)
         written[#written + 1] = "scheme.json"
     end
 
+    -- The pinned bar palette. It is static — black by design — and is read
+    -- only when the shell config says bar.palette = "fixed".
+    local matte_ok, matte = pcall(dofile, lib_dir .. "/../share/schemes/matte-bar.lua")
+    if matte_ok and type(matte) == "table" then
+        local wrote, write_err = M.write(bases.state .. "/caelestia/scheme-bar.json", require("json").encode({
+            name = "matte-bar",
+            flavour = "default",
+            mode = "dark",
+            variant = "monochrome",
+            colours = matte,
+        }))
+        if wrote then
+            written[#written + 1] = "scheme-bar.json"
+        else
+            errors[#errors + 1] = "scheme-bar.json: " .. tostring(write_err)
+        end
+    end
+
     for _, app in ipairs(M.apps) do
         if config_value(config, app.enabled, true) ~= false then
             local text

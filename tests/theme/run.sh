@@ -74,6 +74,11 @@ check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
 check "terminals get OSC 11" "grep -q ']11;rgb:' '$seq'"
 check "htop is left alone" "! test -e '$tmp/tree/home/machine/.config/htop/htoprc'"
 check "nvtop is left alone" "! test -e '$tmp/tree/home/machine/.config/nvtop/nvtop.colors'"
+bar="$tmp/tree/home/machine/.local/state/caelestia/scheme-bar.json"
+check "the pinned bar palette is written" "test -s '$bar'"
+bar_bg=$(/usr/bin/python3 -c "import json;print(json.load(open('$bar'))['colours']['background'])")
+check "the pinned bar palette is black" "[ \"$bar_bg\" = 000000 ]" "background $bar_bg"
+
 check "spicetify gets a colour.ini" "test -s '$tmp/tree/home/machine/.config/spicetify/Themes/caelestia/color.ini'"
 
 mkdir -p "$tmp/tree/home/machine/.config/Equicord"
