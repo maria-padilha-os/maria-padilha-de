@@ -19,6 +19,9 @@ local state_dir = M.state .. "/caelestia"
 local wall_dir = state_dir .. "/wallpaper"
 local variant_file = state_dir .. "/theme.json"
 
+local source = debug.getinfo(1, "S").source:gsub("^@", "")
+local lib_dir = source:match("^(.*)/[^/]+$") or "."
+
 local function quote(s)
     return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
 end
@@ -115,6 +118,167 @@ function M.set_wallpaper(path, opts)
         return nil, table.concat(errors, "; ")
     end
     return built, #written, variant
+end
+
+--------------------------------------------------------------------------
+-- Doctor: what the first real login will trip over
+--------------------------------------------------------------------------
+
+local function exists(path)
+    local f = io.open(path, "rb")
+    if f then
+        f:close()
+        return true
+    end
+    return false
+end
+
+local function capture(cmd)
+    local p = io.popen(cmd .. " 2>/dev/null")
+    if not p then
+        return nil
+    end
+    local text = p:read("*a")
+    p:close()
+    return text
+end
+
+local function size(path)
+    local text = capture("stat -c %s -- " .. quote(path))
+    return text and tonumber(text) or nil
+end
+
+-- Returns a list of { level, name, detail }; level is "ok", "warn" or "fail".
+function M.diagnostics()
+    local out = {}
+    local function add(level, name, detail)
+        out[#out + 1] = { level = level, name = name, detail = detail or "" }
+    end
+
+    -- Tools the theme and the session need.
+    for _, tool in ipairs({ "magick", "qs", "hyprctl", "notify-send" }) do
+        if capture("command -v " .. tool) then
+            add("ok", tool, "on PATH")
+        else
+            add("fail", tool, "missing from PATH")
+        end
+    end
+    if capture("command -v sass") then
+        add("ok", "sass", "Discord themes will compile")
+    else
+        add("warn", "sass", "missing: Discord clients keep their old theme")
+    end
+
+    -- The state directory is where the palette and the wallpaper live.
+    local probe = state_dir .. "/.doctor"
+    local f = io.open(probe, "wb")
+    if f then
+        f:close()
+        os.remove(probe)
+        add("ok", "state directory", state_dir .. " is writable")
+    else
+        add("fail", "state directory", state_dir .. " is not writable")
+    end
+
+    local wallpaper = M.current_wallpaper()
+    if not wallpaper then
+        add("warn", "wallpaper", "none set; padilha-daylight will pick one at login")
+    elseif not exists(wallpaper) then
+        add("fail", "wallpaper", wallpaper .. " does not exist")
+    else
+        add("ok", "wallpaper", wallpaper)
+    end
+
+    local scheme = state_dir .. "/scheme.json"
+    local scheme_size = size(scheme)
+    if not scheme_size then
+        add("fail", "scheme.json", "missing; run padilha-daylight --once")
+    elseif scheme_size < 2000 then
+        add("fail", "scheme.json", ("only %d bytes; looks truncated"):format(scheme_size))
+    else
+        add("ok", "scheme.json", ("%d bytes, variant %s"):format(scheme_size, M.variant()))
+    end
+
+    local wall_variant = M.variant()
+    local known = false
+    for _, v in ipairs(schememod.variants) do
+        if v == wall_variant then
+            known = true
+        end
+    end
+    if known then
+        add("ok", "variant", wall_variant)
+    else
+        add("fail", "variant", wall_variant .. " is not a variant the engine knows")
+    end
+
+    -- Config: compiled file plus the merge baseline.
+    local shell = M.config .. "/caelestia/shell.json"
+    if exists(shell) then
+        add("ok", "shell.json", shell)
+    else
+        add("warn", "shell.json", "not compiled yet; padilha-session does it at login")
+    end
+    if exists(shell .. ".base") then
+        add("ok", "merge baseline", "settings-UI edits will be carried")
+    else
+        add("warn", "merge baseline", "no baseline yet: the first compile takes init.lua as truth")
+    end
+
+    -- Theme outputs, one sample from each family.
+    for _, pair in ipairs({
+        { "Hyprland colours", M.config .. "/hypr/scheme/current.lua" },
+        { "GTK colours", M.config .. "/gtk-3.0/gtk.css" },
+        { "foot theme", M.config .. "/foot/theme-default.ini" },
+    }) do
+        if exists(pair[2]) then
+            add("ok", pair[1], pair[2])
+        else
+            add("warn", pair[1], "missing: run padilha-theme apply")
+        end
+    end
+
+    -- The compositor we are talking to, against our pin.
+    local signature = os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
+    if not signature then
+        add("warn", "Hyprland", "not running in this environment")
+    else
+        local version = capture("hyprctl version | head -n 1")
+        local pin_file = io.open(lib_dir .. "/../upstream.json", "r")
+        local pinned
+        if pin_file then
+            local pins = pin_file:read("*a")
+            pin_file:close()
+            pinned = pins:match('"hyprland"%s*:[%s%S]-"pin"%s*:%s*"v([^"]+)"')
+        end
+        local running = version and version:match("Hyprland ([0-9.]+)")
+        if running and pinned and running ~= pinned then
+            add("warn", "Hyprland", ("running %s, pinned %s"):format(running, pinned))
+        elseif running then
+            add("ok", "Hyprland", running)
+        else
+            add("ok", "Hyprland", "running")
+        end
+    end
+
+    -- The clock: is the palette for the period we are actually in?
+    local period = io.open(state_dir .. "/daylight.period", "r")
+    local saved
+    if period then
+        saved = period:read("*l")
+        period:close()
+    end
+    local hour = tonumber(os.date("%H"))
+    local want = (hour >= 6 and hour < 18) and "day" or "night"
+    if saved == want then
+        add("ok", "daylight", "period is " .. want)
+    elseif saved then
+        add("warn", "daylight", ("period is %s but the clock says %s; run padilha-daylight --once"):format(saved, want))
+    else
+        add("warn", "daylight", "has not run yet; run padilha-daylight --once")
+    end
+
+    return out
 end
 
 return M

@@ -48,6 +48,7 @@ usage: padilha <command>
   scheme get                                   the variant in use
   scheme set --variant NAME                    choose a variant and repaint
   theme mode light|dark                        repaint the current wallpaper
+  doctor                                       check the installed pieces
 ]])
     os.exit(2)
 end
@@ -118,6 +119,25 @@ if command == "wallpaper" then
     else
         usage()
     end
+elseif command == "doctor" then
+    local results = desktop.diagnostics()
+    local bad, warned = 0, 0
+    for _, r in ipairs(results) do
+        local mark = "ok  "
+        if r.level == "warn" then
+            mark = "warn"
+            warned = warned + 1
+        elseif r.level == "fail" then
+            mark = "FAIL"
+            bad = bad + 1
+        end
+        io.write(("%s %-18s %s\n"):format(mark, r.name, r.detail))
+    end
+    if bad > 0 then
+        io.write(("%d failures, %d warnings\n"):format(bad, warned))
+        os.exit(1)
+    end
+    io.write(("%d warnings, nothing fatal\n"):format(warned))
 elseif command == "theme" then
     local what = table.remove(args, 1)
     if what == "mode" then

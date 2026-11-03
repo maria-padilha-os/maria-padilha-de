@@ -71,5 +71,20 @@ fi
 after=$(cat "$HOME/.local/state/caelestia/wallpaper/path.txt" 2>/dev/null || true)
 if [ "${before:-}" = "${after:-}" ]; then ok "wallpaper -p writes nothing"; else bad "wallpaper -p writes nothing"; fi
 
+echo "doctor"
+
+doc=$("$padilha" doctor 2>&1)
+if printf '%s' "$doc" | grep -q "state directory" && printf '%s' "$doc" | grep -q "Hyprland"; then
+    ok "doctor reports the pieces it checks"
+else
+    bad "doctor reports the pieces it checks" "$doc"
+fi
+if printf '%s' "$doc" | grep -qE "^(ok|warn|FAIL) "; then
+    ok "doctor lines carry a status"
+else
+    bad "doctor lines carry a status" "$doc"
+fi
+if [ -n "$($padilha doctor 2>&1)" ]; then ok "doctor always says something"; else bad "doctor always says something"; fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
