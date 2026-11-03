@@ -70,6 +70,9 @@ package() {
         ln -s "/usr/lib/padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
     done
 
+    # A session entry: the same compositor the distro starts, under our name.
+    install -Dm 644 packaging/padilha.desktop "$pkgdir/usr/share/wayland-sessions/padilha.desktop"
+
     # Optional systemd user units; they are inert until the user enables them.
     install -d "$pkgdir/usr/lib/systemd/user"
     install -m 644 session/systemd/user/*.service session/systemd/user/*.target \

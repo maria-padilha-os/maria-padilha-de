@@ -42,6 +42,14 @@ session/restore.sh restore --dry-run
 session/restore.sh watch           # snapshot every minute
 ```
 
+## The session entry
+
+The package installs `/usr/share/wayland-sessions/padilha.desktop`, which is
+the same compositor the distribution starts (Hyprland), under this desktop's
+name. Choosing "Padilha" at the greeter therefore runs the same `execs.lua`
+that calls `padilha-session`; the difference is the label and the
+`DesktopNames` the portals see.
+
 ## What still needs root
 
 The greeter and display-manager configuration: `/etc/lightdm`, the session
