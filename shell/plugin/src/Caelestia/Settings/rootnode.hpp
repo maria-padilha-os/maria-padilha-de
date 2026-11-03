@@ -4,6 +4,8 @@
 #include "objectnode.hpp"
 #include "settingsfile.hpp"
 
+class QTimer;
+
 namespace caelestia::settings {
 
 class RootNode : public ObjectNode {
@@ -26,10 +28,12 @@ signals:
 
 private:
     SettingsFile* const m_file;
+    QTimer* m_captureTimer;
     QList<Diagnostic> m_diagnostics;
 
     void reloadFromFile();
     void saveToFile();
+    void captureToLua();
 };
 
 } // namespace caelestia::settings

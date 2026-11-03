@@ -142,6 +142,53 @@ else
     bad "capture clears an edit that returned to the baseline" "$(cat "$tmp/capture/ui.lua" 2>/dev/null)"
 fi
 
+echo "capture keeps the tree's shape"
+
+mkdir -p "$tmp/capture-tree"
+cat > "$tmp/capture-tree/init.lua" <<'LUA'
+return {
+    appearance = { transparency = { enabled = true } },
+    bar = { height = 40 },
+    general = { idle = { timeouts = padilha.array {} } },
+}
+LUA
+"$padilha_config" compile --config "$tmp/capture-tree/init.lua" --out "$tmp/capture-tree/shell.json" --no-schema --quiet
+cat > "$tmp/capture-tree/shell.json" <<'JSON'
+{
+  "appearance": { "transparency": { "enabled": false } },
+  "bar": { "height": 40, "compact": true },
+  "general": { "idle": { "timeouts": [30, 60] } }
+}
+JSON
+"$padilha_config" capture --shell "$tmp/capture-tree/shell.json" --ui "$tmp/capture-tree/ui.lua" --no-schema >/dev/null 2>&1
+if ! grep -q 'height' "$tmp/capture-tree/ui.lua"; then
+    ok "an unchanged value stays out of ui.lua"
+else
+    bad "an unchanged value stays out of ui.lua" "$(cat "$tmp/capture-tree/ui.lua" 2>/dev/null)"
+fi
+
+if "$padilha_config" compile --config "$tmp/capture-tree/init.lua" --print --no-schema > "$tmp/capture-tree/compiled.json" 2>/dev/null &&
+    /usr/bin/python3 - "$tmp/capture-tree/compiled.json" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+assert d["appearance"]["transparency"]["enabled"] is False, d
+assert d["bar"] == {"height": 40, "compact": True}, d["bar"]
+assert d["general"]["idle"]["timeouts"] == [30, 60], d["general"]
+PY
+then
+    ok "nested edits, new keys and lists survive capture"
+else
+    bad "nested edits, new keys and lists survive capture" "$(cat "$tmp/capture-tree/compiled.json" 2>/dev/null)"
+fi
+
+# The usage block says capture defaults its shell path to --out.
+"$padilha_config" capture --out "$tmp/capture-tree/shell.json" --ui "$tmp/capture-tree/ui2.lua" --no-schema >/dev/null 2>&1
+if grep -q 'compact = true' "$tmp/capture-tree/ui2.lua"; then
+    ok "capture defaults --shell to --out"
+else
+    bad "capture defaults --shell to --out" "$(cat "$tmp/capture-tree/ui2.lua" 2>/dev/null)"
+fi
+
 echo "broken configs"
 
 printf 'return { appearance = }\n' > "$tmp/syntax.lua"

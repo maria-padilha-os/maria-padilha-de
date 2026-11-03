@@ -11,6 +11,9 @@ self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
 bin_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || exit 1
 
 config="$bin_dir/padilha-config"
+# The shell's settings UI spawns `padilha-config capture`; name the exact
+# binary this session compiled with, so a checkout and a package both work.
+export PADILHA_CONFIG="$config"
 
 # First login on a fresh machine: there is no init.lua yet.
 if [ ! -f "${XDG_CONFIG_HOME:-$HOME/.config}/padilha/init.lua" ]; then
