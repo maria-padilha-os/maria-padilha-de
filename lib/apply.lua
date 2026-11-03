@@ -194,6 +194,20 @@ function M.apply(scheme, opts)
         ::continue::
     end
 
+    -- foot keeps both palettes in one config and switches with a signal.
+    local foot_theme = scheme.mode == "light" and "light" or "dark"
+    local foot_ok = M.write(bases.config .. "/foot/theme-default.ini",
+        "[main]\ninitial-color-theme=" .. foot_theme .. "\n")
+    if foot_ok then
+        written[#written + 1] = "foot/theme-default.ini"
+        if opts.signals then
+            os.execute("pkill -" .. (foot_theme == "light" and "USR2" or "USR1") .. " -x foot 2>/dev/null; "
+                .. "pkill -" .. (foot_theme == "light" and "USR2" or "USR1") .. " -x footclient 2>/dev/null")
+        end
+    else
+        errors[#errors + 1] = "foot/theme-default.ini: could not write"
+    end
+
     -- Terminal sequences: written always, broadcast only when asked.
     local seq = M.sequences(colours)
     local wrote, seq_err = M.write(bases.state .. "/caelestia/sequences.txt", seq)

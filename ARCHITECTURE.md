@@ -8,7 +8,7 @@
 | 2 | Hyprland: windows, workspaces, input, layer surfaces, IPC | configured by us, not forked |
 | 3 | Shell (`shell/`): bar, launcher, notifications, OSD, dashboard, lock | ours |
 | 4 | Session: start, lock, suspend, log out | ours (planned) |
-| 5 | Theme: wallpaper → palette → every application | ours (planned) |
+| 5 | Theme: wallpaper → palette → every application | ours |
 | 6 | Settings: the UI that writes what 3–5 read | ours (planned) |
 
 Layer 3 is a QML tree plus one C++ plugin (`Caelestia`: blob shaders, config
@@ -22,14 +22,19 @@ The reason the desktop reads as one product rather than twelve themed apps:
 
 ```
 wallpaper
-  └─ scheme      Material You: HCT seeded from the image, variant + day/night
-      └─ palette JSON   ~/.local/state/caelestia/scheme.json
+  └─ seed        Material's score: hue excitement, then chroma; mode from L*
+      └─ scheme      six HCT tonal palettes, Material's role table
+          └─ palette JSON   ~/.local/state/caelestia/scheme.json
           ├─ Hyprland scheme (lua)      ├─ GTK 3 / GTK 4 css
           ├─ btop theme                 ├─ Qt / Kvantum
           ├─ cava gradient              ├─ foot escape sequences
           ├─ fuzzel, htop, nvtop        ├─ nvim, zed, discord
           └─ postHook: formats that don't fit the template language (mc skin)
 ```
+
+`bin/padilha-theme` is the whole loop: `apply` renders `share/templates/` into
+the application configs and pokes what needs poking. `bin/padilha-daylight`
+picks the wallpaper by hour and runs the loop when the period changes.
 
 The shell consumes the same JSON live (`services/Colours.qml`). Applications
 that can't reload need a signal (btop and htop take `SIGUSR2`) or a restart.

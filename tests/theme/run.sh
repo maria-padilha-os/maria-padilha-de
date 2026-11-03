@@ -79,6 +79,20 @@ echo "modes differ"
 light_surface=$(tone "$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/light-tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")")
 check "light mode has a light surface" "[ $light_surface -ge 90 ]" "tone $light_surface"
 
+echo "daylight"
+
+daylight="$root/bin/padilha-daylight"
+out=$("$daylight" --dry-run 2>&1)
+check "dry run names a period, mode and wallpaper" "printf '%s' \"$out\" | grep -q 'period=night mode=dark wallpaper=.*night.jpg'"
+
+rm -rf "$tmp/day"
+"$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
+check "a switch writes the wallpaper state" "test -s '$tmp/day/home/machine/.local/state/caelestia/wallpaper/path.txt'"
+check "a switch writes the scheme" "test -s '$tmp/day/home/machine/.local/state/caelestia/scheme.json'"
+
+surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/day/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
+check "the shipped default is black" "[ $(tone "$surface") -le 12 ]" "tone $(tone "$surface")"
+
 echo "unknown colours fail loudly"
 
 cat > "$tmp/bad.lua" <<'LUA'

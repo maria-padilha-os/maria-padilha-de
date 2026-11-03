@@ -24,9 +24,17 @@ as commits) is what this machine runs: it builds with the system toolchain
 Configuration is ours too. `bin/padilha-config` compiles
 `~/.config/padilha/init.lua` into the shell's JSON, and `bin/padilha-session`
 runs that compile at login before starting the shell.
+
 Keys and types are validated against the module's own `qmltypes`, so a typo
 is a compile error with a suggestion, not a line the shell silently ignores. The old package copy
 sits at `quickshell/caelestia.pkg` for rollback.
+
+Colours are ours as well. `bin/padilha-theme` reads a wallpaper, scores its
+colours the way Material does, builds the HCT tonal palettes in Lua and writes
+`scheme.json` plus every application template — no Python in that path.
+`bin/padilha-daylight` chooses the wallpaper by the hour: white for the day,
+black for the night, both painted by Maria Padilha, both seeded from the red
+of their candles.
 
 ## What "ours" means
 
@@ -41,21 +49,19 @@ what moved since our pins.
 
 ## Next
 
-1. Build `shell/` from source and run it instead of the package — prove the
-   fork is real before adding anything to it.
-2. Fold the three local patches and the hand edits into the tree, so they stop
-   existing as patches.
-3. Replace the Caelestia CLI theme pass with `padilha-theme` (own palette
-   maths, own templates, no Python dependency).
-4. Session: greeter, `uwsm`/systemd integration, session restore.
-5. Settings application, then packaging.
+1. Session: greeter, `uwsm`/systemd integration, session restore.
+2. Settings application — and a decision about where it writes, because the
+   shell saves to `shell.json` while the compiler regenerates it at login.
+3. Packaging: one installable artefact instead of a home directory.
 
 ## Layout
 
 | path | what |
 | --- | --- |
 | `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
-| `bin/` | `padilha-config` (config compiler) and `padilha-session` (login entry point) |
+| `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock) |
+| `lib/` | the Lua under `padilha-theme`: colour maths, scheme roles, templates, apply |
+| `share/` | templates, the two default wallpapers, theme defaults |
 | `examples/` | a reference `init.lua` |
 | `tests/` | contract tests for the compiler |
 | `tools/` | maintenance scripts |
