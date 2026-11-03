@@ -21,6 +21,11 @@ as commits) is what this machine runs: it builds with the system toolchain
 (`tools/build.sh`, 223 targets, Qt 6.11) and the session starts it through
 `~/.config/quickshell/caelestia`, a symlink into this tree.
 
+The package builds: `packaging/PKGBUILD` runs the same CMake build and installs
+the shell into `/etc/xdg/quickshell/caelestia` (where `qs -c caelestia` looks),
+the commands into `/usr/lib/padilha`, and the session units into
+`/usr/lib/systemd/user`.
+
 Configuration is ours too. `bin/padilha-config` compiles
 `~/.config/padilha/init.lua` into the shell's JSON, and `bin/padilha-session`
 runs that compile at login before starting the shell.
@@ -54,10 +59,12 @@ what moved since our pins.
 
 ## Next
 
-1. Session: greeter, `uwsm`/systemd integration, session restore.
-2. Settings application — and a decision about where it writes, because the
-   shell saves to `shell.json` while the compiler regenerates it at login.
-3. Packaging: one installable artefact instead of a home directory.
+1. The session entry itself: a Padilha greeter and a `wayland-sessions`
+   `.desktop` file, which is the last piece that needs root to install.
+2. The settings application as a *writer of `init.lua`*, now that the compiler
+   carries UI edits instead of overwriting them.
+3. Release the thing: a tagged tarball so the PKGBUILD stops building from
+   the checkout.
 
 ## Layout
 
@@ -66,7 +73,9 @@ what moved since our pins.
 | `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
 | `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock), `padilha` (the small command surface), `padilha-shot` / `-record` / `-clipboard` / `-emoji` (utilities) |
 | `lib/` | the Lua under `padilha-theme`: colour maths, scheme roles, templates, apply |
-| `share/` | templates, the two default wallpapers, theme defaults |
+| `share/` | templates, the two default wallpapers, theme defaults, emoji data |
+| `packaging/` | the PKGBUILD and what a package installs where |
+| `session/` | systemd user units and the session-restore script |
 | `examples/` | a reference `init.lua` |
 | `tests/` | contract tests for the compiler |
 | `tools/` | maintenance scripts |

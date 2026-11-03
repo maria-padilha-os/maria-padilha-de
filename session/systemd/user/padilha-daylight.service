@@ -1,23 +1,13 @@
 [Unit]
 Description=Padilha daylight wallpaper and palette switcher
-Documentation=file:/home/machine/.config/padilha/session/README.md
-After=padilha-session.target padilha-shell.service
-Wants=padilha-shell.service
 PartOf=padilha-session.target
+After=padilha-shell.service
 StartLimitIntervalSec=120
 StartLimitBurst=5
 
 [Service]
 Type=simple
-WorkingDirectory=%h
-Environment=HOME=%h
-Environment=XDG_CONFIG_HOME=%h/.config
-Environment=XDG_STATE_HOME=%h/.local/state
-Environment=XDG_RUNTIME_DIR=%t
-Environment=XDG_CURRENT_DESKTOP=Hyprland
-Environment=XDG_SESSION_TYPE=wayland
-Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=/home/machine/.config/padilha/bin/padilha-daylight
+ExecStart=/usr/bin/padilha-daylight
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=5

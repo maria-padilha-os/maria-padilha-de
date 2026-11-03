@@ -12,7 +12,16 @@
 -- itself is bin/padilha-theme; this is the state around it.
 
 local function script_dir()
-    return (arg[0] or "padilha"):match("^(.*)/[^/]+$") or "."
+    -- Follow the symlink: packaged installs put the real files under
+    -- /usr/lib/padilha/bin and only links in /usr/bin.
+    local raw = arg[0] or "padilha"
+    local p = io.popen("readlink -f -- '" .. raw:gsub("'", "'\\''") .. "' 2>/dev/null")
+    local resolved = p and p:read("*l")
+    if p then
+        p:close()
+    end
+    local path = (resolved and resolved ~= "") and resolved or raw
+    return path:match("^(.*)/[^/]+$") or "."
 end
 
 local root = script_dir() .. "/.."

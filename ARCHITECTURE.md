@@ -7,7 +7,7 @@
 | 1 | Linux, Wayland, Qt 6, Quickshell runtime | platform — pinned, never carried |
 | 2 | Hyprland: windows, workspaces, input, layer surfaces, IPC | configured by us, not forked |
 | 3 | Shell (`shell/`): bar, launcher, notifications, OSD, dashboard, lock | ours |
-| 4 | Session: start, lock, suspend, log out | ours (planned) |
+| 4 | Session: start, lock, suspend, log out | ours (user units; the DM entry is still the distro's) |
 | 5 | Theme: wallpaper → palette → every application | ours |
 | 6 | Settings: the UI that writes what 3–5 read | ours (planned) |
 

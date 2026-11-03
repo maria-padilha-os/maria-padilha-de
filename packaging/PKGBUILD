@@ -1,0 +1,81 @@
+# Maintainer: Padilha <padilha@localhost>
+#
+# Padilha is developed in place (the repo is the home directory), so this
+# recipe builds from the checkout it sits in instead of from a tarball. Once
+# there is a release, swap `_repo` for the usual source array.
+pkgname=padilha
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Desktop Maria Padilha: a Wayland desktop on Hyprland and Quickshell"
+arch=('x86_64')
+url="https://github.com/padilha/desktop"
+license=('GPL-3.0-only')
+depends=(
+    'quickshell'
+    'qt6-base'
+    'qt6-declarative'
+    'libpipewire'
+    'aubio'
+    'libcava'
+    'libqalculate'
+    'lm_sensors'
+    'hyprland'
+    'lua'
+    'imagemagick'
+)
+optdepends=(
+    'sass: Discord theme compilation'
+    'grim: screenshots'
+    'slurp: region selection'
+    'swappy: annotate screenshots'
+    'wl-clipboard: screenshot and clipboard copy'
+    'cliphist: clipboard history'
+    'fuzzel: launcher, clipboard and emoji picker'
+    'gpu-screen-recorder: screen recording'
+    'btop: system monitor themes'
+    'papirus-icon-theme: icon theme the GTK templates name'
+    'ttf-jetbrains-mono-nerd: terminal and bar font'
+)
+options=('!strip')  # the shell is a QML tree; stripping breaks nothing but helps nothing
+
+_repo="$(realpath "$startdir/..")"
+
+build() {
+    cd "$_repo"
+    cmake -S shell -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DINSTALL_QSCONFDIR=/etc/xdg/quickshell/caelestia \
+        -DVERSION="$pkgver" \
+        -DGIT_REVISION="$(git -C "$_repo" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+    cmake --build build -j"$(nproc)"
+}
+
+package() {
+    cd "$_repo"
+
+    # The shell: QML modules into /usr/lib/qt6/qml and the tree into
+    # /etc/xdg/quickshell/caelestia, which is where `qs -c caelestia` looks.
+    DESTDIR="$pkgdir" cmake --install build --prefix /usr
+
+    # The commands keep their relative layout (bin/lib/share) because they
+    # resolve their data next to themselves; /usr/bin only carries links.
+    install -d "$pkgdir/usr/lib/padilha"
+    cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/padilha/"
+    chmod 755 "$pkgdir/usr/lib/padilha/bin/"*
+
+    install -d "$pkgdir/usr/bin"
+    for cmd in padilha padilha-config padilha-session padilha-theme padilha-daylight \
+        padilha-shot padilha-record padilha-clipboard padilha-emoji; do
+        ln -s "/usr/lib/padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
+    done
+
+    # Optional systemd user units; they are inert until the user enables them.
+    install -d "$pkgdir/usr/lib/systemd/user"
+    install -m 644 session/systemd/user/*.service session/systemd/user/*.target \
+        "$pkgdir/usr/lib/systemd/user/"
+
+    install -Dm 644 shell/LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm 644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+    install -Dm 644 ARCHITECTURE.md CONFIG.md UPSTREAM.md "$pkgdir/usr/share/doc/$pkgname/"
+}

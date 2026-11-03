@@ -1,9 +1,8 @@
 [Unit]
 Description=Padilha session
-Documentation=file:/home/machine/.config/padilha/session/README.md
+Wants=padilha-shell.service padilha-daylight.service
 After=graphical-session.target
 PartOf=graphical-session.target
-Wants=padilha-shell.service padilha-daylight.service
 
 [Install]
 WantedBy=graphical-session.target

@@ -12,3 +12,8 @@ result-*
 
 # scratch trees from tests and hand runs
 .scratch/
+
+# makepkg artefacts
+packaging/pkg/
+packaging/src/
+packaging/*.pkg.tar.*
