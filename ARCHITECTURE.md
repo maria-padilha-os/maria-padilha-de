@@ -28,7 +28,7 @@ wallpaper
           ├─ Hyprland scheme (lua)      ├─ GTK 3 / GTK 4 css
           ├─ btop theme                 ├─ Qt / Kvantum
           ├─ cava gradient              ├─ foot escape sequences
-          ├─ fuzzel, htop, nvtop        ├─ nvim, zed, discord
+          ├─ fuzzel, spicetify          ├─ nvim, discord
           └─ postHook: formats that don't fit the template language (mc skin)
 ```
 
@@ -37,7 +37,7 @@ the application configs and pokes what needs poking. `bin/padilha-daylight`
 picks the wallpaper by hour and runs the loop when the period changes.
 
 The shell consumes the same JSON live (`services/Colours.qml`). Applications
-that can't reload need a signal (btop and htop take `SIGUSR2`) or a restart.
+that can't reload need a signal (btop and cava take `SIGUSR2`) or a restart.
 
 Invariant: one input, every surface. Any colour on screen that didn't come
 through this loop is a bug, not a preference.

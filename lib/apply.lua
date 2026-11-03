@@ -1,7 +1,7 @@
 -- Write a scheme to every application that can be told about it.
 --
 -- Each entry is a file, the template it is rendered from, and what has to be
--- poked afterwards: btop, htop and cava reload on SIGUSR2, GTK needs dconf,
+-- poked afterwards: btop and cava reload on SIGUSR2, GTK needs dconf,
 -- terminals take OSC sequences. Paths are relative to the XDG directory in
 -- the `base` field so a test can point the whole thing at a scratch tree.
 
@@ -68,10 +68,6 @@ M.apps = {
     { id = "fuzzel", base = "config", dest = "fuzzel/fuzzel.ini", template = "fuzzel.ini", enabled = "enableFuzzel" },
     { id = "btop", base = "config", dest = "btop/themes/caelestia.theme", template = "btop.theme", hash = true,
         reload = "killall -USR2 btop", enabled = "enableBtop" },
-    { id = "htop", base = "config", dest = "htop/htoprc", template = "htop.theme", hash = true,
-        reload = "killall -USR2 htop", enabled = "enableHtop" },
-    { id = "nvtop", base = "config", dest = "nvtop/nvtop.colors", template = "nvtop.colors", hash = true,
-        enabled = "enableNvtop" },
     { id = "cava", base = "config", dest = "cava/config", template = "cava.conf", hash = true,
         reload = "killall -USR2 cava", enabled = "enableCava" },
     { id = "gtk3", base = "config", dest = "gtk-3.0/gtk.css", template = "gtk.css", hash = true,
