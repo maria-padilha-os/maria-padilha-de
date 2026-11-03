@@ -245,7 +245,7 @@ function M.build(seed_h, seed_c, mode, variant)
     put("errorPaletteKeyColor", { pal.e[1], pal.e[2], 50 })
 
     -- Older spelling of the same keys, still read by some templates.
-    for _, name in ipairs({ "primary", "secondary", "tertiary", "neutral", "error" }) do
+    for _, name in ipairs({ "primary", "secondary", "tertiary", "neutral" }) do
         colours[name .. "_paletteKeyColor"] = colours[name .. "PaletteKeyColor"]
     end
     colours.neutral_variant_paletteKeyColor = colours.neutralVariantPaletteKeyColor
