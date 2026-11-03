@@ -46,18 +46,7 @@ ColumnLayout {
 
         if (id === "statusIcons" && Config.bar.popouts.statusIcons) {
             const items = (ch.item as StatusIcons).items;
-            let icon = items.childAt(items.width / 2, mapToItem(items, 0, y).y);
-            // Clicking the pill's padding should behave like GNOME's whole
-            // status cluster: open the panel from any icon.
-            if (!icon) {
-                const children = items.children;
-                for (let i = 0; i < children.length; i++) {
-                    if (children[i].name === "quicksettings") {
-                        icon = children[i];
-                        break;
-                    }
-                }
-            }
+            const icon = items.childAt(items.width / 2, mapToItem(items, 0, y).y);
             if (icon) {
                 popouts.currentName = icon.name;
                 popouts.currentCenter = Qt.binding(() => icon.mapToItem(root, 0, icon.implicitHeight / 2).y);

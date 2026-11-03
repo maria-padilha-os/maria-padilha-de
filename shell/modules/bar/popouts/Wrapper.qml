@@ -112,7 +112,6 @@ Item {
 
         sourceComponent: Content {
             popouts: popoutState
-            screen: root.screen
         }
     }
 

@@ -187,43 +187,6 @@ Scope {
         }
     }
 
-    // qmllint disable unresolved-type
-    CustomShortcut {
-        // qmllint enable unresolved-type
-        name: "quicksettings"
-        description: "Toggle quick settings"
-        onPressed: {
-            const comps = ShellState.componentsForActive();
-            const icons = comps?.find("taskbarStatusIcons");
-            const popouts = comps?.bar?.popouts;
-            if (!icons || !popouts)
-                return;
-
-            if (popouts.hasCurrent && popouts.currentName === "quicksettings") {
-                popouts.hasCurrent = false;
-                return;
-            }
-
-            const items = icons.items.children;
-            let icon = null;
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].name === "quicksettings") {
-                    icon = items[i];
-                    break;
-                }
-            }
-            // The whole status cluster is the button; fall back to its first icon.
-            if (!icon)
-                icon = items[0] ?? null;
-            if (!icon)
-                return;
-
-            popouts.currentName = "quicksettings";
-            popouts.currentCenter = icon.mapToItem(comps.bar, 0, icon.implicitHeight / 2).y;
-            popouts.hasCurrent = true;
-        }
-    }
-
     IpcHandler {
         function toggle(drawer: string): void {
             if (list().split("\n").includes(drawer)) {
