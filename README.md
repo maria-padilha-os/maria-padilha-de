@@ -23,7 +23,9 @@ as commits) is what this machine runs: it builds with the system toolchain
 
 Configuration is ours too. `bin/padilha-config` compiles
 `~/.config/padilha/init.lua` into the shell's JSON, and `bin/padilha-session`
-runs that compile at login before starting the shell. The old package copy
+runs that compile at login before starting the shell.
+Keys and types are validated against the module's own `qmltypes`, so a typo
+is a compile error with a suggestion, not a line the shell silently ignores. The old package copy
 sits at `quickshell/caelestia.pkg` for rollback.
 
 ## What "ours" means

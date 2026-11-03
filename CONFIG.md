@@ -35,9 +35,11 @@ Data only:
 - anything Lua can compute: a loop that builds per-monitor entries, a table
   built from another table, `if` on hostname
 
-Keys map onto the shell's config schema. Unknown keys pass through untouched
-and are ignored by the shell today; schema validation arrives with the
-settings app.
+Keys are checked against the shell's own schema — the `caelestia-config.qmltypes`
+that `qmltyperegistrar` writes next to the module. An unknown key is an error
+with a suggestion (`config.appearanc: unknown key (did you mean "appearance"?)`)
+and so is a wrong type. `--no-schema` skips the check; `--schema PATH` points
+at a different qmltypes.
 
 ## What you cannot write yet
 
@@ -67,6 +69,8 @@ bin/padilha-config compile                  # init.lua -> shell.json
 bin/padilha-config compile --check          # parse and validate, write nothing
 bin/padilha-config compile --print          # to stdout, for diffing
 bin/padilha-config compile --config X.lua --out Y.json
+bin/padilha-config compile --schema path/to.qmltypes   # validate against another schema
+bin/padilha-config compile --no-schema                 # skip key/type validation
 ```
 
 At login the session calls `bin/padilha-session`, which compiles `init.lua`

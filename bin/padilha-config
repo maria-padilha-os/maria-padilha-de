@@ -36,6 +36,12 @@ local function exists(path)
     return false
 end
 
+local function fail(message)
+    io.stderr:write("padilha-config: " .. message .. "\n")
+    os.exit(1)
+end
+
+
 --------------------------------------------------------------------------
 -- JSON encoding
 --------------------------------------------------------------------------
@@ -218,15 +224,199 @@ local function deep_merge(base, override)
 end
 
 --------------------------------------------------------------------------
+-- Schema validation
+--
+-- The config schema lives in C++ (libcaelestia-config), but qmltyperegistrar
+-- also writes it out as a .qmltypes file next to the module. That file is the
+-- only description of the accepted keys we get for free, so unknown keys and
+-- wrong types are caught here rather than silently ignored by the shell.
+--------------------------------------------------------------------------
+
+local function script_root()
+    local source = debug.getinfo(1, "S").source:gsub("^@", "")
+    return source:match("^(.*)/bin/[^/]+$") or "."
+end
+
+local function find_schema()
+    local root = script_root()
+    for _, path in ipairs {
+        root .. "/build/qml/Caelestia/Config/caelestia-config.qmltypes",
+        "/usr/lib/qt6/qml/Caelestia/Config/caelestia-config.qmltypes",
+    } do
+        if exists(path) then
+            return path
+        end
+    end
+    return nil
+end
+
+local function short_name(t)
+    return (t:gsub("^.*::", ""))
+end
+
+-- Returns type name -> { property name -> type name }, plus a reverse index.
+local function parse_schema(path)
+    local f = io.open(path, "rb")
+    if not f then
+        return nil
+    end
+    local text = f:read("*a")
+    f:close()
+
+    local types = {}
+    for chunk in text:gmatch("Component %b{}") do
+        local name = chunk:match('name:%s*"([^"]+)"')
+        if name then
+            local props = {}
+            for block in chunk:gmatch("Property %b{}") do
+                local pname = block:match('name:%s*"([^"]+)"')
+                local ptype = block:match('type:%s*"([^"]+)"')
+                if pname and ptype then
+                    props[pname] = ptype
+                end
+            end
+            types[name] = props
+        end
+    end
+
+    return types
+end
+
+local function edit_distance(a, b)
+    local prev = {}
+    for j = 0, #b do
+        prev[j] = j
+    end
+    for i = 1, #a do
+        local cur = { [0] = i }
+        for j = 1, #b do
+            local cost = a:sub(i, i) == b:sub(j, j) and 0 or 1
+            cur[j] = math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+        end
+        prev = cur
+    end
+    return prev[#b]
+end
+
+local function suggest(key, props)
+    local best, best_distance = nil, math.huge
+    for candidate in pairs(props) do
+        local distance = edit_distance(key, candidate)
+        if distance < best_distance then
+            best, best_distance = candidate, distance
+        end
+    end
+    if best and best_distance <= math.max(1, math.floor(#key / 3)) then
+        return best
+    end
+    return nil
+end
+
+-- bool / number / string / array, or nil for components and types we can't
+-- check (QVariant, enums, URLs the shell accepts as strings...).
+local function type_kind(t)
+    if t == "bool" then
+        return "boolean"
+    elseif t == "int" or t == "double" or t == "real" or t == "float" then
+        return "number"
+    elseif t == "QString" or t == "QColor" or t == "QUrl" then
+        return "string"
+    elseif t:match("List$") or t:match("^QList<") or t:match("^QQmlListProperty<") then
+        return "array"
+    end
+    return nil
+end
+
+local schema_components, schema_root
+
+local function validate(node, props, path, errors)
+    for key, value in pairs(node) do
+        local name = tostring(key)
+        local child = path .. "." .. name
+        local declared = props[name]
+
+        if not declared then
+            local hint = suggest(name, props)
+            errors[#errors + 1] = ("%s: unknown key%s"):format(
+                child,
+                hint and (" (did you mean %q?)"):format(hint) or ""
+            )
+        else
+            local kind = type_kind(declared)
+            local actual = type(value)
+
+            if kind == "boolean" and actual ~= "boolean" then
+                errors[#errors + 1] = ("%s: expected a boolean, got %s"):format(child, actual)
+            elseif kind == "number" and actual ~= "number" then
+                errors[#errors + 1] = ("%s: expected a number, got %s"):format(child, actual)
+            elseif kind == "string" and actual ~= "string" then
+                errors[#errors + 1] = ("%s: expected a string, got %s"):format(child, actual)
+            elseif kind == "array" and actual ~= "table" then
+                errors[#errors + 1] = ("%s: expected a list, got %s"):format(child, actual)
+            elseif kind == nil then
+                local nested = schema_components[declared] or schema_components[short_name(declared)]
+                if nested then
+                    if actual == "table" then
+                        validate(value, nested, child, errors)
+                    else
+                        errors[#errors + 1] = ("%s: expected an object, got %s"):format(child, actual)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function load_schema(path)
+    local types = parse_schema(path)
+    if not types then
+        return false
+    end
+
+    schema_components = {}
+    for name, props in pairs(types) do
+        schema_components[name] = props
+        schema_components[short_name(name)] = props
+    end
+
+    local root = types["caelestia::config::ConfigRoot"]
+    for name, props in pairs(types) do
+        if name:match("::ConfigRoot$") then
+            root = root or props
+        end
+    end
+    schema_root = root
+    return root ~= nil
+end
+
+local function check_schema(node, label)
+    if not schema_root then
+        return
+    end
+    local errors = {}
+    validate(node, schema_root, "config", errors)
+    if #errors == 0 then
+        return
+    end
+    for _, message in ipairs(errors) do
+        io.stderr:write(("%s: %s\n"):format(label, message))
+    end
+    fail(("%d schema error%s in %s"):format(#errors, #errors == 1 and "" or "s", label))
+end
+
+--------------------------------------------------------------------------
 -- CLI
 --------------------------------------------------------------------------
 
 local function usage()
     io.stderr:write([[
-usage: padilha-config compile [--config PATH] [--out PATH] [--check] [--print] [--quiet]
+usage: padilha-config compile [--config PATH] [--out PATH] [--schema PATH]
+                              [--no-schema] [--check] [--print] [--quiet]
 
   --config PATH  Lua config to compile  (default: $XDG_CONFIG_HOME/padilha/init.lua)
   --out PATH     JSON to write         (default: $XDG_CONFIG_HOME/caelestia/shell.json)
+  --schema PATH  qmltypes to validate against (default: the built module, then the system one)
+  --no-schema    skip key and type validation
   --check        parse and validate only, write nothing
   --print        write the JSON to stdout instead of a file
   --quiet        no success message
@@ -240,12 +430,14 @@ local function parse_args(argv)
     local i = 1
     while i <= #argv do
         local arg = argv[i]
-        if arg == "--config" or arg == "--out" then
+        if arg == "--config" or arg == "--out" or arg == "--schema" then
             i = i + 1
             if not argv[i] then
                 usage()
             end
             opts[arg:sub(3)] = argv[i]
+        elseif arg == "--no-schema" then
+            opts.no_schema = true
         elseif arg == "--check" then
             opts.check = true
         elseif arg == "--print" then
@@ -269,11 +461,6 @@ local function parse_args(argv)
     return opts
 end
 
-local function fail(message)
-    io.stderr:write("padilha-config: " .. message .. "\n")
-    os.exit(1)
-end
-
 local function config_home()
     return os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or ".") .. "/.config")
 end
@@ -288,6 +475,17 @@ local function main(argv)
     local config = opts.config or (config_home() .. "/padilha/init.lua")
     local out = opts.out or (config_home() .. "/caelestia/shell.json")
 
+    if not opts.no_schema then
+        local path = opts.schema or find_schema()
+        if path then
+            if not load_schema(path) then
+                fail(("no ConfigRoot type in %s"):format(path))
+            end
+        elseif not opts.quiet then
+            io.stderr:write("padilha-config: no qmltypes found, skipping key validation\n")
+        end
+    end
+
     if not exists(config) then
         fail(("no config at %s (see examples/init.lua)"):format(config))
     end
@@ -296,6 +494,7 @@ local function main(argv)
     if not root then
         fail(err)
     end
+    check_schema(root, config)
 
     local overlay = dirname(config) .. "/local.lua"
     local used_overlay = false
@@ -304,6 +503,7 @@ local function main(argv)
         if not local_cfg then
             fail(lerr)
         end
+        check_schema(local_cfg, overlay)
         root = deep_merge(root, local_cfg)
         used_overlay = true
     end

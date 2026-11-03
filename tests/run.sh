@@ -49,13 +49,13 @@ echo "overlay"
 
 mkdir -p "$tmp/withlocal"
 cat > "$tmp/withlocal/init.lua" <<'LUA'
-return { appearance = { transparency = { enabled = false } }, general = { gaps = 10 } }
+return { enabled = false, appearance = { transparency = { enabled = false } } }
 LUA
 cat > "$tmp/withlocal/local.lua" <<'LUA'
 return { appearance = { transparency = { enabled = true } } }
 LUA
 out=$("$padilha_config" compile --config "$tmp/withlocal/init.lua" --print 2>&1)
-if printf '%s' "$out" | grep -q '"enabled": true' && printf '%s' "$out" | grep -q '"gaps": 10'; then
+if printf '%s' "$out" | grep -q '"enabled": true' && printf '%s' "$out" | grep -q '"enabled": false'; then
     ok "local.lua overrides, keeps the rest"
 else
     bad "local.lua overrides, keeps the rest" "$out"
@@ -76,7 +76,65 @@ printf 'return 42\n' > "$tmp/number.lua"
 expect_fail "non-table return is rejected" "$tmp/number.lua" "must return a table"
 
 printf 'local t = {} t.self = t return { bar = t }\n' > "$tmp/recursive.lua"
-expect_fail "recursive table is rejected" "$tmp/recursive.lua" "refers to itself"
+err=$("$padilha_config" compile --config "$tmp/recursive.lua" --no-schema --check 2>&1)
+if printf '%s' "$err" | grep -qi "refers to itself"; then ok "recursive table is rejected"; else bad "recursive table is rejected" "$err"; fi
+
+echo "schema"
+
+schema="$root/tests/fixtures/schema.qmltypes"
+cat > "$tmp/schema_good.lua" <<'LUA'
+return { enabled = true, appearance = { transparency = { enabled = false } } }
+LUA
+if "$padilha_config" compile --config "$tmp/schema_good.lua" --schema "$schema" --check >/dev/null 2>&1; then
+    ok "valid keys pass"
+else
+    bad "valid keys pass"
+fi
+
+cat > "$tmp/schema_unknown.lua" <<'LUA'
+return { enabled = true, appearanc = {} }
+LUA
+err=$("$padilha_config" compile --config "$tmp/schema_unknown.lua" --schema "$schema" --check 2>&1)
+if printf '%s' "$err" | grep -q 'unknown key' && printf '%s' "$err" | grep -q 'did you mean "appearance"'; then
+    ok "unknown key suggests the real one"
+else
+    bad "unknown key suggests the real one" "$err"
+fi
+
+cat > "$tmp/schema_type.lua" <<'LUA'
+return { enabled = "yes" }
+LUA
+err=$("$padilha_config" compile --config "$tmp/schema_type.lua" --schema "$schema" --check 2>&1)
+if printf '%s' "$err" | grep -q 'expected a boolean, got string'; then
+    ok "wrong type is reported"
+else
+    bad "wrong type is reported" "$err"
+fi
+
+cat > "$tmp/schema_nested.lua" <<'LUA'
+return { appearance = { transparency = { enable = true } } }
+LUA
+err=$("$padilha_config" compile --config "$tmp/schema_nested.lua" --schema "$schema" --check 2>&1)
+if printf '%s' "$err" | grep -q 'appearance.transparency.enable: unknown key'; then
+    ok "nested unknown key is caught"
+else
+    bad "nested unknown key is caught" "$err"
+fi
+
+if "$padilha_config" compile --config "$tmp/schema_unknown.lua" --no-schema --check >/dev/null 2>&1; then
+    ok "--no-schema skips validation"
+else
+    bad "--no-schema skips validation"
+fi
+
+real_schema="$root/build/qml/Caelestia/Config/caelestia-config.qmltypes"
+if [ -f "$real_schema" ]; then
+    if "$padilha_config" compile --config "$root/examples/init.lua" --check >/dev/null 2>&1; then
+        ok "the shipped example matches the real schema"
+    else
+        bad "the shipped example matches the real schema"
+    fi
+fi
 
 echo "nothing is replaced on failure"
 

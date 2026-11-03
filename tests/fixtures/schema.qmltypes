@@ -1,0 +1,34 @@
+import QtQuick.tooling 1.2
+
+Module {
+    Component {
+        name: "caelestia::config::ConfigRoot"
+        accessSemantics: "reference"
+        Property {
+            name: "enabled"
+            type: "bool"
+            index: 0
+        }
+        Property {
+            name: "appearance"
+            type: "caelestia::config::AppearanceConfig"
+            index: 1
+        }
+    }
+    Component {
+        name: "caelestia::config::AppearanceConfig"
+        accessSemantics: "reference"
+        Property {
+            name: "transparency"
+            type: "caelestia::config::TransparencyConfig"
+        }
+    }
+    Component {
+        name: "caelestia::config::TransparencyConfig"
+        accessSemantics: "reference"
+        Property {
+            name: "enabled"
+            type: "bool"
+        }
+    }
+}
