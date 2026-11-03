@@ -109,3 +109,14 @@ what moved since our pins.
 The shell descends from [Caelestia](https://github.com/caelestia-dots/shell),
 GPL-3.0 — see `shell/LICENSE`. Keeping that licence is the price of standing on
 someone else's work; from here the code is ours to maintain.
+
+## Licence
+
+Padilha is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, version 3. It is distributed in the hope that it will be useful,
+but without any warranty; see `LICENSE` for the full text.
+
+The shell keeps the licence it arrived with (`shell/LICENSE`); the rest of the
+tree — commands, theme engine, session, packaging — is ours, under the same
+terms. Copyright (C) 2026 the Padilha authors.
