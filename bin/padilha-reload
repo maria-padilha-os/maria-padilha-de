@@ -1,0 +1,58 @@
+#!/bin/sh
+# Restart the shell without racing Quickshell's runtime directory.
+#
+#   padilha-reload [CONFIG]
+#
+# The old restart binding was `kill; sleep .1; qs -n -d`. The replacement
+# could reach Quickshell before the dying instance had released its runtime
+# state; `-n` then treated the corpse as a live instance and exited, leaving
+# the desktop without a shell. This waits for the IPC socket to go away, clears
+# the stale runtime directory, and only then starts the new instance.
+set -u
+
+usage() {
+    echo "usage: padilha-reload [CONFIG]" >&2
+    exit 2
+}
+
+case "${1:-}" in
+-h | --help)
+    echo "usage: padilha-reload [CONFIG]"
+    exit 0
+    ;;
+-*)
+    usage
+    ;;
+esac
+
+config="${1:-caelestia}"
+
+if ! command -v qs >/dev/null 2>&1; then
+    echo "padilha-reload: qs is not on PATH" >&2
+    exit 1
+fi
+
+# Ignore "no running instance"; that is a valid state to reload from.
+qs -c "$config" kill >/dev/null 2>&1 || true
+
+i=0
+while qs -c "$config" ipc show >/dev/null 2>&1; do
+    i=$((i + 1))
+    if [ "$i" -ge 50 ]; then
+        echo "padilha-reload: $config did not stop within 5s" >&2
+        exit 1
+    fi
+    sleep 0.1
+done
+
+runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+if [ -z "$runtime" ]; then
+    echo "padilha-reload: cannot determine XDG_RUNTIME_DIR" >&2
+    exit 1
+fi
+
+# Quickshell leaves by-shell/by-path symlinks and the instance lock behind
+# after a kill. They are runtime state, not config or cache.
+rm -rf "$runtime/quickshell"
+
+exec qs -c "$config" -n -d

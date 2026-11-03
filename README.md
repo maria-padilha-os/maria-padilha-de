@@ -91,7 +91,7 @@ what moved since our pins.
 | path | what |
 | --- | --- |
 | `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
-| `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock), `padilha` (the small command surface), `padilha-shot` / `-record` / `-clipboard` / `-emoji` (utilities) |
+| `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock), `padilha-reload` (restart the shell safely), `padilha` (the small command surface), `padilha-shot` / `-record` / `-clipboard` / `-emoji` (utilities) |
 | `lib/` | the Lua under `padilha-theme`: colour maths, scheme roles, templates, apply |
 | `share/` | templates, the two default wallpapers, theme defaults, emoji data |
 | `packaging/` | the PKGBUILD and what a package installs where |

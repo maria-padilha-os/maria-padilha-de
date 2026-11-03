@@ -72,7 +72,7 @@ package() {
 
     install -d "$pkgdir/usr/bin"
     for cmd in padilha padilha-config padilha-session padilha-theme padilha-daylight \
-        padilha-shot padilha-record padilha-clipboard padilha-emoji; do
+        padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji; do
         ln -s "/usr/lib/padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
     done
 
