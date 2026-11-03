@@ -30,10 +30,15 @@ void ObjectNode::resetOption(const QString& key) {
     }
 
     const WriteScope scope(this, WriteOrigin::QmlReset);
-    if (desc->isNode)
-        value(key).value<Node*>()->resetToDefaults();
-    else
+    if (desc->isNode) {
+        auto* const node = value(key).value<Node*>();
+        if (node)
+            node->resetToDefaults();
+        else
+            qCWarning(lcSettings, "No node for %s; skipping reset", qUtf8Printable(pathFor(key)));
+    } else {
         setValue(key, fallbackNode() ? fallbackNode()->value(key) : desc->defaultValue());
+    }
 }
 
 Descriptor ObjectNode::descriptorFor(const QString& key) const {
@@ -138,6 +143,11 @@ QSet<QString> ObjectNode::loadFromJson(const QJsonObject& json, QList<Diagnostic
         if (desc->isNode) {
             qCDebug(lcSettings) << "  Recursing into" << key;
             auto* const node = value(key).value<Node*>();
+            if (!node) {
+                qCWarning(lcSettings, "No node for %s; not loading it", qUtf8Printable(pathFor(key)));
+                quarantineKey(key, v);
+                continue;
+            }
             if (node->syncJson(v, diagnostics))
                 visited << key;
             else
@@ -186,7 +196,11 @@ void ObjectNode::resetUnvisited(const QSet<QString>& visited) {
 
         // Reset nodes recursively
         if (desc.isNode) {
-            value(desc.key).value<Node*>()->resetToDefaults();
+            auto* const node = value(desc.key).value<Node*>();
+            if (node)
+                node->resetToDefaults();
+            else
+                qCWarning(lcSettings, "No node for %s; skipping reset", qUtf8Printable(pathFor(desc.key)));
             continue;
         }
 
