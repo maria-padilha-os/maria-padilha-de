@@ -192,8 +192,10 @@ while i <= #arg do
         opts.once = true
     elseif a == "--dry-run" then
         opts.dry_run = true
+    elseif a == "--force" then
+        opts.force = true
     elseif a == "--help" or a == "-h" then
-        io.write("usage: padilha-daylight [--once] [--dry-run] [--prefix DIR]\n")
+        io.write("usage: padilha-daylight [--once] [--force] [--dry-run] [--prefix DIR]\n")
         os.exit(0)
     else
         die("unknown argument " .. a)
@@ -216,7 +218,7 @@ local function check()
         f:close()
     end
 
-    if current == previous and not opts.dry_run then
+    if current == previous and not opts.dry_run and not opts.force then
         return
     end
 
