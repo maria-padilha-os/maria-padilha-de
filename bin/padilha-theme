@@ -1,0 +1,208 @@
+#!/usr/bin/env lua
+-- padilha-theme: wallpaper in, every application's colours out.
+--
+--   padilha-theme seed --wallpaper PATH          what the seed would be
+--   padilha-theme scheme --wallpaper PATH        write scheme.json
+--   padilha-theme scheme --print                 ... and show it instead
+--   padilha-theme apply --wallpaper PATH         scheme + templates
+--
+-- The mode and variant are inferred from the image unless given. Nothing here
+-- calls the Python caelestia CLI; the maths lives in lib/colour.lua.
+
+local function script_dir()
+    local path = arg[0] or "padilha-theme"
+    local dir = path:match("^(.*)/[^/]+$") or "."
+    return dir
+end
+
+local root = script_dir() .. "/.."
+package.path = root .. "/lib/?.lua;" .. package.path
+
+local colour = require("colour")
+local seedmod = require("seed")
+local schememod = require("scheme")
+local json = require("json")
+
+local function die(msg)
+    io.stderr:write("padilha-theme: ", msg, "\n")
+    os.exit(1)
+end
+
+local function usage()
+    io.stderr:write([[
+usage: padilha-theme <command> [options]
+
+  seed    --wallpaper PATH [--print] [--json]
+  scheme  --wallpaper PATH [--mode light|dark] [--variant NAME]
+          [--seed RRGGBB] [--out PATH] [--print] [--quiet]
+  apply   --wallpaper PATH [--seed RRGGBB] [--prefix DIR]
+          [--broadcast] [--dconf] [--hooks] [--no-signals]
+
+  --mode and --variant are inferred from the image when omitted.
+]])
+    os.exit(2)
+end
+
+local function parse(args)
+    local opts, command = {}, nil
+    local i = 1
+    while i <= #args do
+        local a = args[i]
+        if a == "--wallpaper" or a == "--mode" or a == "--variant" or a == "--seed" or a == "--out" then
+            i = i + 1
+            if not args[i] then
+                die(a .. " needs a value")
+            end
+            opts[a:sub(3)] = args[i]
+        elseif a == "--print" then
+            opts.print = true
+        elseif a == "--quiet" then
+            opts.quiet = true
+        elseif a == "--prefix" then
+            i = i + 1
+            opts.prefix = args[i] or die("--prefix needs a directory")
+        elseif a == "--no-signals" then
+            opts.signals = false
+        elseif a == "--broadcast" then
+            opts.broadcast = true
+        elseif a == "--dconf" then
+            opts.dconf = true
+        elseif a == "--hooks" then
+            opts.hooks = true
+        elseif a:sub(1, 2) == "--" then
+            die("unknown option " .. a)
+        elseif not command then
+            command = a
+        else
+            die("unexpected argument " .. a)
+        end
+        i = i + 1
+    end
+    return command, opts
+end
+
+local function infer(opts)
+    if opts.seed then
+        local h, c = colour.hct_from_hex(opts.seed)
+        local r, g, b = colour.from_hex(opts.seed)
+        return {
+            mode = opts.mode or (colour.lstar_from_rgb(r, g, b) > 60 and "light" or "dark"),
+            variant = opts.variant or "tonalspot",
+            seed = { h = h, c = c },
+            seed_hex = opts.seed:gsub("^#", ""),
+        }
+    end
+
+    if not opts.wallpaper then
+        die("needs --wallpaper PATH (or --seed RRGGBB)")
+    end
+
+    local info, err = seedmod.from_wallpaper(opts.wallpaper)
+    if not info then
+        die(err or ("cannot read " .. opts.wallpaper))
+    end
+
+    if opts.mode then
+        info.mode = opts.mode
+    end
+    if opts.variant then
+        info.variant = opts.variant
+    end
+    return info
+end
+
+local command, opts = parse(arg)
+if not command then
+    usage()
+end
+
+if command == "seed" then
+    local info = infer(opts)
+    if opts.json then
+        io.write(json.encode({ mode = info.mode, variant = info.variant, seed = info.seed_hex }))
+    else
+        io.write(string.format("seed %s  mode %s  variant %s  (h=%.1f c=%.1f)\n", info.seed_hex, info.mode, info.variant,
+            info.seed.h, info.seed.c))
+    end
+    return
+elseif command == "apply" then
+    local info = infer(opts)
+    local scheme = schememod.build(info.seed.h, info.seed.c, info.mode, info.variant)
+    local apply = require("apply")
+
+    -- Theme settings are Lua, like everything else: ~/.config/padilha/theme.lua
+    -- returns a table (postHook, enableBtop = false, ...).
+    local config = {}
+    local cfg_path = opts.prefix and (opts.prefix .. "/caelestia/cli.lua")
+        or ((os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/caelestia/cli.lua")
+    local chunk = loadfile(cfg_path)
+    if chunk then
+        local ok, value = pcall(chunk)
+        if ok and type(value) == "table" then
+            config = value
+        end
+    end
+
+    local written, errors = apply.apply(scheme, {
+        prefix = opts.prefix,
+        signals = opts.signals ~= false,
+        broadcast = opts.broadcast,
+        dconf = opts.dconf,
+        hooks = opts.hooks,
+        config = config,
+    })
+
+    for _, path in ipairs(written) do
+        if not opts.quiet then
+            io.write("  ", path, "\n")
+        end
+    end
+    if #errors > 0 then
+        for _, err in ipairs(errors) do
+            io.stderr:write("padilha-theme: ", err, "\n")
+        end
+        os.exit(1)
+    end
+    if not opts.quiet then
+        io.write(string.format("%d files, %s/%s\n", #written, scheme.mode, scheme.variant))
+    end
+    return
+elseif command == "scheme" then
+    local info = infer(opts)
+    local scheme = schememod.build(info.seed.h, info.seed.c, info.mode, info.variant)
+    local text = json.encode(scheme)
+    if opts.print then
+        io.write(text)
+    else
+        local out = opts.out
+        if not out then
+            local home = os.getenv("HOME") or ""
+            out = (os.getenv("XDG_STATE_HOME") or (home .. "/.local/state")) .. "/caelestia/scheme.json"
+        end
+        local dir = out:match("^(.*)/[^/]+$")
+        if dir and dir ~= "" then
+            os.execute("mkdir -p " .. ("'" .. dir .. "'"))
+        end
+        local tmp = out .. ".tmp"
+        local f, err = io.open(tmp, "w")
+        if not f then
+            die(err or ("cannot write " .. tmp))
+        end
+        f:write(text)
+        f:close()
+        os.rename(tmp, out)
+        if not opts.quiet then
+            io.write(string.format("%s: %s, %s, %d colours\n", out, scheme.mode, scheme.variant,
+                (function()
+                    local n = 0
+                    for _ in pairs(scheme.colours) do
+                        n = n + 1
+                    end
+                    return n
+                end)()))
+        end
+    end
+    return
+else
+    usage()
+end

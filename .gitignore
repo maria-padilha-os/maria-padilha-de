@@ -9,3 +9,6 @@ result-*
 # User config (the repo lives in ~/.config/padilha for now)
 /init.lua
 /local.lua
+
+# scratch trees from tests and hand runs
+.scratch/
