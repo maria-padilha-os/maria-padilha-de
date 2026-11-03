@@ -184,6 +184,17 @@ forced=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/carry.json'
 if [ "$forced" = "1" ]; then ok "--no-merge lets init.lua win"; else bad "--no-merge lets init.lua win" "a=$forced"; fi
 
 printf '{"a": 9}\n' > "$tmp/carry.json"
+cat > "$tmp/empty.lua" <<'LUA'
+return { general = { idle = { timeouts = padilha.array {} } } }
+LUA
+"$padilha_config" compile --config "$tmp/empty.lua" --out "$tmp/empty.json" --no-schema --quiet
+"$padilha_config" compile --config "$tmp/empty.lua" --out "$tmp/empty.json" --no-schema --quiet
+if grep -q '"timeouts": \[\]' "$tmp/empty.json"; then
+    ok "empty lists stay lists through the merge"
+else
+    bad "empty lists stay lists through the merge" "$(cat "$tmp/empty.json")"
+fi
+
 printf 'return { a = 1 }\n' > "$tmp/carry/init.lua"
 "$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
 if grep -q '"b"' "$tmp/carry.json"; then bad "a key dropped from init.lua goes away"; else ok "a key dropped from init.lua goes away"; fi

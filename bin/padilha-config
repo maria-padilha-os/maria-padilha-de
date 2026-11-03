@@ -383,8 +383,13 @@ end
 -- differs between base and current was changed by the settings UI, so it wins;
 -- everything else follows the new config.
 local function carry(base, current, new)
-    local current_list = type(current) == "table" and looks_like_array(current)
-    local new_list = type(new) == "table" and looks_like_array(new)
+    -- An empty list has no keys, so looks_like_array cannot see it; the
+    -- metatable is the only evidence it was written as padilha.array{}.
+    local function list(t)
+        return type(t) == "table" and (is_array(t) or looks_like_array(t))
+    end
+    local current_list = list(current)
+    local new_list = list(new)
     if current_list or new_list then
         if not deep_equal(current, base) then
             return current
