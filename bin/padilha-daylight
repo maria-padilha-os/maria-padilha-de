@@ -240,6 +240,16 @@ end
 local runtime = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
 local lock = runtime .. "/padilha-daylight.lock"
 
+local function own_pid()
+    local f = io.open("/proc/self/stat", "r")
+    if not f then
+        return nil
+    end
+    local line = f:read("*l")
+    f:close()
+    return line and line:match("^(%d+)")
+end
+
 local function mkdir(path)
     return os.execute("mkdir " .. quote(path) .. " 2>/dev/null") == true
 end
@@ -261,7 +271,7 @@ if not mkdir(lock) then
 end
 local pidf = io.open(lock .. "/pid", "w")
 if pidf then
-    pidf:write(tostring(os.time()), "\n")
+    pidf:write(tostring(own_pid() or 0), "\n")
     pidf:close()
 end
 
