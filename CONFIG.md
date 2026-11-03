@@ -69,8 +69,17 @@ bin/padilha-config compile --print          # to stdout, for diffing
 bin/padilha-config compile --config X.lua --out Y.json
 ```
 
-Applying it is still a shell restart (`caelestia shell -r`). Watching the file
-and reloading on change comes with the session work.
+At login the session calls `bin/padilha-session`, which compiles `init.lua`
+and then starts the shell. A failed compile keeps the previous JSON (the
+write is atomic) and the session still comes up, with a notification. To apply
+a change without logging out:
+
+```sh
+bin/padilha-config compile && caelestia shell -r
+```
+
+Watching `init.lua` and reloading on save comes later; `settings.watchFiles`
+is deliberately off.
 
 ## Example
 

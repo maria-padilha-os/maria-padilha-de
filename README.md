@@ -16,15 +16,15 @@ that line is ours.
 
 ## Status
 
-Foundation. `shell/` is the upstream Caelestia QML/C++ tree, imported at
-v2.5.0 as our base. It builds with the system toolchain (`tools/build.sh`,
-223 targets, Qt 6.11) and the result loads as a Quickshell configuration.
-What runs the desktop today is still the `caelestia-shell` package plus
-patches; the fork is not installed yet.
+First light. `shell/` (Caelestia v2.5.0 with the four local changes folded in
+as commits) is what this machine runs: it builds with the system toolchain
+(`tools/build.sh`, 223 targets, Qt 6.11) and the session starts it through
+`~/.config/quickshell/caelestia`, a symlink into this tree.
 
-The user-facing config exists too: `bin/padilha-config` compiles
-`~/.config/padilha/init.lua` into the shell's JSON, with contract tests. The
-shell does not consume its output by default yet — that lands with the fork.
+Configuration is ours too. `bin/padilha-config` compiles
+`~/.config/padilha/init.lua` into the shell's JSON, and `bin/padilha-session`
+runs that compile at login before starting the shell. The old package copy
+sits at `quickshell/caelestia.pkg` for rollback.
 
 ## What "ours" means
 
@@ -53,7 +53,7 @@ what moved since our pins.
 | path | what |
 | --- | --- |
 | `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
-| `bin/` | `padilha-config`, the Lua config compiler |
+| `bin/` | `padilha-config` (config compiler) and `padilha-session` (login entry point) |
 | `examples/` | a reference `init.lua` |
 | `tests/` | contract tests for the compiler |
 | `tools/` | maintenance scripts |

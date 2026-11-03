@@ -31,8 +31,9 @@ tools/upstream-watch.sh --exit-code  # non-zero if anything moved, for CI
 
 ## The patches that will disappear
 
-Three local patches exist today, applied to the `caelestia-shell` package:
-`quicksettings.patch`, `bar-black.patch`, `lock-compose.patch`. They are the
-reason this project exists — a patch stack over a package-owned tree that
-already drifted once. When `shell/` builds and runs, each becomes a commit in
-the tree and the patch files are deleted.
+The patch stack that motivated this project — `quicksettings.patch`,
+`bar-black.patch`, `lock-compose.patch` over the `caelestia-shell` package —
+is folded. Each is now an ordinary commit in `shell/`, plus a fourth change
+(`settings.watchFiles`) that had only ever existed in the deployed copy. The
+files in `~/.config/caelestia/` stay until the dotfiles repo stops being the
+session's source; nothing reads them anymore.

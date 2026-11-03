@@ -1,0 +1,15 @@
+#!/bin/sh
+# Start (or no-op) the shell, compiling the Lua config first.
+#
+# The compile is atomic: on a bad config padilha-config keeps the previous
+# shell.json and the session still starts. Run from hyprland/execs.lua.
+set -u
+
+config="$HOME/.config/padilha/bin/padilha-config"
+
+if ! "$config" compile --quiet; then
+    command -v notify-send >/dev/null 2>&1 &&
+        notify-send -a padilha-config "Config not applied" "init.lua failed to compile; keeping the previous shell.json"
+fi
+
+exec caelestia shell -d
