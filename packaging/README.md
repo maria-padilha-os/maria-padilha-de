@@ -1,8 +1,13 @@
 # Packaging
 
-`makepkg -f` here builds `padilha`, from the checkout this file sits in (no
-release tarball yet). The recipe runs the same CMake build as
-`tools/build.sh`, then installs:
+Build from the repo, not from here:
+
+```sh
+tools/release.sh          # tests, exports packaging/padilha-<ver>.tar.gz, runs makepkg
+```
+
+`release.sh` refuses a dirty tree, so the tarball always matches a commit. The
+recipe runs the same CMake build as `tools/build.sh`, then installs:
 
 | path | what |
 | --- | --- |

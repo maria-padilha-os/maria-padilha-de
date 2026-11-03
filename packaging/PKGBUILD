@@ -1,8 +1,8 @@
 # Maintainer: Padilha <padilha@localhost>
 #
-# Padilha is developed in place (the repo is the home directory), so this
-# recipe builds from the checkout it sits in instead of from a tarball. Once
-# there is a release, swap `_repo` for the usual source array.
+# Padilha is developed in place (the repo is the home directory). The source
+# here is the release tarball exported by tools/release.sh, which is why there
+# is a local source and no URL yet.
 pkgname=padilha
 pkgver=0.1.0
 pkgrel=1
@@ -38,7 +38,13 @@ optdepends=(
 )
 options=('!strip')  # the shell is a QML tree; stripping breaks nothing but helps nothing
 
-_repo="$(realpath "$startdir/..")"
+# Built from the release tarball, not from the checkout: tools/release.sh
+# exports HEAD into packaging/padilha-$pkgver.tar.gz. The source is generated
+# next to the recipe, so a checksum of it would only check our own output.
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+_repo="$srcdir/$pkgname-$pkgver"
 
 build() {
     cd "$_repo"
@@ -71,7 +77,7 @@ package() {
     done
 
     # A session entry: the same compositor the distro starts, under our name.
-    install -Dm 644 packaging/padilha.desktop "$pkgdir/usr/share/wayland-sessions/padilha.desktop"
+    install -Dm 644 session/padilha.desktop "$pkgdir/usr/share/wayland-sessions/padilha.desktop"
 
     # Optional systemd user units; they are inert until the user enables them.
     # The repo's copies point at the checkout so `systemd-analyze verify` works
