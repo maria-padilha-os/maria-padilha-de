@@ -38,8 +38,10 @@ Data only:
 Keys are checked against the shell's own schema — the `caelestia-config.qmltypes`
 that `qmltyperegistrar` writes next to the module. An unknown key is an error
 with a suggestion (`config.appearanc: unknown key (did you mean "appearance"?)`)
-and so is a wrong type. `--no-schema` skips the check; `--schema PATH` points
-at a different qmltypes.
+and so is a wrong type. Enum values are checked too, case-insensitively, the way
+the shell reads them: `config.bar.palette: expected one of Wallpaper, Fixed,
+got "Fixd" (did you mean "Fixed"?)`. `--no-schema` skips the check;
+`--schema PATH` points at a different qmltypes.
 
 ## What you cannot write yet
 

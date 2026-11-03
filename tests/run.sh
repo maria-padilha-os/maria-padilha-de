@@ -127,6 +127,35 @@ else
     bad "--no-schema skips validation"
 fi
 
+cat > "$tmp/schema_enum.lua" <<'LUA'
+return { mode = "dark" }
+LUA
+if "$padilha_config" compile --config "$tmp/schema_enum.lua" --schema "$schema" --check >/dev/null 2>&1; then
+    ok "enum values are matched case-insensitively"
+else
+    bad "enum values are matched case-insensitively"
+fi
+
+cat > "$tmp/schema_enum_bad.lua" <<'LUA'
+return { mode = "drak" }
+LUA
+err=$("$padilha_config" compile --config "$tmp/schema_enum_bad.lua" --schema "$schema" --check 2>&1)
+if printf '%s' "$err" | grep -q 'expected one of Auto, Light, Dark' && printf '%s' "$err" | grep -q 'did you mean "Dark"'; then
+    ok "unknown enum value lists the options"
+else
+    bad "unknown enum value lists the options" "$err"
+fi
+
+cat > "$tmp/schema_enum_type.lua" <<'LUA'
+return { mode = 2 }
+LUA
+err=$("$padilha_config" compile --config "$tmp/schema_enum_type.lua" --schema "$schema" --check 2>&1)
+if printf '%s' "$err" | grep -q 'mode: expected a string, got number'; then
+    ok "a non-string enum value is rejected"
+else
+    bad "a non-string enum value is rejected" "$err"
+fi
+
 real_schema="$root/build/qml/Caelestia/Config/caelestia-config.qmltypes"
 if [ -f "$real_schema" ]; then
     if "$padilha_config" compile --config "$root/examples/init.lua" --check >/dev/null 2>&1; then

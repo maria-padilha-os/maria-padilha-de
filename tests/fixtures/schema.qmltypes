@@ -14,6 +14,20 @@ Module {
             type: "caelestia::config::AppearanceConfig"
             index: 1
         }
+        Property {
+            name: "mode"
+            type: "caelestia::config::Mode::Enum"
+            index: 2
+        }
+    }
+    Component {
+        name: "caelestia::config::Mode"
+        accessSemantics: "none"
+        Enum {
+            name: "Enum"
+            type: "quint8"
+            values: ["Auto", "Light", "Dark"]
+        }
     }
     Component {
         name: "caelestia::config::AppearanceConfig"

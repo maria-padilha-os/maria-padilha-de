@@ -263,7 +263,7 @@ local function parse_schema(path)
     local text = f:read("*a")
     f:close()
 
-    local types = {}
+    local types, enums = {}, {}
     for chunk in text:gmatch("Component %b{}") do
         local name = chunk:match('name:%s*"([^"]+)"')
         if name then
@@ -276,26 +276,45 @@ local function parse_schema(path)
                 end
             end
             types[name] = props
+
+            -- An enum-typed component carries its values as a list of names;
+            -- the property type that refers to it ends in "::Enum".
+            local values = {}
+            local list = chunk:match("values:%s*%[(.-)%]")
+            if list then
+                for value in list:gmatch('"([^"]+)"') do
+                    values[#values + 1] = value
+                end
+            end
+            if #values > 0 then
+                enums[name] = values
+            end
         end
     end
 
-    return types
+    return types, enums
 end
 
+-- Optimal string alignment (Damerau-Levenshtein): a swapped pair of letters
+-- is one typo, not two, which is what "drak" for "dark" needs to suggest.
 local function edit_distance(a, b)
-    local prev = {}
+    local rows = { [0] = {} }
     for j = 0, #b do
-        prev[j] = j
+        rows[0][j] = j
     end
     for i = 1, #a do
         local cur = { [0] = i }
+        local prev = rows[i - 1]
         for j = 1, #b do
             local cost = a:sub(i, i) == b:sub(j, j) and 0 or 1
             cur[j] = math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+            if i > 1 and j > 1 and a:sub(i, i) == b:sub(j - 1, j - 1) and a:sub(i - 1, i - 1) == b:sub(j, j) then
+                cur[j] = math.min(cur[j], rows[i - 2][j - 2] + 1)
+            end
         end
-        prev = cur
+        rows[i] = cur
     end
-    return prev[#b]
+    return rows[#a][#b]
 end
 
 local function suggest(key, props)
@@ -327,7 +346,40 @@ local function type_kind(t)
     return nil
 end
 
-local schema_components, schema_root
+local schema_components, schema_enums, schema_root
+
+-- Enum values are matched the way the shell matches them: case-insensitively.
+local function check_enum(child, value, allowed, errors)
+    if type(value) ~= "string" then
+        errors[#errors + 1] = ("%s: expected a string, got %s"):format(child, type(value))
+        return
+    end
+
+    local lowered = value:lower()
+    for _, candidate in ipairs(allowed) do
+        if candidate:lower() == lowered then
+            return
+        end
+    end
+
+    local best, best_distance = nil, math.huge
+    for _, candidate in ipairs(allowed) do
+        local distance = edit_distance(lowered, candidate:lower())
+        if distance < best_distance then
+            best, best_distance = candidate, distance
+        end
+    end
+    if best and best_distance > math.max(1, math.floor(#value / 3)) then
+        best = nil
+    end
+
+    errors[#errors + 1] = ("%s: expected one of %s, got %q%s"):format(
+        child,
+        table.concat(allowed, ", "),
+        value,
+        best and (" (did you mean %q?)"):format(best) or ""
+    )
+end
 
 local function validate(node, props, path, errors)
     for key, value in pairs(node) do
@@ -354,8 +406,15 @@ local function validate(node, props, path, errors)
             elseif kind == "array" and actual ~= "table" then
                 errors[#errors + 1] = ("%s: expected a list, got %s"):format(child, actual)
             elseif kind == nil then
-                local nested = schema_components[declared] or schema_components[short_name(declared)]
-                if nested then
+                -- An enum lives as its own component; properties point at it
+                -- through a type ending in "::Enum".
+                local enum_name = declared:match("^(.-)::Enum$")
+                local allowed = enum_name and (schema_enums[enum_name] or schema_enums[short_name(enum_name)])
+                local nested = not allowed and (schema_components[declared] or schema_components[short_name(declared)])
+
+                if allowed then
+                    check_enum(child, value, allowed, errors)
+                elseif nested then
                     if actual == "table" then
                         validate(value, nested, child, errors)
                     else
@@ -368,15 +427,19 @@ local function validate(node, props, path, errors)
 end
 
 local function load_schema(path)
-    local types = parse_schema(path)
+    local types, enums = parse_schema(path)
     if not types then
         return false
     end
 
-    schema_components = {}
+    schema_components, schema_enums = {}, {}
     for name, props in pairs(types) do
         schema_components[name] = props
         schema_components[short_name(name)] = props
+    end
+    for name, values in pairs(enums or {}) do
+        schema_enums[name] = values
+        schema_enums[short_name(name)] = values
     end
 
     local root = types["caelestia::config::ConfigRoot"]
