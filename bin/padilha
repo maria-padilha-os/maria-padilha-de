@@ -1,0 +1,186 @@
+#!/usr/bin/env lua
+-- padilha: the small commands the shell and the keybinds need.
+--
+--   padilha wallpaper -f PATH [--mode light|dark] [--variant NAME]
+--   padilha wallpaper -r [DIR]        random from DIR (default: Pictures/wallpapers)
+--   padilha wallpaper -p PATH         print the palette for PATH, write nothing
+--   padilha scheme list               palettes for every variant, as JSON
+--   padilha scheme get                the variant in use
+--   padilha scheme set --variant NAME choose a variant and repaint
+--
+-- This replaced the Python CLI's wallpaper and scheme commands. The palette
+-- itself is bin/padilha-theme; this is the state around it.
+
+local function script_dir()
+    return (arg[0] or "padilha"):match("^(.*)/[^/]+$") or "."
+end
+
+local root = script_dir() .. "/.."
+package.path = root .. "/lib/?.lua;" .. package.path
+
+local json = require("json")
+local schememod = require("scheme")
+local desktop = require("desktop")
+local seedmod = require("seed")
+
+local function die(message)
+    io.stderr:write("padilha: ", message, "\n")
+    os.exit(1)
+end
+
+local function usage()
+    io.stderr:write([[
+usage: padilha <command>
+
+  wallpaper -f PATH [--mode M] [--variant V]   set the wallpaper and repaint
+  wallpaper -r [DIR]                           pick one at random
+  wallpaper -p PATH                            print the palette, write nothing
+  scheme list                                  palettes for every variant (JSON)
+  scheme get                                   the variant in use
+  scheme set --variant NAME                    choose a variant and repaint
+  theme mode light|dark                        repaint the current wallpaper
+]])
+    os.exit(2)
+end
+
+local args = { ... }
+local command = table.remove(args, 1)
+if not command then
+    usage()
+end
+
+local function take_value(name)
+    for i, a in ipairs(args) do
+        if a == name then
+            local value = args[i + 1]
+            table.remove(args, i + 1)
+            table.remove(args, i)
+            return value
+        end
+    end
+    return nil
+end
+
+local function flag(name)
+    for i, a in ipairs(args) do
+        if a == name then
+            table.remove(args, i)
+            return true
+        end
+    end
+    return false
+end
+
+if command == "wallpaper" then
+    local mode = take_value("--mode")
+    local variant = take_value("--variant")
+    local file = take_value("-f")
+    local print_only = take_value("-p")
+    local random = flag("-r")
+
+    if file then
+        local built, count, used = desktop.set_wallpaper(file, { mode = mode, variant = variant })
+        if not built then
+            die(count or ("cannot use " .. file))
+        end
+        io.write(string.format("%s: %s, %s, %d files\n", file, built.mode, used, count))
+    elseif print_only then
+        local built, err = desktop.describe(print_only, { mode = mode, variant = variant })
+        if not built then
+            die(err or ("cannot read " .. print_only))
+        end
+        io.write(json.encode(built))
+    elseif random then
+        local dir = args[1] or (desktop.pictures .. "/wallpapers")
+        local p = io.popen("find " .. ("'" .. dir .. "'") ..
+            [[ -maxdepth 2 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | shuf -n 1]])
+        local path = p and p:read("*l")
+        if p then
+            p:close()
+        end
+        if not path or path == "" then
+            die("no wallpapers in " .. dir)
+        end
+        local built, count, used = desktop.set_wallpaper(path, { mode = mode, variant = variant })
+        if not built then
+            die(count or ("cannot use " .. path))
+        end
+        io.write(string.format("%s: %s, %s, %d files\n", path, built.mode, used, count))
+    else
+        usage()
+    end
+elseif command == "theme" then
+    local what = table.remove(args, 1)
+    if what == "mode" then
+        local mode = table.remove(args, 1)
+        if mode ~= "light" and mode ~= "dark" then
+            die("theme mode wants light or dark")
+        end
+        local wallpaper = desktop.current_wallpaper()
+        if not wallpaper then
+            die("no wallpaper set; run padilha wallpaper -f PATH first")
+        end
+        local built, count, used = desktop.set_wallpaper(wallpaper, { mode = mode })
+        if not built then
+            die(count or "could not repaint")
+        end
+        io.write(string.format("%s: %s, %d files\n", wallpaper, used, count))
+    else
+        usage()
+    end
+elseif command == "scheme" then
+    local action = table.remove(args, 1)
+    if action == "get" then
+        io.write(desktop.variant(), "\n")
+    elseif action == "set" then
+        local variant = take_value("--variant")
+        if not variant then
+            die("scheme set needs --variant NAME")
+        end
+        local ok = false
+        for _, name in ipairs(schememod.variants) do
+            if name == variant then
+                ok = true
+            end
+        end
+        if not ok then
+            die(("%q is not a variant (%s)"):format(variant, table.concat(schememod.variants, ", ")))
+        end
+
+        local wallpaper = desktop.current_wallpaper()
+        if not wallpaper then
+            die("no wallpaper set; run padilha wallpaper -f PATH first")
+        end
+        desktop.set_variant(variant)
+        local built, count, used = desktop.set_wallpaper(wallpaper, { variant = variant })
+        if not built then
+            die(count or "could not repaint")
+        end
+        io.write(string.format("%s: %s, %d files\n", wallpaper, used, count))
+    elseif action == "list" then
+        -- Every variant, built from the current wallpaper, for the launcher's
+        -- preview swatches. One sheet of colours, no files touched.
+        local wallpaper = desktop.current_wallpaper()
+        local seed_h, seed_c, mode
+        if wallpaper then
+            local info = seedmod.from_wallpaper(wallpaper)
+            if info then
+                seed_h, seed_c, mode = info.seed.h, info.seed.c, info.mode
+            end
+        end
+        if not seed_h then
+            -- No wallpaper yet: a neutral red so the picker still has colours.
+            seed_h, seed_c, mode = 25, 55, "dark"
+        end
+        local out = {}
+        for _, name in ipairs(schememod.variants) do
+            local built = schememod.build(seed_h, seed_c, mode, name)
+            out[name] = { colours = built.colours, mode = built.mode }
+        end
+        io.write(json.encode(out))
+    else
+        usage()
+    end
+else
+    usage()
+end

@@ -90,7 +90,7 @@ Item {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            active: `${root.modelData?.name} ${root.modelData?.flavour}` === Schemes.currentScheme
+            active: root.modelData?.name === Schemes.currentScheme
 
             sourceComponent: MaterialIcon {
                 text: "check"

@@ -18,7 +18,7 @@ Searcher {
     }
 
     function selector(item: var): string {
-        return `${item.name} ${item.flavour}`;
+        return item.name;
     }
 
     function reload(): void {
@@ -40,22 +40,15 @@ Searcher {
         id: getSchemes
 
         running: true
-        command: ["caelestia", "scheme", "list"]
+        command: ["padilha", "scheme", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const schemeData = JSON.parse(text);
-                const list = Object.entries(schemeData).map(([name, f]) => Object.entries(f).map(([flavour, colours]) => ({
-                                name,
-                                flavour,
-                                colours
-                            })));
-
-                const flat = [];
-                for (const s of list)
-                    for (const f of s)
-                        flat.push(f);
-
-                schemes.model = flat.sort((a, b) => String(a.name + a.flavour).localeCompare((b.name + b.flavour)));
+                schemes.model = Object.entries(schemeData).map(([variant, v]) => ({
+                                name: variant,
+                                flavour: "",
+                                colours: v.colours
+                            })).sort((a, b) => a.name.localeCompare(b.name));
             }
         }
     }
@@ -64,11 +57,11 @@ Searcher {
         id: getCurrent
 
         running: true
-        command: ["caelestia", "scheme", "get", "-nfv"]
+        command: ["padilha", "scheme", "get"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const [name, flavour, variant] = text.trim().split("\n");
-                root.currentScheme = `${name} ${flavour}`;
+                const variant = text.trim();
+                root.currentScheme = variant;
                 root.currentVariant = variant;
             }
         }
@@ -82,7 +75,7 @@ Searcher {
 
         function onClicked(list: AppList): void {
             list.screenState.launcher = false;
-            Quickshell.execDetached(["caelestia", "scheme", "set", "-n", name, "-f", flavour]);
+            Quickshell.execDetached(["padilha", "scheme", "set", "--variant", name]);
         }
     }
 }

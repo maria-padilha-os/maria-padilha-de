@@ -195,7 +195,7 @@ Item {
                     root.popouts.hasCurrent = false;
                     // Go through the shell IPC: `hyprctl dispatch global ...`
                     // no longer parses under the Lua dispatcher.
-                    Quickshell.execDetached(["caelestia", "shell", "lock", "lock"]);
+                    Quickshell.execDetached(["qs", "-c", "caelestia", "ipc", "call", "lock", "lock"]);
                 }
             }
 

@@ -79,7 +79,7 @@ Singleton {
     }
 
     function setMode(mode: string): void {
-        Quickshell.execDetached(["caelestia", "scheme", "set", "--notify", "-m", mode]);
+        Quickshell.execDetached(["padilha", "theme", "mode", mode]);
     }
 
     function reloadHyprRules(): void {
