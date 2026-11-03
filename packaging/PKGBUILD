@@ -44,10 +44,10 @@ options=('!strip')  # the shell is a QML tree; stripping breaks nothing but help
 source=("$pkgname-$pkgver.tar.gz")
 sha256sums=('SKIP')
 
-_repo="$srcdir/$pkgname-$pkgver"
+_srcdir() { printf '%s/%s-%s' "$srcdir" "$pkgname" "$pkgver"; }
 
 build() {
-    cd "$_repo"
+    cd "$(_srcdir)"
     cmake -S shell -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
@@ -58,7 +58,7 @@ build() {
 }
 
 package() {
-    cd "$_repo"
+    cd "$(_srcdir)"
 
     # The shell: QML modules into /usr/lib/qt6/qml and the tree into
     # /etc/xdg/quickshell/caelestia, which is where `qs -c caelestia` looks.
