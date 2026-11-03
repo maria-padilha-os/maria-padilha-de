@@ -27,6 +27,7 @@ public:
 
 signals:
     void changed(); // Data changed, not file watcher event
+    void saved();   // The JSON file was replaced successfully
     void readFailed(const QString& error);
     void writeFailed(const QString& error);
 

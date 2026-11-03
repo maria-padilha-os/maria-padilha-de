@@ -210,6 +210,7 @@ void SettingsFile::save() {
     qCDebug(lcSettingsFile) << "Saved" << m_path;
 
     initWatcher(); // The file may have just been created, or replaced by the rename
+    emit saved();
 }
 
 } // namespace caelestia::settings

@@ -1,6 +1,8 @@
 #include "rootnode.hpp"
 
 #include <qjsonobject.h>
+#include <qlogging.h>
+#include <qprocess.h>
 
 namespace caelestia::settings {
 
@@ -9,6 +11,13 @@ RootNode::RootNode(const QString& path, RootNode* fallback, QObject* parent)
     , m_file(new SettingsFile(path, this)) {
     QObject::connect(batcher(), &ChangeBatcher::dirtied, this, &RootNode::saveToFile);
     QObject::connect(m_file, &SettingsFile::changed, this, &RootNode::reloadFromFile);
+    QObject::connect(m_file, &SettingsFile::saved, this, [] {
+        // Promote the shell's JSON edits into the Lua source the next
+        // compile reads. Detached: a settings save must not wait for it.
+        if (!QProcess::startDetached(QStringLiteral("padilha-config"),
+                { QStringLiteral("capture"), QStringLiteral("--quiet") }))
+            qWarning("Failed to start padilha-config capture");
+    });
     QObject::connect(m_file, &SettingsFile::readFailed, this, [this](const QString& error) {
         emit treeLoadFailed(this, error);
     });
