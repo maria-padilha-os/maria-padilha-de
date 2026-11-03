@@ -135,6 +135,16 @@ StyledRect {
                     }
                 }
                 DelegateChoice {
+                    roleValue: "brightness"
+                    delegate: EntryWrapper {
+                        MaterialIcon {
+                            animate: true
+                            text: "brightness_6"
+                            color: root.colour
+                        }
+                    }
+                }
+                DelegateChoice {
                     roleValue: "battery"
                     delegate: EntryWrapper {
                         BatteryStatus {
