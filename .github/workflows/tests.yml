@@ -1,0 +1,39 @@
+name: tests
+
+# The contract suites in tests/ are the project's promises: the compiler never
+# replaces a working file, the palette matches Material, the commands refuse
+# what they say they refuse. Run all of them on Arch, because Arch is the
+# desktop's floor (Lua 5.5, ImageMagick 7, the packaged colour oracle).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install the runtime the tests exercise
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm --needed \
+            ca-certificates git lua imagemagick python python-materialyoucolor
+
+      - uses: actions/checkout@v7.0.1
+
+      - name: Run every contract test
+        run: tests/all.sh
