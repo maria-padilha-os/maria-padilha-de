@@ -16,17 +16,21 @@ changed and why it matters to us, before it breaks a build.
 tools/upstream-watch.sh            # table: pin vs latest tag
 tools/upstream-watch.sh --log      # commits between pin and latest, for shell/
 tools/upstream-watch.sh --exit-code  # non-zero if anything moved, for CI
+tools/upstream-diff.sh             # what moved in the files this tree touched
+tools/upstream-diff.sh main --patch  # those hunks, per file
 ```
 
 ## Absorbing
 
-1. Read the log, not the release notes — the notes describe upstream's intent,
+1. Start with `tools/upstream-diff.sh`. It limits the review to the files this
+   tree actually changed; upstream churn elsewhere is not our merge.
+2. Read the log, not the release notes — the notes describe upstream's intent,
    the log describes what actually happened to files we own.
-2. Cherry-pick into `shell/` as ordinary commits, with the upstream hash in the
+3. Cherry-pick into `shell/` as ordinary commits, with the upstream hash in the
    message. Never re-introduce a `.patch` file.
-3. If a change touches the config schema, update the C++ definition and the
+4. If a change touches the config schema, update the C++ definition and the
    default in `upstream.json`'s project version in the same commit.
-4. Rebuild, run, and keep it for a day before pinning. The watch tool only
+5. Rebuild, run, and keep it for a day before pinning. The watch tool only
    tells you that something moved; the desktop tells you whether it matters.
 
 ## The patches that will disappear
