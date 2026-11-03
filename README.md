@@ -14,10 +14,29 @@ the day, the settings that tie it together, and the package that installs it.
 It stands on Linux, Wayland, Qt 6, Hyprland and Quickshell. Everything above
 that line is ours.
 
+## Which one is running?
+
+This machine runs **this tree**, not the Caelestia package:
+
+- `~/.config/quickshell/caelestia` is a symlink into `shell/`, the session
+  starts it as `qs -c caelestia`, and the C++ modules are loaded from
+  `build/qml`.
+- Wallpapers and every colour come from `bin/padilha-theme` and
+  `bin/padilha-daylight`; the config comes from `bin/padilha-config`.
+- `caelestia-cli` is still installed, but nothing in the session or the shell
+  executes it any more.
+
+The *code*, though, is still mostly Caelestia's: the fork is v2.5.0 plus the
+commits in `git log -- shell/`. That is what descending from it means in
+practice, and the name survives where it is an interface rather than
+branding — the Quickshell config is still called `caelestia`, so app ids,
+window classes and existing rules keep working. The About page calls the
+desktop Padilha.
+
 ## Status
 
-First light. `shell/` (Caelestia v2.5.0 with the four local changes folded in
-as commits) is what this machine runs: it builds with the system toolchain
+First light. `shell/` (a fork of Caelestia v2.5.0, and by now more than the
+four patches that started it) is what this machine runs: it builds with the system toolchain
 (`tools/build.sh`, 223 targets, Qt 6.11) and the session starts it through
 `~/.config/quickshell/caelestia`, a symlink into this tree.
 

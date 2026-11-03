@@ -16,7 +16,7 @@ PageBase {
     readonly property int pluginCount: 0
 
     property string quickshellVersion
-    property string cliVersion
+    property string padilhaVersion
 
     title: Tr.tr("About")
 
@@ -35,16 +35,12 @@ PageBase {
             }
         }
 
-        // Parsed from the caelestia CLI's package listing; the sh wrapper avoids a
-        // warning when the (optional) CLI isn't installed
+        // The desktop's own version: the checkout first, the packaged copy next.
         Process {
             running: true
-            command: ["sh", "-c", "caelestia --version 2>/dev/null"]
+            command: ["sh", "-c", "cat \"$HOME/.config/padilha/share/version\" 2>/dev/null || cat /usr/lib/padilha/share/version 2>/dev/null"]
             stdout: StdioCollector {
-                onStreamFinished: {
-                    const m = text.match(/caelestia-cli\S*\s+(\d+(?:\.\d+)*)/);
-                    root.cliVersion = m ? m[1] : "";
-                }
+                onStreamFinished: root.padilhaVersion = text.trim()
             }
         }
 
@@ -71,13 +67,13 @@ PageBase {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.topMargin: Tokens.spacing.small
-                    text: "Caelestia"
+                    text: "Padilha"
                     font: Tokens.font.headline.builders.large.width(110).build()
                 }
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: CUtils.version ? `v${CUtils.version}` : "…"
+                    text: root.padilhaVersion ? `v${root.padilhaVersion}` : "…"
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
                 }
@@ -129,8 +125,8 @@ PageBase {
         }
 
         InfoRow {
-            label: Tr.trCtx("CLI", "the caelestia command line tool")
-            value: root.cliVersion || "…"
+            label: Tr.tr("Shell core")
+            value: CUtils.version || "…"
         }
 
         InfoRow {
