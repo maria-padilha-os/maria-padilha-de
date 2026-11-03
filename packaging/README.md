@@ -24,5 +24,23 @@ Not packaged, on purpose: the Hyprland configuration, GTK/Qt CSS, and every
 other generated theme file. They live in the user's `~/.config` and are written
 by `padilha-theme`; the package ships the templates, not the output.
 
+## Checkout or package?
+
+While working on the code, the session can load the tree directly — this is
+how the machine runs today:
+
+- `~/.config/quickshell/caelestia` is a symlink to `~/.config/padilha/shell`
+  (user config outranks `/etc/xdg`)
+- `hypr/hyprland/env.lua` sets `QML2_IMPORT_PATH` to `build/qml` and puts
+  `~/.config/padilha/bin` first on `PATH`
+- `hypr/hyprland/execs.lua` calls `padilha-session` from the checkout
+
+Edits then land on the next shell restart.
+
+To run the installed copy, remove the symlink and those two environment
+lines, and point `execs.lua` at `/usr/bin`: `qs -c caelestia` then reads
+`/etc/xdg/quickshell/caelestia` with modules from `/usr/lib/qt6/qml`, and
+every change needs `tools/release.sh` plus `pacman -U`.
+
 Known gap: the display-manager side (a Padilha session entry, greeter config)
 is still the distribution's. See `session/README.md`.
