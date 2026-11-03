@@ -50,8 +50,8 @@ Configuration is ours too. `bin/padilha-config` compiles
 runs that compile at login before starting the shell.
 
 Keys and types are validated against the module's own `qmltypes`, so a typo
-is a compile error with a suggestion, not a line the shell silently ignores. The old package copy
-sits at `quickshell/caelestia.pkg` for rollback.
+is a compile error with a suggestion, not a line the shell silently ignores.
+The checkout is the source of truth; the package is built from it.
 
 Colours are ours as well. `bin/padilha-theme` reads a wallpaper, scores its
 colours the way Material does, builds the HCT tonal palettes in Lua and writes
@@ -78,12 +78,13 @@ what moved since our pins.
 
 ## Next
 
-1. The session entry itself: a Padilha greeter and a `wayland-sessions`
-   `.desktop` file, which is the last piece that needs root to install.
+1. The greeter: the session entry is packaged; the display-manager side and a
+   greeter theme are still the distribution's, and are the last pieces that
+   need root.
 2. The settings application as a *writer of `init.lua`*, now that the compiler
    carries UI edits instead of overwriting them.
-3. Release the thing: a tagged tarball so the PKGBUILD stops building from
-   the checkout.
+3. Live config: watch `init.lua`, recompile and reload the shell on save;
+   `settings.watchFiles` is deliberately off today.
 
 ## Layout
 

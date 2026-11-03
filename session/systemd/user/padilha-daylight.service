@@ -16,7 +16,7 @@ Environment=XDG_RUNTIME_DIR=%t
 Environment=XDG_CURRENT_DESKTOP=Hyprland
 Environment=XDG_SESSION_TYPE=wayland
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
-ExecStart=%h/.config/padilha/bin/padilha-daylight
+ExecStart=/usr/bin/padilha-daylight
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=5

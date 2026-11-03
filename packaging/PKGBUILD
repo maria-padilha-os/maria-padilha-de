@@ -1,8 +1,8 @@
 # Maintainer: Padilha <padilha@localhost>
 #
-# Padilha is developed in place (the repo is the home directory). The source
-# here is the release tarball exported by tools/release.sh, which is why there
-# is a local source and no URL yet.
+# Padilha is developed in place, with the packaging directory inside the
+# checkout. The source here is the release tarball exported by tools/release.sh,
+# which is why there is a local source and no URL yet.
 pkgname=padilha
 pkgver=0.1.1
 pkgrel=1
@@ -53,7 +53,7 @@ build() {
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DINSTALL_QSCONFDIR=/etc/xdg/quickshell/caelestia \
         -DVERSION="$pkgver" \
-        -DGIT_REVISION="$(git -C "$_repo" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+        -DGIT_REVISION="$(git -C "$startdir/.." rev-parse --short HEAD 2>/dev/null || echo unknown)"
     cmake --build build -j"$(nproc)"
 }
 
@@ -80,13 +80,10 @@ package() {
     install -Dm 644 session/padilha.desktop "$pkgdir/usr/share/wayland-sessions/padilha.desktop"
 
     # Optional systemd user units; they are inert until the user enables them.
-    # The repo's copies point at the checkout so `systemd-analyze verify` works
-    # there; the package rewrites them to the installed commands.
+    # They call the installed commands in /usr/bin, so they install verbatim.
     install -d "$pkgdir/usr/lib/systemd/user"
     for unit in session/systemd/user/*.service session/systemd/user/*.target; do
-        sed 's|%h/.config/padilha/bin/|/usr/bin/|g' "$unit" \
-            > "$pkgdir/usr/lib/systemd/user/$(basename "$unit")"
-        chmod 644 "$pkgdir/usr/lib/systemd/user/$(basename "$unit")"
+        install -Dm 644 "$unit" "$pkgdir/usr/lib/systemd/user/$(basename "$unit")"
     done
 
     install -Dm 644 shell/LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"

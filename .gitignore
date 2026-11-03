@@ -6,7 +6,7 @@ result-*
 # upstream cache used by tools/upstream-watch.sh
 .upstream/
 
-# User config (the repo lives in ~/.config/padilha for now)
+# User config left behind when the checkout lived in ~/.config/padilha
 /init.lua
 /local.lua
 

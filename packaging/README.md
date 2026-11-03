@@ -29,11 +29,11 @@ by `padilha-theme`; the package ships the templates, not the output.
 While working on the code, the session can load the tree directly — this is
 how the machine runs today:
 
-- `~/.config/quickshell/caelestia` is a symlink to `~/.config/padilha/shell`
+- `~/.config/quickshell/caelestia` is a symlink to the checkout's `shell/`
   (user config outranks `/etc/xdg`)
-- `hypr/hyprland/env.lua` sets `QML2_IMPORT_PATH` to `build/qml` and puts
-  `~/.config/padilha/bin` first on `PATH`
-- `hypr/hyprland/execs.lua` calls `padilha-session` from the checkout
+- `hypr/hyprland/env.lua` sets `QML2_IMPORT_PATH` to the checkout's `build/qml`
+  and puts its `bin/` first on `PATH`
+- `hypr/hyprland/execs.lua` calls `padilha-session` from that `bin/`
 
 Edits then land on the next shell restart.
 
@@ -42,5 +42,6 @@ lines, and point `execs.lua` at `/usr/bin`: `qs -c caelestia` then reads
 `/etc/xdg/quickshell/caelestia` with modules from `/usr/lib/qt6/qml`, and
 every change needs `tools/release.sh` plus `pacman -U`.
 
-Known gap: the display-manager side (a Padilha session entry, greeter config)
-is still the distribution's. See `session/README.md`.
+Known gap: the display-manager side (choosing the Padilha session and greeter
+configuration) is still the distribution's. The session entry itself is
+packaged. See `session/README.md`.

@@ -35,9 +35,10 @@ systemctl --user enable --now padilha-session.target
 # and remove the padilha-session line from hyprland/execs.lua
 ```
 
-The repo's copies point at `%h/.config/padilha/bin`, so
-`systemd-analyze --user verify` passes in the checkout; the package rewrites
-that prefix to `/usr/bin` when it installs them.
+The units call the commands installed in `/usr/bin`; the package installs them
+verbatim, and `systemd-analyze --user verify` passes once the package is
+installed. A checkout that has not been packaged still starts through
+`execs.lua`, which calls its own `bin/`.
 
 ## Restore
 
