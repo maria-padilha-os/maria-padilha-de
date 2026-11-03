@@ -1,122 +1,176 @@
 # Padilha
 
-Maria Padilha is the pomba-gira of the crossroads — the Brazilian Lilith, the
-one who owns the place where paths meet and a choice has to be made. A desktop
-is a crossroads too: the layer where you meet the machine. The project is
-**Padilha**; when it needs a full name, **Desktop Maria Padilha**.
+Padilha (Desktop Maria Padilha) is a Wayland desktop environment built on
+[Hyprland](https://hyprland.org) and [Quickshell](https://quickshell.org). It
+provides a complete shell, a login session, a wallpaper-driven colour system,
+and a Lua configuration layer.
 
-## What it is
+[![tests](https://github.com/Mateus-M-Reis/padilha/actions/workflows/tests.yml/badge.svg)](https://github.com/Mateus-M-Reis/padilha/actions/workflows/tests.yml)
 
-A desktop environment in the sense GNOME and KDE are: the shell you look at,
-the palette that colours every application, the session that starts and ends
-the day, the settings that tie it together, and the package that installs it.
+The name comes from Maria Padilha, the pomba-gira of the crossroads.
 
-It stands on Linux, Wayland, Qt 6, Hyprland and Quickshell. Everything above
-that line is ours.
+> **Status:** early development (0.1.x). The shell, session, theme engine, and
+> package are usable; the settings application and greeter integration are
+> still in progress.
 
-## Which one is running?
+## Features
 
-This machine runs **this tree**, not the Caelestia package:
+- **Shell** — bar, launcher, notifications, on-screen display, dashboard, lock
+  screen, and the panels around them.
+- **Colour** — a wallpaper is scored into a Material You palette and written to
+  Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, spicetify,
+  Neovim, Discord, and Midnight Commander.
+- **Daylight** — a light wallpaper for the day and a dark one for the night,
+  with the palette reapplied when the period changes.
+- **Configuration** — `init.lua` is compiled into the shell's JSON and
+  validated against the shell's own schema. A generated `ui.lua` carries
+  changes made from the settings UI.
+- **Session** — a Wayland session entry, `padilha-session`, optional systemd
+  user units, and opt-in window restore.
+- **Packaging** — a PKGBUILD that installs the shell, commands, session units,
+  and the greeter entry.
 
-- `~/.config/quickshell/caelestia` is a symlink into `shell/`, the session
-  starts it as `qs -c caelestia`, and the C++ modules are loaded from
-  `build/qml`.
-- Wallpapers and every colour come from `bin/padilha-theme` and
-  `bin/padilha-daylight`; the config comes from `bin/padilha-config`.
-- `caelestia-cli` is still installed, but nothing in the session or the shell
-  executes it any more.
+The shell is a fork of [Caelestia](https://github.com/caelestia-dots/shell)
+2.5.0, adapted to this desktop.
 
-The *code*, though, is still mostly Caelestia's: the fork is v2.5.0 plus the
-commits in `git log -- shell/`. That is what descending from it means in
-practice, and the name survives where it is an interface rather than
-branding — the Quickshell config is still called `caelestia`, so app ids,
-window classes and existing rules keep working. The About page calls the
-desktop Padilha.
+## Requirements
 
-## Status
+Padilha is packaged for Arch Linux and Arch-based distributions such as
+Manjaro. The package depends on:
 
-First light. `shell/` (a fork of Caelestia v2.5.0, and by now more than the
-four patches that started it) is what this machine runs: it builds with the system toolchain
-(`tools/build.sh`, 223 targets, Qt 6.11) and the session starts it through
-`~/.config/quickshell/caelestia`, a symlink into this tree.
+- Hyprland and Quickshell
+- Qt 6 (`qt6-base`, `qt6-declarative`)
+- PipeWire, aubio, libcava, libqalculate, and lm_sensors
+- Lua and ImageMagick
 
-The package builds: `packaging/PKGBUILD` runs the same CMake build and installs
-the shell into `/etc/xdg/quickshell/caelestia` (where `qs -c caelestia` looks),
-the commands into `/usr/lib/padilha`, and the session units into
-`/usr/lib/systemd/user`.
+Building additionally needs CMake, Ninja, Python 3, and a C++ toolchain.
+Optional tools enable screenshots, recording, the pickers, and the Discord
+theme; see `packaging/PKGBUILD`.
 
-Configuration is ours too. `bin/padilha-config` compiles
-`~/.config/padilha/init.lua` into the shell's JSON, and `bin/padilha-session`
-runs that compile at login before starting the shell.
+## Building
 
-Keys and types are validated against the module's own `qmltypes`, so a typo
-is a compile error with a suggestion, not a line the shell silently ignores.
-The checkout is the source of truth; the package is built from it.
+```sh
+tools/build.sh
+```
 
-Colours are ours as well. `bin/padilha-theme` reads a wallpaper, scores its
-colours the way Material does, builds the HCT tonal palettes in Lua and writes
-`scheme.json` plus every application template — no Python in that path.
-`bin/padilha-daylight` chooses the wallpaper by the hour: white for the day,
-black for the night, both painted by Maria Padilha, both seeded from the red
-of their candles.
+The script configures `shell/` with CMake and Ninja and writes the build tree
+to `build/`. Because this tree is a snapshot without upstream commit history,
+the version and revision are passed explicitly from `upstream.json`.
 
-Nothing in the session or the shell executes the Python `caelestia` CLI any
-more: the launcher is `qs`, and wallpaper, scheme, lock, toasts, screenshots,
-recording, the clipboard and the emoji picker are our own commands. The
-package is only still installed because removing it needs root.
+## Running
 
-## What "ours" means
+### From a checkout
 
-- **Owned**: shell behaviour and layout, theme engine, session, settings,
-  installer, branding, every default.
-- **Tracked, never carried**: Hyprland, Quickshell, Qt, and the libraries the
-  shell links against (qalculate, pipewire, aubio, libcava). We pin them,
-  watch them, adapt to them — we do not fork them.
+From the repository root, inside a Hyprland session:
 
-`UPSTREAM.md` records what we watch and why; `tools/upstream-watch.sh` reports
-what moved since our pins.
+```sh
+tools/build.sh
+mkdir -p ~/.config/quickshell
+ln -sfn "$PWD/shell" ~/.config/quickshell/caelestia
+export QML2_IMPORT_PATH="$PWD/build/qml"
+export PATH="$PWD/bin:$PATH"
+padilha-session
+```
 
-## Next
+Quickshell loads the shell through `~/.config/quickshell/caelestia`, and the
+C++ modules come from `build/qml`. `padilha-session` compiles the configuration,
+applies the current wallpaper's palette, and starts the shell.
 
-1. The greeter: the session entry is packaged; the display-manager side and a
-   greeter theme are still the distribution's, and are the last pieces that
-   need root.
-2. Wire Nexus to `padilha-config set` / `unset`, so the settings UI writes
-   `ui.lua` instead of `shell.json`; the command and precedence are in place.
-3. Live config: watch `init.lua`, recompile and reload the shell on save;
-   `settings.watchFiles` is deliberately off today.
+### From the package
 
-## Layout
+```sh
+tools/release.sh
+sudo pacman -U packaging/padilha-<version>-1-x86_64.pkg.tar.zst
+```
 
-| path | what |
+Then choose **Padilha** at the display manager. The package installs the shell
+to `/etc/xdg/quickshell/caelestia`, the commands to `/usr/lib/padilha` with
+links in `/usr/bin`, the session entry to `/usr/share/wayland-sessions`, and
+the optional user units to `/usr/lib/systemd/user`.
+
+## Configuration
+
+User configuration lives in `~/.config/padilha/`:
+
+| file | role |
 | --- | --- |
-| `shell/` | the desktop shell (QML + C++ plugin), forked from Caelestia 2.5.0 |
-| `bin/` | `padilha-config` (config compiler), `padilha-session` (login entry point), `padilha-theme` (palette engine), `padilha-daylight` (the two-wallpaper clock), `padilha-reload` (restart the shell safely), `padilha` (the small command surface), `padilha-shot` / `-record` / `-clipboard` / `-emoji` (utilities) |
-| `lib/` | the Lua under `padilha-theme`: colour maths, scheme roles, templates, apply |
-| `share/` | templates, the two default wallpapers, theme defaults, emoji data |
-| `packaging/` | the PKGBUILD and what a package installs where |
-| `session/` | systemd user units and the session-restore script |
+| `init.lua` | the main configuration |
+| `local.lua` | per-machine overrides, wins over `init.lua` |
+| `ui.lua` | generated by `padilha-config` and the settings UI |
+
+```lua
+-- ~/.config/padilha/init.lua
+return {
+    appearance = {
+        transparency = { enabled = false },
+    },
+    general = {
+        idle = { timeouts = padilha.array {} },
+    },
+}
+```
+
+`padilha-config compile` validates the file against the shell's schema and
+writes `~/.config/caelestia/shell.json`. Apply a change with:
+
+```sh
+padilha-config compile && padilha-reload
+```
+
+See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
+`padilha-config set` / `unset`.
+
+## Commands
+
+| command | purpose |
+| --- | --- |
+| `padilha` | small command surface for keybinds (wallpaper, scheme, …) |
+| `padilha-config` | compile the Lua configuration; `set`, `unset`, `capture` |
+| `padilha-session` | compile, paint the palette, and start the shell |
+| `padilha-theme` | render a wallpaper's palette into application configs |
+| `padilha-daylight` | switch the wallpaper and palette by time of day |
+| `padilha-reload` | restart the shell safely |
+| `padilha-shot` | screenshots |
+| `padilha-record` | screen recording |
+| `padilha-clipboard` | clipboard history picker |
+| `padilha-emoji` | emoji and glyph picker |
+
+## Project layout
+
+| path | contents |
+| --- | --- |
+| `shell/` | the shell: QML and a C++ plugin |
+| `bin/` | the commands above |
+| `lib/` | Lua modules behind the theme engine |
+| `share/` | templates, wallpapers, theme defaults, and emoji data |
+| `session/` | session entry, systemd user units, and window restore |
+| `packaging/` | PKGBUILD and packaging notes |
+| `tests/` | contract tests for the compiler, theme, and commands |
+| `tools/` | build, release, and upstream-watch scripts |
 | `examples/` | a reference `init.lua` |
-| `tests/` | contract tests for the compiler |
-| `tools/` | maintenance scripts |
-| `upstream.json` | pinned versions of everything we sit on |
-| `CONFIG.md` | the user-facing config contract (Lua in, JSON out) |
-| `ARCHITECTURE.md` | how the pieces fit and where data flows |
-| `UPSTREAM.md` | what we track and how we absorb it |
 
-## Lineage
+## Documentation
 
-The shell descends from [Caelestia](https://github.com/caelestia-dots/shell),
-GPL-3.0 — see `shell/LICENSE`. Keeping that licence is the price of standing on
-someone else's work; from here the code is ours to maintain.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — how the layers fit together
+- [CONFIG.md](CONFIG.md) — the configuration contract
+- [UPSTREAM.md](UPSTREAM.md) — the projects Padilha tracks and how updates are absorbed
+- [session/README.md](session/README.md) — session, systemd units, and restore
+- [packaging/README.md](packaging/README.md) — checkout versus package
 
-## Licence
+## Development
 
-Padilha is free software: you can redistribute it and/or modify it under the
-terms of the GNU General Public License as published by the Free Software
-Foundation, version 3. It is distributed in the hope that it will be useful,
-but without any warranty; see `LICENSE` for the full text.
+```sh
+tests/all.sh
+```
 
-The shell keeps the licence it arrived with (`shell/LICENSE`); the rest of the
-tree — commands, theme engine, session, packaging — is ours, under the same
-terms. Copyright (C) 2026 the Padilha authors.
+The suite covers the configuration compiler, the colour maths against
+Material's reference implementation, and the command-line contracts. CI runs
+the same suite on Arch for every push and pull request.
+
+## License
+
+Padilha is distributed under the GNU General Public License, version 3 only.
+See [LICENSE](LICENSE) for the full text.
+
+The shell in `shell/` is a fork of Caelestia v2.5.0 and keeps its GPL-3.0
+license; see [shell/LICENSE](shell/LICENSE).
