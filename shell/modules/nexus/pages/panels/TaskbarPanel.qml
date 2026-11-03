@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick.Layouts
 import Caelestia.Config
 import Caelestia.I18n
+import qs.components.controls
 import qs.modules.nexus.common
 
 PageBase {
@@ -10,6 +11,19 @@ PageBase {
 
     title: Tr.tr("Taskbar")
     isSubPage: true
+
+    // What the bar's colours follow. Fixed pins it to the static matte scheme
+    // while every other surface keeps following the wallpaper.
+    readonly property list<MenuItem> paletteItems: [
+        MenuItem {
+            text: Tr.tr("Follow the wallpaper")
+            value: BarPalette.Wallpaper
+        },
+        MenuItem {
+            text: Tr.tr("Fixed matte black")
+            value: BarPalette.Fixed
+        }
+    ]
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -39,7 +53,6 @@ PageBase {
         }
 
         StepperRow {
-            last: true
             label: Tr.tr("Drag threshold")
             subtext: Tr.tr("Pixels dragged before the bar reveals")
             value: Config.bar.dragThreshold
@@ -47,6 +60,15 @@ PageBase {
             to: 200
             stepSize: 5
             onMoved: v => GlobalConfig.bar.dragThreshold = v
+        }
+
+        SelectRow {
+            last: true
+            label: Tr.tr("Palette")
+            subtext: Tr.tr("What the bar's colours follow")
+            menuItems: root.paletteItems
+            active: root.paletteItems.find(i => i.value === GlobalConfig.bar.palette)
+            onSelected: item => GlobalConfig.bar.palette = item.value
         }
 
         // Components
