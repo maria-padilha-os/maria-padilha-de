@@ -52,6 +52,26 @@ got "Fixd" (did you mean "Fixed"?)`. `--no-schema` skips the check;
   config, not a plugin: changing a value takes a compile and a shell reload,
   not a live patch.
 
+## What the settings app changes
+
+The shell's own settings UI writes `shell.json` directly. The compiler would
+otherwise overwrite those edits at the next login, so it carries them over:
+
+```
+defaults  <  init.lua  <  local.lua  <  changes made in the UI
+```
+
+How it knows what "changed in the UI" means: next to `shell.json` the compiler
+keeps `shell.json.base`, the tree `init.lua` alone produced last time. Anything
+that differs between the baseline and the file on disk is an edit, and an edit
+wins over `init.lua` — including a key the UI added that `init.lua` never
+mentions. A key you *remove* from `init.lua` still disappears, unless the UI
+also edited it.
+
+`--no-merge` turns this off and writes `init.lua`'s tree verbatim; it is what
+you want when the two have drifted and you would rather start from the file
+you can read.
+
 ## When it is wrong
 
 The compiler refuses to write a broken config:
@@ -73,6 +93,7 @@ bin/padilha-config compile --print          # to stdout, for diffing
 bin/padilha-config compile --config X.lua --out Y.json
 bin/padilha-config compile --schema path/to.qmltypes   # validate against another schema
 bin/padilha-config compile --no-schema                 # skip key/type validation
+bin/padilha-config compile --no-merge                  # ignore UI edits, init.lua wins
 ```
 
 At login the session calls `bin/padilha-session`, which compiles `init.lua`

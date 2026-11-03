@@ -16,4 +16,4 @@ fi
 # palette. The daylight daemon repeats this later only when the period moves.
 "$HOME/.config/padilha/bin/padilha-daylight" --once >/dev/null 2>&1 || true
 
-exec caelestia shell -d
+exec qs -c caelestia -n -d

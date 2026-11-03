@@ -165,6 +165,29 @@ if [ -f "$real_schema" ]; then
     fi
 fi
 
+echo "settings carry-over"
+
+mkdir -p "$tmp/carry"
+printf 'return { a = 1, b = { c = 2 } }\n' > "$tmp/carry/init.lua"
+"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
+if [ -s "$tmp/carry.json.base" ]; then ok "the baseline is written"; else bad "the baseline is written"; fi
+
+printf '{"a": 9, "b": {"c": 2}, "d": true}\n' > "$tmp/carry.json"
+printf 'return { a = 1, b = { c = 3 } }\n' > "$tmp/carry/init.lua"
+"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
+carried=$(/usr/bin/python3 -c "import json;d=json.load(open('$tmp/carry.json'));print(d['a'],d['b']['c'],d.get('d'))")
+if [ "$carried" = "9 3 True" ]; then ok "a UI edit survives the next compile"; else bad "a UI edit survives the next compile" "$carried"; fi
+
+printf 'return { a = 1, b = { c = 2 } }\n' > "$tmp/carry/init.lua"
+"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet --no-merge
+forced=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/carry.json'))['a'])")
+if [ "$forced" = "1" ]; then ok "--no-merge lets init.lua win"; else bad "--no-merge lets init.lua win" "a=$forced"; fi
+
+printf '{"a": 9}\n' > "$tmp/carry.json"
+printf 'return { a = 1 }\n' > "$tmp/carry/init.lua"
+"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
+if grep -q '"b"' "$tmp/carry.json"; then bad "a key dropped from init.lua goes away"; else ok "a key dropped from init.lua goes away"; fi
+
 echo "nothing is replaced on failure"
 
 printf '{"kept": true}\n' > "$tmp/out.json"

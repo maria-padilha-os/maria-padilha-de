@@ -167,6 +167,241 @@ local function encode(root)
 end
 
 --------------------------------------------------------------------------
+-- JSON reading: what the shell wrote, so the UI's edits can survive
+--------------------------------------------------------------------------
+
+local function decode_error(text, pos, message)
+    local line = 1
+    for _ in text:sub(1, pos):gmatch("\n") do
+        line = line + 1
+    end
+    error(("invalid JSON at line %d: %s"):format(line, message), 0)
+end
+
+local function json_decode(text)
+    local pos = 1
+
+    local function skip()
+        local _, stop = text:find("^[ \t\r\n]*", pos)
+        if stop then
+            pos = stop + 1
+        end
+    end
+
+    local parse_value
+
+    local function parse_string()
+        pos = pos + 1
+        local out = {}
+        while true do
+            local c = text:sub(pos, pos)
+            if c == "" then
+                decode_error(text, pos, "unterminated string")
+            elseif c == '"' then
+                pos = pos + 1
+                return table.concat(out)
+            elseif c == "\\" then
+                local e = text:sub(pos + 1, pos + 1)
+                local simple = { ['"'] = '"', ["\\"] = "\\", ["/"] = "/", b = "\b", f = "\f", n = "\n", r = "\r", t = "\t" }
+                if e == "u" then
+                    local code = tonumber(text:sub(pos + 2, pos + 5), 16)
+                    if not code then
+                        decode_error(text, pos, "bad \\u escape")
+                    end
+                    if code >= 0xD800 and code <= 0xDBFF and text:sub(pos + 6, pos + 7) == "\\u" then
+                        local low = tonumber(text:sub(pos + 8, pos + 11), 16)
+                        if low and low >= 0xDC00 and low <= 0xDFFF then
+                            code = 0x10000 + (code - 0xD800) * 0x400 + (low - 0xDC00)
+                            pos = pos + 6
+                        end
+                    end
+                    out[#out + 1] = utf8.char(code)
+                    pos = pos + 6
+                elseif simple[e] then
+                    out[#out + 1] = simple[e]
+                    pos = pos + 2
+                else
+                    decode_error(text, pos, "bad escape \\" .. e)
+                end
+            else
+                out[#out + 1] = c
+                pos = pos + 1
+            end
+        end
+    end
+
+    local function parse_number()
+        local num = text:match("^-?%d+%.?%d*[eE][-+]?%d+", pos) or text:match("^-?%d+%.?%d*", pos)
+        if not num then
+            decode_error(text, pos, "expected a number")
+        end
+        pos = pos + #num
+        return tonumber(num)
+    end
+
+    local function parse_object()
+        pos = pos + 1
+        local out = {}
+        skip()
+        if text:sub(pos, pos) == "}" then
+            pos = pos + 1
+            return out
+        end
+        while true do
+            skip()
+            if text:sub(pos, pos) ~= '"' then
+                decode_error(text, pos, "expected a key")
+            end
+            local key = parse_string()
+            skip()
+            if text:sub(pos, pos) ~= ":" then
+                decode_error(text, pos, "expected ':'")
+            end
+            pos = pos + 1
+            out[key] = parse_value()
+            skip()
+            local c = text:sub(pos, pos)
+            pos = pos + 1
+            if c == "}" then
+                return out
+            elseif c ~= "," then
+                decode_error(text, pos - 1, "expected ',' or '}'")
+            end
+        end
+    end
+
+    local function parse_array()
+        pos = pos + 1
+        local out = setmetatable({}, ARRAY_MT)
+        skip()
+        if text:sub(pos, pos) == "]" then
+            pos = pos + 1
+            return out
+        end
+        while true do
+            out[#out + 1] = parse_value()
+            skip()
+            local c = text:sub(pos, pos)
+            pos = pos + 1
+            if c == "]" then
+                return out
+            elseif c ~= "," then
+                decode_error(text, pos - 1, "expected ',' or ']'")
+            end
+        end
+    end
+
+    parse_value = function()
+        skip()
+        local c = text:sub(pos, pos)
+        if c == "{" then
+            return parse_object()
+        elseif c == "[" then
+            return parse_array()
+        elseif c == '"' then
+            return parse_string()
+        elseif c == "t" and text:sub(pos, pos + 3) == "true" then
+            pos = pos + 4
+            return true
+        elseif c == "f" and text:sub(pos, pos + 4) == "false" then
+            pos = pos + 5
+            return false
+        elseif c == "n" and text:sub(pos, pos + 3) == "null" then
+            pos = pos + 4
+            return nil
+        end
+        return parse_number()
+    end
+
+    local value = parse_value()
+    skip()
+    if pos <= #text then
+        decode_error(text, pos, "trailing data")
+    end
+    return value
+end
+
+local function read_json(path)
+    local f = io.open(path, "rb")
+    if not f then
+        return nil
+    end
+    local text = f:read("*a")
+    f:close()
+    local ok, value = pcall(json_decode, text)
+    if not ok or type(value) ~= "table" then
+        return nil
+    end
+    return value
+end
+
+local function at(t, key)
+    if type(t) ~= "table" then
+        return nil
+    end
+    return t[key]
+end
+
+local function deep_equal(a, b)
+    if a == b then
+        return true
+    end
+    if type(a) ~= "table" or type(b) ~= "table" then
+        return false
+    end
+    for k, v in pairs(a) do
+        if not deep_equal(v, at(b, k)) then
+            return false
+        end
+    end
+    for k in pairs(b) do
+        if at(a, k) == nil then
+            return false
+        end
+    end
+    return true
+end
+
+-- Three-way carry-over. `base` is what the compiler wrote last time, `current`
+-- is the file on disk now, `new` is what init.lua says this time. A value that
+-- differs between base and current was changed by the settings UI, so it wins;
+-- everything else follows the new config.
+local function carry(base, current, new)
+    local current_list = type(current) == "table" and looks_like_array(current)
+    local new_list = type(new) == "table" and looks_like_array(new)
+    if current_list or new_list then
+        if not deep_equal(current, base) then
+            return current
+        end
+        return new
+    end
+    if type(current) ~= "table" or type(new) ~= "table" then
+        if not deep_equal(current, base) then
+            return current
+        end
+        return new
+    end
+
+    local out = {}
+    for k, v in pairs(new) do
+        out[k] = v
+    end
+    for k, v in pairs(current) do
+        if new[k] ~= nil then
+            if type(v) == "table" and type(new[k]) == "table" then
+                out[k] = carry(at(base, k), v, new[k])
+            elseif not deep_equal(v, at(base, k)) then
+                out[k] = v
+            end
+        elseif at(base, k) == nil then
+            -- A key the settings UI wrote that init.lua never mentions.
+            out[k] = v
+        end
+    end
+    return out
+end
+
+--------------------------------------------------------------------------
 -- Loading and merging
 --------------------------------------------------------------------------
 
@@ -480,6 +715,7 @@ usage: padilha-config compile [--config PATH] [--out PATH] [--schema PATH]
   --out PATH     JSON to write         (default: $XDG_CONFIG_HOME/caelestia/shell.json)
   --schema PATH  qmltypes to validate against (default: the built module, then the system one)
   --no-schema    skip key and type validation
+  --no-merge     ignore what the settings UI saved; init.lua wins outright
   --check        parse and validate only, write nothing
   --print        write the JSON to stdout instead of a file
   --quiet        no success message
@@ -501,6 +737,8 @@ local function parse_args(argv)
             opts[arg:sub(3)] = argv[i]
         elseif arg == "--no-schema" then
             opts.no_schema = true
+        elseif arg == "--no-merge" then
+            opts.no_merge = true
         elseif arg == "--check" then
             opts.check = true
         elseif arg == "--print" then
@@ -571,6 +809,18 @@ local function main(argv)
         used_overlay = true
     end
 
+    -- What init.lua says is `compiled`; the file the shell may have edited is
+    -- `out`. Keep the UI's changes unless --no-merge. --print and --check show
+    -- init.lua alone, so a diff of the printed JSON stays honest.
+    local compiled = root
+    if not opts.no_merge and not opts.check and not opts.print then
+        local current = read_json(out)
+        if current then
+            local base = read_json(out .. ".base") or current
+            root = carry(base, current, root)
+        end
+    end
+
     local ok, json = pcall(encode, root)
     if not ok then
         fail(config .. ": " .. tostring(json))
@@ -603,6 +853,19 @@ local function main(argv)
     if not renamed then
         os.remove(tmp)
         fail(("cannot replace %s: %s"):format(out, tostring(rerr)))
+    end
+
+    -- The baseline is what init.lua alone produced; next time, the difference
+    -- between it and the file on disk is the settings UI's doing.
+    local base_json = encode(compiled)
+    local btmp = out .. ".base.tmp"
+    local bf = io.open(btmp, "wb")
+    if bf then
+        bf:write(base_json)
+        bf:close()
+        if not os.rename(btmp, out .. ".base") then
+            os.remove(btmp)
+        end
     end
 
     if not opts.quiet then
