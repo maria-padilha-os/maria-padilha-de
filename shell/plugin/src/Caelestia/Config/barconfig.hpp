@@ -106,6 +106,8 @@ class BarClock : public settings::ObjectNode {
 class BarConfig : public settings::ObjectNode {
     CONFIG_NODE(BarConfig, settings::ObjectNode)
 
+    CONFIG_ENUM_PROPERTY(BarPalette, palette, BarPalette::Wallpaper)
+
     CONFIG_PROPERTY(bool, persistent, true)
     CONFIG_PROPERTY(bool, showOnHover, true)
     CONFIG_PROPERTY(int, dragThreshold, 20)
