@@ -49,6 +49,21 @@ end
 local source = debug.getinfo(1, "S").source:gsub("^@", "")
 local lib_dir = source:match("^(.*)/[^/]+$") or "."
 
+-- Literal replacement: templates are text, not patterns.
+local function replace_plain(text, needle, replacement)
+    local out, i = {}, 1
+    while true do
+        local s, e = text:find(needle, i, true)
+        if not s then
+            out[#out + 1] = text:sub(i)
+            return table.concat(out)
+        end
+        out[#out + 1] = text:sub(i, s - 1)
+        out[#out + 1] = replacement
+        i = e + 1
+    end
+end
+
 local function read_template(name)
     local path = lib_dir .. "/../share/templates/" .. name
     local f = io.open(path, "r")
@@ -263,6 +278,21 @@ function M.apply(scheme, opts)
                 errors[#errors + 1] = "discord: sass did not produce a stylesheet"
             end
             os.execute("rm -rf " .. quote(tmp))
+        end
+    end
+
+    -- Midnight Commander reads one skin file at startup; it is the only app
+    -- here we cannot poke with a signal.
+    if config_value(config, "enableMc", true) ~= false then
+        local template = read_template("mc-skin.ini")
+        if template then
+            local text = replace_plain(template, "{{ $aliases }}", require("mcskin").aliases(colours))
+            local ok, err = M.write(bases.data .. "/mc/skins/caelestia.ini", text)
+            if ok then
+                written[#written + 1] = "mc/skins/caelestia.ini"
+            else
+                errors[#errors + 1] = "mc skin: " .. tostring(err)
+            end
         end
     end
 

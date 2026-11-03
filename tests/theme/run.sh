@@ -74,6 +74,11 @@ check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
 check "terminals get OSC 11" "grep -q ']11;rgb:' '$seq'"
 check "htop is left alone" "! test -e '$tmp/tree/home/machine/.config/htop/htoprc'"
 check "nvtop is left alone" "! test -e '$tmp/tree/home/machine/.config/nvtop/nvtop.colors'"
+mc="$tmp/tree/home/machine/.local/share/mc/skins/caelestia.ini"
+mc_surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
+check "mc gets a skin" "test -s '$mc'"
+check "the mc skin follows the scheme" "grep -q \"^    Main = #$mc_surface\" '$mc'"
+
 bar="$tmp/tree/home/machine/.local/state/caelestia/scheme-bar.json"
 check "the pinned bar palette is written" "test -s '$bar'"
 bar_bg=$(/usr/bin/python3 -c "import json;print(json.load(open('$bar'))['colours']['background'])")
