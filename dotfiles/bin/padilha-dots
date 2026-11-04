@@ -17,7 +17,7 @@ names=${*:-"hypr nvim wezterm"}
 mkdir -p "$config"
 
 for name in $names; do
-    src="$root/dotfiles/$name"
+    src="$root/$name"
     dst="$config/$name"
 
     if [ ! -d "$src" ]; then

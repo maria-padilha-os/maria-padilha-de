@@ -3,8 +3,8 @@ local fn   = require("utils.functions")
 local home = os.getenv("HOME")
 
 -- Prefer the installed command; a checkout that has not been packaged yet
--- still falls back to its own bin/, resolved through the ~/.config/hypr
--- symlink so the repo can live anywhere (or be moved).
+-- falls back to the sibling padilha-de/bin, resolved through the
+-- ~/.config/hypr symlink so the repositories can live anywhere.
 local function padilha_bin(name)
     local fallback = name
     local ok, handle = pcall(io.popen,
@@ -12,9 +12,14 @@ local function padilha_bin(name)
     if ok and handle then
         local config_dir = handle:read("*l")
         handle:close()
-        local root = config_dir and config_dir:match("^(.*)/dotfiles/hypr$")
+        local root = config_dir and config_dir:match("^(.*)/hypr$")
         if root then
-            fallback = root .. "/bin/" .. name
+            local sibling = root .. "/../padilha-de/bin/" .. name
+            local probe = io.open(sibling, "r")
+            if probe then
+                probe:close()
+                fallback = sibling
+            end
         end
     end
     return "command -v " .. name .. " >/dev/null 2>&1 && " .. name ..
