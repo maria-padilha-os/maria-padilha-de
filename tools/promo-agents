@@ -13,9 +13,11 @@ Typical use:
     tools/promo-agents --config ... --dry-run
     tools/promo-agents --config ... --status
     tools/promo-agents --config ... --stop
+    tools/promo-agents --config ... --enqueue REPO --title "..."
 
-Run `--once` from a timer every few minutes. The agents are detached, so they
-continue after the timer process exits; the next tick monitors and stops them.
+Run `--once` from a timer every few minutes, or `--daemon` to chain tasks as
+soon as an agent exits. The agents are detached, so they continue after the
+timer process exits; the next tick monitors and stops them.
 """
 
 from __future__ import annotations
@@ -63,7 +65,7 @@ def load_config(path: Path) -> dict:
 
     schedule = config.setdefault("schedule", {})
     schedule.setdefault("timezone", "UTC")
-    schedule.setdefault("stop_margin_minutes", 25)
+    schedule.setdefault("stop_margin_minutes", 30)
     schedule.setdefault("stop_grace_seconds", 20)
     schedule.setdefault("windows", [])
     if not schedule["windows"]:
@@ -232,6 +234,54 @@ def slugify(text: str) -> str:
     return text[:40] or "task"
 
 
+def enqueue(config: dict, repo_name: str, title: str | None, body: str,
+            dry: bool) -> int:
+    """Write one coordinator task into a repository queue."""
+    repo = config["repos"].get(repo_name)
+    if repo is None:
+        print(f"promo-agents: unknown repository {repo_name!r}", file=sys.stderr)
+        return 2
+
+    body = body.strip()
+    if not body:
+        print("promo-agents: --enqueue needs a body on stdin or --body",
+              file=sys.stderr)
+        return 2
+
+    heading = ""
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("#"):
+            heading = stripped.lstrip("#").strip()
+            break
+    title = (title or heading or body.splitlines()[0]).strip()
+    if not title:
+        print("promo-agents: the task has no title", file=sys.stderr)
+        return 2
+
+    text = body if body.lstrip().startswith("#") else f"# {title}\n\n{body}"
+    text = text.rstrip() + "\n"
+
+    queue = Path(repo["queue"])
+    base = f"{datetime.now(timezone.utc):%Y%m%d-%H%M%S}-{slugify(title)}"
+    path = queue / f"{base}.md"
+    suffix = 2
+    while path.exists():
+        path = queue / f"{base}-{suffix}.md"
+        suffix += 1
+
+    if dry:
+        print(f"would queue {repo_name}: {path}")
+        return 0
+
+    queue.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(text)
+    tmp.replace(path)
+    print(path)
+    return 0
+
+
 def build_prompt(repo_name: str, task: Path) -> str:
     body = task.read_text(errors="replace")
     return f"""You are the owner of the {repo_name} repository.
@@ -259,10 +309,11 @@ found it. Review the tests, documentation, TODOs, rough edges, and recent
 changes, then pick ONE concrete improvement, optimization, or polish that is
 safe and testable. Implement it, run the repository tests, and commit it.
 
-If nothing is genuinely worth changing, write or append a short `PROPOSALS.md`
-with the next concrete steps and commit that instead. Do not invent busywork,
+If nothing is genuinely worth changing, stop and commit nothing: an empty
+round is a valid result. Do not invent busywork, do not add placeholder files,
 do not rewrite working code for style alone, and do not touch machine secrets.
-Do not push or merge anything; the coordinator reviews the branch.
+If you do find something real, implement it and commit it. Do not push or merge
+anything; the coordinator reviews the branch.
 """
 
 
@@ -618,10 +669,20 @@ def main() -> int:
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--stop", action="store_true")
     parser.add_argument("--daemon", action="store_true")
+    parser.add_argument("--enqueue", metavar="REPO",
+                        help="queue a task for REPO (body from stdin or --body)")
+    parser.add_argument("--title",
+                        help="task title when the body has no heading")
+    parser.add_argument("--body", help="task body; defaults to stdin")
     args = parser.parse_args()
 
     if args.daemon and args.once:
         parser.error("--daemon and --once are mutually exclusive")
+    if (args.title or args.body) and not args.enqueue:
+        parser.error("--title and --body are only used with --enqueue")
+    if args.enqueue and (args.status or args.stop or args.once or args.daemon):
+        parser.error("--enqueue cannot be combined with --status/--stop/"
+                     "--once/--daemon")
 
     if not args.config.is_file():
         print(f"promo-agents: no config at {args.config}", file=sys.stderr)
@@ -629,6 +690,12 @@ def main() -> int:
 
     config = load_config(args.config)
     events = args.state_dir / "agents.log"
+
+    if args.enqueue:
+        body = args.body or ""
+        if not body and not sys.stdin.isatty():
+            body = sys.stdin.read()
+        return enqueue(config, args.enqueue, args.title, body, args.dry_run)
 
     if args.status:
         status(config, args.state_dir)

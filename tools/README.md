@@ -6,6 +6,10 @@ after the current agent exits. The scheduler stops the agent before the window
 closes and leaves the work on a branch for review. It never pushes `main` and
 never merges.
 
+The scheduler does not invent work. The coordinator (the main DSH session,
+briefed by the user) owns the queues; an empty queue means the window idles.
+Maintenance rounds are opt-in (`maintenance.enabled`).
+
 This is a prototype. The window schedule is configuration, not a hardcoded
 guess; verify DeepSeek's current discount hours before using it.
 
@@ -22,16 +26,21 @@ guess; verify DeepSeek's current discount hours before using it.
 2. Edit the windows, timezone, stop margin, and repository paths. The supplied
    times are placeholders.
 
-3. Put task files in each queue directory. A task is a focused Markdown brief,
-   not a vague goal:
+3. Queue the first task. A task is a focused Markdown brief, not a vague goal:
 
-   ```markdown
+   ```sh
+   tools/promo-agents --config ~/.config/padilha/agents.toml \
+       --enqueue padilha-de <<'EOF'
    # Fix the keyboard-backlight restore
 
    The panel brightness is lost after a reboot. Reproduce it, find where
    systemd-backlight saves the value, fix the restore path, and add a test.
    Do not touch the wallpaper engine.
+   EOF
    ```
+
+   `--title "…"` overrides the heading; `--body "…"` replaces stdin. The file
+   lands in the repository's queue, oldest name first.
 
 4. Check the configuration without changing anything:
 
@@ -50,6 +59,22 @@ The first `dsh --profile headless` use auto-initializes
 `~/.dsh/profiles/headless` from the shipped template; its credentials live in
 `~/.dsh`. The service runs as the same user so it can use them.
 
+## Coordinator
+
+The coordinator decides *what* the agents do; the scheduler decides *when* and
+*which repository*. In practice the main DSH session turns the user's direction
+into one brief per repository:
+
+```sh
+tools/promo-agents --enqueue padilha-de --title "Audit the installer"
+tools/promo-agents --enqueue padilha-dotfiles --title "Check the tree colours"
+```
+
+Queues are FIFO and repositories alternate: one lilith-de task, then one
+lilith-dotfiles task, then back. A repository with an empty queue is skipped, so
+the other can take consecutive rounds. If nothing is worth doing, leave the
+queues empty; the scheduler will not manufacture rounds to fill the window.
+
 ## What a tick does
 
 - If no window is active, or the stop margin has been reached, stops the
@@ -64,12 +89,13 @@ The first `dsh --profile headless` use auto-initializes
 - When an agent exits, or when it is stopped at the margin, it runs the repo's
   configured tests, commits any changes to the agent branch, optionally pushes
   the branch (`push = true`), moves the task to `done/`, and records the result.
-- If the queue is empty and `maintenance.enabled` is true, the agent does not
-  idle. It starts a maintenance round: review the project, tests, docs, and
-  rough edges, then make one concrete optimization/polish or write a
-  `PROPOSALS.md` with next steps. Set `max_rounds_per_window = 0` to keep going
-  until the stop margin; `min_round_seconds` prevents a fast failure from
-  spinning.
+- If the queue is empty and `maintenance.enabled` is true, it starts a
+  maintenance round: review the project, tests, docs, and recent changes, then
+  make one concrete improvement. The agent may decide there is nothing worth
+  changing and stop having committed nothing; it is not asked to produce
+  filler. With `maintenance.enabled = false` (the example default) an empty
+  queue simply idles. `max_rounds_per_window = 0` keeps rounds going until the
+  stop margin; `min_round_seconds` prevents a fast failure from spinning.
 
 No PR is opened automatically. The coordinator reviews the branch.
 
@@ -131,7 +157,9 @@ sudo systemctl enable --now padilha-agents.timer
 
 Adjust the hardcoded paths before installing. A plain `while` loop calling
 `tools/promo-agents --once` every five minutes also works; the state lock
-prevents overlapping ticks.
+prevents overlapping ticks. Use `tools/promo-agents --daemon` when the next
+repository should start the moment the previous agent exits: it ticks every
+30 seconds until stopped and uses the same lock.
 
 ## Safety rules
 
@@ -146,3 +174,5 @@ prevents overlapping ticks.
 - Only one agent runs at a time, and only one repository is launched per
   scheduler tick. Repositories rotate; the next one starts after the current
   agent exits. This keeps the 7 GB laptop out of a three-agent memory race.
+- Do not queue a task to keep an agent busy. If there is nothing worth doing,
+  leave the queue empty and let the window idle.

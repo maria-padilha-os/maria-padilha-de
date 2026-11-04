@@ -192,6 +192,57 @@ else
 fi
 rm -f "$tmp/queue/001-fix.md"
 
+echo "coordinator queue"
+
+printf '# Add the queue test\n\nWrite the thing.\n' \
+    | "$agents" --config "$tmp/inside.toml" --enqueue demo >"$tmp/enq.out" 2>"$tmp/enq.err"
+status=$?
+queued=$(find "$tmp/queue" -maxdepth 1 -name '*.md' -type f | sort | head -1)
+if [ "$status" -eq 0 ] && [ -n "$queued" ]; then
+    ok "--enqueue writes a task file"
+else
+    bad "--enqueue writes a task file" "$(cat "$tmp/enq.err")"
+fi
+if [ -n "$queued" ] && head -n1 "$queued" | grep -q "Add the queue test"; then
+    ok "the queued task keeps its heading"
+else
+    bad "the queued task keeps its heading"
+fi
+out=$("$agents" --config "$tmp/inside.toml" --status 2>&1)
+if printf '%s' "$out" | grep -q "demo: queued ("; then
+    ok "--status lists the enqueued task"
+else
+    bad "--status lists the enqueued task" "$out"
+fi
+out=$("$agents" --config "$tmp/inside.toml" --state-dir "$tmp/state-enqueue" --dry-run 2>&1)
+if printf '%s' "$out" | grep -q "would start demo"; then
+    ok "an enqueued task is picked before maintenance"
+else
+    bad "an enqueued task is picked before maintenance" "$out"
+fi
+printf '# dry\n\nbody\n' | "$agents" --config "$tmp/inside.toml" --enqueue demo --dry-run >/dev/null 2>&1
+count=$(find "$tmp/queue" -maxdepth 1 -name '*.md' -type f | wc -l)
+if [ "$count" -eq 1 ]; then
+    ok "--enqueue --dry-run writes nothing"
+else
+    bad "--enqueue --dry-run writes nothing" "count=$count"
+fi
+"$agents" --config "$tmp/inside.toml" --enqueue nope >/dev/null 2>"$tmp/enq.err"
+status=$?
+if [ "$status" -eq 2 ] && grep -q "unknown repository" "$tmp/enq.err"; then
+    ok "an unknown repository is refused"
+else
+    bad "an unknown repository is refused" "$(cat "$tmp/enq.err")"
+fi
+"$agents" --config "$tmp/inside.toml" --title "orphan" >/dev/null 2>"$tmp/enq.err"
+status=$?
+if [ "$status" -eq 2 ]; then
+    ok "--title without --enqueue is refused"
+else
+    bad "--title without --enqueue is refused" "status=$status"
+fi
+rm -f "$tmp/queue"/*.md
+
 echo "safety"
 
 # A record left by a previous boot must never be signalled: the PID may now

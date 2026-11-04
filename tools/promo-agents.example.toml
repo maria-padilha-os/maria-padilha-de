@@ -7,7 +7,9 @@
 
 [schedule]
 timezone = "America/Sao_Paulo"
-stop_margin_minutes = 25
+# Stop 30 minutes before the window closes: no launch after this point, and a
+# running agent is terminated at it, so nothing bills outside the discount.
+stop_margin_minutes = 30
 # SIGTERM at the margin, then SIGKILL after this many seconds.
 stop_grace_seconds = 20
 
@@ -20,7 +22,10 @@ end = "00:30"
 command = ["dsh", "--profile", "headless"]
 
 [maintenance]
-enabled = true
+# Opt-in. With this false, an empty queue means the window idles: the
+# coordinator decides what is worth doing. Enable it only when you want a repo
+# to review itself after its queue drains.
+enabled = false
 # 0 keeps doing maintenance rounds until the stop margin. A positive number caps
 # the rounds per window.
 max_rounds_per_window = 0
