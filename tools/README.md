@@ -71,6 +71,23 @@ The first `dsh --profile headless` use auto-initializes
 
 No PR is opened automatically. The coordinator reviews the branch.
 
+### Stopping and state
+
+- At the margin the scheduler sends `SIGTERM` to the agent's process group, waits
+  up to `schedule.stop_grace_seconds` (default 20), and only then sends
+  `SIGKILL`, so a checkpoint is not cut short.
+- Each running record stores the boot id. A record left by a previous boot is
+  finalized but never signalled: after a reboot that PID may belong to
+  something else.
+- A record without a usable PID is never passed to `killpg`, and a failed
+  launch (missing checkout, dirty tree, worktree error) does not consume a
+  maintenance round.
+- `tools/promo-agents --dry-run` reads state and prints the decision without
+  writing a state file, a log, a worktree, or a branch.
+
+`tests/cli/promo-agents.sh` covers these promises; it runs as part of
+`tests/all.sh` and replaces `dsh` with `sh`, so it needs no network or API key.
+
 ## Timer
 
 The systemd **user** bus is not available in the current LightDM session, so use

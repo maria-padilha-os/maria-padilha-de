@@ -67,7 +67,15 @@ it is missing.
 - Promo-window scheduler prototype at `tools/promo-agents`: config-driven
   windows, one headless `dsh` per repo, git worktrees, stop margin, tests,
   branch handoff, `--dry-run`/`--status`/`--stop`; system timer documented.
-  Dry-run tested; not enabled.
+  Not enabled.
+- Scheduler maintenance pass (2026-11-04): `--once` is a real flag (the timer
+  unit was calling a flag argparse rejected); `--stop`/`--daemon` crashed
+  because `datetime.time` shadowed the `time` module; a PID from an earlier
+  boot is finalized but never signalled; `killpg(0)` is impossible; SIGTERM is
+  followed by a configurable grace and SIGKILL; a failed launch does not consume
+  a maintenance round; dry runs write nothing; branch/worktree names no longer
+  collide within the same second. New `tests/cli/promo-agents.sh` (23 checks)
+  is part of `tests/all.sh`.
 
 ## Open work
 
@@ -147,13 +155,12 @@ Only after that should the coordinator agent auto-review/merge.
 ## Known issues
 
 - s2idle suspend hangs; lid-close is `lock`. Do not suspend casually.
-- `hypr/scheme/current.conf` appears stale (dark/teal) relative to
-  `current.lua` (light/red); audit pending.
 - GitHub Pages is not enabled, and both repos are private.
 - GitHub Sponsors enrollment and non-GitHub donation links are pending.
 - The MC skin's selection/error backgrounds may remain opaque by design; review
   whether "fully transparent" should override contrast for those too.
-- The promo service is only a design; no scheduler/timer exists yet.
+- The promo scheduler is tested but not enabled: the window schedule,
+  cost cap, and timer installation are user decisions.
 
 ## Next actions
 
@@ -162,7 +169,7 @@ Only after that should the coordinator agent auto-review/merge.
 2. Commit the agents' scoped changes and run both repos' tests.
 3. Enable GitHub Pages (or decide on the public docs mirror) and enroll/finish
    the funding links.
-4. Build the promo-window scheduler as a separate, tested tool; start with one
-   repo and a dry-run mode before enabling more.
+4. Enable the promo scheduler on one repository with a verified window and a
+   cost cap; keep `max_rounds_per_window` bounded for the first windows.
 5. Create `padilha-os` only after the desktop/dotfiles packages have tagged
    releases.

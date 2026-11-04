@@ -30,7 +30,7 @@ import subprocess
 import sys
 import time
 import tomllib
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, time as clock_time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -51,9 +51,9 @@ def config_default() -> Path:
     return Path(base) / "padilha" / "agents.toml"
 
 
-def parse_clock(value: str) -> time:
+def parse_clock(value: str) -> clock_time:
     hour, minute = value.split(":", 1)
-    return time(int(hour), int(minute))
+    return clock_time(int(hour), int(minute))
 
 
 def load_config(path: Path) -> dict:
@@ -63,6 +63,7 @@ def load_config(path: Path) -> dict:
     schedule = config.setdefault("schedule", {})
     schedule.setdefault("timezone", "UTC")
     schedule.setdefault("stop_margin_minutes", 25)
+    schedule.setdefault("stop_grace_seconds", 20)
     schedule.setdefault("windows", [])
     if not schedule["windows"]:
         raise SystemExit(f"{path}: schedule.windows is empty")
@@ -84,7 +85,41 @@ def load_config(path: Path) -> dict:
         repo.setdefault("tests", [])
         repo.setdefault("push", False)
 
+    validate_config(config, path)
     return config
+
+
+def validate_config(config: dict, path: Path) -> None:
+    """Fail closed on a schedule the scheduler cannot trust."""
+    schedule = config["schedule"]
+    try:
+        ZoneInfo(schedule["timezone"])
+    except Exception:
+        raise SystemExit(
+            f"{path}: schedule.timezone {schedule['timezone']!r} is not a known zone"
+        )
+
+    for index, window in enumerate(schedule["windows"], 1):
+        for key in ("start", "end"):
+            if key not in window:
+                raise SystemExit(f"{path}: schedule.windows[{index}] has no {key}")
+            try:
+                parse_clock(window[key])
+            except ValueError:
+                raise SystemExit(
+                    f"{path}: schedule.windows[{index}].{key} is not HH:MM: "
+                    f"{window[key]!r}"
+                )
+        for day in window.get("days", DAY_NAMES):
+            if str(day).lower()[:3] not in DAY_NAMES:
+                raise SystemExit(
+                    f"{path}: schedule.windows[{index}].days has an unknown day {day!r}"
+                )
+
+    command = config["agent"]["command"]
+    if (not isinstance(command, list) or not command
+            or not all(isinstance(part, str) for part in command)):
+        raise SystemExit(f"{path}: agent.command must be a non-empty list of strings")
 
 
 def window_at(config: dict, now: datetime) -> tuple[datetime, datetime] | None:
@@ -130,19 +165,47 @@ def log(path: Path, message: str) -> None:
         handle.write(f"{stamp} {message}\n")
 
 
+def boot_id() -> str:
+    """Identify the boot, so a PID reused after a reboot is never signalled."""
+    try:
+        return Path("/proc/sys/kernel/random/boot_id").read_text().strip()
+    except OSError:
+        return ""
+
+
 def alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
     try:
         os.kill(pid, 0)
-        return True
     except OSError:
         return False
-
-
-def stop_group(pid: int) -> None:
+    # A zombie still accepts signal 0 but is not work in progress.
     try:
-        os.killpg(pid, signal.SIGTERM)
+        stat = Path(f"/proc/{pid}/stat").read_text()
+        return stat.rsplit(")", 1)[1].split()[0] != "Z"
+    except (OSError, IndexError):
+        return True
+
+
+def stop_group(pid: int, sig: int = signal.SIGTERM) -> None:
+    # pid 0 would signal this scheduler's own process group.
+    if pid <= 0:
+        return
+    try:
+        os.killpg(pid, sig)
     except OSError:
         pass
+
+
+def wait_for_exit(pids: list[int], seconds: float) -> bool:
+    deadline = time.monotonic() + seconds
+    while True:
+        if not any(alive(pid) for pid in pids):
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(0.5)
 
 
 def next_task(repo: dict) -> Path | None:
@@ -202,6 +265,14 @@ Do not push or merge anything; the coordinator reviews the branch.
 """
 
 
+def branch_taken(repo_path: Path, branch: str) -> bool:
+    return subprocess.run(
+        ["git", "-C", str(repo_path), "rev-parse", "--verify", "-q",
+         f"refs/heads/{branch}"],
+        capture_output=True, text=True,
+    ).returncode == 0
+
+
 def launch(config: dict, name: str, repo: dict, title: str, prompt: str,
            now: datetime, state_dir: Path, dry: bool, events: Path,
            task: Path | None = None, maintenance: bool = False,
@@ -225,8 +296,16 @@ def launch(config: dict, name: str, repo: dict, title: str, prompt: str,
             log(events, f"{name}: dirty working tree; not starting a task")
         return None
 
-    branch = f"agent/{now:%Y%m%d-%H%M%S}-{slugify(title)}"
-    worktree = state_dir / "worktrees" / name / f"{now:%Y%m%d-%H%M%S}-{slugify(title)}"
+    # Second-precision timestamps collide when a tick is re-run by hand; a
+    # suffix keeps the branch and worktree unique without losing the slug.
+    base = f"{now:%Y%m%d-%H%M%S}-{slugify(title)}"
+    branch = f"agent/{base}"
+    worktree = state_dir / "worktrees" / name / base
+    suffix = 2
+    while branch_taken(repo_path, branch) or worktree.exists():
+        branch = f"agent/{base}-{suffix}"
+        worktree = state_dir / "worktrees" / name / f"{base}-{suffix}"
+        suffix += 1
     command = list(config["agent"]["command"]) + [prompt]
 
     if dry:
@@ -257,6 +336,7 @@ def launch(config: dict, name: str, repo: dict, title: str, prompt: str,
 
     record = {
         "pid": process.pid,
+        "boot": boot_id(),
         "worktree": str(worktree),
         "branch": branch,
         "task": str(task) if task else "",
@@ -341,10 +421,27 @@ def stop_and_finalize(config: dict, state_dir: Path, events: Path,
     if dry:
         print("would stop: " + ", ".join(sorted(running)))
         return
+
+    current_boot = boot_id()
+    pids = []
     for name, record in running.items():
-        log(events, f"{name}: stopping pid {record.get('pid')}")
-        stop_group(int(record.get("pid", 0)))
-    time.sleep(3)
+        pid = int(record.get("pid", 0))
+        if record.get("boot") and current_boot and record["boot"] != current_boot:
+            log(events, f"{name}: agent is from an earlier boot; not signalling pid {pid}")
+            continue
+        if pid <= 0:
+            continue
+        log(events, f"{name}: stopping pid {pid}")
+        stop_group(pid)
+        pids.append(pid)
+
+    grace = int(config.get("schedule", {}).get("stop_grace_seconds", 20))
+    if pids and not wait_for_exit(pids, grace):
+        for pid in pids:
+            log(events, f"pid {pid}: ignored SIGTERM; killing")
+            stop_group(pid, signal.SIGKILL)
+        wait_for_exit(pids, 5)
+
     for name, record in list(running.items()):
         finalize(config, name, record, state_dir, events)
 
@@ -371,12 +468,20 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
     running = state.get("running", {})
     maintenance_cfg = config.get("maintenance", {})
     window_key = start.isoformat()
+    current_boot = boot_id()
 
     for name, record in list(running.items()):
         pid = int(record.get("pid", 0))
-        if pid and not alive(pid):
-            log(events, f"{name}: agent exited")
+        if record.get("boot") and current_boot and record["boot"] != current_boot:
+            log(events, f"{name}: agent is from an earlier boot; finalizing")
             if not dry:
+                finalize(config, name, record, state_dir, events)
+                state = load_state(state_dir / "state.json")
+                running = state.get("running", {})
+            continue
+        if pid and not alive(pid):
+            if not dry:
+                log(events, f"{name}: agent exited")
                 finalize(config, name, record, state_dir, events)
                 state = load_state(state_dir / "state.json")
                 running = state.get("running", {})
@@ -419,24 +524,24 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
 
         round_no = rounds + 1
         prompt = build_maintenance_prompt(name, round_no, max_rounds)
-        if dry:
-            launch(
-                config, name, repo, f"maintenance-{round_no}", prompt,
-                now, state_dir, True, events, maintenance=True,
-                round_no=round_no,
-            )
-            continue
-
-        info["rounds"] = round_no
-        info["last"] = now.timestamp()
-        save_state(state_dir / "state.json", state)
-        launch(
+        record = launch(
             config, name, repo, f"maintenance-{round_no}", prompt,
-            now, state_dir, False, events, maintenance=True,
+            now, state_dir, dry, events, maintenance=True,
             round_no=round_no,
         )
+        if dry:
+            continue
+
         state = load_state(state_dir / "state.json")
         running = state.get("running", {})
+        info = state.setdefault("maintenance", {}).setdefault(name, {})
+        if info.get("window") != window_key:
+            info.clear()
+            info.update({"window": window_key, "rounds": 0, "last": 0.0})
+        info["last"] = now.timestamp()
+        if record is not None:
+            info["rounds"] = round_no
+        save_state(state_dir / "state.json", state)
 
 
 def status(config: dict, state_dir: Path) -> None:
@@ -446,6 +551,8 @@ def status(config: dict, state_dir: Path) -> None:
     print(f"window: {'none' if active is None else active[0].isoformat() + ' → ' + active[1].isoformat()}")
     state = load_state(state_dir / "state.json")
     running = state.get("running", {})
+    maintenance_state = state.get("maintenance", {})
+    window_key = active[0].isoformat() if active else None
     print(f"running: {', '.join(sorted(running)) or 'none'}")
     for name, repo in config["repos"].items():
         task = next_task(repo)
@@ -454,21 +561,42 @@ def status(config: dict, state_dir: Path) -> None:
         elif task:
             state_name = f"queued ({task.name})"
         elif config.get("maintenance", {}).get("enabled", True):
-            state_name = "maintenance"
+            info = maintenance_state.get(name, {})
+            if info.get("window") == window_key:
+                state_name = f"maintenance ({int(info.get('rounds', 0))} this window)"
+            else:
+                state_name = "maintenance"
         else:
             state_name = "empty"
         print(f"{name}: {state_name}")
+
+
+def acquire_lock(state_dir: Path):
+    """Return a held lock handle, or None when another scheduler has it."""
+    state_dir.mkdir(parents=True, exist_ok=True)
+    handle = (state_dir / "scheduler.lock").open("w")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        handle.close()
+        return None
+    return handle
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=config_default())
     parser.add_argument("--state-dir", type=Path, default=state_dir_default())
+    parser.add_argument("--once", action="store_true",
+                        help="run exactly one tick (the default)")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--stop", action="store_true")
     parser.add_argument("--daemon", action="store_true")
     args = parser.parse_args()
+
+    if args.daemon and args.once:
+        parser.error("--daemon and --once are mutually exclusive")
 
     if not args.config.is_file():
         print(f"promo-agents: no config at {args.config}", file=sys.stderr)
@@ -484,24 +612,20 @@ def main() -> int:
         stop_and_finalize(config, args.state_dir, events, args.dry_run)
         return 0
 
-    if args.daemon:
-        while True:
-            tick(config, args.state_dir, args.dry_run, events)
-            time.sleep(30)
-
     if args.dry_run:
         tick(config, args.state_dir, True, events)
         return 0
 
-    args.state_dir.mkdir(parents=True, exist_ok=True)
-    lock_path = args.state_dir / "scheduler.lock"
-    with lock_path.open("w") as lock:
-        try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            print("another scheduler tick is running", file=sys.stderr)
-            return 0
-        tick(config, args.state_dir, args.dry_run, events)
+    lock = acquire_lock(args.state_dir)
+    if lock is None:
+        print("another scheduler tick is running", file=sys.stderr)
+        return 0
+    with lock:
+        if args.daemon:
+            while True:
+                tick(config, args.state_dir, False, events)
+                time.sleep(30)
+        tick(config, args.state_dir, False, events)
     return 0
 
 

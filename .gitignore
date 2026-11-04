@@ -12,6 +12,7 @@ result-*
 
 # scratch trees from tests and hand runs
 .scratch/
+__pycache__/
 
 # makepkg artefacts
 packaging/pkg/

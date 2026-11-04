@@ -6,6 +6,8 @@
 [schedule]
 timezone = "America/Sao_Paulo"
 stop_margin_minutes = 25
+# SIGTERM at the margin, then SIGKILL after this many seconds.
+stop_grace_seconds = 20
 
 [[schedule.windows]]
 days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
