@@ -47,10 +47,14 @@ it is missing.
   active; `hypridle` locks after five minutes and toggles DPMS.
 - Neovim has an opt-in `caelestia` colorscheme (ayu-like light/dark, tinted by
   the wallpaper). The base46 ayu themes remain intact.
-- WezTerm opacity is `0.85`; Hyprland has a WezTerm-specific `0.85 override`
-  rule so the global `0.95` rule does not flatten it.
-- Hyprland focus border was made 2px and opaque `scheme.primary`; the area
-  picker overlay now uses `m3primary` instead of the pale secondary container.
+- WezTerm owns its `0.85` surface opacity. Hyprland's WezTerm-specific rule is
+  now `1.0 override`, so the compositor adds no second dimming layer; the
+  global `0.95` rule still applies to other windows.
+- Hyprland focus border is 2px opaque `scheme.primary` (`#904b3e` on the light
+  surface, 6.13:1 contrast); the area picker overlay uses `m3primary`. The
+  audit recommended keeping `primary` as the wallpaper-derived accent.
+- The stale, unused `hypr/scheme/current.conf` was removed; Hyprland loads
+  `scheme.current` only.
 - Suspend is **broken** on this AMD Mendocino laptop: s2idle hangs, so lid
   close is configured to lock, not suspend. Do not test suspend without warning.
 - Docs/funding scaffold committed as `a627fff`: `docs/`, `SUPPORT.md`,
@@ -63,15 +67,12 @@ it is missing.
 
 ## Open work
 
-1. **WezTerm/terminal audit.** Agent `2aec77cd…` is checking the opacity pair,
-   the focus border contrast, and the stale `hypr/scheme/current.conf` (it still
-   looks like a dark/teal palette while `current.lua` is light/red).
-2. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
+1. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
    main `/docs`. Private repositories may need a paid plan or a public docs
    mirror. The site is one site, not per project.
-3. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
+2. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
-4. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
+3. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
    that consumes the tagged `padilha-de`/`padilha-dotfiles` packages.
 
 ## Agent ownership and coordination
