@@ -68,7 +68,9 @@ it is missing.
 - MC skin surfaces now emit MC's `default` background, so the live skin was
   regenerated from the current scheme without recomputing the palette. Semantic
   blocks (selection, error, diff, focus accents) stay opaque for contrast.
-  Restart MC to load it.
+  Restart MC to load it. The static MC files (`ini`, `mc.keymap`, `mc.ext.ini`)
+  live in `padilha-dotfiles/mc/` and are linked file by file; the skin stays
+  generated in `padilha-de`.
 - Promo-window scheduler prototype at `tools/promo-agents`: config-driven
   windows, one headless `dsh` per repo, git worktrees, stop margin, tests,
   branch handoff, `--dry-run`/`--status`/`--stop`; system timer documented.

@@ -32,13 +32,16 @@ Run from `padilha-de` unless stated otherwise.
       `dotfiles/hypr/hyprland/env.local.lua` is ignored.
 - [x] `dotfiles` is not present in `padilha-de`; the installer can fetch the
       sibling `padilha-dotfiles`.
-- [x] The release package builds with `tools/release.sh`; it was not installed.
+- [x] The release package builds with `tools/release.sh`; it was not installed
+      on the live system. A disposable `pacman --root` install verified the
+      `/usr/bin` links, `padilha-shell-watch`, session entry, and user units.
 - [x] `docs/` builds with Jekyll 4.4.1 + minima (`jekyll build --source docs`),
       warnings only; Pages is still disabled. One docs site, not per-project
       Pages.
 - [x] The current release version and changelog are decided
       (`packaging/PKGBUILD` 0.1.1, `CHANGELOG.md`).
 - [ ] A clean VM or spare user account is available for the first real install.
+      The disposable root checks layout only, not a login/session.
 - [x] Suspend is still known-broken; do not include it in a demo.
 
 ## Build and package (later)
