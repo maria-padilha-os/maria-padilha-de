@@ -1,0 +1,11 @@
+title: Padilha
+description: A Wayland desktop environment on Hyprland and Quickshell
+theme: minima
+baseurl: "/padilha"
+url: "https://mateus-m-reis.github.io"
+header_pages:
+  - install.md
+  - desktop.md
+  - dotfiles.md
+  - support.md
+show_excerpts: true
