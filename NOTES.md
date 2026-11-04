@@ -48,7 +48,8 @@ it is missing.
 - Shell, session, installer, theme engine, and package build and tests pass.
 - Vim-style keymap and `KEYBINDS.md` are in place.
 - Brightness follows a day/night curve with a four-hour manual hold; zram is
-  active; `hypridle` locks after five minutes and toggles DPMS.
+  active; `hypridle` only powers the panel down after five minutes. Auto-lock is
+  disabled until the shell lock is fixed.
 - Neovim has an opt-in `caelestia` colorscheme (ayu-like light/dark, tinted by
   the wallpaper). The base46 ayu themes remain intact.
 - WezTerm owns its `0.85` surface opacity. Hyprland's WezTerm-specific rule is
@@ -80,6 +81,11 @@ it is missing.
   a maintenance round; dry runs write nothing; branch/worktree names no longer
   collide within the same second. New `tests/cli/promo-agents.sh` (23 checks)
   is part of `tests/all.sh`.
+- The black desktop was the stale wallpaper path left by the org move; it is
+  repaired to `padilha-de/share/wallpapers/day.jpg`. NvimTree had no
+  `NvimTree*` groups in the caelestia colorscheme, so its window stayed on
+  base46's dark group; it now follows the light surface and will follow
+  `Normal` at night.
 
 ## Open work
 
