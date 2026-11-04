@@ -3,15 +3,20 @@
 #
 # On a fresh machine, move any existing real directories aside first; this
 # script refuses to overwrite them.
+#
+#   padilha-dots             link hypr, nvim and wezterm
+#   padilha-dots hypr        link only the Hyprland config
 set -eu
 
 self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
 root=$(CDPATH= cd -- "$(dirname -- "$self")/.." && pwd)
 config="${XDG_CONFIG_HOME:-$HOME/.config}"
 
+names=${*:-"hypr nvim wezterm"}
+
 mkdir -p "$config"
 
-for name in hypr nvim wezterm; do
+for name in $names; do
     src="$root/dotfiles/$name"
     dst="$config/$name"
 

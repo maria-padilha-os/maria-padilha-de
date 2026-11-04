@@ -13,6 +13,25 @@ The name comes from Maria Padilha, the pomba-gira of the crossroads.
 > package are usable; the settings application and greeter integration are
 > still in progress.
 
+## Install
+
+Two profiles: `--full` installs the desktop session, shell, commands, and
+configs; `--rice` keeps your current Hyprland session and installs the shell,
+theme, and Hyprland config only.
+
+```sh
+mkdir -p ~/Códigos/padilha
+git clone https://github.com/Mateus-M-Reis/padilha.git \
+    ~/Códigos/padilha/padilha-de
+cd ~/Códigos/padilha/padilha-de
+
+./install.sh --dry-run --full
+./install.sh --full   # or --rice
+```
+
+See [INSTALL.md](INSTALL.md) for the detailed guide, package install, uninstall,
+and troubleshooting.
+
 ## Features
 
 - **Shell** — bar, launcher, notifications, on-screen display, dashboard, lock
@@ -151,6 +170,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 
 ## Documentation
 
+- [INSTALL.md](INSTALL.md) — installation, profiles, uninstall, troubleshooting
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the layers fit together
 - [CONFIG.md](CONFIG.md) — the configuration contract
 - [dotfiles/README.md](dotfiles/README.md) — the configs kept in the checkout and linked into `~/.config`

@@ -2,6 +2,25 @@ local vars = require("variables")
 local fn   = require("utils.functions")
 local home = os.getenv("HOME")
 
+-- Prefer the installed command; a checkout that has not been packaged yet
+-- still falls back to its own bin/, resolved through the ~/.config/hypr
+-- symlink so the repo can live anywhere (or be moved).
+local function padilha_bin(name)
+    local fallback = name
+    local ok, handle = pcall(io.popen,
+        "readlink -f -- '" .. home .. "/.config/hypr' 2>/dev/null")
+    if ok and handle then
+        local config_dir = handle:read("*l")
+        handle:close()
+        local root = config_dir and config_dir:match("^(.*)/dotfiles/hypr$")
+        if root then
+            fallback = root .. "/bin/" .. name
+        end
+    end
+    return "command -v " .. name .. " >/dev/null 2>&1 && " .. name ..
+        " || " .. fallback
+end
+
 hl.on("hyprland.start", function()
     -- Keyring and auth
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
@@ -32,15 +51,15 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hypridle")
 
     -- Day/night brightness; a manual change holds for four hours.
-    hl.exec_cmd(home .. "/Códigos/padilha/bin/padilha-brightness")
+    hl.exec_cmd(padilha_bin("padilha-brightness"))
 
     -- Start shell. The wrapper compiles init.lua into caelestia/shell.json
     -- first, so the generated config is what it reads.
-    hl.exec_cmd(home .. "/Códigos/padilha/bin/padilha-session")
+    hl.exec_cmd(padilha_bin("padilha-session"))
 
     -- Two wallpapers a day: white from 06:00, black from 18:00. Each switch
     -- rebuilds the palette from the image and re-themes every application.
-    hl.exec_cmd("sleep 2 && " .. home .. "/Códigos/padilha/bin/padilha-daylight")
+    hl.exec_cmd("sleep 2 && " .. padilha_bin("padilha-daylight"))
 end)
 
 -- Resizer listeners
