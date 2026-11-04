@@ -85,7 +85,7 @@ Monitor order follows Hyprland's monitor IDs.
 | `Ctrl + Alt + Delete` | session menu |
 | `Super + Escape` | lock |
 | `Super + Alt + Escape` | restore lock (restart shell, then lock) |
-| `Super + Shift + Escape` | sleep / hibernate |
+| `Super + Shift + Escape` | sleep-disabled notice (suspend/hibernate are broken here) |
 | `Ctrl + Alt + V` | audio settings (`pwvucontrol`) |
 
 ## Applications

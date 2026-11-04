@@ -196,7 +196,8 @@ if [ "$mode" = full ]; then
 Installed the full desktop.
 1. Reboot (or log out) and choose "Padilha" at the display manager.
 2. If the greeter still lists plain Hyprland, pick Padilha from the session menu.
-3. Super+Escape locks; Super+Shift+Escape sleeps; Super+/ opens the cheat sheet
+3. Super+Escape locks; Super+Shift+Escape explains that sleep is disabled
+   (s2idle/hibernate are broken on some laptops), Super+/ opens the cheat sheet
    if your build has it.
 
 If the session does not start, check `hyprctl configerrors` from a TTY and the
