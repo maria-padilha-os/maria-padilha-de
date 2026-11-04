@@ -20,6 +20,8 @@ depends=(
     'libqalculate'
     'lm_sensors'
     'hyprland'
+    'brightnessctl'
+    'python'
     'lua'
     'imagemagick'
 )
@@ -71,7 +73,7 @@ package() {
     chmod 755 "$pkgdir/usr/lib/padilha/bin/"*
 
     install -d "$pkgdir/usr/bin"
-    for cmd in padilha padilha-config padilha-session padilha-theme padilha-daylight \
+    for cmd in padilha padilha-brightness padilha-config padilha-session padilha-theme padilha-daylight \
         padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji; do
         ln -s "/usr/lib/padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
     done

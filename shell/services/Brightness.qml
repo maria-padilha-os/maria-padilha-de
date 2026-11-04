@@ -186,6 +186,18 @@ Singleton {
             }
         }
 
+        // Follow brightness changes made outside the shell (the day/night
+        // daemon, or brightnessctl) without treating the poll as a write.
+        readonly property Timer pollTimer: Timer {
+            interval: 3000
+            repeat: true
+            running: !isDdc && !isAppleDisplay
+            onTriggered: {
+                if (!initProc.running)
+                    monitor.initBrightness();
+            }
+        }
+
         readonly property Timer timer: Timer {
             interval: 500
             onTriggered: {
