@@ -153,6 +153,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the layers fit together
 - [CONFIG.md](CONFIG.md) — the configuration contract
+- [dotfiles/README.md](dotfiles/README.md) — the configs kept in the checkout and linked into `~/.config`
 - [KEYBINDS.md](KEYBINDS.md) — the keyboard map, including the vim layer
 - [UPSTREAM.md](UPSTREAM.md) — the projects Padilha tracks and how updates are absorbed
 - [session/README.md](session/README.md) — session, systemd units, and restore

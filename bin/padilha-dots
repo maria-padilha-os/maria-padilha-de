@@ -1,0 +1,30 @@
+#!/bin/sh
+# Link the Padilha-owned configs from this checkout into XDG_CONFIG_HOME.
+#
+# On a fresh machine, move any existing real directories aside first; this
+# script refuses to overwrite them.
+set -eu
+
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+root=$(CDPATH= cd -- "$(dirname -- "$self")/.." && pwd)
+config="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+mkdir -p "$config"
+
+for name in hypr nvim wezterm; do
+    src="$root/dotfiles/$name"
+    dst="$config/$name"
+
+    if [ ! -d "$src" ]; then
+        echo "padilha-dots: missing $src" >&2
+        exit 1
+    fi
+
+    if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+        echo "padilha-dots: refusing to replace real path $dst" >&2
+        exit 1
+    fi
+
+    ln -sfn "$src" "$dst"
+    printf '%s -> %s\n' "$dst" "$src"
+done
