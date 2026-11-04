@@ -38,6 +38,10 @@ it is missing.
   Sponsors enrollment is still pending.
 - **DeepSeek promo work is opt-in and scheduled**, never an always-on loop at
   full price. See the design below.
+- **Deployment is on hold.** Nothing is published or installed on a clean
+  machine; the release checklist lives in `DEPLOY.md`. Preparation work, tests,
+  dry-runs, and local live fixes continue, but no Pages, no release package, no
+  promo timer, and no donation publication until that checklist is signed off.
 
 ## Current state
 
@@ -79,16 +83,20 @@ it is missing.
 
 ## Open work
 
-1. **Configure and enable the promo scheduler.** Copy
+1. **Deployment readiness, on hold.** `DEPLOY.md` is the preflight: tests, dry
+   runs, package build, docs preview, clean-VM install, rollback. Do not execute
+   the deployment steps yet.
+2. **Configure and enable the promo scheduler.** Copy
    `tools/promo-agents.example.toml` to `~/.config/padilha/agents.toml`, fill in
    the verified DeepSeek windows/timezone and cost cap, create queue tasks, and
-   install the timer. The schedule in the example is a placeholder.
-2. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
+   install the timer. The schedule in the example is a placeholder; do not
+   enable this before deployment readiness either.
+3. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
    main `/docs`. Private repositories may need a paid plan or a public docs
    mirror. The site is one site, not per project.
-3. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
+4. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
-4. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
+5. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
    that consumes the tagged `padilha-de`/`padilha-dotfiles` packages.
 
 ## Agent ownership and coordination
