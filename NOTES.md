@@ -56,26 +56,22 @@ it is missing.
 - Docs/funding scaffold committed as `a627fff`: `docs/`, `SUPPORT.md`,
   `FUNDING.yml`, and README links.
 - Dotfiles split committed as `5fc741b`; the dotfiles repository is pushed.
+- MC skin surfaces now emit MC's `default` background, so the live skin was
+  regenerated from the current scheme without recomputing the palette. Semantic
+  blocks (selection, error, diff, focus accents) stay opaque for contrast.
+  Restart MC to load it.
 
 ## Open work
 
-1. **Midnight Commander transparency.** Agent `3a98b400…` found that MC accepts
-   `default` only in the background slot; the `-defbg` skins are the upstream
-   precedent. Plan: emit `default` for surface aliases (`Main`, `Dialog`,
-   `Input`, `Top`, `Menu`, `Bottom`, `Help`, `ShadowBg`, `EditorVoid`,
-   `EditorLineNumber`), keep semantic highlights opaque (`Selected`,
-   `MenuSelected`, `DialogFocus`, `ErrorFocus`, error/diff backgrounds) because
-   their foreground colours need contrast, adjust `editnonprintable`, update the
-   theme test. Live skin is not rewritten by the agent.
-2. **WezTerm/terminal audit.** Agent `2aec77cd…` is checking the opacity pair,
+1. **WezTerm/terminal audit.** Agent `2aec77cd…` is checking the opacity pair,
    the focus border contrast, and the stale `hypr/scheme/current.conf` (it still
    looks like a dark/teal palette while `current.lua` is light/red).
-3. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
+2. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
    main `/docs`. Private repositories may need a paid plan or a public docs
    mirror. The site is one site, not per project.
-4. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
+3. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
-5. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
+4. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
    that consumes the tagged `padilha-de`/`padilha-dotfiles` packages.
 
 ## Agent ownership and coordination
