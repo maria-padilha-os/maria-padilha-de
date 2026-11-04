@@ -16,6 +16,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 mode=full
 dry_run=0
 with_dotfiles=1
+dotfiles_dir="${PADILHA_DOTFILES:-$root/../padilha-dotfiles}"
 
 usage() {
     cat <<'EOF'
@@ -25,6 +26,9 @@ usage: ./install.sh [--full|--rice] [--dry-run] [--no-dotfiles]
   --rice         install Hyprland + Quickshell + theme, keep the current session
   --dry-run      print what would happen, change nothing
   --no-dotfiles  do not link ~/.config/{hypr,nvim,wezterm}
+
+PADILHA_DOTFILES=DIR points at an existing padilha-dotfiles checkout
+(default: ../padilha-dotfiles next to this repository).
 
 The rice profile still needs root for the shell and commands under /usr. It
 does not install a session entry or systemd user units.
@@ -166,10 +170,18 @@ link_dotfiles() {
             run mv "$dst" "$backup"
         fi
     done
-    run "$root/bin/padilha-dots" "$@"
+    run "$dotfiles_dir/bin/padilha-dots" "$@"
 }
 
 if (( with_dotfiles )); then
+    if [ ! -x "$dotfiles_dir/bin/padilha-dots" ]; then
+        if [ -e "$dotfiles_dir" ]; then
+            die "$dotfiles_dir exists but has no bin/padilha-dots"
+        fi
+        log "Fetching padilha-dotfiles"
+        run git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git "$dotfiles_dir"
+    fi
+
     if [ "$mode" = full ]; then
         link_dotfiles hypr nvim wezterm
     else

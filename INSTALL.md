@@ -58,9 +58,11 @@ steps. `pacman` will ask for confirmation before installing packages.
    `/usr/lib/padilha/bin` with links in `/usr/bin`.
 4. For `--full`, installs `/usr/share/wayland-sessions/padilha.desktop` and the
    optional systemd user units.
-5. Links the configs from `dotfiles/` into `~/.config` — `hypr` for both
-   profiles, plus `nvim` and `wezterm` for `--full`. An existing real directory
-   is moved to `~/.config/<name>.pre-padilha-<timestamp>` first.
+5. Fetches `padilha-dotfiles` next to this checkout if it is missing, then links
+   its configs into `~/.config` — `hypr` for both profiles, plus `nvim` and
+   `wezterm` for `--full`. An existing real directory is moved to
+   `~/.config/<name>.pre-padilha-<timestamp>` first. Set `PADILHA_DOTFILES` to
+   use an existing checkout elsewhere.
 
 Use `--no-dotfiles` to leave `~/.config` completely alone. `--dry-run` prints
 every command without running it, including `sudo` and `pacman`.
@@ -99,7 +101,8 @@ git. Do not commit it. See [CONFIG.md](CONFIG.md) for the configuration contract
 
 `--rice` installs the shell and commands but deliberately leaves the session
 entry and systemd units out. Your existing Hyprland session entry still starts
-Hyprland; the dotfiles' `execs.lua` calls `padilha-session` from `/usr/bin`.
+Hyprland; the `padilha-dotfiles` `execs.lua` calls `padilha-session` from
+`/usr/bin`.
 
 If you keep your own Hyprland config with `--no-dotfiles`, start the shell
 yourself after Hyprland is up:
@@ -109,8 +112,9 @@ padilha-session
 ```
 
 To use only the Quickshell shell with your own Hyprland configuration, copy the
-relevant `exec` lines from `dotfiles/hypr/hyprland/execs.lua` rather than
-replacing your config.
+relevant `exec` lines from
+`../padilha-dotfiles/hypr/hyprland/execs.lua` rather than replacing your
+config.
 
 ## Manual and package installs
 
@@ -125,8 +129,8 @@ The package installs the same `/usr` tree but does not link the dotfiles or
 configure the display manager. Link them with:
 
 ```sh
-bin/padilha-dots            # hypr, nvim, wezterm
-bin/padilha-dots hypr       # only the Hyprland config
+../padilha-dotfiles/bin/padilha-dots            # hypr, nvim, wezterm
+../padilha-dotfiles/bin/padilha-dots hypr       # only the Hyprland config
 ```
 
 For a checkout without root, the developer flow in the README (`tools/build.sh`
@@ -183,20 +187,14 @@ manual `/usr` removals. Your `~/.config` backups are not touched by pacman.
 - **Wrong colours after a wallpaper change**: run `padilha-daylight --once`,
   then `padilha-reload`.
 
-## Why one repository for now
+## Repositories
 
-Padilha is still one codebase with two install profiles. The desktop shell,
-theme engine, and Hyprland config are tightly coupled today, and splitting them
-would duplicate the same files and create version skew before there are stable
-packages.
+Padilha is split by dependency direction, not by folder names:
 
-The planned boundaries are:
-
-- `padilha-de` — the shell, session, theme engine, installer, and package (this
-  repository today);
+- `padilha-de` — the shell, session, theme engine, installer, and package;
 - `padilha-dotfiles` — the standalone rice: Hyprland, nvim, and wezterm configs;
 - `padilha-os` — the archiso/Calamares image, only once the packages are stable.
 
-When the rice is extracted, `padilha-de` will depend on `padilha-dotfiles`
-rather than carrying a second copy. Until then, `--rice` is the supported way
-to get the rice without the full session layer.
+`padilha-de` fetches `padilha-dotfiles` next to itself for the `--rice` and
+`--full` profiles. Set `PADILHA_DOTFILES` if the checkout lives elsewhere. There
+are no submodules; the org-level `bootstrap.sh` clones the siblings.

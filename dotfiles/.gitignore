@@ -1,5 +1,0 @@
-# local-only files
-hypr/hyprland/env.local.lua
-*.bak
-nvim/Session.vim
-nvim/nvim.log

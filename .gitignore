@@ -18,9 +18,3 @@ packaging/pkg/
 packaging/src/
 packaging/*.pkg.tar.*
 packaging/*.tar.gz
-
-# dotfiles: local-only files
-dotfiles/hypr/hyprland/env.local.lua
-dotfiles/**/*.bak
-dotfiles/nvim/Session.vim
-dotfiles/nvim/nvim.log
