@@ -162,9 +162,22 @@ fi
 link_dotfiles() {
     (($#)) || return 0
     local config="${XDG_CONFIG_HOME:-$HOME/.config}"
-    local name dst backup
+    local name dst backup file
     for name in "$@"; do
         dst="$config/$name"
+        if [ "$name" = mc ]; then
+            # MC shares ~/.config/mc with panels, hotlist and history. Link
+            # only the static files and back each one up individually.
+            run mkdir -p "$dst"
+            for file in ini mc.keymap mc.ext.ini; do
+                if [ -e "$dst/$file" ] && [ ! -L "$dst/$file" ]; then
+                    backup="$dst/$file.pre-padilha-$(date +%Y%m%d-%H%M%S)"
+                    warn "backing up $dst/$file -> $backup"
+                    run mv "$dst/$file" "$backup"
+                fi
+            done
+            continue
+        fi
         if [ -e "$dst" ] && [ ! -L "$dst" ]; then
             backup="$dst.pre-padilha-$(date +%Y%m%d-%H%M%S)"
             warn "backing up $dst -> $backup"
@@ -184,7 +197,7 @@ if (( with_dotfiles )); then
     fi
 
     if [ "$mode" = full ]; then
-        link_dotfiles hypr nvim wezterm
+        link_dotfiles hypr nvim wezterm mc
     else
         link_dotfiles hypr
     fi
