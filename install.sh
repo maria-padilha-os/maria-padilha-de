@@ -138,6 +138,7 @@ commands=(
     padilha-brightness
     padilha-config
     padilha-session
+    padilha-shell-watch
     padilha-theme
     padilha-daylight
     padilha-reload

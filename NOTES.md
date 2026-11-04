@@ -111,6 +111,28 @@ Rules for repo owners:
 - never write secrets or touch `env.local.lua`-style local files;
 - stop and report if a change needs a path outside the repository.
 
+## Safety while developing live
+
+- `bin/padilha-shell-watch` is running and is autostarted from `execs.lua`. It
+  checks Quickshell every 10 seconds, restarts it after a crash with a bounded
+  backoff, and logs to `~/.local/state/padilha/shell-watch.log`. A
+  `padilha-reload` marker keeps it from racing a deliberate reload.
+- The idle lock is disabled: `hypridle` now only powers the panel down after
+  five minutes. The shell lock screen crashed Quickshell on 2026-11-04 (PAM
+  subprocess exited and the shell process disappeared), so do not restore
+  `qs ... lock` to hypridle until that path is fixed. Manual `Super+Escape` still
+  requests the shell lock; the watchdog will recover the shell if it crashes.
+- Before changing a live QML/config file: commit it, keep a backup, and prefer
+  editing the repository through the symlink. If the UI disappears, run
+  `bin/padilha-session` from a TTY or ask Hyprland to execute it; the watchdog
+  should already be doing this.
+- Keep a known-good tag in both repositories before risky changes:
+  `git tag known-good-<date>` (the current one is `known-good-2026-11-04`).
+- Agents work in worktrees/branches only; the promo scheduler is not enabled
+  during normal desktop work. Do not let an agent edit the live checkout.
+- Suspend is still broken on this laptop (s2idle). Lid close locks; do not test
+  suspend casually.
+
 ## Promo-window agent service (design)
 
 Goal: a local scheduler that starts repo agents only during DeepSeek discount

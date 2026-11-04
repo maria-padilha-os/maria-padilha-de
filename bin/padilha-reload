@@ -32,6 +32,11 @@ if ! command -v qs >/dev/null 2>&1; then
     exit 1
 fi
 
+# Tell the shell watchdog that this teardown is deliberate.
+runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+mkdir -p "$runtime"
+: > "$runtime/padilha-shell-reload"
+
 # Ignore "no running instance"; that is a valid state to reload from.
 qs -c "$config" kill >/dev/null 2>&1 || true
 
