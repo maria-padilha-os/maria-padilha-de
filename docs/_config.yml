@@ -7,5 +7,6 @@ header_pages:
   - install.md
   - desktop.md
   - dotfiles.md
+  - screenshots.md
   - support.md
 show_excerpts: true

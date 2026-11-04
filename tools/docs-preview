@@ -1,0 +1,14 @@
+#!/bin/sh
+# Local Jekyll preview for the Pages source. The gems live in .scratch/gem so
+# the repository stays clean; CI/GitHub Pages uses its own Jekyll.
+set -eu
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ ! -x "$root/.scratch/gem/bin/jekyll" ]; then
+    echo "docs-preview: Jekyll is not installed in $root/.scratch/gem" >&2
+    echo "  gem install --no-document --install-dir .scratch/gem jekyll minima erb csv logger" >&2
+    exit 1
+fi
+export GEM_HOME="$root/.scratch/gem"
+export GEM_SPEC_CACHE="$GEM_HOME/spec_cache"
+export XDG_CACHE_HOME="$root/.scratch/cache"
+exec "$GEM_HOME/bin/jekyll" "$@"

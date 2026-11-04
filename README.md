@@ -32,6 +32,19 @@ cd ~/Códigos/padilha/padilha-de
 See [INSTALL.md](INSTALL.md) for the detailed guide, package install, uninstall,
 and troubleshooting.
 
+## Screenshots
+
+| Day | Night |
+| --- | --- |
+| ![Padilha desktop at day](docs/assets/screenshots/desktop-day.webp) | ![Padilha desktop at night](docs/assets/screenshots/desktop-night.webp) |
+| ![Launcher over the wallpaper](docs/assets/screenshots/launcher.webp) | ![Dashboard over a Neovim buffer](docs/assets/screenshots/dashboard.webp) |
+
+![Day and night palette transition](docs/assets/screenshots/palette.gif)
+
+The night image is the night palette preview, captured by switching the
+wallpaper and palette; it is not a separate theme. The GIF is generated from
+those two stills. More views are in the [gallery](docs/screenshots.md).
+
 ## Features
 
 - **Shell** — bar, launcher, notifications, on-screen display, dashboard, lock
