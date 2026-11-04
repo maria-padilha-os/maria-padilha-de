@@ -173,6 +173,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 - [INSTALL.md](INSTALL.md) — installation, profiles, uninstall, troubleshooting
 - [docs/](docs/) — the GitHub Pages source: install, desktop, dotfiles, support
 - [SUPPORT.md](SUPPORT.md) — optional donations and other ways to help
+- [tools/README.md](tools/README.md) — the promo-window agent scheduler
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the layers fit together
 - [CONFIG.md](CONFIG.md) — the configuration contract
 - [dotfiles](https://github.com/Mateus-M-Reis/padilha-dotfiles) — the Hyprland, nvim and wezterm configs

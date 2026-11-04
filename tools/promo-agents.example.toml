@@ -1,0 +1,34 @@
+# Copy to ~/.config/padilha/agents.toml and adjust.
+#
+# The windows below are examples, not a claim about DeepSeek's current
+# schedule. Verify the current off-peak/discount hours and put them here.
+
+[schedule]
+timezone = "America/Sao_Paulo"
+stop_margin_minutes = 25
+
+[[schedule.windows]]
+days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+start = "16:30"
+end = "00:30"
+
+[agent]
+command = ["dsh", "--profile", "headless"]
+
+[repos."padilha-de"]
+path = "~/Códigos/padilha/padilha-de"
+queue = "~/.config/padilha/agents/queue/padilha-de"
+tests = ["bash", "tests/all.sh"]
+push = false
+
+[repos."padilha-dotfiles"]
+path = "~/Códigos/padilha/padilha-dotfiles"
+queue = "~/.config/padilha/agents/queue/padilha-dotfiles"
+tests = ["bash", "-c", "for f in $(git ls-files '*.lua'); do luac -p \"$f\" || exit 1; done"]
+push = false
+
+# [repos."padilha-os"]
+# path = "~/Códigos/padilha/padilha-os"
+# queue = "~/.config/padilha/agents/queue/padilha-os"
+# tests = ["bash", "tests/all.sh"]
+# push = false

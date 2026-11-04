@@ -64,15 +64,23 @@ it is missing.
   regenerated from the current scheme without recomputing the palette. Semantic
   blocks (selection, error, diff, focus accents) stay opaque for contrast.
   Restart MC to load it.
+- Promo-window scheduler prototype at `tools/promo-agents`: config-driven
+  windows, one headless `dsh` per repo, git worktrees, stop margin, tests,
+  branch handoff, `--dry-run`/`--status`/`--stop`; system timer documented.
+  Dry-run tested; not enabled.
 
 ## Open work
 
-1. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
+1. **Configure and enable the promo scheduler.** Copy
+   `tools/promo-agents.example.toml` to `~/.config/padilha/agents.toml`, fill in
+   the verified DeepSeek windows/timezone and cost cap, create queue tasks, and
+   install the timer. The schedule in the example is a placeholder.
+2. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
    main `/docs`. Private repositories may need a paid plan or a public docs
    mirror. The site is one site, not per project.
-2. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
+3. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
-3. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
+4. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
    that consumes the tagged `padilha-de`/`padilha-dotfiles` packages.
 
 ## Agent ownership and coordination

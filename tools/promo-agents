@@ -1,0 +1,421 @@
+#!/usr/bin/env python3
+"""Run one headless agent per repository during configured discount windows.
+
+The scheduler is deliberately boring: it starts `dsh --profile headless` in a
+throwaway git worktree, records the PID, and stops it before the window ends.
+It never pushes `main` and never merges anything. The coordinator reviews the
+branches.
+
+Typical use:
+
+    tools/promo-agents --config ~/.config/padilha/agents.toml --once
+    tools/promo-agents --config ... --dry-run
+    tools/promo-agents --config ... --status
+    tools/promo-agents --config ... --stop
+
+Run `--once` from a timer every few minutes. The agents are detached, so they
+continue after the timer process exits; the next tick monitors and stops them.
+"""
+
+from __future__ import annotations
+
+import argparse
+import fcntl
+import json
+import os
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import time
+import tomllib
+from datetime import datetime, time, timedelta, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+DAY_NAMES = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+
+
+def expand(path: str) -> Path:
+    return Path(os.path.expandvars(os.path.expanduser(str(path))))
+
+
+def state_dir_default() -> Path:
+    base = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local/state")
+    return Path(base) / "padilha" / "agents"
+
+
+def config_default() -> Path:
+    base = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
+    return Path(base) / "padilha" / "agents.toml"
+
+
+def parse_clock(value: str) -> time:
+    hour, minute = value.split(":", 1)
+    return time(int(hour), int(minute))
+
+
+def load_config(path: Path) -> dict:
+    with path.open("rb") as handle:
+        config = tomllib.load(handle)
+
+    schedule = config.setdefault("schedule", {})
+    schedule.setdefault("timezone", "UTC")
+    schedule.setdefault("stop_margin_minutes", 25)
+    schedule.setdefault("windows", [])
+    if not schedule["windows"]:
+        raise SystemExit(f"{path}: schedule.windows is empty")
+
+    agent = config.setdefault("agent", {})
+    agent.setdefault("command", ["dsh", "--profile", "headless"])
+
+    repos = config.setdefault("repos", {})
+    for name, repo in repos.items():
+        if "path" not in repo:
+            raise SystemExit(f"{path}: repos.{name}.path is required")
+        repo["path"] = expand(repo["path"])
+        repo.setdefault("queue", expand(f"~/.config/padilha/agents/queue/{name}"))
+        repo.setdefault("tests", [])
+        repo.setdefault("push", False)
+
+    return config
+
+
+def window_at(config: dict, now: datetime) -> tuple[datetime, datetime] | None:
+    """Return the active window, including one that crossed midnight."""
+    tz = ZoneInfo(config["schedule"]["timezone"])
+    local = now.astimezone(tz)
+
+    for offset in (-1, 0):
+        day = local.date() + timedelta(days=offset)
+        for window in config["schedule"]["windows"]:
+            days = [d.lower()[:3] for d in window.get("days", DAY_NAMES)]
+            if day.strftime("%a").lower()[:3] not in days:
+                continue
+            start_clock = parse_clock(window["start"])
+            end_clock = parse_clock(window["end"])
+            start = datetime.combine(day, start_clock, tzinfo=tz)
+            end = datetime.combine(day, end_clock, tzinfo=tz)
+            if end <= start:
+                end += timedelta(days=1)
+            if start <= local < end:
+                return start, end
+    return None
+
+
+def load_state(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return {"running": {}, "finished": []}
+
+
+def save_state(path: Path, state: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+    tmp.replace(path)
+
+
+def log(path: Path, message: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
+    with path.open("a") as handle:
+        handle.write(f"{stamp} {message}\n")
+
+
+def alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def stop_group(pid: int) -> None:
+    try:
+        os.killpg(pid, signal.SIGTERM)
+    except OSError:
+        pass
+
+
+def next_task(repo: dict) -> Path | None:
+    queue = Path(repo["queue"])
+    if not queue.is_dir():
+        return None
+    tasks = sorted(p for p in queue.glob("*.md") if p.is_file())
+    return tasks[0] if tasks else None
+
+
+def task_title(task: Path) -> str:
+    for line in task.read_text(errors="replace").splitlines():
+        line = line.strip()
+        if line.startswith("#"):
+            line = line.lstrip("#").strip()
+        if line:
+            return line
+    return task.stem
+
+
+def slugify(text: str) -> str:
+    text = re.sub(r"[^a-zA-Z0-9]+", "-", text.lower()).strip("-")
+    return text[:40] or "task"
+
+
+def build_prompt(repo_name: str, task: Path) -> str:
+    body = task.read_text(errors="replace")
+    return f"""You are the owner of the {repo_name} repository.
+Work only in this checkout. Do not touch sibling repositories.
+
+Task:
+{body}
+
+When you are done: run the repository tests, commit any changes to the current
+branch, and stop. Do not push or merge anything; the coordinator reviews the
+branch.
+"""
+
+
+def launch(config: dict, name: str, repo: dict, task: Path, now: datetime,
+           state_dir: Path, dry: bool, events: Path) -> dict | None:
+    repo_path = Path(repo["path"])
+    if not repo_path.is_dir():
+        if dry:
+            print(f"would skip {name}: missing repo {repo_path}")
+        else:
+            log(events, f"{name}: missing repo {repo_path}")
+        return None
+
+    dirty = subprocess.run(
+        ["git", "-C", str(repo_path), "status", "--porcelain"],
+        capture_output=True, text=True,
+    ).stdout.strip()
+    if dirty:
+        if dry:
+            print(f"would skip {name}: dirty working tree")
+        else:
+            log(events, f"{name}: dirty working tree; not starting a task")
+        return None
+
+    title = task_title(task)
+    branch = f"agent/{now:%Y%m%d-%H%M%S}-{slugify(title)}"
+    worktree = state_dir / "worktrees" / name / f"{now:%Y%m%d-%H%M%S}-{slugify(title)}"
+    prompt = build_prompt(name, task)
+    command = list(config["agent"]["command"]) + [prompt]
+
+    if dry:
+        print(f"would start {name}: {branch} in {worktree}")
+        print(f"  task: {task}")
+        return None
+
+    worktree.parent.mkdir(parents=True, exist_ok=True)
+    proc = subprocess.run(
+        ["git", "-C", str(repo_path), "worktree", "add", "-b", branch, str(worktree)],
+        capture_output=True, text=True,
+    )
+    if proc.returncode != 0:
+        log(events, f"{name}: worktree failed: {proc.stderr.strip()}")
+        return None
+
+    log_path = state_dir / "logs" / f"{name}-{now:%Y%m%d-%H%M%S}.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("wb") as output:
+        process = subprocess.Popen(
+            command,
+            cwd=str(worktree),
+            stdout=output,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+            env=os.environ.copy(),
+        )
+
+    record = {
+        "pid": process.pid,
+        "worktree": str(worktree),
+        "branch": branch,
+        "task": str(task),
+        "title": title,
+        "log": str(log_path),
+        "started": now.isoformat(),
+    }
+    state = load_state(state_dir / "state.json")
+    state.setdefault("running", {})[name] = record
+    save_state(state_dir / "state.json", state)
+    log(events, f"{name}: started {branch} (pid {process.pid})")
+    return record
+
+
+def finalize(config: dict, name: str, record: dict, state_dir: Path,
+             events: Path) -> None:
+    worktree = Path(record["worktree"])
+    repo = config["repos"].get(name, {})
+    task = Path(record["task"])
+
+    if worktree.is_dir():
+        tests = repo.get("tests") or []
+        if tests:
+            try:
+                result = subprocess.run(
+                    tests, cwd=str(worktree), capture_output=True, text=True,
+                    timeout=300,
+                )
+                log(events, f"{name}: tests exit {result.returncode}")
+                if result.returncode != 0:
+                    log(events, f"{name}: test output:\n{result.stdout[-2000:]}\n{result.stderr[-2000:]}")
+            except subprocess.TimeoutExpired:
+                log(events, f"{name}: tests timed out")
+
+        status = subprocess.run(
+            ["git", "-C", str(worktree), "status", "--porcelain"],
+            capture_output=True, text=True,
+        ).stdout.strip()
+        if status:
+            subprocess.run(["git", "-C", str(worktree), "add", "-A"], check=False)
+            subprocess.run(
+                ["git", "-C", str(worktree), "commit", "-m",
+                 f"agent: {record.get('title', 'task')}"],
+                capture_output=True, text=True,
+            )
+            log(events, f"{name}: committed WIP on {record['branch']}")
+
+        if repo.get("push"):
+            subprocess.run(
+                ["git", "-C", str(worktree), "push", "-u", "origin", record["branch"]],
+                capture_output=True, text=True,
+            )
+            log(events, f"{name}: pushed {record['branch']}")
+
+    if task.is_file():
+        done = task.parent / "done"
+        done.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(task), done / f"{datetime.now():%Y%m%d-%H%M%S}-{task.name}")
+
+    state = load_state(state_dir / "state.json")
+    state.setdefault("running", {}).pop(name, None)
+    state.setdefault("finished", []).append({
+        "repo": name,
+        "branch": record.get("branch"),
+        "task": record.get("task"),
+        "finished": datetime.now().astimezone().isoformat(),
+    })
+    state["finished"] = state["finished"][-50:]
+    save_state(state_dir / "state.json", state)
+    log(events, f"{name}: finalized")
+
+
+def stop_and_finalize(config: dict, state_dir: Path, events: Path,
+                      dry: bool) -> None:
+    state = load_state(state_dir / "state.json")
+    running = state.get("running", {})
+    if not running:
+        return
+    if dry:
+        print("would stop: " + ", ".join(sorted(running)))
+        return
+    for name, record in running.items():
+        log(events, f"{name}: stopping pid {record.get('pid')}")
+        stop_group(int(record.get("pid", 0)))
+    time.sleep(3)
+    for name, record in list(running.items()):
+        finalize(config, name, record, state_dir, events)
+
+
+def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
+    now = datetime.now(timezone.utc)
+    active = window_at(config, now)
+    margin = timedelta(minutes=int(config["schedule"].get("stop_margin_minutes", 25)))
+
+    if active is None:
+        print("outside a discount window")
+        stop_and_finalize(config, state_dir, events, dry)
+        return
+
+    start, end = active
+    latest = end - margin
+    print(f"window {start.isoformat()} → {end.isoformat()} (stop by {latest.isoformat()})")
+    if now >= latest:
+        print("inside the stop margin; stopping agents")
+        stop_and_finalize(config, state_dir, events, dry)
+        return
+
+    state = load_state(state_dir / "state.json")
+    running = state.get("running", {})
+
+    for name, record in list(running.items()):
+        pid = int(record.get("pid", 0))
+        if pid and not alive(pid):
+            log(events, f"{name}: agent exited")
+            if not dry:
+                finalize(config, name, record, state_dir, events)
+
+    for name, repo in config["repos"].items():
+        if name in running:
+            continue
+        task = next_task(repo)
+        if task is None:
+            print(f"{name}: queue empty")
+            continue
+        launch(config, name, repo, task, now, state_dir, dry, events)
+
+
+def status(config: dict, state_dir: Path) -> None:
+    now = datetime.now(timezone.utc)
+    active = window_at(config, now)
+    print(f"now: {now.isoformat()}")
+    print(f"window: {'none' if active is None else active[0].isoformat() + ' → ' + active[1].isoformat()}")
+    state = load_state(state_dir / "state.json")
+    running = state.get("running", {})
+    print(f"running: {', '.join(sorted(running)) or 'none'}")
+    for name, repo in config["repos"].items():
+        task = next_task(repo)
+        print(f"{name}: {'idle' if name in running else 'queued'} ({task.name if task else 'empty'})")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=config_default())
+    parser.add_argument("--state-dir", type=Path, default=state_dir_default())
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--status", action="store_true")
+    parser.add_argument("--stop", action="store_true")
+    parser.add_argument("--daemon", action="store_true")
+    args = parser.parse_args()
+
+    if not args.config.is_file():
+        print(f"promo-agents: no config at {args.config}", file=sys.stderr)
+        return 2
+
+    config = load_config(args.config)
+    events = args.state_dir / "agents.log"
+
+    if args.status:
+        status(config, args.state_dir)
+        return 0
+    if args.stop:
+        stop_and_finalize(config, args.state_dir, events, args.dry_run)
+        return 0
+
+    if args.daemon:
+        while True:
+            tick(config, args.state_dir, args.dry_run, events)
+            time.sleep(30)
+
+    if args.dry_run:
+        tick(config, args.state_dir, True, events)
+        return 0
+
+    args.state_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = args.state_dir / "scheduler.lock"
+    with lock_path.open("w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("another scheduler tick is running", file=sys.stderr)
+            return 0
+        tick(config, args.state_dir, args.dry_run, events)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
