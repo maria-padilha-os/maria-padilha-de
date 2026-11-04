@@ -11,10 +11,10 @@ tested one). It must run on a machine where Hyprland already works.
 ## Full desktop
 
 ```sh
-mkdir -p ~/Códigos/padilha
+mkdir -p ~/Códigos/lilith
 git clone https://github.com/Mateus-M-Reis/padilha.git \
-    ~/Códigos/padilha/padilha-de
-cd ~/Códigos/padilha/padilha-de
+    ~/Códigos/lilith/lilith-de
+cd ~/Códigos/lilith/lilith-de
 
 ./install.sh --dry-run --full
 ./install.sh --full
@@ -40,7 +40,8 @@ entry or systemd units. Log back into your existing Hyprland session.
 - Builds the shell with CMake and Ninja.
 - Installs the shell and commands under `/usr`, and (for `--full`) the session
   entry under `/usr/share/wayland-sessions`.
-- Fetches `padilha-dotfiles` next to the desktop checkout if needed, then links
+- Fetches the dotfiles repository as `lilith-dotfiles` next to the desktop
+  checkout if needed, then links
   `~/.config/hypr` (both profiles) and `~/.config/nvim`, `~/.config/wezterm`
   (full). Existing real directories are backed up as
   `~/.config/<name>.pre-padilha-<timestamp>`.

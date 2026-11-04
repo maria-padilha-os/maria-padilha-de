@@ -23,6 +23,13 @@ or promo timer has been published.
 - A single GitHub Pages source under `docs/`, with the support page.
 - GitHub Sponsor metadata in both repositories.
 
+### Changed
+
+- The workspace checkouts are now `~/Códigos/lilith/lilith-de` and
+  `.../lilith-dotfiles`. The GitHub repositories, the `padilha-*` commands, the
+  package, the session entry, and `~/.config/padilha` keep the Padilha name.
+  The installer now expects the dotfiles checkout as `../lilith-dotfiles`.
+
 ### Fixed
 
 - WezTerm now owns its `0.85` opacity; the Hyprland class rule no longer
@@ -31,7 +38,7 @@ or promo timer has been published.
   surface), and the area picker uses the wallpaper accent.
 - NvimTree follows the light `Normal` surface instead of staying on base46's
   dark group.
-- The wallpaper state path uses the `padilha-de` checkout again after the
+- The wallpaper state path uses the `lilith-de` checkout again after the
   organization move; the black desktop is gone.
 - The unused `hypr/scheme/current.conf` was removed.
 

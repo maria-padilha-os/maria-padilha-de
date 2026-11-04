@@ -27,20 +27,22 @@ max_rounds_per_window = 0
 # Minimum gap between rounds, so a fast failure cannot spin.
 min_round_seconds = 900
 
+# Repository ids keep the padilha name (they key the queue); the checkouts use
+# the lilith layout.
 [repos."padilha-de"]
-path = "~/Códigos/padilha/padilha-de"
+path = "~/Códigos/lilith/lilith-de"
 queue = "~/.config/padilha/agents/queue/padilha-de"
 tests = ["bash", "tests/all.sh"]
 push = false
 
 [repos."padilha-dotfiles"]
-path = "~/Códigos/padilha/padilha-dotfiles"
+path = "~/Códigos/lilith/lilith-dotfiles"
 queue = "~/.config/padilha/agents/queue/padilha-dotfiles"
 tests = ["bash", "-c", "for f in $(git ls-files '*.lua'); do luac -p \"$f\" || exit 1; done"]
 push = false
 
 # [repos."padilha-os"]
-# path = "~/Códigos/padilha/padilha-os"
+# path = "~/Códigos/lilith/lilith-os"
 # queue = "~/.config/padilha/agents/queue/padilha-os"
 # tests = ["bash", "tests/all.sh"]
 # push = false

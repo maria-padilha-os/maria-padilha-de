@@ -14,12 +14,12 @@ Do not, until this checklist is signed off:
 - build and publish a release package or tag a release;
 - enroll or publish donation links.
 
-The `known-good-2026-11-04` tags in `padilha-de` and `padilha-dotfiles` are
+The `known-good-2026-11-04` tags in `lilith-de` and `lilith-dotfiles` are
 rollback points, not releases.
 
 ## Preflight
 
-Run from `padilha-de` unless stated otherwise.
+Run from `lilith-de` unless stated otherwise.
 
 - [ ] `git status` is clean in both repositories.
 - [x] `bash tests/all.sh` passes.
@@ -30,8 +30,8 @@ Run from `padilha-de` unless stated otherwise.
       and `--status` behave; `tests/cli/promo-agents.sh` passes.
 - [x] No secret is tracked: `git grep -nE 'sk-[A-Za-z0-9]{20,}'` must be empty;
       `dotfiles/hypr/hyprland/env.local.lua` is ignored.
-- [x] `dotfiles` is not present in `padilha-de`; the installer can fetch the
-      sibling `padilha-dotfiles`.
+- [x] `dotfiles` is not present in `lilith-de`; the installer can fetch the
+      sibling `lilith-dotfiles`.
 - [x] The release package builds with `tools/release.sh`; it was not installed
       on the live system. A disposable `pacman --root` install verified the
       `/usr/bin` links, `padilha-shell-watch`, session entry, and user units.

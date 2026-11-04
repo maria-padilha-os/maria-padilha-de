@@ -106,8 +106,8 @@ After=network-online.target
 Type=oneshot
 User=machine
 Environment=HOME=/home/machine
-WorkingDirectory=/home/machine/Códigos/padilha/padilha-de
-ExecStart=/usr/bin/python3 /home/machine/Códigos/padilha/padilha-de/tools/promo-agents --once
+WorkingDirectory=/home/machine/Códigos/lilith/lilith-de
+ExecStart=/usr/bin/python3 /home/machine/Códigos/lilith/lilith-de/tools/promo-agents --once
 ```
 
 ```ini

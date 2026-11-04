@@ -16,7 +16,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 mode=full
 dry_run=0
 with_dotfiles=1
-dotfiles_dir="${PADILHA_DOTFILES:-$root/../padilha-dotfiles}"
+dotfiles_dir="${PADILHA_DOTFILES:-$root/../lilith-dotfiles}"
 
 usage() {
     cat <<'EOF'
@@ -27,8 +27,8 @@ usage: ./install.sh [--full|--rice] [--dry-run] [--no-dotfiles]
   --dry-run      print what would happen, change nothing
   --no-dotfiles  do not link ~/.config/{hypr,nvim,wezterm}
 
-PADILHA_DOTFILES=DIR points at an existing padilha-dotfiles checkout
-(default: ../padilha-dotfiles next to this repository).
+PADILHA_DOTFILES=DIR points at an existing dotfiles checkout
+(default: ../lilith-dotfiles next to this repository).
 
 The rice profile still needs root for the shell and commands under /usr. It
 does not install a session entry or systemd user units.
@@ -192,7 +192,7 @@ if (( with_dotfiles )); then
         if [ -e "$dotfiles_dir" ]; then
             die "$dotfiles_dir exists but has no bin/padilha-dots"
         fi
-        log "Fetching padilha-dotfiles"
+        log "Fetching lilith-dotfiles"
         run git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git "$dotfiles_dir"
     fi
 

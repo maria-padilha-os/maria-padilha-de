@@ -8,30 +8,35 @@ were started. This is the internal working record; user-facing docs are in
 
 | path | remote | role | owner |
 | --- | --- | --- | --- |
-| `~/Códigos/padilha/padilha-de` | `Mateus-M-Reis/padilha` | shell, session, theme engine, installer, package | agent `3a98b400…` |
-| `~/Códigos/padilha/padilha-dotfiles` | `Mateus-M-Reis/padilha-dotfiles` | Hyprland, nvim, wezterm configs (the rice) | agent `2aec77cd…` |
-| `~/Códigos/padilha` | not a git repo | org root, `README.md`, `bootstrap.sh` | coordinator |
-| `padilha-os` | not created | archiso/Calamares image | future |
+| `~/Códigos/lilith/lilith-de` | `Mateus-M-Reis/padilha` | shell, session, theme engine, installer, package | agent `3a98b400…` |
+| `~/Códigos/lilith/lilith-dotfiles` | `Mateus-M-Reis/padilha-dotfiles` | Hyprland, nvim, wezterm configs (the rice) | agent `2aec77cd…` |
+| `~/Códigos/lilith` | not a git repo | org root, `README.md`, `bootstrap.sh` | coordinator |
+| `lilith-os` | not created | archiso/Calamares image | future |
 
 Both repositories are private at the moment. The org root is intentional: it
 is not a repository and does not use submodules. `bootstrap.sh` clones the
-siblings; the desktop installer fetches `padilha-dotfiles` next to itself when
-it is missing.
+siblings; the desktop installer fetches the dotfiles repository as
+`lilith-dotfiles` next to itself when it is missing.
 
 ## Decisions made
 
 - **One documentation site, not one Pages site per repository.** The Jekyll
-  source is `padilha-de/docs/`; it has sections for desktop, dotfiles, and
+  source is `lilith-de/docs/`; it has sections for desktop, dotfiles, and
   (later) OS. `baseurl` is `/padilha`. Per-project Pages would duplicate
   navigation and split search.
 - **Two install profiles.** `./install.sh --full` installs the desktop session
   and all dotfiles; `--rice` installs the shell, commands, and Hyprland config
   only. Existing real config directories are backed up as
   `~/.config/<name>.pre-padilha-<timestamp>`.
-- **Dotfiles are a separate repository.** `padilha-de` no longer carries the
-  configs; it fetches `padilha-dotfiles` next to itself or uses
-  `PADILHA_DOTFILES`.
-- **The old `bin/padilha-dots` moved** to `padilha-dotfiles/bin/padilha-dots`.
+- **Dotfiles are a separate repository.** `lilith-de` no longer carries the
+  configs; it fetches the dotfiles repository as `lilith-dotfiles` next to
+  itself or uses `PADILHA_DOTFILES`.
+- **The old `bin/padilha-dots` moved** to `lilith-dotfiles/bin/padilha-dots`.
+- **Checkout rename.** The workspace and checkouts are `lilith`, `lilith-de`,
+  and `lilith-dotfiles`; the GitHub repositories, the `padilha-*` commands, the
+  package, the session entry, and `~/.config/padilha` keep the Padilha name.
+  The installer looks for `../lilith-dotfiles`; `PADILHA_DOTFILES` still
+  overrides it. Renaming the brand side is a separate, deploy-sized change.
 - **Donations, not paywalls or ads.** Padilha stays GPL-3.0-only. The GitHub
   Sponsor button is configured through `.github/FUNDING.yml`; Ko-fi,
   Liberapay, Open Collective, or Pix can be added to the same file. GitHub
@@ -69,8 +74,8 @@ it is missing.
   regenerated from the current scheme without recomputing the palette. Semantic
   blocks (selection, error, diff, focus accents) stay opaque for contrast.
   Restart MC to load it. The static MC files (`ini`, `mc.keymap`, `mc.ext.ini`)
-  live in `padilha-dotfiles/mc/` and are linked file by file; the skin stays
-  generated in `padilha-de`.
+  live in `lilith-dotfiles/mc/` and are linked file by file; the skin stays
+  generated in `lilith-de`.
 - Promo-window scheduler prototype at `tools/promo-agents`: config-driven
   windows, one headless `dsh` at a time chosen round-robin across repos, git
   worktrees, stop margin, tests,
@@ -85,7 +90,7 @@ it is missing.
   collide within the same second. New `tests/cli/promo-agents.sh` (23 checks)
   is part of `tests/all.sh`.
 - The black desktop was the stale wallpaper path left by the org move; it is
-  repaired to `padilha-de/share/wallpapers/day.jpg`. NvimTree had no
+  repaired to `lilith-de/share/wallpapers/day.jpg`. NvimTree had no
   `NvimTree*` groups in the caelestia colorscheme, so its window stayed on
   base46's dark group; it now follows the light surface and will follow
   `Normal` at night.

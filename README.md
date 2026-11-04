@@ -20,14 +20,17 @@ configs; `--rice` keeps your current Hyprland session and installs the shell,
 theme, and Hyprland config only.
 
 ```sh
-mkdir -p ~/Códigos/padilha
+mkdir -p ~/Códigos/lilith
 git clone https://github.com/Mateus-M-Reis/padilha.git \
-    ~/Códigos/padilha/padilha-de
-cd ~/Códigos/padilha/padilha-de
+    ~/Códigos/lilith/lilith-de
+cd ~/Códigos/lilith/lilith-de
 
 ./install.sh --dry-run --full
 ./install.sh --full   # or --rice
 ```
+
+The checkout is named `lilith-de`; the GitHub repository, the commands, and the
+package keep the Padilha name.
 
 See [INSTALL.md](INSTALL.md) for the detailed guide, package install, uninstall,
 and troubleshooting.

@@ -5,12 +5,12 @@ title: Dotfiles
 
 # The rice
 
-`padilha-dotfiles` is the standalone rice: the Hyprland, Neovim, and WezTerm
+`lilith-dotfiles` is the standalone rice: the Hyprland, Neovim, and WezTerm
 configs, linked into `~/.config` by `bin/padilha-dots`.
 
 ```sh
 git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git \
-    ~/Códigos/padilha/padilha-dotfiles
+    ~/Códigos/lilith/lilith-dotfiles
 ```
 
 The Hyprland config starts the shell through `padilha-session`, which comes
@@ -20,7 +20,7 @@ the desktop's `bin/` on `PATH` for a checkout.
 ## Link the configs
 
 ```sh
-cd ~/Códigos/padilha/padilha-dotfiles
+cd ~/Códigos/lilith/lilith-dotfiles
 ./bin/padilha-dots            # hypr, nvim, wezterm
 ./bin/padilha-dots hypr       # only Hyprland
 ```

@@ -1,7 +1,8 @@
-# AGENTS.md — padilha-de
+# AGENTS.md — lilith-de (GitHub `padilha`)
 
-Read `/home/machine/Códigos/padilha/AGENTS.md` first; this is the repo-specific
-summary.
+Read `/home/machine/Códigos/lilith/AGENTS.md` first; this is the repo-specific
+summary. The checkout is `lilith-de`; the remote, the commands, and the
+package keep the Padilha name.
 
 Scope: Quickshell shell (`shell/`), session entry, theme engine (`lib/`,
 `share/`), commands (`bin/`), installer (`install.sh`), package
