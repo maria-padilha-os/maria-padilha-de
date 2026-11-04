@@ -22,21 +22,23 @@ rollback points, not releases.
 Run from `padilha-de` unless stated otherwise.
 
 - [ ] `git status` is clean in both repositories.
-- [ ] `bash tests/all.sh` passes.
-- [ ] GitHub Actions is green for `padilha-de`; the dotfiles repo has no CI.
-- [ ] `./install.sh --dry-run --full` and `--rice` print a sane plan.
-- [ ] `./install.sh --dry-run --full --no-dotfiles` leaves `~/.config` alone.
-- [ ] `tools/promo-agents --config tools/promo-agents.example.toml --dry-run`
+- [x] `bash tests/all.sh` passes.
+- [x] GitHub Actions is green for `padilha-de`; the dotfiles repo has no CI.
+- [x] `./install.sh --dry-run --full` and `--rice` print a sane plan.
+- [x] `./install.sh --dry-run --full --no-dotfiles` leaves `~/.config` alone.
+- [x] `tools/promo-agents --config tools/promo-agents.example.toml --dry-run`
       and `--status` behave; `tests/cli/promo-agents.sh` passes.
-- [ ] No secret is tracked: `git grep -nE 'sk-[A-Za-z0-9]{20,}'` must be empty;
+- [x] No secret is tracked: `git grep -nE 'sk-[A-Za-z0-9]{20,}'` must be empty;
       `dotfiles/hypr/hyprland/env.local.lua` is ignored.
-- [ ] `dotfiles` is not present in `padilha-de`; the installer can fetch the
+- [x] `dotfiles` is not present in `padilha-de`; the installer can fetch the
       sibling `padilha-dotfiles`.
+- [x] The release package builds with `tools/release.sh`; it was not installed.
 - [ ] `docs/` builds as a Jekyll site; one docs site, not per-project Pages.
-- [ ] The current release version and changelog are decided
-      (`packaging/PKGBUILD`, `upstream.json`).
+      Jekyll is not installed locally; the Markdown/YAML still needs a preview.
+- [x] The current release version and changelog are decided
+      (`packaging/PKGBUILD` 0.1.1, `CHANGELOG.md`).
 - [ ] A clean VM or spare user account is available for the first real install.
-- [ ] Suspend is still known-broken; do not include it in a demo.
+- [x] Suspend is still known-broken; do not include it in a demo.
 
 ## Build and package (later)
 

@@ -172,6 +172,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 
 - [INSTALL.md](INSTALL.md) — installation, profiles, uninstall, troubleshooting
 - [DEPLOY.md](DEPLOY.md) — release readiness and rollback (deployment on hold)
+- [CHANGELOG.md](CHANGELOG.md) — what changed in 0.1.1 and the known issues
 - [docs/](docs/) — the GitHub Pages source: install, desktop, dotfiles, support
 - [SUPPORT.md](SUPPORT.md) — optional donations and other ways to help
 - [tools/README.md](tools/README.md) — the promo-window agent scheduler
