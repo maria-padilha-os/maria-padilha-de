@@ -29,4 +29,14 @@ fi
 # palette. The daylight daemon repeats this later only when the period moves.
 "$bin_dir/padilha-daylight" --once >/dev/null 2>&1 || true
 
+# A checkout carries its own C++ QML modules in build/qml. Prefer them over an
+# older installed copy: the settings schema ships there (a stale module would
+# hide new bar entries). A packaged install has no build tree and uses the
+# system module.
+build_qml="$bin_dir/../build/qml"
+if [ -d "$build_qml" ]; then
+    QML2_IMPORT_PATH="$build_qml${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
+    export QML2_IMPORT_PATH
+fi
+
 exec qs -c caelestia -n -d

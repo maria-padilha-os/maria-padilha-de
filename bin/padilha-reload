@@ -60,4 +60,14 @@ fi
 # after a kill. They are runtime state, not config or cache.
 rm -rf "$runtime/quickshell"
 
+# A checkout carries its own C++ QML modules in build/qml. Prefer them over an
+# older installed copy, exactly like padilha-session.
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+bin_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || bin_dir=""
+build_qml="$bin_dir/../build/qml"
+if [ -n "$bin_dir" ] && [ -d "$build_qml" ]; then
+    QML2_IMPORT_PATH="$build_qml${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
+    export QML2_IMPORT_PATH
+fi
+
 exec qs -c "$config" -n -d
