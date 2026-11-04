@@ -70,6 +70,11 @@ def load_config(path: Path) -> dict:
     agent = config.setdefault("agent", {})
     agent.setdefault("command", ["dsh", "--profile", "headless"])
 
+    maintenance = config.setdefault("maintenance", {})
+    maintenance.setdefault("enabled", True)
+    maintenance.setdefault("max_rounds_per_window", 0)  # 0 = until the margin
+    maintenance.setdefault("min_round_seconds", 900)
+
     repos = config.setdefault("repos", {})
     for name, repo in repos.items():
         if "path" not in repo:
@@ -177,8 +182,30 @@ branch.
 """
 
 
-def launch(config: dict, name: str, repo: dict, task: Path, now: datetime,
-           state_dir: Path, dry: bool, events: Path) -> dict | None:
+def build_maintenance_prompt(repo_name: str, round_no: int,
+                             max_rounds: int) -> str:
+    limit = ("until the window closes" if max_rounds == 0
+             else f"at most {max_rounds} rounds this window")
+    return f"""You are the owner of the {repo_name} repository.
+Work only in this checkout. Do not touch sibling repositories.
+
+There are no queued tasks left. This is maintenance round {round_no}
+({limit}). Do not stop at the first idea; leave the repository better than you
+found it. Review the tests, documentation, TODOs, rough edges, and recent
+changes, then pick ONE concrete improvement, optimization, or polish that is
+safe and testable. Implement it, run the repository tests, and commit it.
+
+If nothing is genuinely worth changing, write or append a short `PROPOSALS.md`
+with the next concrete steps and commit that instead. Do not invent busywork,
+do not rewrite working code for style alone, and do not touch machine secrets.
+Do not push or merge anything; the coordinator reviews the branch.
+"""
+
+
+def launch(config: dict, name: str, repo: dict, title: str, prompt: str,
+           now: datetime, state_dir: Path, dry: bool, events: Path,
+           task: Path | None = None, maintenance: bool = False,
+           round_no: int = 0) -> dict | None:
     repo_path = Path(repo["path"])
     if not repo_path.is_dir():
         if dry:
@@ -198,15 +225,13 @@ def launch(config: dict, name: str, repo: dict, task: Path, now: datetime,
             log(events, f"{name}: dirty working tree; not starting a task")
         return None
 
-    title = task_title(task)
     branch = f"agent/{now:%Y%m%d-%H%M%S}-{slugify(title)}"
     worktree = state_dir / "worktrees" / name / f"{now:%Y%m%d-%H%M%S}-{slugify(title)}"
-    prompt = build_prompt(name, task)
     command = list(config["agent"]["command"]) + [prompt]
 
     if dry:
         print(f"would start {name}: {branch} in {worktree}")
-        print(f"  task: {task}")
+        print(f"  task: {task if task else f'maintenance round {round_no}'}")
         return None
 
     worktree.parent.mkdir(parents=True, exist_ok=True)
@@ -234,8 +259,10 @@ def launch(config: dict, name: str, repo: dict, task: Path, now: datetime,
         "pid": process.pid,
         "worktree": str(worktree),
         "branch": branch,
-        "task": str(task),
+        "task": str(task) if task else "",
         "title": title,
+        "maintenance": maintenance,
+        "round": round_no,
         "log": str(log_path),
         "started": now.isoformat(),
     }
@@ -250,7 +277,7 @@ def finalize(config: dict, name: str, record: dict, state_dir: Path,
              events: Path) -> None:
     worktree = Path(record["worktree"])
     repo = config["repos"].get(name, {})
-    task = Path(record["task"])
+    task_path = record.get("task") or ""
 
     if worktree.is_dir():
         tests = repo.get("tests") or []
@@ -286,7 +313,8 @@ def finalize(config: dict, name: str, record: dict, state_dir: Path,
             )
             log(events, f"{name}: pushed {record['branch']}")
 
-    if task.is_file():
+    if task_path and Path(task_path).is_file():
+        task = Path(task_path)
         done = task.parent / "done"
         done.mkdir(parents=True, exist_ok=True)
         shutil.move(str(task), done / f"{datetime.now():%Y%m%d-%H%M%S}-{task.name}")
@@ -341,6 +369,8 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
 
     state = load_state(state_dir / "state.json")
     running = state.get("running", {})
+    maintenance_cfg = config.get("maintenance", {})
+    window_key = start.isoformat()
 
     for name, record in list(running.items()):
         pid = int(record.get("pid", 0))
@@ -348,15 +378,65 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
             log(events, f"{name}: agent exited")
             if not dry:
                 finalize(config, name, record, state_dir, events)
+                state = load_state(state_dir / "state.json")
+                running = state.get("running", {})
 
     for name, repo in config["repos"].items():
         if name in running:
             continue
+
         task = next_task(repo)
-        if task is None:
-            print(f"{name}: queue empty")
+        if task is not None:
+            launch(
+                config, name, repo, task_title(task), build_prompt(name, task),
+                now, state_dir, dry, events, task=task,
+            )
+            state = load_state(state_dir / "state.json")
+            running = state.get("running", {})
             continue
-        launch(config, name, repo, task, now, state_dir, dry, events)
+
+        if not maintenance_cfg.get("enabled", True):
+            print(f"{name}: queue empty (maintenance disabled)")
+            continue
+
+        info = state.setdefault("maintenance", {}).setdefault(name, {})
+        if info.get("window") != window_key:
+            info.clear()
+            info.update({"window": window_key, "rounds": 0, "last": 0.0})
+
+        rounds = int(info.get("rounds", 0))
+        max_rounds = int(maintenance_cfg.get("max_rounds_per_window", 0))
+        if max_rounds and rounds >= max_rounds:
+            print(f"{name}: maintenance limit reached ({max_rounds})")
+            continue
+
+        min_seconds = int(maintenance_cfg.get("min_round_seconds", 900))
+        last = float(info.get("last", 0.0))
+        if last and now.timestamp() - last < min_seconds:
+            remaining = int(min_seconds - (now.timestamp() - last))
+            print(f"{name}: next maintenance in {remaining}s")
+            continue
+
+        round_no = rounds + 1
+        prompt = build_maintenance_prompt(name, round_no, max_rounds)
+        if dry:
+            launch(
+                config, name, repo, f"maintenance-{round_no}", prompt,
+                now, state_dir, True, events, maintenance=True,
+                round_no=round_no,
+            )
+            continue
+
+        info["rounds"] = round_no
+        info["last"] = now.timestamp()
+        save_state(state_dir / "state.json", state)
+        launch(
+            config, name, repo, f"maintenance-{round_no}", prompt,
+            now, state_dir, False, events, maintenance=True,
+            round_no=round_no,
+        )
+        state = load_state(state_dir / "state.json")
+        running = state.get("running", {})
 
 
 def status(config: dict, state_dir: Path) -> None:
@@ -369,7 +449,15 @@ def status(config: dict, state_dir: Path) -> None:
     print(f"running: {', '.join(sorted(running)) or 'none'}")
     for name, repo in config["repos"].items():
         task = next_task(repo)
-        print(f"{name}: {'idle' if name in running else 'queued'} ({task.name if task else 'empty'})")
+        if name in running:
+            state_name = "running"
+        elif task:
+            state_name = f"queued ({task.name})"
+        elif config.get("maintenance", {}).get("enabled", True):
+            state_name = "maintenance"
+        else:
+            state_name = "empty"
+        print(f"{name}: {state_name}")
 
 
 def main() -> int:

@@ -15,6 +15,14 @@ end = "00:30"
 [agent]
 command = ["dsh", "--profile", "headless"]
 
+[maintenance]
+enabled = true
+# 0 keeps doing maintenance rounds until the stop margin. A positive number caps
+# the rounds per window.
+max_rounds_per_window = 0
+# Minimum gap between rounds, so a fast failure cannot spin.
+min_round_seconds = 900
+
 [repos."padilha-de"]
 path = "~/Códigos/padilha/padilha-de"
 queue = "~/.config/padilha/agents/queue/padilha-de"

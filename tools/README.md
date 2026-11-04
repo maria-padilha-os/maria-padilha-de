@@ -62,6 +62,12 @@ The first `dsh --profile headless` use auto-initializes
 - When an agent exits, or when it is stopped at the margin, it runs the repo's
   configured tests, commits any changes to the agent branch, optionally pushes
   the branch (`push = true`), moves the task to `done/`, and records the result.
+- If the queue is empty and `maintenance.enabled` is true, the agent does not
+  idle. It starts a maintenance round: review the project, tests, docs, and
+  rough edges, then make one concrete optimization/polish or write a
+  `PROPOSALS.md` with next steps. Set `max_rounds_per_window = 0` to keep going
+  until the stop margin; `min_round_seconds` prevents a fast failure from
+  spinning.
 
 No PR is opened automatically. The coordinator reviews the branch.
 
