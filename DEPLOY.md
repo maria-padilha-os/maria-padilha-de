@@ -33,8 +33,9 @@ Run from `padilha-de` unless stated otherwise.
 - [x] `dotfiles` is not present in `padilha-de`; the installer can fetch the
       sibling `padilha-dotfiles`.
 - [x] The release package builds with `tools/release.sh`; it was not installed.
-- [ ] `docs/` builds as a Jekyll site; one docs site, not per-project Pages.
-      Jekyll is not installed locally; the Markdown/YAML still needs a preview.
+- [x] `docs/` builds with Jekyll 4.4.1 + minima (`jekyll build --source docs`),
+      warnings only; Pages is still disabled. One docs site, not per-project
+      Pages.
 - [x] The current release version and changelog are decided
       (`packaging/PKGBUILD` 0.1.1, `CHANGELOG.md`).
 - [ ] A clean VM or spare user account is available for the first real install.
