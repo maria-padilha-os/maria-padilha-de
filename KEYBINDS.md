@@ -96,7 +96,7 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + W` / `Super + B` | browser (`firefox`) |
 | `Super + C` | editor (`nvim` in a terminal) |
 | `Super + E` | file explorer (`thunar`) |
-| `XF86Calculator` | calculator |
+| `XF86Calculator` | calculator (`galculator`; or `>calc 2+2` in the launcher) |
 | `XF86Search` | launcher |
 
 ## Screenshots, recording, colour

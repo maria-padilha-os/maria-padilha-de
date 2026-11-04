@@ -72,7 +72,8 @@ it is missing.
   live in `padilha-dotfiles/mc/` and are linked file by file; the skin stays
   generated in `padilha-de`.
 - Promo-window scheduler prototype at `tools/promo-agents`: config-driven
-  windows, one headless `dsh` per repo, git worktrees, stop margin, tests,
+  windows, one headless `dsh` at a time chosen round-robin across repos, git
+  worktrees, stop margin, tests,
   branch handoff, `--dry-run`/`--status`/`--stop`; system timer documented.
   Not enabled.
 - Scheduler maintenance pass (2026-11-04): `--once` is a real flag (the timer
@@ -169,13 +170,14 @@ Components:
    label). Each task names the repo, branch, acceptance checks, and a stop
    condition. A task is not a vague "improve things" prompt.
 3. **Scheduler** (systemd user timer every 5 minutes, or a small daemon):
-   - if now is inside a window minus the stop margin, ensure one `dsh headless`
-     process per repo with queued work;
+   - if now is inside a window minus the stop margin, run **at most one**
+     `dsh headless` process, choosing one repository round-robin; do not launch
+     all repositories at once;
    - if outside, do not start new work; signal current agents to checkpoint;
    - log window, task, process, result, and token/cost usage to local state.
 4. **Isolation**: one git worktree/branch per agent and task
-   (`agent/<date>-<slug>`), never the main checkout. One agent per repo avoids
-   two agents writing the same files.
+   (`agent/<date>-<slug>`), never the main checkout. One agent at a time avoids
+   two agents writing the same files and keeps the 7 GB laptop responsive.
 5. **Stop and handoff**: before the window end, send `SIGTERM`, let the agent
    finish its current step, run tests, commit WIP to its branch, and push. The
    coordinator opens PRs; no agent pushes `main`.

@@ -54,6 +54,10 @@ those two stills. More views are in the [gallery](docs/screenshots.md).
   Neovim, Discord, and Midnight Commander.
 - **Daylight** — a light wallpaper for the day and a dark one for the night,
   with the palette reapplied when the period changes.
+- **Calculator** — type `>calc 2+2` in the launcher; the native `Qalculator`
+  binding uses libqalculate for units, currency, variables, and exact results.
+  `XF86Calculator` opens galculator, and `qalc -i` in a terminal gives the full
+  REPL.
 - **Configuration** — `init.lua` is compiled into the shell's JSON and
   validated against the shell's own schema. A generated `ui.lua` carries
   changes made from the settings UI.

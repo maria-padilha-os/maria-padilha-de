@@ -1,8 +1,10 @@
 # Promo-window agents
 
-`promo-agents` starts one headless DSH agent per repository inside a configured
-discount window, stops it before the window closes, and leaves the work on a
-branch for review. It never pushes `main` and never merges.
+`promo-agents` runs at most one headless DSH agent at a time inside a configured
+discount window. Repositories are picked round-robin; the next project starts
+after the current agent exits. The scheduler stops the agent before the window
+closes and leaves the work on a branch for review. It never pushes `main` and
+never merges.
 
 This is a prototype. The window schedule is configuration, not a hardcoded
 guess; verify DeepSeek's current discount hours before using it.
@@ -141,5 +143,6 @@ prevents overlapping ticks.
   a prompt, or a commit.
 - The service does not run when the schedule is unknown: an empty or malformed
   window list is a configuration error.
-- One agent per repository is the default. More than two DSH agents on this
-  7 GB laptop will compete for memory; the per-repo lock is deliberate.
+- Only one agent runs at a time, and only one repository is launched per
+  scheduler tick. Repositories rotate; the next one starts after the current
+  agent exits. This keeps the 7 GB laptop out of a three-agent memory race.

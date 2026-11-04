@@ -18,7 +18,8 @@ or promo timer has been published.
 - The shell watchdog (`padilha-shell-watch`) and its restart log.
 - Terminal-transparent Midnight Commander skin surfaces.
 - The promo-window agent scheduler prototype, including maintenance rounds,
-  dry-run, status, stop, worktrees, and tests.
+  dry-run, status, stop, worktrees, and tests. It runs one repository at a time
+  in round-robin order instead of launching every repository at once.
 - A single GitHub Pages source under `docs/`, with the support page.
 - GitHub Sponsor metadata in both repositories.
 

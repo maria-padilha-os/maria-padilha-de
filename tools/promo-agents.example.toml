@@ -1,5 +1,7 @@
 # Copy to ~/.config/padilha/agents.toml and adjust.
 #
+# One repository is selected per scheduler tick; only one agent runs at a time.
+# The next repository starts after the current agent exits.
 # The windows below are examples, not a claim about DeepSeek's current
 # schedule. Verify the current off-peak/discount hours and put them here.
 

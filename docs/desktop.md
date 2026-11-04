@@ -17,6 +17,15 @@ it to Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, Neovim,
 Discord, and Midnight Commander. The Neovim colorscheme follows the same
 palette and switches between its ayu-inspired light and dark variants.
 
+## Calculator
+
+The launcher has a native calculator mode. Open it with `Super + Space` and
+type `>calc 2+2`; the `Qalculator` binding uses libqalculate, so units,
+currency, variables, and exact fractions work. Clicking the result copies the
+raw value. `XF86Calculator` opens galculator, and `qalc -i` in a terminal gives
+the full REPL. IPython is deliberately not used: it starts slower and evaluates
+Python semantics rather than human-readable math.
+
 ## Keys
 
 | keys | action |

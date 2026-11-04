@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Run one headless agent per repository during configured discount windows.
+"""Run one headless agent at a time during configured discount windows.
 
 The scheduler is deliberately boring: it starts `dsh --profile headless` in a
 throwaway git worktree, records the PID, and stops it before the window ends.
-It never pushes `main` and never merges anything. The coordinator reviews the
-branches.
+Only one repository is active at a time; the next project is picked
+round-robin after the current agent exits. It never pushes `main` and never
+merges anything. The coordinator reviews the branches.
 
 Typical use:
 
@@ -486,18 +487,33 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
                 state = load_state(state_dir / "state.json")
                 running = state.get("running", {})
 
-    for name, repo in config["repos"].items():
-        if name in running:
-            continue
+    if running:
+        print(f"agent already running: {', '.join(sorted(running))}; one at a time")
+        return
+
+    order = list(config["repos"])
+    if not order:
+        return
+    rotation = int(state.get("rotation", 0)) % len(order)
+
+    for offset in range(len(order)):
+        idx = (rotation + offset) % len(order)
+        name = order[idx]
+        repo = config["repos"][name]
 
         task = next_task(repo)
         if task is not None:
-            launch(
+            record = launch(
                 config, name, repo, task_title(task), build_prompt(name, task),
                 now, state_dir, dry, events, task=task,
             )
+            if dry:
+                return
             state = load_state(state_dir / "state.json")
-            running = state.get("running", {})
+            state["rotation"] = (idx + 1) % len(order)
+            save_state(state_dir / "state.json", state)
+            if record is not None:
+                return
             continue
 
         if not maintenance_cfg.get("enabled", True):
@@ -530,10 +546,9 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
             round_no=round_no,
         )
         if dry:
-            continue
+            return
 
         state = load_state(state_dir / "state.json")
-        running = state.get("running", {})
         info = state.setdefault("maintenance", {}).setdefault(name, {})
         if info.get("window") != window_key:
             info.clear()
@@ -541,7 +556,17 @@ def tick(config: dict, state_dir: Path, dry: bool, events: Path) -> None:
         info["last"] = now.timestamp()
         if record is not None:
             info["rounds"] = round_no
+        state["rotation"] = (idx + 1) % len(order)
         save_state(state_dir / "state.json", state)
+        if record is None:
+            continue
+        return
+
+    if not dry:
+        state = load_state(state_dir / "state.json")
+        state["rotation"] = (rotation + 1) % len(order)
+        save_state(state_dir / "state.json", state)
+    print("no repository is ready to launch")
 
 
 def status(config: dict, state_dir: Path) -> None:

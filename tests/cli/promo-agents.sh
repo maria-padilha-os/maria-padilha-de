@@ -355,5 +355,48 @@ else
     bad "the task branch is named from the task title" "$task_branch"
 fi
 
+echo "one project at a time"
+
+mkdir -p "$tmp/repo-one" "$tmp/repo-two" "$tmp/queue-one" "$tmp/queue-two"
+for repo in repo-one repo-two; do
+    git -C "$tmp/$repo" init -q -b main
+    git -C "$tmp/$repo" config user.email tests@padilha.invalid
+    git -C "$tmp/$repo" config user.name "Padilha tests"
+    printf 'repo\n' > "$tmp/$repo/README.md"
+    git -C "$tmp/$repo" add -A
+    git -C "$tmp/$repo" commit -qm "init"
+done
+printf '# First task\n\nBody.\n' > "$tmp/queue-one/001-first.md"
+printf '# Second task\n\nBody.\n' > "$tmp/queue-two/001-second.md"
+cat > "$tmp/two-repos.toml" <<EOF
+[schedule]
+timezone = "UTC"
+[[schedule.windows]]
+start = "$inside_start"
+end = "$inside_end"
+
+[agent]
+command = ["sh", "-c", "printf ran > agent-ran.txt"]
+
+[maintenance]
+enabled = false
+
+[repos."one"]
+path = "$tmp/repo-one"
+queue = "$tmp/queue-one"
+
+[repos."two"]
+path = "$tmp/repo-two"
+queue = "$tmp/queue-two"
+EOF
+"$agents" --config "$tmp/two-repos.toml" --state-dir "$tmp/state-two" --once > /dev/null 2>&1
+first=$(git -C "$tmp/repo-one" branch --list 'agent/*' | wc -l)
+second=$(git -C "$tmp/repo-two" branch --list 'agent/*' | wc -l)
+if [ $((first + second)) -eq 1 ]; then
+    ok "only one repository starts per --once"
+else
+    bad "only one repository starts per --once" "one=$first two=$second"
+fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
