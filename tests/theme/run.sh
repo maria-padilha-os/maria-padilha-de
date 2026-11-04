@@ -80,9 +80,12 @@ check "terminals get OSC 11" "grep -q ']11;rgb:' '$seq'"
 check "htop is left alone" "! test -e '$tmp/tree/home/machine/.config/htop/htoprc'"
 check "nvtop is left alone" "! test -e '$tmp/tree/home/machine/.config/nvtop/nvtop.colors'"
 mc="$tmp/tree/home/machine/.local/share/mc/skins/caelestia.ini"
-mc_surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
+mc_fg=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['onSurface'])")
 check "mc gets a skin" "test -s '$mc'"
-check "the mc skin follows the scheme" "grep -q \"^    Main = #$mc_surface\" '$mc'"
+check "mc surfaces use the terminal background" "grep -qx '    Main = default' '$mc' && grep -qx '    Dialog = default' '$mc'"
+check "no mc surface is opaque" "! grep -Eq '^    (Main|Dialog|Input|Top|Menu|Bottom|Help|ShadowBg|EditorVoid|EditorLineNumber) = #' '$mc'"
+check "mc foregrounds keep the scheme" "grep -qx \"    MainFg = #$mc_fg\" '$mc'"
+check "mc selection stays an opaque accent" "grep -Eq '^    Selected = #[0-9a-fA-F]{6}\$' '$mc'"
 check "mc sections use the generated aliases" "grep -q '^    _default_ = MainFg;Main$' '$mc'"
 check "mc sections carry no frozen colours" "! sed -n '/^\\[core\\]/,\$p' '$mc' | grep -Eq '#[0-9a-fA-F]{6}'"
 

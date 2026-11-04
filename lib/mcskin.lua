@@ -72,19 +72,46 @@ local ALIASES = {
     { "DbFg", { "peach", "yellow" } },
 }
 
+-- Aliases that resolve to the terminal's background instead of a surface
+-- colour. MC's `default` keyword is only valid in the background slot and
+-- leaves the cell unpainted, so the terminal's own background — and the
+-- window opacity behind it — shows through.
+--
+-- State and diff highlights are deliberately absent: they are small opaque
+-- blocks whose foreground aliases (SelectedFg, ErrorFg, DiffAddFg, ...) are
+-- picked to contrast with those blocks. Turning them into `default` would
+-- drop the block and can leave dark-on-dark or light-on-light text.
+local TRANSPARENT = {
+    Main = true,
+    Dialog = true,
+    Input = true,
+    Top = true,
+    Menu = true,
+    Bottom = true,
+    Help = true,
+    ShadowBg = true,
+    EditorVoid = true,
+    EditorLineNumber = true,
+}
+
 -- The [aliases] block mc expects, as text.
 function M.aliases(colours)
     local out = { "[aliases]" }
     for _, entry in ipairs(ALIASES) do
-        local value
-        for _, key in ipairs(entry[2]) do
-            if colours[key] then
-                value = colours[key]
-                break
+        local name = entry[1]
+        if TRANSPARENT[name] then
+            out[#out + 1] = ("    %s = default"):format(name)
+        else
+            local value
+            for _, key in ipairs(entry[2]) do
+                if colours[key] then
+                    value = colours[key]
+                    break
+                end
             end
-        end
-        if value then
-            out[#out + 1] = ("    %s = #%s"):format(entry[1], value)
+            if value then
+                out[#out + 1] = ("    %s = #%s"):format(name, value)
+            end
         end
     end
     return table.concat(out, "\n")
