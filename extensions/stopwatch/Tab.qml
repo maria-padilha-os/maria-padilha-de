@@ -1,6 +1,8 @@
 import QtQuick
 
 Item {
+    id: root
+
     property var api
 
     implicitWidth: 340

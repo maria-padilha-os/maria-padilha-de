@@ -167,7 +167,9 @@ Item {
     Rectangle {
         id: card
 
-        anchors.fill: parent
+        anchors.centerIn: parent
+        width: Math.min(parent.width - Tokens.padding.small * 2, 640)
+        height: Math.min(parent.height - Tokens.padding.small * 2, 480)
         radius: Tokens.rounding.extraLarge
         color: root.cSurfaceHigh
         border.width: 1

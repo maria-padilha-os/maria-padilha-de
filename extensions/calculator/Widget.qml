@@ -4,9 +4,9 @@ import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 
-// Front-end for qalc. The host passes the shell API in `api`; every colour
-// comes from the live theme so the widget follows palette changes. The same
-// item is used as a 360x220 dashboard tab and as a full settings page.
+// Front-end for qalc with a light math renderer: the current expression and
+// the result are typeset (fractions, exponents, roots, italics) with rich
+// text. The host passes the shell API in `api`.
 Item {
     id: root
 
@@ -14,6 +14,7 @@ Item {
 
     property var history: []
     property string result: ""
+    property string errorText: ""
     property bool failed: false
     property string pendingExpression: ""
 
@@ -21,46 +22,161 @@ Item {
     readonly property color foreground: root.palette ? root.palette.m3onSurface : "transparent"
     readonly property color muted: root.palette ? root.palette.m3onSurfaceVariant : "transparent"
     readonly property color accent: root.palette ? root.palette.m3primary : "transparent"
+    readonly property color onAccent: root.palette ? root.palette.m3onPrimary : "transparent"
     readonly property color errorColour: root.palette ? root.palette.m3error : "transparent"
     readonly property color fieldColour: root.palette ? root.palette.m3surfaceContainerHigh : "transparent"
-    readonly property color displayColour: root.palette ? root.palette.m3surfaceContainerHighest : "transparent"
 
-    // The tab is 360x220 and a settings page is much taller. Let the display
-    // grow a little with the host while keeping the compact tab layout intact.
-    readonly property int displayHeight: Math.round(Math.min(72, Math.max(40, root.height * 0.18)))
-    readonly property int resultSize: Math.round(Math.min(40, Math.max(24, root.height * 0.11)))
+    readonly property bool compact: root.height < 320
+    readonly property real contentWidth: Math.min(Math.max(300, root.width - Tokens.padding.large * 2), 720)
 
-    function evaluate() {
+    // Turns qalc syntax into rich text: sqrt -> root, ^ -> superscript,
+    // simple numeric fractions -> superscript/fraction slash/subscript,
+    // single-letter variables -> italic, plus the usual operator glyphs.
+    function pretty(source: string): string {
+        if (!source)
+            return "";
+
+        let text = source.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        text = text.replace(/\b([a-zA-Z])\b/g, "<i>$1</i>");
+        text = text.replace(/\bpi\b/g, "π");
+        text = text.replace(/sqrt\(([^()]*)\)/g, "√($1)");
+        text = text.replace(/\^\(([^()]*)\)/g, "<sup>$1</sup>");
+        text = text.replace(/\^(-?\w+)/g, "<sup>$1</sup>");
+        text = text.replace(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/g, "<sup>$1</sup>⁄<sub>$2</sub>");
+        text = text.replace(/!=/g, "≠").replace(/>=/g, "≥").replace(/<=/g, "≤");
+        text = text.replace(/\*/g, " · ");
+        text = text.replace(/-/g, "−");
+        return text;
+    }
+
+    function evaluate(): void {
         if (calcProc.running)
             return;
+
         const expression = input.text.trim();
         if (expression.length === 0)
             return;
+
         root.pendingExpression = expression;
         calcProc.command = ["qalc", "-t", expression];
         calcProc.running = true;
     }
 
-    function clear() {
+    function run(expression: string): void {
+        input.text = expression;
+        root.evaluate();
+    }
+
+    function clear(): void {
         input.text = "";
         root.pendingExpression = "";
         root.history = [];
         root.result = "";
+        root.errorText = "";
         root.failed = false;
         input.forceActiveFocus();
     }
 
+    component ActionButton: Rectangle {
+        id: button
+
+        property string label
+        property bool primary
+        signal clicked()
+
+        width: root.compact ? 30 : 40
+        height: root.compact ? 24 : 32
+        radius: Tokens.rounding.small
+        color: button.primary ? root.accent : "transparent"
+        border.width: button.primary ? 0 : 1
+        border.color: root.muted
+
+        Text {
+            anchors.centerIn: parent
+            text: button.label
+            color: button.primary ? root.onAccent : root.muted
+            font.pixelSize: button.height * 0.5
+            font.weight: Font.Medium
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: button.clicked()
+        }
+    }
+
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Tokens.padding.small
-        spacing: Tokens.spacing.extraSmall
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: root.contentWidth
+        spacing: root.compact ? Tokens.spacing.extraSmall : Tokens.spacing.small
+
+        Text {
+            Layout.fillWidth: true
+            Layout.topMargin: root.compact ? 0 : Tokens.spacing.medium
+            visible: input.text.length > 0
+            text: root.pretty(input.text)
+            textFormat: Text.RichText
+            color: root.muted
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: root.compact ? 22 : 36
+            wrapMode: Text.Wrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
+        }
+
+        Text {
+            Layout.fillWidth: true
+            visible: root.failed || root.result.length > 0
+            text: root.failed ? root.errorText : root.pretty(root.result)
+            textFormat: root.failed ? Text.PlainText : Text.RichText
+            color: root.failed ? root.errorColour : root.foreground
+            horizontalAlignment: Text.AlignHCenter
+            font.pixelSize: root.compact ? 30 : 52
+            font.weight: Font.DemiBold
+            wrapMode: Text.Wrap
+            maximumLineCount: 3
+            elide: Text.ElideRight
+        }
+
+        Flickable {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: root.history.length > 0
+            clip: true
+            contentHeight: historyColumn.implicitHeight
+            boundsBehavior: Flickable.StopAtBounds
+
+            ColumnLayout {
+                id: historyColumn
+
+                width: parent.width
+                spacing: 2
+
+                Repeater {
+                    model: root.history
+
+                    delegate: Text {
+                        required property var modelData
+                        required property int index
+
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignRight
+                        text: root.pretty(modelData.expression) + " = " + root.pretty(modelData.result)
+                        textFormat: Text.RichText
+                        color: root.muted
+                        font.pixelSize: root.compact ? 11 : 14
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+        }
 
         Rectangle {
-            id: inputField
-
             Layout.fillWidth: true
-            Layout.preferredHeight: 30
-
+            Layout.preferredHeight: root.compact ? 34 : 48
             radius: Tokens.rounding.medium
             color: root.fieldColour
             border.width: input.activeFocus ? 1 : 0
@@ -69,156 +185,45 @@ Item {
             TextInput {
                 id: input
 
-                anchors.left: parent.left
-                anchors.right: clearAction.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.leftMargin: Tokens.padding.small
-                anchors.rightMargin: Tokens.padding.extraSmall
-
-                color: root.foreground
-                selectionColor: root.accent
-                selectedTextColor: root.palette ? root.palette.m3onPrimary : "transparent"
-                font: Tokens.font.body.medium
-                verticalAlignment: TextInput.AlignVCenter
-                clip: true
-
-                onAccepted: root.evaluate()
-
-                Keys.onEscapePressed: input.text = ""
-
-                Component.onCompleted: input.forceActiveFocus()
-            }
-
-            Text {
-                anchors.left: parent.left
-                anchors.right: clearAction.left
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.leftMargin: Tokens.padding.small
-                anchors.rightMargin: Tokens.padding.extraSmall
-                visible: input.text.length === 0
-                text: Tr.tr("Type an expression")
-                color: root.muted
-                opacity: 0.7
-                font: Tokens.font.body.medium
-                elide: Text.ElideRight
-            }
-
-            MouseArea {
-                id: clearAction
-
-                anchors.right: parent.right
-                anchors.rightMargin: Tokens.padding.extraSmall
-                anchors.verticalCenter: parent.verticalCenter
-                width: clearLabel.implicitWidth + Tokens.padding.small * 2
-                height: parent.height - Tokens.padding.extraSmall * 2
-
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-
-                onClicked: root.clear()
-
-                Text {
-                    id: clearLabel
-
-                    anchors.centerIn: parent
-                    text: Tr.tr("Clear")
-                    color: clearAction.containsMouse || clearAction.pressed ? root.accent : root.muted
-                    font: Tokens.font.body.builders.small.weight(Font.Medium).build()
-                }
-            }
-        }
-
-        Rectangle {
-            id: display
-
-            Layout.fillWidth: true
-            Layout.preferredHeight: root.displayHeight
-
-            radius: Tokens.rounding.large
-            color: root.displayColour
-            border.width: root.failed ? 1 : 0
-            border.color: root.errorColour
-
-            Text {
                 anchors.fill: parent
                 anchors.leftMargin: Tokens.padding.medium
-                anchors.rightMargin: Tokens.padding.medium
+                anchors.rightMargin: root.compact ? 76 : 100
+                verticalAlignment: TextInput.AlignVCenter
+                color: root.foreground
+                selectionColor: root.accent
+                selectedTextColor: root.onAccent
+                font.pixelSize: root.compact ? 15 : 19
+                clip: true
+                focus: true
 
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignRight
-                text: root.result.length > 0 ? root.result : "0"
-                color: root.failed ? root.errorColour : root.result.length > 0 ? root.foreground : root.muted
-                opacity: root.result.length > 0 ? 1 : 0.5
-                elide: Text.ElideRight
-                maximumLineCount: 1
-                font: Tokens.font.mono.builders.large.size(root.resultSize).weight(Font.DemiBold).build()
-            }
-        }
+                onAccepted: root.evaluate()
+                Keys.onEscapePressed: root.clear()
 
-        Flickable {
-            id: historyFlick
-
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            contentWidth: width
-            contentHeight: Math.max(historyColumn.implicitHeight, height)
-
-            Column {
-                id: historyColumn
-
-                width: historyFlick.width
-                y: Math.max(0, (historyFlick.height - implicitHeight) / 2)
-
-                Repeater {
-                    model: root.history
-
-                    delegate: Item {
-                        id: historyRow
-
-                        required property var modelData
-
-                        width: historyColumn.width
-                        height: Math.max(expressionText.implicitHeight, valueText.implicitHeight) + Math.ceil(Tokens.spacing.extraSmall / 2)
-
-                        Text {
-                            id: expressionText
-
-                            anchors.left: parent.left
-                            anchors.right: valueText.left
-                            anchors.rightMargin: Tokens.spacing.small
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: historyRow.modelData.expression + " ="
-                            color: root.muted
-                            font: Tokens.font.body.small
-                            elide: Text.ElideRight
-                        }
-
-                        Text {
-                            id: valueText
-
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: Math.min(implicitWidth, parent.width * 0.55)
-                            horizontalAlignment: Text.AlignRight
-                            text: historyRow.modelData.result
-                            color: historyRow.modelData.failed ? root.errorColour : root.accent
-                            font: Tokens.font.mono.small
-                            elide: Text.ElideLeft
-                        }
-                    }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: input.text.length === 0
+                    text: Tr.tr("2 + 2, sqrt(2), 10/3")
+                    color: root.muted
+                    font: input.font
                 }
             }
 
-            Text {
-                anchors.centerIn: parent
-                visible: root.history.length === 0
-                text: Tr.tr("Results appear here")
-                color: root.muted
-                opacity: 0.6
-                font: Tokens.font.body.small
+            Row {
+                anchors.right: parent.right
+                anchors.rightMargin: 6
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 4
+
+                ActionButton {
+                    label: "="
+                    primary: true
+                    onClicked: root.evaluate()
+                }
+
+                ActionButton {
+                    label: "×"
+                    onClicked: root.clear()
+                }
             }
         }
     }
@@ -227,31 +232,23 @@ Item {
         id: calcProc
 
         stdout: StdioCollector {
-            id: stdoutCollector
+            id: calcOut
         }
-
         stderr: StdioCollector {
-            id: stderrCollector
+            id: calcErr
         }
 
-        onExited: (code) => { // qmllint disable signal-handler-parameters
-            const stdout = stdoutCollector.text.trim();
-            const stderr = stderrCollector.text.trim();
-            const success = code === 0 && stdout.length > 0;
-            const value = success ? stdout : stderr.length > 0 ? stderr : Tr.tr("Error");
-
-            if (root.pendingExpression.length > 0) {
-                root.result = value;
-                root.failed = !success;
-
-                root.history = [
-                    {
-                        expression: root.pendingExpression,
-                        result: value,
-                        failed: !success
-                    }
-                ].concat(root.history).slice(0, 8);
-                root.pendingExpression = "";
+        onExited: (exitCode) => {
+            const output = calcOut.text.trim();
+            if (exitCode === 0 && output.length > 0) {
+                root.result = output;
+                root.errorText = "";
+                root.failed = false;
+                root.history = [{ expression: root.pendingExpression, result: output }].concat(root.history).slice(0, 8);
+            } else {
+                root.result = "";
+                root.failed = true;
+                root.errorText = calcErr.text.trim() || output || Tr.tr("Invalid expression");
             }
         }
     }

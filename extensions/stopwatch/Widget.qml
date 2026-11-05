@@ -14,9 +14,10 @@ Item {
     property real anchorTime: 0
     property var laps: []
 
-    readonly property color fg: api.colours.palette.m3onSurface ?? "white"
-    readonly property color muted: api.colours.palette.m3onSurfaceVariant ?? "#aaaaaa"
-    readonly property color accent: api.colours.palette.m3primary ?? "#a0c4ff"
+    readonly property var palette: root.api && root.api.colours ? root.api.colours.palette : null
+    readonly property color fg: root.palette ? root.palette.m3onSurface : "white"
+    readonly property color muted: root.palette ? root.palette.m3onSurfaceVariant : "#aaaaaa"
+    readonly property color accent: root.palette ? root.palette.m3primary : "#a0c4ff"
 
     function formatTime(ms: real) {
         const total = Math.max(0, Math.floor(ms / 10));
@@ -89,8 +90,9 @@ Item {
     }
 
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: root.compact ? Tokens.padding.medium : Tokens.padding.large
+        anchors.centerIn: parent
+        width: Math.min(parent.width - (root.compact ? Tokens.padding.medium : Tokens.padding.large) * 2, 460)
+        height: Math.min(parent.height - (root.compact ? Tokens.padding.medium : Tokens.padding.large) * 2, 420)
         spacing: Tokens.spacing.small
 
         Item {

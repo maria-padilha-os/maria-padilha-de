@@ -216,8 +216,9 @@ Item {
     }
 
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: root.compact ? Tokens.padding.medium : Tokens.padding.extraLarge
+        anchors.centerIn: parent
+        width: Math.min(parent.width - (root.compact ? Tokens.padding.medium : Tokens.padding.extraLarge) * 2, 760)
+        height: Math.min(parent.height - (root.compact ? Tokens.padding.medium : Tokens.padding.extraLarge) * 2, 620)
         spacing: root.compact ? Tokens.spacing.extraSmall : Tokens.spacing.small
 
         RowLayout {
