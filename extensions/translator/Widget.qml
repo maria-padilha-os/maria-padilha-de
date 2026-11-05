@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 
@@ -69,6 +70,19 @@ Item {
     property bool busy: false
     property bool statusIsError: false
     property string status: ""
+
+    // Exposed for tests and for the compact tab to prefill text.
+    property alias sourceText: sourcePanel.text
+    property alias resultText: resultPanel.text
+
+    Component.onCompleted: sourcePanel.focusEditor()
+
+    function copyResult() {
+        if (root.resultText.length === 0)
+            return;
+        copyProc.command = ["sh", "-c", "printf '%s' \"$1\" | wl-copy", "sh", root.resultText];
+        copyProc.running = true;
+    }
 
     function setStatus(message, isError) {
         root.status = message;
@@ -347,6 +361,44 @@ Item {
                 verticalAlignment: Text.AlignVCenter
             }
 
+            Text {
+                visible: root.sourceText.length > 0
+                text: root.sourceText.length + " / 500"
+                color: root.sourceText.length > 500 ? root.danger : root.muted
+                font: Tokens.font.label.small
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Rectangle {
+                id: copyButton
+
+                visible: root.resultText.length > 0
+                Layout.preferredHeight: 34
+                implicitWidth: copyLabel.implicitWidth + Tokens.padding.large
+                radius: Tokens.rounding.full
+                color: copyMouse.containsMouse ? root.surface : "transparent"
+                border.width: 1
+                border.color: root.outline
+
+                Text {
+                    id: copyLabel
+
+                    anchors.centerIn: parent
+                    text: Tr.tr("Copy")
+                    color: root.foreground
+                    font: Tokens.font.label.medium
+                }
+
+                MouseArea {
+                    id: copyMouse
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.copyResult()
+                }
+            }
+
             Rectangle {
                 id: translateButton
 
@@ -376,6 +428,12 @@ Item {
                 }
             }
         }
+    }
+
+    Process {
+        id: copyProc
+
+        onExited: root.setStatus(Tr.tr("Copied to clipboard."), false)
     }
 
     // Editable/read-only text box with a palette-coloured border and a thin
