@@ -9,7 +9,7 @@ title: Dotfiles
 configs, linked into `~/.config` by `bin/lilith-dots`.
 
 ```sh
-git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git \
+git clone https://github.com/Mateus-M-Reis/lilith-dotfiles.git \
     ~/Códigos/lilith/lilith-dotfiles
 ```
 

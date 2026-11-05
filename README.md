@@ -5,7 +5,7 @@ Lilith is a Wayland desktop environment built on
 provides a complete shell, a login session, a wallpaper-driven colour system,
 and a Lua configuration layer.
 
-[![tests](https://github.com/Mateus-M-Reis/padilha/actions/workflows/tests.yml/badge.svg)](https://github.com/Mateus-M-Reis/padilha/actions/workflows/tests.yml)
+[![tests](https://github.com/Mateus-M-Reis/lilith/actions/workflows/tests.yml/badge.svg)](https://github.com/Mateus-M-Reis/lilith/actions/workflows/tests.yml)
 
 The name comes from Lilith, a figure in Mesopotamian and Jewish mythology.
 
@@ -21,7 +21,7 @@ theme, and Hyprland config only.
 
 ```sh
 mkdir -p ~/Códigos/lilith
-git clone https://github.com/Mateus-M-Reis/padilha.git \
+git clone https://github.com/Mateus-M-Reis/lilith.git \
     ~/Códigos/lilith/lilith-de
 cd ~/Códigos/lilith/lilith-de
 
@@ -198,7 +198,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 - [tools/README.md](tools/README.md) — the promo-window agent scheduler
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the layers fit together
 - [CONFIG.md](CONFIG.md) — the configuration contract
-- [dotfiles](https://github.com/Mateus-M-Reis/padilha-dotfiles) — the Hyprland, nvim and wezterm configs
+- [dotfiles](https://github.com/Mateus-M-Reis/lilith-dotfiles) — the Hyprland, nvim and wezterm configs
 - [KEYBINDS.md](KEYBINDS.md) — the keyboard map, including the vim layer
 - [UPSTREAM.md](UPSTREAM.md) — the projects Lilith tracks and how updates are absorbed
 - [session/README.md](session/README.md) — session, systemd units, and restore

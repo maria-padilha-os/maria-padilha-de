@@ -8,8 +8,8 @@ docs are in `README.md`, `INSTALL.md`, `docs/`, and `KEYBINDS.md`.
 
 | path | remote | role | owner |
 | --- | --- | --- | --- |
-| `~/Códigos/lilith/lilith-de` | `Mateus-M-Reis/padilha` | shell, session, theme engine, installer, package | agent `3a98b400…` |
-| `~/Códigos/lilith/lilith-dotfiles` | `Mateus-M-Reis/padilha-dotfiles` | Hyprland, nvim, wezterm configs (the rice) | agent `2aec77cd…` |
+| `~/Códigos/lilith/lilith-de` | `Mateus-M-Reis/lilith` | shell, session, theme engine, installer, package | agent `3a98b400…` |
+| `~/Códigos/lilith/lilith-dotfiles` | `Mateus-M-Reis/lilith-dotfiles` | Hyprland, nvim, wezterm configs (the rice) | agent `2aec77cd…` |
 | `~/Códigos/lilith` | not a git repo | org root, `README.md`, `bootstrap.sh` | coordinator |
 | `lilith-os` | not created | archiso/Calamares image | future |
 

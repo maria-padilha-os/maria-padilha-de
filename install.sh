@@ -194,7 +194,7 @@ if (( with_dotfiles )); then
             die "$dotfiles_dir exists but has no bin/lilith-dots"
         fi
         log "Fetching lilith-dotfiles"
-        run git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git "$dotfiles_dir"
+        run git clone https://github.com/Mateus-M-Reis/lilith-dotfiles.git "$dotfiles_dir"
     fi
 
     if [ "$mode" = full ]; then

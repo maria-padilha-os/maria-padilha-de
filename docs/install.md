@@ -12,7 +12,7 @@ tested one). It must run on a machine where Hyprland already works.
 
 ```sh
 mkdir -p ~/Códigos/lilith
-git clone https://github.com/Mateus-M-Reis/padilha.git \
+git clone https://github.com/Mateus-M-Reis/lilith.git \
     ~/Códigos/lilith/lilith-de
 cd ~/Códigos/lilith/lilith-de
 
@@ -50,4 +50,4 @@ Use `--no-dotfiles` to leave `~/.config` alone, or `--dry-run` to see every
 command first.
 
 The complete guide, including uninstall and troubleshooting, is
-[INSTALL.md](https://github.com/Mateus-M-Reis/padilha/blob/main/INSTALL.md).
+[INSTALL.md](https://github.com/Mateus-M-Reis/lilith/blob/main/INSTALL.md).

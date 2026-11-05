@@ -35,7 +35,7 @@ Discord theme use optional packages listed in the PKGBUILD.
 
 ```sh
 mkdir -p ~/Códigos/lilith
-git clone https://github.com/Mateus-M-Reis/padilha.git \
+git clone https://github.com/Mateus-M-Reis/lilith.git \
     ~/Códigos/lilith/lilith-de
 cd ~/Códigos/lilith/lilith-de
 

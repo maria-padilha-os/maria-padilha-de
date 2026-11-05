@@ -8,7 +8,7 @@ pkgver=0.1.1
 pkgrel=1
 pkgdesc="Desktop Lilith: a Wayland desktop on Hyprland and Quickshell"
 arch=('x86_64')
-url="https://github.com/padilha/desktop"
+url="https://github.com/Mateus-M-Reis/lilith"
 license=('GPL-3.0-only')
 # The desktop shipped as `padilha` before the rename; this package replaces it.
 conflicts=('padilha')

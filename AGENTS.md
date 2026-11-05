@@ -1,9 +1,8 @@
-# AGENTS.md — lilith-de (GitHub `padilha`)
+# AGENTS.md — lilith-de (GitHub `lilith`)
 
 Read `/home/machine/Códigos/lilith/AGENTS.md` first; this is the repo-specific
-summary. The checkout is `lilith-de` and the GitHub remote is still named
-`padilha`; the commands, package, session entry, and user paths use the Lilith
-name. The old `padilha-*` commands remain as temporary compatibility aliases.
+summary. The checkout is `lilith-de` and the GitHub remote is `lilith`; the commands,
+package, session entry, and user paths use the Lilith name. The old `padilha-*` commands remain as temporary compatibility aliases.
 
 Scope: Quickshell shell (`shell/`), session entry, theme engine (`lib/`,
 `share/`), commands (`bin/`), installer (`install.sh`), package
@@ -42,4 +41,4 @@ only.
 - Lua 5.5; require modules through `package.path` set by the command wrapper.
 - QML uses the existing `Colours` singleton and `Quickshell` services; no
   hard-coded palettes except in generated state.
-- Docs are one Jekyll site with `baseurl: /padilha`.
+- Docs are one Jekyll site with `baseurl: /lilith`.

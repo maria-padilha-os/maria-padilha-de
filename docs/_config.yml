@@ -1,7 +1,7 @@
 title: Lilith
 description: A Wayland desktop environment on Hyprland and Quickshell
 theme: minima
-baseurl: "/padilha"
+baseurl: "/lilith"
 url: "https://mateus-m-reis.github.io"
 header_pages:
   - install.md

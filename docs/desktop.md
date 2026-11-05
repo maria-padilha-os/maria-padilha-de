@@ -39,7 +39,7 @@ Python semantics rather than human-readable math.
 | `Super + Escape` | lock |
 
 The full map is in
-[KEYBINDS.md](https://github.com/Mateus-M-Reis/padilha/blob/main/KEYBINDS.md).
+[KEYBINDS.md](https://github.com/Mateus-M-Reis/lilith/blob/main/KEYBINDS.md).
 
 ## Configuration
 

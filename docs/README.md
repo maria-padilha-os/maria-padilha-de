@@ -1,6 +1,6 @@
 # GitHub Pages source
 
-This directory is a Jekyll site for `https://mateus-m-reis.github.io/padilha/`.
+This directory is a Jekyll site for `https://mateus-m-reis.github.io/lilith/`.
 
 Publish it once from the repository settings:
 
@@ -27,8 +27,8 @@ python3 -m http.server --directory /tmp/lilith-docs 4000
 ```
 
 The minima theme emits Sass deprecation warnings; the build itself succeeds.
-`baseurl` is `/padilha`; the generated `/padilha/...` links therefore preview
+`baseurl` is `/lilith`; the generated `/lilith/...` links therefore preview
 correctly when the site is served under that prefix, or after Pages is enabled.
 
-`baseurl` in `_config.yml` is `/padilha`; change it if the GitHub repository is
+`baseurl` in `_config.yml` is `/lilith`, matching the repository name; change it if the GitHub repository is
 renamed.
