@@ -14,18 +14,20 @@ set -euo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 mode=full
+editor=micro
 dry_run=0
 with_dotfiles=1
 dotfiles_dir="${LILITH_DOTFILES:-${PADILHA_DOTFILES:-$root/../lilith-dotfiles}}"
 
 usage() {
     cat <<'EOF'
-usage: ./install.sh [--full|--rice] [--dry-run] [--no-dotfiles]
+usage: ./install.sh [--full|--rice] [--dry-run] [--no-dotfiles] [--editor micro|nvim]
 
   --full         install the desktop session, shell, commands and configs
   --rice         install Hyprland + Quickshell + theme, keep the current session
   --dry-run      print what would happen, change nothing
-  --no-dotfiles  do not link ~/.config/{hypr,nvim,wezterm}
+  --no-dotfiles  do not link ~/.config/{hypr,nvim,wezterm,mc,firefox,micro}
+  --editor EDITOR  default text editor: micro (default) or nvim
 
 LILITH_DOTFILES=DIR points at an existing dotfiles checkout
 (default: ../lilith-dotfiles next to this repository). The old
@@ -71,6 +73,16 @@ while (( $# )); do
         ;;
     --no-dotfiles)
         with_dotfiles=0
+        ;;
+    --editor)
+        (( $# >= 2 )) || die "--editor needs micro or nvim"
+        editor=$2
+        case "$editor" in
+        micro) ;;
+        nvim | neovim) editor=nvim ;;
+        *) die "--editor must be micro or nvim" ;;
+        esac
+        shift
         ;;
     -h | --help)
         usage
@@ -118,7 +130,12 @@ runtime_deps=(
     python
     lua
     imagemagick
+    micro
 )
+
+if [ "$editor" = nvim ]; then
+    runtime_deps+=(neovim)
+fi
 
 log "Installing build and runtime dependencies"
 # Skip anything already present: some dependencies (libcava, quickshell) come
@@ -181,6 +198,17 @@ link_dotfiles() {
     local config="${XDG_CONFIG_HOME:-$HOME/.config}"
     local name dst backup file
     for name in "$@"; do
+        if [ "$name" = firefox ]; then
+            # Firefox files live in its profile, not ~/.config. lilith-dots
+            # detects the profile; no ~/.config/firefox directory is created.
+            continue
+        fi
+        if [ "$name" = micro ]; then
+            # micro/install.sh links individual files and never the whole
+            # directory: the colourscheme is generated and the plugin dir
+            # must stay writable inside ~/.config/micro.
+            continue
+        fi
         dst="$config/$name"
         if [ "$name" = mc ]; then
             # MC shares ~/.config/mc with panels, hotlist and history. Link
@@ -214,11 +242,56 @@ if (( with_dotfiles )); then
     fi
 
     if [ "$mode" = full ]; then
-        link_dotfiles hypr nvim wezterm mc
+        # Firefox can only be installed after its first launch, so lilith-dots
+        # skips it cleanly here and installs it when run again later.
+        if [ -d "$dotfiles_dir/firefox" ]; then
+            link_dotfiles hypr nvim wezterm mc firefox micro
+        else
+            link_dotfiles hypr nvim wezterm mc micro
+        fi
+        if [ -x "$dotfiles_dir/micro/install.sh" ]; then
+            run "$dotfiles_dir/micro/install.sh"
+        fi
     else
         link_dotfiles hypr
     fi
 fi
+
+# Default editor: EDITOR/VISUAL for the systemd user session and xdg-mime for
+# text/plain (and whatever else the chosen desktop entry advertises).
+configure_default_editor() {
+    local chosen=$1
+    local conf desktop
+    conf="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/90-lilith-editor.conf"
+    desktop=micro.desktop
+    if [ "$chosen" = nvim ]; then
+        desktop=nvim.desktop
+    fi
+
+    run mkdir -p "$(dirname "$conf")"
+    if (( dry_run )); then
+        printf '+ EDITOR=%s VISUAL=%s > %q\n' "$chosen" "$chosen" "$conf"
+    else
+        printf 'EDITOR=%s\nVISUAL=%s\n' "$chosen" "$chosen" >"$conf"
+    fi
+
+    if ! command -v xdg-mime >/dev/null 2>&1; then
+        warn "xdg-mime not found; set the default text handler to $desktop manually"
+        return 0
+    fi
+    local desktop_file="/usr/share/applications/$desktop"
+    if [ ! -r "$desktop_file" ]; then
+        warn "$desktop_file not found; set the default text handler manually"
+        return 0
+    fi
+    local -a mimes
+    read -r -a mimes <<<"$(sed -n 's/^MimeType=//p' "$desktop_file" | tr ';' ' ')"
+    if [ ${#mimes[@]} -gt 0 ]; then
+        run xdg-mime default "$desktop" "${mimes[@]}"
+    fi
+}
+
+configure_default_editor "$editor"
 
 if [ "$mode" = full ]; then
     cat <<'EOF'

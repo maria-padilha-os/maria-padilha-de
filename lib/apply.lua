@@ -75,6 +75,128 @@ local function read_template(name)
     return text
 end
 
+local function read_file(path)
+    local f = io.open(path, "rb")
+    if not f then
+        return nil
+    end
+    local text = f:read("*a")
+    f:close()
+    return text
+end
+
+local function trim(s)
+    return (s:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function is_dir(path)
+    return os.execute("test -d " .. quote(path)) == true
+end
+
+local function prefixed(prefix, path)
+    if prefix and prefix ~= "" then
+        return prefix .. path
+    end
+    return path
+end
+
+-- Firefox creates profiles.ini on its first launch. The default profile is
+-- marked Default=1, or named by an [Install...] section; if neither is
+-- usable, fall back to the first profile directory that exists. A missing
+-- profile is not an error: Firefox is simply not set up yet.
+local function profile_from_ini(root, prefix)
+    local text = read_file(root .. "/profiles.ini")
+    if not text then
+        return nil
+    end
+
+    local profiles, install_default = {}, nil
+    local section
+    for raw_line in text:gmatch("[^\r\n]+") do
+        local line = trim(raw_line)
+        if line:match("^%[") then
+            section = line
+            if section:match("^%[Profile") then
+                profiles[#profiles + 1] = { default = false }
+            end
+        elseif line ~= "" and not line:match("^[#;]") then
+            local key, value = line:match("^([^=]+)=(.*)$")
+            if key and section then
+                key = trim(key):lower()
+                value = trim(value)
+                if section:match("^%[Profile") then
+                    local profile = profiles[#profiles]
+                    if key == "path" then
+                        profile.path = value
+                    elseif key == "default" then
+                        profile.default = value ~= "" and value ~= "0"
+                    end
+                elseif section:match("^%[Install") and key == "default" then
+                    install_default = value
+                end
+            end
+        end
+    end
+
+    local function resolve(path)
+        if not path or path == "" then
+            return nil
+        end
+        if path:sub(1, 1) == "/" then
+            return prefixed(prefix, path)
+        end
+        return root .. "/" .. path
+    end
+
+    for _, profile in ipairs(profiles) do
+        if profile.default then
+            local dir = resolve(profile.path)
+            if dir and is_dir(dir) then
+                return dir
+            end
+        end
+    end
+    if install_default then
+        local dir = resolve(install_default)
+        if dir and is_dir(dir) then
+            return dir
+        end
+    end
+    for _, profile in ipairs(profiles) do
+        local dir = resolve(profile.path)
+        if dir and is_dir(dir) then
+            return dir
+        end
+    end
+    return nil
+end
+
+local function firefox_profile(prefix)
+    local override = os.getenv("LILITH_FIREFOX_PROFILE_DIR")
+    if override and override ~= "" then
+        local dir = prefixed(prefix, override)
+        if is_dir(dir) then
+            return dir
+        end
+        return nil
+    end
+    if home == "" then
+        return nil
+    end
+    local roots = {
+        home .. "/.mozilla/firefox",
+        home .. "/.var/app/org.mozilla.firefox/.mozilla/firefox",
+        home .. "/snap/firefox/common/.mozilla/firefox",
+    }
+    for _, root in ipairs(roots) do
+        local dir = profile_from_ini((prefix or "") .. root, prefix)
+        if dir then
+            return dir
+        end
+    end
+    return nil
+end
+
 -- The list of applications. `template` is a file in share/templates/;
 -- `base` picks the XDG directory; `hash` asks for #rrggbb; `reload` is a
 -- shell command run after the file is written; `enabled` is the config key.
@@ -97,6 +219,8 @@ M.apps = {
         hash = true, enabled = "enableQt" },
     { id = "qt-engine", base = "config", dest = "qtengine/config.json", template = "qtengine.json",
         enabled = "enableQt" },
+    { id = "micro", base = "config", dest = "micro/colorschemes/lilith.micro", template = "micro.micro",
+        hash = true, enabled = "enableMicro" },
 }
 
 --------------------------------------------------------------------------
@@ -292,6 +416,32 @@ function M.apply(scheme, opts)
                 written[#written + 1] = "mc/skins/caelestia.ini"
             else
                 errors[#errors + 1] = "mc skin: " .. tostring(err)
+            end
+        end
+    end
+
+    -- Firefox: the profile directory only exists after the first launch, so
+    -- there is nothing to theme until then. Skip quietly; the palette is
+    -- written on the next apply once a profile is present.
+    if config_value(config, "enableFirefox", true) ~= false then
+        local profile = firefox_profile(opts.prefix)
+        if profile then
+            local template = read_template("firefox.css")
+            if not template then
+                errors[#errors + 1] = "firefox: no template at share/templates/firefox.css"
+            else
+                local good, rendered = pcall(T.render, template, colours, { hash = true, mode = scheme.mode })
+                if not good then
+                    errors[#errors + 1] = "firefox: " .. tostring(rendered)
+                else
+                    local dest = profile .. "/chrome/lilith.css"
+                    local wrote, write_err = M.write(dest, rendered)
+                    if wrote then
+                        written[#written + 1] = dest
+                    else
+                        errors[#errors + 1] = "firefox: " .. tostring(write_err)
+                    end
+                end
             end
         end
     end

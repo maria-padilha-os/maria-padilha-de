@@ -14,8 +14,9 @@ dashboard, lock screen, and the panels around them.
 `lilith-daylight` switches between a light wallpaper at 06:00 and a dark one at
 18:00. Each switch rebuilds the Material You palette from the image and applies
 it to Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, Neovim,
-Discord, and Midnight Commander. The Neovim colorscheme follows the same
-palette and switches between its ayu-inspired light and dark variants.
+Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
+colorscheme follows the same palette and switches between its ayu-inspired
+light and dark variants.
 
 ## Calculator
 

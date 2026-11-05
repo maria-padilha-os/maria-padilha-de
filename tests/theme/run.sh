@@ -69,6 +69,7 @@ written=$(find "$tmp/tree" -type f | wc -l)
 check "apply writes the whole set" "[ $written -ge 14 ]" "only $written files"
 check "no template placeholders survive" "! grep -rq '{{' '$tmp/tree'"
 check "no empty files" "! find '$tmp/tree' -type f -empty | grep -q ."
+check "firefox is skipped without a profile" "! test -e '$tmp/tree/home/machine/.mozilla'"
 
 gtk="$tmp/tree/home/machine/.config/gtk-3.0/gtk.css"
 hypr="$tmp/tree/home/machine/.config/hypr/scheme/current.lua"
@@ -101,6 +102,110 @@ mkdir -p "$tmp/tree/home/machine/.config/Equicord"
 discord="$tmp/tree/home/machine/.config/Equicord/themes/caelestia.theme.css"
 check "discord clients get a compiled theme" "test -s '$discord'"
 check "the discord theme carries the palette" "grep -q '#ffb4a6\|#ffb4ab\|#ffb4a9' '$discord'"
+
+echo "firefox"
+
+# Apply into a scratch HOME whose profiles.ini has a non-default first profile
+# and a Default=1 second one. Only the default profile may be written.
+ff_root="$tmp/firefox/home/machine/.mozilla/firefox"
+mkdir -p "$ff_root/notdefault.default" "$ff_root/lilith.default-release"
+cat > "$ff_root/profiles.ini" <<'INI'
+[Profile0]
+Name=notdefault
+IsRelative=1
+Path=notdefault.default
+
+[Profile1]
+Name=default-release
+IsRelative=1
+Path=lilith.default-release
+Default=1
+
+[Install4F96D1932A9F858E]
+Default=lilith.default-release
+Locked=1
+INI
+"$theme" apply --seed ff1a1a --mode dark --prefix "$tmp/firefox" --no-signals > /dev/null 2>&1
+ffcss="$ff_root/lilith.default-release/chrome/lilith.css"
+ff_scheme="$tmp/firefox/home/machine/.local/state/caelestia/scheme.json"
+ff_bg=$(/usr/bin/python3 -c "import json;print(json.load(open('$ff_scheme'))['colours']['background'])")
+ff_primary=$(/usr/bin/python3 -c "import json;print(json.load(open('$ff_scheme'))['colours']['primary'])")
+ff_outline=$(/usr/bin/python3 -c "import json;print(json.load(open('$ff_scheme'))['colours']['outline'])")
+check "firefox palette lands in the default profile" "test -s '$ffcss'"
+check "firefox skips a non-default profile" "! test -e '$ff_root/notdefault.default/chrome'"
+check "firefox palette substitutes the background" "grep -qx '  --lilith-bg: #$ff_bg;' '$ffcss'"
+check "firefox palette substitutes the primary" "grep -qx '  --lilith-primary: #$ff_primary;' '$ffcss'"
+check "firefox palette substitutes the outline" "grep -qx '  --lilith-outline: #$ff_outline;' '$ffcss'"
+check "firefox palette records the mode" "grep -qx '  --lilith-scheme: Dark;' '$ffcss'"
+check "firefox palette has no placeholders" "! grep -q '{{' '$ffcss'"
+
+# With no Default=1 the [Install...] Default must win over the first profile.
+ff_install_root="$tmp/firefox-install/home/machine/.mozilla/firefox"
+mkdir -p "$ff_install_root/first.default" "$ff_install_root/install.default-release"
+cat > "$ff_install_root/profiles.ini" <<'INI'
+[Profile0]
+Name=first
+IsRelative=1
+Path=first.default
+
+[Install4F96D1932A9F858E]
+Default=install.default-release
+Locked=1
+INI
+"$theme" apply --seed ff1a1a --mode dark --prefix "$tmp/firefox-install" --no-signals > /dev/null 2>&1
+check "firefox falls back to the Install Default" "test -s '$ff_install_root/install.default-release/chrome/lilith.css'"
+check "firefox does not guess the first profile" "! test -e '$ff_install_root/first.default/chrome'"
+
+# Flatpak is a separate candidate root; a native tree without profiles.ini
+# must not shadow it.
+ff_flatpak="$tmp/firefox-flatpak/home/machine/.var/app/org.mozilla.firefox/.mozilla/firefox"
+mkdir -p "$ff_flatpak/flatpak.default-release"
+cat > "$ff_flatpak/profiles.ini" <<'INI'
+[Profile0]
+Name=default-release
+IsRelative=1
+Path=flatpak.default-release
+Default=1
+INI
+"$theme" apply --seed ff1a1a --mode dark --prefix "$tmp/firefox-flatpak" --no-signals > /dev/null 2>&1
+check "firefox finds the Flatpak profile" "test -s '$ff_flatpak/flatpak.default-release/chrome/lilith.css'"
+
+# A non-standard profile can be handed to both the installer and the engine.
+ff_custom="$tmp/firefox-custom/home/machine/nonstandard"
+mkdir -p "$ff_custom"
+LILITH_FIREFOX_PROFILE_DIR=/home/machine/nonstandard "$theme" apply \
+    --seed ff1a1a --mode dark --prefix "$tmp/firefox-custom" --no-signals > /dev/null 2>&1
+check "firefox honours LILITH_FIREFOX_PROFILE_DIR" "test -s '$ff_custom/chrome/lilith.css'"
+
+# Exercise the dotfiles installer when the sibling checkout is present.
+dots="$root/../lilith-dotfiles/bin/lilith-dots"
+if [ -x "$dots" ]; then
+    ff_home="$tmp/dots-home"
+    mkdir -p "$ff_home/.mozilla/firefox/abc.default-release" "$ff_home/.config"
+    cat > "$ff_home/.mozilla/firefox/profiles.ini" <<'INI'
+[Profile0]
+Name=default-release
+IsRelative=1
+Path=abc.default-release
+Default=1
+INI
+    HOME="$ff_home" XDG_CONFIG_HOME="$ff_home/.config" "$dots" firefox > /dev/null 2>&1
+    ff_installed="$ff_home/.mozilla/firefox/abc.default-release"
+    check "lilith-dots copies user.js" "test -f '$ff_installed/user.js' && [ ! -L '$ff_installed/user.js' ]"
+    check "lilith-dots links userChrome.css" "[ -L '$ff_installed/chrome/userChrome.css' ]"
+    check "lilith-dots links userContent.css" "[ -L '$ff_installed/chrome/userContent.css' ]"
+    check "lilith-dots leaves prefs.js alone" "! test -e '$ff_installed/prefs.js'"
+
+    ff_empty="$tmp/dots-empty"
+    mkdir -p "$ff_empty"
+    if HOME="$ff_empty" XDG_CONFIG_HOME="$ff_empty/.config" "$dots" firefox > /dev/null 2>&1; then
+        ok "lilith-dots skips a missing profile without failing"
+    else
+        bad "lilith-dots skips a missing profile without failing"
+    fi
+else
+    printf '  skip %s\n' "lilith-dots not checked out"
+fi
 
 echo "modes differ"
 
