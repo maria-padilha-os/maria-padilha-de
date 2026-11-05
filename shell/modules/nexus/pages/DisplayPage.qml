@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 import qs.components
+import qs.components.controls
 import qs.services
 import qs.utils
 import qs.modules.nexus.common
@@ -13,6 +15,12 @@ PageBase {
 
     readonly property var brightnessMonitor: Brightness.getMonitorForScreen(root.nState.screen)
     readonly property var hyprMonitor: Hypr.monitorFor(root.nState.screen)
+
+    // Every mode Hyprland reports for this output; applying one of these is
+    // safe, since they come from the monitor itself.
+    readonly property var monitorModes: root.hyprMonitor?.lastIpcObject?.availableModes ?? []
+    readonly property string currentMode: root.hyprMonitor ? `${root.hyprMonitor.width}x${root.hyprMonitor.height}@${Number(root.hyprMonitor.refreshRate ?? 0).toFixed(2)}` : ""
+    readonly property list<real> scales: [1, 1.25, 1.5, 1.75, 2]
 
     property bool nightLightOn: false
     property bool nightLightBusy: false
@@ -24,6 +32,28 @@ PageBase {
         nightLightBusy = true;
         toggleProc.command = ["sh", "-c", `exec "${Paths.home}/.config/hypr/utils/nightlight.sh" ${on ? "on" : "off"}`];
         toggleProc.running = true;
+    }
+
+    // Runtime-only on purpose: the compositor keeps it until the next reload.
+    // Persisting this belongs in the monitor rules file, not in a live keyword.
+    function applyMonitor(mode: string, scale: real): void {
+        const m = root.hyprMonitor;
+        if (!m || !mode)
+            return;
+
+        applyProc.command = [
+            "hyprctl", "keyword", "monitor",
+            `${m.name},${mode},${m.x ?? 0}x${m.y ?? 0},${scale},${m.transform ?? 0}`
+        ];
+        applyProc.running = true;
+    }
+
+    function applyMode(mode: string): void {
+        applyMonitor(mode, root.hyprMonitor?.scale ?? 1);
+    }
+
+    function applyScale(scale: real): void {
+        applyMonitor(root.currentMode, scale);
     }
 
     Component.onCompleted: statusProc.running = true
@@ -74,20 +104,53 @@ PageBase {
             value: root.hyprMonitor?.name ?? "—"
         }
 
-        InfoRow {
-            label: Tr.tr("Resolution")
-            value: root.hyprMonitor ? `${root.hyprMonitor.width}×${root.hyprMonitor.height}` : "—"
+        SelectRow {
+            label: Tr.tr("Mode")
+            subtext: Tr.tr("Resolution and refresh rate")
+            menuItems: modeVariants.instances
+            active: menuItems.find(i => i.text === root.currentMode) ?? null
+            fallbackText: root.currentMode || "—"
+            fallbackIcon: "monitor"
+            onSelected: item => root.applyMode(item.text)
         }
 
-        InfoRow {
-            label: Tr.tr("Refresh rate")
-            value: root.hyprMonitor ? `${Math.round(root.hyprMonitor.refreshRate ?? 0)} Hz` : "—"
-        }
-
-        InfoRow {
+        SelectRow {
             last: true
             label: Tr.tr("Scale")
-            value: root.hyprMonitor ? `${root.hyprMonitor.scale ?? 1}` : "—"
+            subtext: Tr.tr("Interface scale for this output")
+            menuItems: scaleVariants.instances
+            active: menuItems.find(i => i.text === `${Math.round((root.hyprMonitor?.scale ?? 1) * 100)}%`) ?? null
+            fallbackText: `${Math.round((root.hyprMonitor?.scale ?? 1) * 100)}%`
+            fallbackIcon: "zoom_in"
+            onSelected: item => root.applyScale(parseFloat(item.text) / 100)
+        }
+    }
+
+    Variants {
+        id: modeVariants
+
+        model: root.monitorModes
+
+        MenuItem {
+            required property string modelData
+
+            text: modelData.replace("Hz", "")
+            icon: text === root.currentMode ? "check" : ""
+            activeIcon: "monitor"
+        }
+    }
+
+    Variants {
+        id: scaleVariants
+
+        model: root.scales
+
+        MenuItem {
+            required property real modelData
+
+            text: `${Math.round(modelData * 100)}%`
+            icon: text === `${Math.round((root.hyprMonitor?.scale ?? 1) * 100)}%` ? "check" : ""
+            activeIcon: "zoom_in"
         }
     }
 
@@ -108,5 +171,9 @@ PageBase {
             root.nightLightBusy = false;
             statusProc.running = true;
         }
+    }
+
+    Process {
+        id: applyProc
     }
 }
