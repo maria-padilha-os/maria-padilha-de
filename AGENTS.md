@@ -16,7 +16,7 @@ Scope: Quickshell shell (`shell/`), session entry, theme engine (`lib/`,
 
 ## Safety
 
-- Deployment is on hold: no Pages, package install, promo timer, or donation
+- Deployment is on hold: no Pages, package install, or donation
   publication. `tools/release.sh` may build a package; do not install it.
 - The live shell is under a watchdog; do not run `padilha-reload` without a
   reason. Edit the checkout, test, and reload deliberately.

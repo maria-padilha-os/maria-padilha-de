@@ -10,7 +10,7 @@ echo "== shell syntax"
 for f in bin/* install.sh tests/*.sh tools/*; do
     [ -f "$f" ] || continue
     case "$f" in
-        *.sh|*/install.sh|bin/*|tools/promo-agents|tools/docs-preview)
+        *.sh|*/install.sh|bin/*|tools/docs-preview)
             if head -n1 "$f" | grep -qE '^#!.*(ba)?sh' || [ "$f" = "install.sh" ]; then
                 bash -n "$f"
             fi
