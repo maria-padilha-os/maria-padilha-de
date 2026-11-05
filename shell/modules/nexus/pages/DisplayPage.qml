@@ -29,17 +29,7 @@ PageBase {
     readonly property string currentMode: root.hyprMonitor ? `${root.hyprMonitor.width}x${root.hyprMonitor.height}@${Number(root.hyprMonitor.refreshRate ?? 0).toFixed(2)}` : ""
     readonly property list<real> scales: [1, 1.25, 1.5, 1.75, 2]
 
-    property bool nightLightOn: false
-    property bool nightLightBusy: false
-
     title: Tr.tr("Display")
-
-    function setNightLight(on: bool): void {
-        nightLightOn = on;
-        nightLightBusy = true;
-        toggleProc.command = ["sh", "-c", `exec "${Paths.home}/.config/hypr/utils/nightlight.sh" ${on ? "on" : "off"}`];
-        toggleProc.running = true;
-    }
 
     // Runtime-only on purpose: the compositor keeps it until the next reload.
     // The same rule is written to ~/.config/lilith/monitors.lua, which the
@@ -83,10 +73,7 @@ PageBase {
         persistProc.running = true;
     }
 
-    Component.onCompleted: {
-        root.monitorName = Hypr.monitorFor(root.nState.screen)?.name ?? root.monitorNames[0] ?? "";
-        statusProc.running = true;
-    }
+    Component.onCompleted: root.monitorName = Hypr.monitorFor(root.nState.screen)?.name ?? root.monitorNames[0] ?? ""
 
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -116,12 +103,44 @@ PageBase {
 
         ToggleRow {
             first: true
-            last: true
             text: Tr.tr("Night light")
             subtext: Tr.tr("Warm tint after sunset")
-            checked: root.nightLightOn
-            disabled: root.nightLightBusy
-            onToggled: root.setNightLight(checked)
+            checked: NightLight.active
+            disabled: NightLight.busy
+            onToggled: NightLight.setActive(checked)
+        }
+
+        ToggleRow {
+            text: Tr.tr("Automatic schedule")
+            subtext: Tr.tr("Switch by the hours below")
+            checked: GlobalConfig.services.nightLightAuto
+            onToggled: {
+                GlobalConfig.services.nightLightAuto = checked;
+                NightLight.tick();
+            }
+        }
+
+        StepperRow {
+            label: Tr.tr("Switch on at")
+            subtext: Tr.tr("Hour of the day")
+            value: NightLight.hourOf(GlobalConfig.services.nightLightOn)
+            from: 0
+            to: 23
+            stepSize: 1
+            enabled: GlobalConfig.services.nightLightAuto
+            onMoved: value => GlobalConfig.services.nightLightOn = `${Math.round(value)}:00`
+        }
+
+        StepperRow {
+            last: true
+            label: Tr.tr("Switch off at")
+            subtext: Tr.tr("Hour of the day")
+            value: NightLight.hourOf(GlobalConfig.services.nightLightOff)
+            from: 0
+            to: 23
+            stepSize: 1
+            enabled: GlobalConfig.services.nightLightAuto
+            onMoved: value => GlobalConfig.services.nightLightOff = `${Math.round(value)}:00`
         }
 
         SectionHeader {
@@ -210,25 +229,6 @@ PageBase {
                 text: `${Math.round(modelData * 100)}%`
                 icon: text === `${Math.round((root.hyprMonitor?.scale ?? 1) * 100)}%` ? "check" : ""
                 activeIcon: "zoom_in"
-            }
-        }
-
-        Process {
-            id: statusProc
-
-            command: ["sh", "-c", `exec "${Paths.home}/.config/hypr/utils/nightlight.sh" status`]
-
-            stdout: StdioCollector {
-                onStreamFinished: root.nightLightOn = text.trim() === "on"
-            }
-        }
-
-        Process {
-            id: toggleProc
-
-            onExited: {
-                root.nightLightBusy = false;
-                statusProc.running = true;
             }
         }
 

@@ -35,6 +35,10 @@ class ServiceConfig : public settings::ObjectNode {
     CONFIG_GLOBAL_PROPERTY(int, visualiserBars, 60)
     CONFIG_GLOBAL_PROPERTY(qreal, audioIncrement, 0.1)
     CONFIG_GLOBAL_PROPERTY(qreal, brightnessIncrement, 0.1)
+    // Night light schedule, in local time (HH:MM). Off by default.
+    CONFIG_GLOBAL_PROPERTY(bool, nightLightAuto, false)
+    CONFIG_GLOBAL_PROPERTY(QString, nightLightOn, u"18:00"_s)
+    CONFIG_GLOBAL_PROPERTY(QString, nightLightOff, u"06:00"_s)
     CONFIG_GLOBAL_PROPERTY(qreal, maxVolume, 1.0)
     CONFIG_GLOBAL_PROPERTY(QString, defaultPlayer, u"Spotify"_s)
     CONFIG_GLOBAL_LIST(PlayerAliasList, playerAliases,
