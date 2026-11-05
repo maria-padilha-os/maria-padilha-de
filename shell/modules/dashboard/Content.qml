@@ -188,6 +188,7 @@ Item {
                                 item.extension = modelData.extension;
                                 item.panelWidth = Qt.binding(() => view.stableWidth);
                                 item.panelHeight = Qt.binding(() => view.stableHeight);
+                                item.active = Qt.binding(() => index === view.currentIndex);
                             }
                         }
 

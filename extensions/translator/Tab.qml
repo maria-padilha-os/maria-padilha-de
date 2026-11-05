@@ -6,6 +6,7 @@ Item {
     id: root
 
     property var api
+    property bool active: true
 
     implicitWidth: 480
     implicitHeight: 280

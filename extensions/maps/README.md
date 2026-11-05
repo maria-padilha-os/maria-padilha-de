@@ -37,3 +37,16 @@ enable it under Settings → Extensions → **Show in the top panel**.
 - No offline map cache: Qt caches recently loaded tile images only for the
   current session, and search needs network access. Standard 256 px tiles are
   used (no HiDPI variants).
+
+## OpenStreetMap policy compliance
+
+- Tile requests identify the app: `Lilith-Maps/1.0 (+https://github.com/Mateus-M-Reis/lilith)`.
+- Tiles are cached under `~/.cache/lilith/maps/<z>/<x>/<y>.png`; a cached tile is never
+  refetched by a pan, zoom or shell restart.
+- Only the nine tiles of the visible 3x3 grid are requested, and only while the
+  Maps tab is the selected tab. Nothing is prefetched.
+- Requests are staggered instead of fired as a burst.
+- The "© OpenStreetMap contributors" credit links to
+  https://www.openstreetmap.org/copyright.
+- Nominatim search sends the same identifying User-Agent, is user-triggered only,
+  and is throttled to one request per 1.1 s.

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
+import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 
@@ -10,6 +11,8 @@ Item {
     id: root
 
     property var api
+    property bool active: true
+    property string cacheDir: (root.api && root.api.paths ? root.api.paths.home : "") + "/.cache/lilith/maps"
 
     // The shell assigns `api` when it creates the item, so it may still be
     // unset on the first frame. Everything below tolerates that.
@@ -307,23 +310,83 @@ Item {
                             color: root.surfaceContainerHigh
                         }
 
+                        readonly property string tileUrl: tile.valid ? "https://tile.openstreetmap.org/" + root.zoom + "/" + tile.wrappedX + "/" + tile.tileY + ".png" : ""
+                        readonly property string cachePath: root.cacheDir + "/" + root.zoom + "/" + tile.wrappedX + "/" + tile.tileY + ".png"
+                        property bool ready: false
+                        property bool failed: false
+
+                        // Fetches only the tiles of the visible 3x3 grid, only
+                        // while this tab is the current one, and only when the
+                        // disk cache does not already have the tile. The
+                        // identifying User-Agent is required by the OSM tile
+                        // usage policy; the cache avoids refetching on reloads.
+                        function requestTile(): void {
+                            if (!root.active || !tile.valid || tile.ready || fetch.running)
+                                return;
+                            fetch.command = [
+                                "sh", "-c",
+                                `cache="$2"; [ -f "$cache" ] && exit 0; mkdir -p "$(dirname "$cache")" || exit 1; curl -fsSL --max-time 20 -A "Lilith-Maps/1.0 (+https://github.com/Mateus-M-Reis/lilith)" -o "$cache.tmp" "$1" || { rm -f "$cache.tmp"; exit 1; }; mv "$cache.tmp" "$cache"`,
+                                "sh", tile.tileUrl, tile.cachePath
+                            ];
+                            fetch.running = true;
+                        }
+
+                        onTileUrlChanged: {
+                            tile.ready = false;
+                            tile.failed = false;
+                            if (root.active)
+                                delay.restart();
+                        }
+
+                        Connections {
+                            target: root
+
+                            function onActiveChanged(): void {
+                                if (root.active)
+                                    delay.restart();
+                            }
+                        }
+
+                        Component.onCompleted: {
+                            if (root.active)
+                                delay.start();
+                        }
+
                         Image {
                             id: tileImage
 
                             anchors.fill: parent
-                            source: tile.valid ? "https://tile.openstreetmap.org/" + root.zoom + "/" + tile.wrappedX + "/" + tile.tileY + ".png" : ""
+                            source: tile.ready ? "file://" + tile.cachePath : ""
                             asynchronous: true
-                            cache: true
+                            cache: false
                             fillMode: Image.Pad
                             smooth: false
                         }
 
                         Text {
                             anchors.centerIn: parent
-                            visible: tileImage.status === Image.Error
+                            visible: tile.failed
                             text: Tr.tr("Tile unavailable")
                             color: root.onSurfaceVariant
                             font: Tokens.font.body.small
+                        }
+
+                        Process {
+                            id: fetch
+
+                            onExited: (exitCode) => {
+                                tile.failed = exitCode !== 0;
+                                if (exitCode === 0)
+                                    tile.ready = true;
+                            }
+                        }
+
+                        Timer {
+                            id: delay
+
+                            // Stagger the nine requests instead of firing a burst.
+                            interval: 80 + (tile.index % 9) * 90
+                            onTriggered: tile.requestTile()
                         }
                     }
                 }
@@ -379,6 +442,15 @@ Item {
                         text: "© OpenStreetMap contributors"
                         color: root.onSurfaceVariant
                         font: Tokens.font.label.small
+                    }
+
+                    MouseArea {
+                        id: attributionMouse
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Qt.openUrlExternally("https://www.openstreetmap.org/copyright")
                     }
                 }
 

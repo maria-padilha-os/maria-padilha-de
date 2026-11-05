@@ -5,6 +5,7 @@ Item {
     id: root
 
     property var api
+    property bool active: true
 
     implicitWidth: 560
     implicitHeight: 360
@@ -12,5 +13,6 @@ Item {
     Widget {
         anchors.fill: parent
         api: root.api
+        active: root.active
     }
 }

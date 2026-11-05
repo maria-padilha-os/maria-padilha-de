@@ -7,6 +7,7 @@ Item {
     id: root
 
     property var extension
+    property bool active: true
     property real panelWidth: 0
     property real panelHeight: 0
 
@@ -40,6 +41,7 @@ Item {
             if (item) {
                 item.width = Qt.binding(() => loader.width);
                 item.height = Qt.binding(() => loader.height);
+                item.active = Qt.binding(() => root.active);
             }
         }
     }

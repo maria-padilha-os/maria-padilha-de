@@ -69,7 +69,9 @@ modules are internal to the shell tree and cannot be resolved from
 `~/.config/lilith`, so use `api` for those services.
 
 A tab declares its own `implicitWidth` and `implicitHeight`; the dashboard
-sizes itself to the item.
+sizes itself to the item. It can also declare `property bool active: true` —
+the shell sets it to true only while the tab is selected, so network or audio
+work should wait for that flag.
 
 ## Trust
 
