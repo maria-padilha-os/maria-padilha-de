@@ -54,7 +54,7 @@ Item {
     readonly property bool canGoUp: root.currentPath.length > 0 && root.parentPath !== root.currentPath
     readonly property bool atHome: root.homePath.length > 0 && root.currentPath === root.homePath
 
-    readonly property bool emptyState: root.started && root.folderModel.status === FolderListModel.Ready && root.folderModel.count === 0 && !root.readError && !accessProc.running
+    readonly property bool emptyState: root.started && folderModel.status === FolderListModel.Ready && folderModel.count === 0 && !root.readError && !accessProc.running
 
     readonly property string displayPath: {
         if (root.currentPath.length === 0)
@@ -154,10 +154,10 @@ Item {
         if (!root.started || root.currentPath.length === 0)
             return;
         root.readError = false;
-        root.folderModel.folder = "";
+        folderModel.folder = "";
         Qt.callLater(function () {
             if (root.started && root.currentPath.length > 0)
-                root.folderModel.folder = root.toFileUrl(root.currentPath);
+                folderModel.folder = root.toFileUrl(root.currentPath);
         });
         root.checkAccess();
     }
@@ -177,12 +177,12 @@ Item {
     }
 
     function activateIndex(index) {
-        if (index < 0 || index >= root.folderModel.count)
+        if (index < 0 || index >= folderModel.count)
             return;
-        const path = root.folderModel.get(index, "filePath");
+        const path = folderModel.get(index, "filePath");
         if (!path)
             return;
-        if (root.folderModel.get(index, "fileIsDir"))
+        if (folderModel.get(index, "fileIsDir"))
             root.navigate(path);
         else
             root.openFile(path);
@@ -194,7 +194,7 @@ Item {
     }
 
     function moveSelection(delta) {
-        const total = root.folderModel.count;
+        const total = folderModel.count;
         if (total <= 0)
             return;
         let index = fileList.currentIndex;
@@ -331,7 +331,7 @@ Item {
         if (!root.started)
             return;
         root.readError = false;
-        root.folderModel.folder = root.toFileUrl(root.currentPath);
+        folderModel.folder = root.toFileUrl(root.currentPath);
         fileList.currentIndex = 0;
     }
 
