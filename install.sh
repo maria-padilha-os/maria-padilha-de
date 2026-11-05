@@ -121,7 +121,18 @@ runtime_deps=(
 )
 
 log "Installing build and runtime dependencies"
-run_sudo pacman -S --needed "${build_deps[@]}" "${runtime_deps[@]}"
+# Skip anything already present: some dependencies (libcava, quickshell) come
+# from the AUR, so `pacman -S` would abort with "target not found" even though
+# the package is installed and the build works.
+missing_deps=()
+for pkg in "${build_deps[@]}" "${runtime_deps[@]}"; do
+    pacman -Qq "$pkg" >/dev/null 2>&1 || missing_deps+=("$pkg")
+done
+if [ ${#missing_deps[@]} -gt 0 ]; then
+    run_sudo pacman -S --needed "${missing_deps[@]}"
+else
+    log "All build and runtime dependencies are already installed"
+fi
 
 log "Building the shell"
 run "$root/tools/build.sh"
