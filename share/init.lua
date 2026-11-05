@@ -7,7 +7,7 @@
 --   ~/.config/padilha/init.lua         this file
 --   ~/.config/padilha/local.lua        per-machine, gitignored
 --
--- lilith.array{} marks an empty list, because Lua cannot tell an empty list
+-- padilha.array{} marks an empty list, because Lua cannot tell an empty list
 -- from an empty map.
 
 return {
@@ -19,7 +19,7 @@ return {
 
     general = {
         idle = {
-            timeouts = lilith.array {}, -- no automatic lock/suspend on idle
+            timeouts = padilha.array {}, -- no automatic lock/suspend on idle
         },
     },
 }

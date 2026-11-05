@@ -39,8 +39,15 @@ if command -v yamllint >/dev/null 2>&1; then
 fi
 
 echo "== lua parse (dotfiles)"
-if [ -d ../lilith-dotfiles ]; then
-    find ../lilith-dotfiles/hypr -name '*.lua' -print0 |
+dots_dir=
+for candidate in ../maria-padilha-dotfiles ../lilith-dotfiles; do
+    if [ -d "$candidate" ]; then
+        dots_dir=$candidate
+        break
+    fi
+done
+if [ -n "$dots_dir" ]; then
+    find "$dots_dir/hypr" -name '*.lua' -print0 |
         while IFS= read -r -d '' f; do
             lua -e "assert(loadfile('$f'))" || exit 1
         done

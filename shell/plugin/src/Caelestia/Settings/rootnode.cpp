@@ -58,15 +58,15 @@ void RootNode::captureToLua() {
     // The session exports the compiler it ran, so a checkout and a packaged
     // install both name their own binary; a shell started by hand falls back
     // to PATH.
-    QString command = qEnvironmentVariable("LILITH_CONFIG");
+    QString command = qEnvironmentVariable("PADILHA_CONFIG");
     if (command.isEmpty())
-        command = qEnvironmentVariable("PADILHA_CONFIG");
-    if (command.isEmpty())
-        command = QStandardPaths::findExecutable(QStringLiteral("lilith-config"));
+        command = qEnvironmentVariable("LILITH_CONFIG");
     if (command.isEmpty())
         command = QStandardPaths::findExecutable(QStringLiteral("padilha-config"));
+    if (command.isEmpty())
+        command = QStandardPaths::findExecutable(QStringLiteral("lilith-config"));
     if (command.isEmpty()) {
-        qWarning("lilith-config not found; settings edits stay in shell.json");
+        qWarning("padilha-config not found; settings edits stay in shell.json");
         return;
     }
 

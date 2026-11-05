@@ -1,1 +1,296 @@
-lilith-daylight
+#!/usr/bin/env lua
+-- padilha-daylight: two wallpapers a day, and the colours that go with them.
+--
+--   padilha-daylight              run in the foreground, re-checking each minute
+--   padilha-daylight --once       switch to the right period and exit
+--   padilha-daylight --dry-run    say what would happen, touch nothing
+--
+-- Light from `day_start` to `night_start`, dark for the other hours. The
+-- wallpaper and the palette change together: the scheme is rebuilt from the
+-- seed in share/defaults.lua and every application is re-themed with it.
+
+local function script_dir()
+    -- Follow the symlink: packaged installs put the real files under
+    -- /usr/lib/maria-padilha/bin and only links in /usr/bin.
+    local raw = arg[0] or "padilha"
+    local p = io.popen("readlink -f -- '" .. raw:gsub("'", "'\\''") .. "' 2>/dev/null")
+    local resolved = p and p:read("*l")
+    if p then
+        p:close()
+    end
+    local path = (resolved and resolved ~= "") and resolved or raw
+    return path:match("^(.*)/[^/]+$") or "."
+end
+
+local root = script_dir() .. "/.."
+do -- make it absolute, so the paths we write are absolute too
+    local p = io.popen("cd " .. "'" .. root .. "'" .. " && pwd 2>/dev/null")
+    if p then
+        local line = p:read("*l")
+        p:close()
+        if line and line ~= "" then
+            root = line
+        end
+    end
+end
+package.path = root .. "/lib/?.lua;" .. package.path
+
+local colour = require("colour")
+local schememod = require("scheme")
+local applymod = require("apply")
+
+local home = os.getenv("HOME") or ""
+local config_home = os.getenv("XDG_CONFIG_HOME") or (home .. "/.config")
+local state_home = os.getenv("XDG_STATE_HOME") or (home .. "/.local/state")
+local state_dir = state_home .. "/caelestia"
+local wall_state = state_dir .. "/wallpaper"
+
+local function quote(s)
+    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
+end
+
+local function exists(path)
+    local f = io.open(path, "rb")
+    if f then
+        f:close()
+        return true
+    end
+    return false
+end
+
+local function die(msg)
+    io.stderr:write("padilha-daylight: ", msg, "\n")
+    os.exit(1)
+end
+
+local function log(msg)
+    local f = io.open(state_dir .. "/daylight.log", "a")
+    if f then
+        f:write(os.date("%Y-%m-%dT%H:%M:%S "), msg, "\n")
+        f:close()
+    end
+end
+
+local function absolute(path)
+    if path:sub(1, 1) == "/" then
+        return path
+    end
+    return root .. "/" .. path
+end
+
+--------------------------------------------------------------------------
+-- Config: shipped defaults, user override on top
+--------------------------------------------------------------------------
+
+local function load_config()
+    local defaults = dofile(root .. "/share/defaults.lua")
+    local user_path = config_home .. "/padilha/daylight.lua"
+    if not exists(user_path) then
+        local legacy = config_home .. "/lilith/daylight.lua"
+        if exists(legacy) then
+            user_path = legacy
+        end
+    end
+    local chunk = loadfile(user_path)
+    if chunk then
+        local ok, user = pcall(chunk)
+        if ok and type(user) == "table" then
+            for key, value in pairs(user) do
+                defaults[key] = value
+            end
+        end
+    end
+    return defaults
+end
+
+--------------------------------------------------------------------------
+-- Period
+--------------------------------------------------------------------------
+
+local function period(config)
+    local hour = tonumber(os.date("%H"))
+    if hour >= config.day_start and hour < config.night_start then
+        return "day"
+    end
+    return "night"
+end
+
+--------------------------------------------------------------------------
+-- Wallpaper state, the way the shell expects to find it
+--------------------------------------------------------------------------
+
+local function set_wallpaper(path)
+    os.execute("mkdir -p " .. quote(wall_state))
+    local f = io.open(wall_state .. "/path.txt", "w")
+    if not f then
+        return false
+    end
+    f:write(path .. "\n")
+    f:close()
+
+    os.execute("ln -sfn " .. quote(path) .. " " .. quote(wall_state .. "/current"))
+
+    -- The shell shows the image itself; the thumbnail is for pickers and
+    -- previews, and a stale one is worse than a slightly expensive one.
+    os.execute(string.format("magick %s -resize 480x270^ -gravity center -extent 480x270 -strip %s 2>/dev/null",
+        quote(path), quote(wall_state .. "/thumbnail.jpg")))
+    return true
+end
+
+--------------------------------------------------------------------------
+-- Switch
+--------------------------------------------------------------------------
+
+local function switch(period_name, config, opts)
+    local entry = config[period_name]
+    if not entry or not entry.wallpaper then
+        return false, "no wallpaper configured for " .. period_name
+    end
+
+    local wallpaper = absolute(entry.wallpaper)
+    local mode = period_name == "day" and "light" or "dark"
+
+    local seed_hex = entry.seed
+    if not seed_hex then
+        local info, err = require("seed").from_wallpaper(wallpaper)
+        if not info then
+            return false, err
+        end
+        seed_hex = info.seed_hex
+    end
+
+    local h, c = colour.hct_from_hex(seed_hex)
+    -- The variant chosen in the launcher belongs to the machine, not to the
+    -- wallpaper, so it outlives a period switch.
+    local variant = entry.variant or require("desktop").variant()
+    local scheme = schememod.build(h, c, mode, variant)
+
+    if opts.dry_run then
+        io.write(string.format("period=%s mode=%s wallpaper=%s seed=%s\n", period_name, mode, wallpaper, seed_hex))
+        return true
+    end
+
+    if not set_wallpaper(wallpaper) then
+        return false, "cannot write the wallpaper state"
+    end
+
+    local written, errors = applymod.apply(scheme, {
+        prefix = opts.prefix,
+        signals = true,
+        broadcast = true,
+    })
+    if #errors > 0 then
+        return false, table.concat(errors, "; ")
+    end
+
+    local f = io.open(state_dir .. "/daylight.period", "w")
+    if f then
+        f:write(period_name .. "\n")
+        f:close()
+    end
+    log(string.format("period=%s mode=%s seed=%s files=%d", period_name, mode, seed_hex, #written))
+    return true
+end
+
+--------------------------------------------------------------------------
+-- Main
+--------------------------------------------------------------------------
+
+local opts = { once = false, dry_run = false }
+local i = 1
+while i <= #arg do
+    local a = arg[i]
+    if a == "--prefix" then
+        i = i + 1
+        opts.prefix = arg[i]
+    elseif a == "--once" then
+        opts.once = true
+    elseif a == "--dry-run" then
+        opts.dry_run = true
+    elseif a == "--force" then
+        opts.force = true
+    elseif a == "--help" or a == "-h" then
+        io.write("usage: padilha-daylight [--once] [--force] [--dry-run] [--prefix DIR]\n")
+        os.exit(0)
+    else
+        die("unknown argument " .. a)
+    end
+    i = i + 1
+end
+
+if opts.prefix then
+    state_dir = opts.prefix .. state_dir
+    wall_state = state_dir .. "/wallpaper"
+end
+
+local config = load_config()
+
+local function check()
+    local current = period(config)
+    local f = io.open(state_dir .. "/daylight.period", "r")
+    local previous = f and f:read("*l") or nil
+    if f then
+        f:close()
+    end
+
+    if current == previous and not opts.dry_run and not opts.force then
+        return
+    end
+
+    local ok, err = switch(current, config, opts)
+    if not ok then
+        log("period=" .. current .. " failed: " .. tostring(err))
+        if opts.dry_run then
+            die(err)
+        end
+    end
+end
+
+if opts.once or opts.dry_run then
+    check()
+    os.exit(0)
+end
+
+-- One instance per session, like the script this replaces.
+local runtime = os.getenv("XDG_RUNTIME_DIR") or "/tmp"
+local lock = runtime .. "/padilha-daylight.lock"
+
+local function own_pid()
+    local f = io.open("/proc/self/stat", "r")
+    if not f then
+        return nil
+    end
+    local line = f:read("*l")
+    f:close()
+    return line and line:match("^(%d+)")
+end
+
+local function mkdir(path)
+    return os.execute("mkdir " .. quote(path) .. " 2>/dev/null") == true
+end
+
+os.execute("mkdir -p " .. quote(state_dir))
+if not mkdir(lock) then
+    local pid_file = io.open(lock .. "/pid", "r")
+    local pid = pid_file and pid_file:read("*l") or nil
+    if pid_file then
+        pid_file:close()
+    end
+    if pid and os.execute("kill -0 " .. pid .. " 2>/dev/null") == true then
+        os.exit(0) -- a live instance owns the lock
+    end
+    os.execute("rm -rf " .. quote(lock))
+    if not mkdir(lock) then
+        die("cannot take the lock at " .. lock)
+    end
+end
+local pidf = io.open(lock .. "/pid", "w")
+if pidf then
+    pidf:write(tostring(own_pid() or 0), "\n")
+    pidf:close()
+end
+
+while true do
+    check()
+    os.execute("sleep 60")
+end

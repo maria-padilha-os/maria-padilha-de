@@ -1,8 +1,14 @@
-# AGENTS.md — lilith-de (GitHub `lilith`)
+# AGENTS.md — maria-padilha-de (GitHub `maria-padilha-os/maria-padilha-de`)
 
-Read `/home/machine/Códigos/lilith/AGENTS.md` first; this is the repo-specific
-summary. The checkout is `lilith-de` and the GitHub remote is `lilith`; the commands,
-package, session entry, and user paths use the Lilith name. The old `padilha-*` commands remain as temporary compatibility aliases.
+Read the workspace-root `AGENTS.md` first; this is the repo-specific summary.
+The checkout is `maria-padilha-de` and the GitHub remote is
+`maria-padilha-os/maria-padilha-de`; the commands, package, session entry, and
+user paths use the Maria Padilha name. Commands are `padilha-*` (plain
+`padilha`); the old `lilith-*` commands remain as compatibility aliases.
+Config lives in `~/.config/padilha` and state in `~/.local/state/padilha`;
+during the transition `~/.config/lilith` and `~/.local/state/lilith` are
+read-only fallbacks. `PADILHA_CONFIG` is primary and `LILITH_CONFIG` remains
+the fallback.
 
 Scope: Quickshell shell (`shell/`), session entry, theme engine (`lib/`,
 `share/`), commands (`bin/`), installer (`install.sh`), package
@@ -12,7 +18,7 @@ Scope: Quickshell shell (`shell/`), session entry, theme engine (`lib/`,
 
 - Deployment is on hold: no Pages, package install, promo timer, or donation
   publication. `tools/release.sh` may build a package; do not install it.
-- The live shell is under a watchdog; do not run `lilith-reload` without a
+- The live shell is under a watchdog; do not run `padilha-reload` without a
   reason. Edit the checkout, test, and reload deliberately.
 - Do not commit secrets. `hypr/hyprland/env.local.lua` is in the dotfiles repo
   and must never be copied here.
@@ -32,7 +38,7 @@ make package
 
 Keep `install.sh`'s `commands=(...)` and `packaging/PKGBUILD`'s symlink loop in
 sync when adding a `bin/` command. The shell JSON is compiled by
-`lilith-session`; a fresh clone needs `.scratch/gem` for the local docs preview
+`padilha-session`; a fresh clone needs `.scratch/gem` for the local docs preview
 only.
 
 ## Style
@@ -41,4 +47,4 @@ only.
 - Lua 5.5; require modules through `package.path` set by the command wrapper.
 - QML uses the existing `Colours` singleton and `Quickshell` services; no
   hard-coded palettes except in generated state.
-- Docs are one Jekyll site with `baseurl: /lilith`.
+- Docs are one Jekyll site with `baseurl: /maria-padilha-de`.

@@ -13,7 +13,7 @@ settings window.
 ## Layout
 
 ```
-~/.config/lilith/extensions/<id>/
+~/.config/padilha/extensions/<id>/
 ├── extension.json
 └── Tab.qml
 ```
@@ -66,7 +66,7 @@ The shell assigns `api` while creating the item, so it is available from
 
 Extension files may import `Caelestia.Config` and `Caelestia.I18n`. The `qs.*`
 modules are internal to the shell tree and cannot be resolved from
-`~/.config/lilith`, so use `api` for those services.
+`~/.config/padilha`, so use `api` for those services.
 
 A tab declares its own `implicitWidth` and `implicitHeight`; the dashboard
 sizes itself to the item. It can also declare `property bool active: true` —
@@ -84,4 +84,4 @@ enabled and the top panel is open.
 
 The repository ships `calculator`, `maps`, `stopwatch`, `translator` and
 `tuner` under `extensions/`; the installer and package put them in
-`/usr/lib/lilith/share/extensions`. See `extensions/README.md`.
+`/usr/lib/maria-padilha/share/extensions`. See `extensions/README.md`.

@@ -1,4 +1,4 @@
--- Colour maths for lilith-theme.
+-- Colour maths for padilha-theme.
 --
 -- sRGB ↔ CIE XYZ (D65) ↔ CAM16, and HCT on top: hue and chroma from CAM16,
 -- tone from CIE L*. The algorithm is the one Material Color Utilities

@@ -133,6 +133,24 @@ local function exists(path)
     return false
 end
 
+local function dir_exists(path)
+    return os.execute("test -d " .. quote(path)) == true
+end
+
+-- Match the shell: ~/.config/padilha if it exists, otherwise the old
+-- ~/.config/lilith during the migration.
+local function config_dir()
+    local primary = M.config .. "/padilha"
+    local legacy = M.config .. "/lilith"
+    if dir_exists(primary) then
+        return primary
+    end
+    if dir_exists(legacy) then
+        return legacy
+    end
+    return primary
+end
+
 local function capture(cmd)
     local p = io.popen(cmd .. " 2>/dev/null")
     if not p then
@@ -182,7 +200,7 @@ function M.diagnostics()
 
     local wallpaper = M.current_wallpaper()
     if not wallpaper then
-        add("warn", "wallpaper", "none set; lilith-daylight will pick one at login")
+        add("warn", "wallpaper", "none set; padilha-daylight will pick one at login")
     elseif not exists(wallpaper) then
         add("fail", "wallpaper", wallpaper .. " does not exist")
     else
@@ -192,7 +210,7 @@ function M.diagnostics()
     local scheme = state_dir .. "/scheme.json"
     local scheme_size = size(scheme)
     if not scheme_size then
-        add("fail", "scheme.json", "missing; run lilith-daylight --once")
+        add("fail", "scheme.json", "missing; run padilha-daylight --once")
     elseif scheme_size < 2000 then
         add("fail", "scheme.json", ("only %d bytes; looks truncated"):format(scheme_size))
     else
@@ -213,11 +231,11 @@ function M.diagnostics()
     end
 
     -- Config: compiled file plus the merge baseline.
-    local shell = M.config .. "/lilith/shell.json"
+    local shell = config_dir() .. "/shell.json"
     if exists(shell) then
         add("ok", "shell.json", shell)
     else
-        add("warn", "shell.json", "not compiled yet; lilith-session does it at login")
+        add("warn", "shell.json", "not compiled yet; padilha-session does it at login")
     end
     if exists(shell .. ".base") then
         add("ok", "merge baseline", "settings-UI edits will be carried")
@@ -233,7 +251,7 @@ function M.diagnostics()
         if exists(pair[2]) then
             add("ok", pair[1], pair[2])
         else
-            add("warn", pair[1], "missing: run lilith-theme apply")
+            add("warn", pair[1], "missing: run padilha-theme apply")
         end
     end
 
@@ -272,9 +290,9 @@ function M.diagnostics()
     if saved == want then
         add("ok", "daylight", "period is " .. want)
     elseif saved then
-        add("warn", "daylight", ("period is %s but the clock says %s; run lilith-daylight --once"):format(saved, want))
+        add("warn", "daylight", ("period is %s but the clock says %s; run padilha-daylight --once"):format(saved, want))
     else
-        add("warn", "daylight", "has not run yet; run lilith-daylight --once")
+        add("warn", "daylight", "has not run yet; run padilha-daylight --once")
     end
 
     return out

@@ -1,4 +1,4 @@
-# Copy to ~/.config/lilith/agents.toml and adjust.
+# Copy to ~/.config/padilha/agents.toml and adjust.
 #
 # One repository is selected per scheduler tick; only one agent runs at a time.
 # The next repository starts after the current agent exits.
@@ -32,22 +32,21 @@ max_rounds_per_window = 0
 # Minimum gap between rounds, so a fast failure cannot spin.
 min_round_seconds = 900
 
-# Repository ids keep the padilha name (they key the queue); the checkouts use
-# the lilith layout.
+# Repository ids key the queue entries; adjust the paths to your checkouts.
 [repos."padilha-de"]
 path = "~/Códigos/lilith/lilith-de"
-queue = "~/.config/lilith/agents/queue/padilha-de"
+queue = "~/.config/padilha/agents/queue/padilha-de"
 tests = ["bash", "tests/all.sh"]
 push = false
 
 [repos."padilha-dotfiles"]
 path = "~/Códigos/lilith/lilith-dotfiles"
-queue = "~/.config/lilith/agents/queue/padilha-dotfiles"
+queue = "~/.config/padilha/agents/queue/padilha-dotfiles"
 tests = ["bash", "-c", "for f in $(git ls-files '*.lua'); do luac -p \"$f\" || exit 1; done"]
 push = false
 
 # [repos."padilha-os"]
 # path = "~/Códigos/lilith/lilith-os"
-# queue = "~/.config/lilith/agents/queue/padilha-os"
+# queue = "~/.config/padilha/agents/queue/padilha-os"
 # tests = ["bash", "tests/all.sh"]
 # push = false

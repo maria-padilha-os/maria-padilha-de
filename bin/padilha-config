@@ -1,1 +1,1301 @@
-lilith-config
+#!/usr/bin/env lua
+-- padilha-config — compile the Lua user config into the shell's JSON.
+--
+-- See CONFIG.md for the contract. Short version: init.lua returns a table, an
+-- optional local.lua overrides it, and the merged result is written as JSON
+-- that the shell and its C++ config schema already know how to read.
+--
+--   padilha-config compile [--config PATH] [--out PATH] [--check] [--print] [--quiet]
+--
+-- Exit codes: 0 ok, 1 config error, 2 usage.
+
+local ARRAY_MT = { __padilha_array = true }
+
+local function array(t)
+    return setmetatable(t or {}, ARRAY_MT)
+end
+
+local function is_array(t)
+    return getmetatable(t) == ARRAY_MT
+end
+
+local function quote(s)
+    return "'" .. s:gsub("'", "'\\''") .. "'"
+end
+
+local function dirname(path)
+    return path:match("^(.*)/[^/]+$") or "."
+end
+
+local function exists(path)
+    local f = io.open(path, "rb")
+    if f then
+        f:close()
+        return true
+    end
+    return false
+end
+
+local function fail(message)
+    io.stderr:write("padilha-config: " .. message .. "\n")
+    os.exit(1)
+end
+
+
+
+--------------------------------------------------------------------------
+-- First run: write the default config
+--------------------------------------------------------------------------
+
+local function real_dir()
+    local raw = arg[0] or "padilha-config"
+    local p = io.popen("readlink -f -- '" .. raw:gsub("'", "'\\''") .. "' 2>/dev/null")
+    local resolved = p and p:read("*l")
+    if p then
+        p:close()
+    end
+    local path = (resolved and resolved ~= "") and resolved or raw
+    return path:match("^(.*)/[^/]+$") or "."
+end
+
+--------------------------------------------------------------------------
+-- JSON encoding
+--------------------------------------------------------------------------
+
+local ESCAPES = {
+    ['"'] = '\\"',
+    ["\\"] = "\\\\",
+    ["\b"] = "\\b",
+    ["\f"] = "\\f",
+    ["\n"] = "\\n",
+    ["\r"] = "\\r",
+    ["\t"] = "\\t",
+}
+
+local function encode_string(s)
+    return '"' .. s:gsub('[%z\1-\31"\\]', function(c)
+        return ESCAPES[c] or string.format("\\u%04x", c:byte())
+    end) .. '"'
+end
+
+local function encode_number(n)
+    if n ~= n or n == math.huge or n == -math.huge then
+        return nil, "is not a finite number"
+    end
+    if math.type(n) == "integer" then
+        return tostring(n)
+    end
+    -- %.14g keeps 0.95 as 0.95 instead of 0.94999999999999996
+    return (string.format("%.14g", n):gsub(",", "."))
+end
+
+local encode_value
+
+local function sorted_keys(t)
+    local keys = {}
+    for k in pairs(t) do
+        keys[#keys + 1] = k
+    end
+    table.sort(keys, function(a, b)
+        return tostring(a) < tostring(b)
+    end)
+    return keys
+end
+
+local function looks_like_array(t)
+    local count, max = 0, 0
+    for k in pairs(t) do
+        if type(k) ~= "number" or math.type(k) ~= "integer" or k < 1 then
+            return false
+        end
+        count = count + 1
+        if k > max then
+            max = k
+        end
+    end
+    return count > 0 and count == max
+end
+
+local function encode_table(t, indent, seen, path)
+    if seen[t] then
+        error(path .. ": table refers to itself", 0)
+    end
+    seen[t] = true
+
+    local pad = string.rep(" ", indent)
+    local inner = string.rep(" ", indent + 4)
+    local out = {}
+
+    if is_array(t) or looks_like_array(t) then
+        if #t == 0 then
+            seen[t] = nil
+            return "[]"
+        end
+        for i = 1, #t do
+            local v = encode_value(t[i], indent + 4, seen, ("%s[%d]"):format(path, i))
+            out[i] = inner .. v
+        end
+        seen[t] = nil
+        return "[\n" .. table.concat(out, ",\n") .. "\n" .. pad .. "]"
+    end
+
+    if next(t) == nil then
+        seen[t] = nil
+        return "{}"
+    end
+
+    for _, k in ipairs(sorted_keys(t)) do
+        local key = tostring(k)
+        local child = path .. "." .. key
+        local v = encode_value(t[k], indent + 4, seen, child)
+        out[#out + 1] = inner .. encode_string(key) .. ": " .. v
+    end
+
+    seen[t] = nil
+    return "{\n" .. table.concat(out, ",\n") .. "\n" .. pad .. "}"
+end
+
+encode_value = function(v, indent, seen, path)
+    local tv = type(v)
+    if tv == "nil" then
+        error(path .. ": is nil (remove the key instead)", 0)
+    elseif tv == "boolean" then
+        return tostring(v)
+    elseif tv == "number" then
+        local n, err = encode_number(v)
+        if not n then
+            error(path .. " " .. err, 0)
+        end
+        return n
+    elseif tv == "string" then
+        return encode_string(v)
+    elseif tv == "table" then
+        return encode_table(v, indent, seen, path)
+    elseif tv == "function" then
+        error(path .. ": is a function; init.lua takes data only (hooks are not implemented yet)", 0)
+    else
+        error(path .. ": cannot be serialised (" .. tv .. ")", 0)
+    end
+end
+
+local function encode(root)
+    return encode_value(root, 0, {}, "config") .. "\n"
+end
+
+--------------------------------------------------------------------------
+-- JSON reading: what the shell wrote, so the UI's edits can survive
+--------------------------------------------------------------------------
+
+local function decode_error(text, pos, message)
+    local line = 1
+    for _ in text:sub(1, pos):gmatch("\n") do
+        line = line + 1
+    end
+    error(("invalid JSON at line %d: %s"):format(line, message), 0)
+end
+
+local function json_decode(text)
+    local pos = 1
+
+    local function skip()
+        local _, stop = text:find("^[ \t\r\n]*", pos)
+        if stop then
+            pos = stop + 1
+        end
+    end
+
+    local parse_value
+
+    local function parse_string()
+        pos = pos + 1
+        local out = {}
+        while true do
+            local c = text:sub(pos, pos)
+            if c == "" then
+                decode_error(text, pos, "unterminated string")
+            elseif c == '"' then
+                pos = pos + 1
+                return table.concat(out)
+            elseif c == "\\" then
+                local e = text:sub(pos + 1, pos + 1)
+                local simple = { ['"'] = '"', ["\\"] = "\\", ["/"] = "/", b = "\b", f = "\f", n = "\n", r = "\r", t = "\t" }
+                if e == "u" then
+                    local code = tonumber(text:sub(pos + 2, pos + 5), 16)
+                    if not code then
+                        decode_error(text, pos, "bad \\u escape")
+                    end
+                    if code >= 0xD800 and code <= 0xDBFF and text:sub(pos + 6, pos + 7) == "\\u" then
+                        local low = tonumber(text:sub(pos + 8, pos + 11), 16)
+                        if low and low >= 0xDC00 and low <= 0xDFFF then
+                            code = 0x10000 + (code - 0xD800) * 0x400 + (low - 0xDC00)
+                            pos = pos + 6
+                        end
+                    end
+                    out[#out + 1] = utf8.char(code)
+                    pos = pos + 6
+                elseif simple[e] then
+                    out[#out + 1] = simple[e]
+                    pos = pos + 2
+                else
+                    decode_error(text, pos, "bad escape \\" .. e)
+                end
+            else
+                out[#out + 1] = c
+                pos = pos + 1
+            end
+        end
+    end
+
+    local function parse_number()
+        local num = text:match("^-?%d+%.?%d*[eE][-+]?%d+", pos) or text:match("^-?%d+%.?%d*", pos)
+        if not num then
+            decode_error(text, pos, "expected a number")
+        end
+        pos = pos + #num
+        return tonumber(num)
+    end
+
+    local function parse_object()
+        pos = pos + 1
+        local out = {}
+        skip()
+        if text:sub(pos, pos) == "}" then
+            pos = pos + 1
+            return out
+        end
+        while true do
+            skip()
+            if text:sub(pos, pos) ~= '"' then
+                decode_error(text, pos, "expected a key")
+            end
+            local key = parse_string()
+            skip()
+            if text:sub(pos, pos) ~= ":" then
+                decode_error(text, pos, "expected ':'")
+            end
+            pos = pos + 1
+            out[key] = parse_value()
+            skip()
+            local c = text:sub(pos, pos)
+            pos = pos + 1
+            if c == "}" then
+                return out
+            elseif c ~= "," then
+                decode_error(text, pos - 1, "expected ',' or '}'")
+            end
+        end
+    end
+
+    local function parse_array()
+        pos = pos + 1
+        local out = setmetatable({}, ARRAY_MT)
+        skip()
+        if text:sub(pos, pos) == "]" then
+            pos = pos + 1
+            return out
+        end
+        while true do
+            out[#out + 1] = parse_value()
+            skip()
+            local c = text:sub(pos, pos)
+            pos = pos + 1
+            if c == "]" then
+                return out
+            elseif c ~= "," then
+                decode_error(text, pos - 1, "expected ',' or ']'")
+            end
+        end
+    end
+
+    parse_value = function()
+        skip()
+        local c = text:sub(pos, pos)
+        if c == "{" then
+            return parse_object()
+        elseif c == "[" then
+            return parse_array()
+        elseif c == '"' then
+            return parse_string()
+        elseif c == "t" and text:sub(pos, pos + 3) == "true" then
+            pos = pos + 4
+            return true
+        elseif c == "f" and text:sub(pos, pos + 4) == "false" then
+            pos = pos + 5
+            return false
+        elseif c == "n" and text:sub(pos, pos + 3) == "null" then
+            pos = pos + 4
+            return nil
+        end
+        return parse_number()
+    end
+
+    local value = parse_value()
+    skip()
+    if pos <= #text then
+        decode_error(text, pos, "trailing data")
+    end
+    return value
+end
+
+local function read_json(path)
+    local f = io.open(path, "rb")
+    if not f then
+        return nil
+    end
+    local text = f:read("*a")
+    f:close()
+    local ok, value = pcall(json_decode, text)
+    if not ok or type(value) ~= "table" then
+        return nil
+    end
+    return value
+end
+
+local function at(t, key)
+    if type(t) ~= "table" then
+        return nil
+    end
+    return t[key]
+end
+
+local function deep_equal(a, b)
+    if a == b then
+        return true
+    end
+    if type(a) ~= "table" or type(b) ~= "table" then
+        return false
+    end
+    for k, v in pairs(a) do
+        if not deep_equal(v, at(b, k)) then
+            return false
+        end
+    end
+    for k in pairs(b) do
+        if at(a, k) == nil then
+            return false
+        end
+    end
+    return true
+end
+
+-- Three-way carry-over. `base` is what the compiler wrote last time, `current`
+-- is the file on disk now, `new` is what init.lua says this time. A value that
+-- differs between base and current was changed by the settings UI, so it wins;
+-- everything else follows the new config.
+local function carry(base, current, new)
+    -- An empty list has no keys, so looks_like_array cannot see it; the
+    -- metatable is the only evidence it was written as padilha.array{}.
+    local function list(t)
+        return type(t) == "table" and (is_array(t) or looks_like_array(t))
+    end
+    local current_list = list(current)
+    local new_list = list(new)
+    if current_list or new_list then
+        if not deep_equal(current, base) then
+            return current
+        end
+        return new
+    end
+    if type(current) ~= "table" or type(new) ~= "table" then
+        if not deep_equal(current, base) then
+            return current
+        end
+        return new
+    end
+
+    local out = {}
+    for k, v in pairs(new) do
+        out[k] = v
+    end
+    for k, v in pairs(current) do
+        if new[k] ~= nil then
+            if type(v) == "table" and type(new[k]) == "table" then
+                out[k] = carry(at(base, k), v, new[k])
+            elseif not deep_equal(v, at(base, k)) then
+                out[k] = v
+            end
+        elseif at(base, k) == nil then
+            -- A key the settings UI wrote that init.lua never mentions.
+            out[k] = v
+        end
+    end
+    return out
+end
+
+--------------------------------------------------------------------------
+-- Loading and merging
+--------------------------------------------------------------------------
+
+local function make_env()
+    local env = {
+        padilha = {
+            array = array,
+        },
+        -- Transitional alias: configs written before the rename call
+        -- lilith.array{} and must keep compiling.
+        lilith = {
+            array = array,
+        },
+    }
+    return setmetatable(env, { __index = _G })
+end
+
+local function load_table(path)
+    local chunk, err = loadfile(path, "t", make_env())
+    if not chunk then
+        return nil, err
+    end
+
+    local ok, result = pcall(chunk)
+    if not ok then
+        return nil, tostring(result)
+    end
+
+    if type(result) ~= "table" then
+        return nil, ("%s: must return a table, got %s"):format(path, type(result))
+    end
+
+    if result.hooks ~= nil then
+        return nil, ("%s: `hooks` is reserved and not implemented yet; leave it out for now"):format(path)
+    end
+
+    return result
+end
+
+local function deep_merge(base, override)
+    if type(base) ~= "table" or type(override) ~= "table" then
+        return override
+    end
+    if is_array(override) then
+        return override
+    end
+
+    local merged = {}
+    for k, v in pairs(base) do
+        merged[k] = v
+    end
+    for k, v in pairs(override) do
+        if type(v) == "table" and type(merged[k]) == "table" and not is_array(v) then
+            merged[k] = deep_merge(merged[k], v)
+        else
+            merged[k] = v
+        end
+    end
+    return merged
+end
+
+--------------------------------------------------------------------------
+-- Settings writes Lua
+--
+-- The settings UI used to write shell.json and rely on a baseline diff. The
+-- command below writes a generated ui.lua instead; the compiler loads it after
+-- init.lua and local.lua, so a setting has a readable, durable source.
+--------------------------------------------------------------------------
+
+local function lua_key(key)
+    if type(key) == "string" and key:match("^[%a_][%w_]*$") then
+        return key
+    end
+    return "[" .. string.format("%q", tostring(key)) .. "]"
+end
+
+local lua_value
+
+local function lua_table(t, indent, seen)
+    if seen[t] then
+        fail("cannot write a table that refers to itself")
+    end
+    seen[t] = true
+
+    local lines = {}
+    if is_array(t) or looks_like_array(t) then
+        for i = 1, #t do
+            lines[#lines + 1] = indent .. "    " .. lua_value(t[i], indent .. "    ", seen)
+        end
+        seen[t] = nil
+        if #lines == 0 then
+            return "padilha.array {}"
+        end
+        return "padilha.array {\n" .. table.concat(lines, ",\n") .. ",\n" .. indent .. "}"
+    end
+
+    for _, key in ipairs(sorted_keys(t)) do
+        lines[#lines + 1] = indent .. "    " .. lua_key(key) .. " = " .. lua_value(t[key], indent .. "    ", seen)
+    end
+    seen[t] = nil
+    if #lines == 0 then
+        return "{}"
+    end
+    return "{\n" .. table.concat(lines, ",\n") .. ",\n" .. indent .. "}"
+end
+
+lua_value = function(value, indent, seen)
+    local kind = type(value)
+    if kind == "string" then
+        return string.format("%q", value)
+    elseif kind == "number" then
+        if value ~= value or value == math.huge or value == -math.huge then
+            fail("cannot write a non-finite number")
+        end
+        return tostring(value)
+    elseif kind == "boolean" then
+        return value and "true" or "false"
+    elseif kind == "table" then
+        return lua_table(value, indent, seen)
+    end
+    fail("cannot write a " .. kind .. " to ui.lua")
+end
+
+local function ui_path(config)
+    return dirname(config) .. "/ui.lua"
+end
+
+local function load_ui(config)
+    local path = ui_path(config)
+    if not exists(path) then
+        return {}
+    end
+    local ui, err = load_table(path)
+    if not ui then
+        fail(err)
+    end
+    return ui
+end
+
+local function write_lua(path, value, comment)
+    local text = comment
+        .. "return "
+        .. lua_value(value, "", {})
+        .. "\n"
+
+    os.execute("mkdir -p -- " .. quote(dirname(path)) .. " 2>/dev/null")
+    local tmp = path .. ".tmp"
+    local f, err = io.open(tmp, "wb")
+    if not f then
+        fail(("cannot write %s: %s"):format(tmp, tostring(err)))
+    end
+    f:write(text)
+    f:close()
+    if not os.rename(tmp, path) then
+        os.remove(tmp)
+        fail(("cannot replace %s"):format(path))
+    end
+    return path
+end
+
+local function write_ui(config, ui)
+    return write_lua(
+        ui_path(config),
+        ui,
+        "-- Maria Padilha settings, generated by `padilha-config set`.\n"
+            .. "-- Hand-written overrides belong in init.lua or local.lua.\n"
+    )
+end
+
+local function split_key(key)
+    local parts = {}
+    for part in key:gmatch("[^.]+") do
+        parts[#parts + 1] = part
+    end
+    if #parts == 0 then
+        fail("the key must not be empty")
+    end
+    return parts
+end
+
+local function set_key(root, key, value)
+    local parts = split_key(key)
+    local node = root
+    for i = 1, #parts - 1 do
+        local part = parts[i]
+        if node[part] == nil then
+            node[part] = {}
+        elseif type(node[part]) ~= "table" then
+            fail(("%s: %s is not an object"):format(key, table.concat(parts, ".", 1, i)))
+        end
+        node = node[part]
+    end
+    node[parts[#parts]] = value
+end
+
+local function unset_key(root, key)
+    local parts = split_key(key)
+    local chain = { root }
+    local node = root
+    for i = 1, #parts - 1 do
+        node = node[parts[i]]
+        if type(node) ~= "table" then
+            return false
+        end
+        chain[#chain + 1] = node
+    end
+    local last = parts[#parts]
+    if node[last] == nil then
+        return false
+    end
+    node[last] = nil
+
+    -- ui.lua is generated; do not leave empty parents behind.
+    for i = #parts - 1, 1, -1 do
+        local parent = chain[i]
+        local child = parts[i]
+        if type(parent[child]) == "table" and next(parent[child]) == nil then
+            parent[child] = nil
+        else
+            break
+        end
+    end
+    return true
+end
+
+local function parse_cli_value(text)
+    local ok, value = pcall(json_decode, text)
+    if ok then
+        if value == nil then
+            fail("null is not a config value")
+        end
+        return value
+    end
+    return text
+end
+
+-- What changed between the compiled baseline and the JSON the shell saved.
+-- This is the settings UI's edit, not the whole tree.
+local function diff_json(base, current)
+    if type(base) ~= "table" or type(current) ~= "table" then
+        return current
+    end
+    if is_array(base) or is_array(current) then
+        return deep_equal(base, current) and nil or current
+    end
+
+    local out = {}
+    for key, value in pairs(current) do
+        local previous = base[key]
+        if type(value) == "table" and type(previous) == "table" then
+            local child = diff_json(previous, value)
+            if child ~= nil then
+                out[key] = child
+            end
+        elseif not deep_equal(previous, value) then
+            out[key] = value
+        end
+    end
+    return next(out) and out or nil
+end
+
+--------------------------------------------------------------------------
+-- Schema validation
+--
+-- The config schema lives in C++ (libcaelestia-config), but qmltyperegistrar
+-- also writes it out as a .qmltypes file next to the module. That file is the
+-- only description of the accepted keys we get for free, so unknown keys and
+-- wrong types are caught here rather than silently ignored by the shell.
+--------------------------------------------------------------------------
+
+local function script_root()
+    local source = debug.getinfo(1, "S").source:gsub("^@", "")
+    return source:match("^(.*)/bin/[^/]+$") or "."
+end
+
+local function find_schema()
+    local root = script_root()
+    for _, path in ipairs {
+        root .. "/build/qml/Caelestia/Config/caelestia-config.qmltypes",
+        "/usr/lib/qt6/qml/Caelestia/Config/caelestia-config.qmltypes",
+    } do
+        if exists(path) then
+            return path
+        end
+    end
+    return nil
+end
+
+local function short_name(t)
+    return (t:gsub("^.*::", ""))
+end
+
+-- Returns type name -> { property name -> type name }, plus a reverse index.
+local function parse_schema(path)
+    local f = io.open(path, "rb")
+    if not f then
+        return nil
+    end
+    local text = f:read("*a")
+    f:close()
+
+    local types, enums = {}, {}
+    for chunk in text:gmatch("Component %b{}") do
+        local name = chunk:match('name:%s*"([^"]+)"')
+        if name then
+            local props = {}
+            for block in chunk:gmatch("Property %b{}") do
+                local pname = block:match('name:%s*"([^"]+)"')
+                local ptype = block:match('type:%s*"([^"]+)"')
+                if pname and ptype then
+                    props[pname] = ptype
+                end
+            end
+            types[name] = props
+
+            -- An enum-typed component carries its values as a list of names;
+            -- the property type that refers to it ends in "::Enum".
+            local values = {}
+            local list = chunk:match("values:%s*%[(.-)%]")
+            if list then
+                for value in list:gmatch('"([^"]+)"') do
+                    values[#values + 1] = value
+                end
+            end
+            if #values > 0 then
+                enums[name] = values
+            end
+        end
+    end
+
+    return types, enums
+end
+
+-- Optimal string alignment (Damerau-Levenshtein): a swapped pair of letters
+-- is one typo, not two, which is what "drak" for "dark" needs to suggest.
+local function edit_distance(a, b)
+    local rows = { [0] = {} }
+    for j = 0, #b do
+        rows[0][j] = j
+    end
+    for i = 1, #a do
+        local cur = { [0] = i }
+        local prev = rows[i - 1]
+        for j = 1, #b do
+            local cost = a:sub(i, i) == b:sub(j, j) and 0 or 1
+            cur[j] = math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost)
+            if i > 1 and j > 1 and a:sub(i, i) == b:sub(j - 1, j - 1) and a:sub(i - 1, i - 1) == b:sub(j, j) then
+                cur[j] = math.min(cur[j], rows[i - 2][j - 2] + 1)
+            end
+        end
+        rows[i] = cur
+    end
+    return rows[#a][#b]
+end
+
+local function suggest(key, props)
+    local best, best_distance = nil, math.huge
+    for candidate in pairs(props) do
+        local distance = edit_distance(key, candidate)
+        if distance < best_distance then
+            best, best_distance = candidate, distance
+        end
+    end
+    if best and best_distance <= math.max(1, math.floor(#key / 3)) then
+        return best
+    end
+    return nil
+end
+
+-- bool / number / string / array, or nil for components and types we can't
+-- check (QVariant, enums, URLs the shell accepts as strings...).
+local function type_kind(t)
+    if t == "bool" then
+        return "boolean"
+    elseif t == "int" or t == "double" or t == "real" or t == "float" then
+        return "number"
+    elseif t == "QString" or t == "QColor" or t == "QUrl" then
+        return "string"
+    elseif t:match("List$") or t:match("^QList<") or t:match("^QQmlListProperty<") then
+        return "array"
+    end
+    return nil
+end
+
+local schema_components, schema_enums, schema_root
+
+-- Enum values are matched the way the shell matches them: case-insensitively.
+local function check_enum(child, value, allowed, errors)
+    if type(value) ~= "string" then
+        errors[#errors + 1] = ("%s: expected a string, got %s"):format(child, type(value))
+        return
+    end
+
+    local lowered = value:lower()
+    for _, candidate in ipairs(allowed) do
+        if candidate:lower() == lowered then
+            return
+        end
+    end
+
+    local best, best_distance = nil, math.huge
+    for _, candidate in ipairs(allowed) do
+        local distance = edit_distance(lowered, candidate:lower())
+        if distance < best_distance then
+            best, best_distance = candidate, distance
+        end
+    end
+    if best and best_distance > math.max(1, math.floor(#value / 3)) then
+        best = nil
+    end
+
+    errors[#errors + 1] = ("%s: expected one of %s, got %q%s"):format(
+        child,
+        table.concat(allowed, ", "),
+        value,
+        best and (" (did you mean %q?)"):format(best) or ""
+    )
+end
+
+local function validate(node, props, path, errors)
+    for key, value in pairs(node) do
+        local name = tostring(key)
+        local child = path .. "." .. name
+        local declared = props[name]
+
+        if not declared then
+            local hint = suggest(name, props)
+            errors[#errors + 1] = ("%s: unknown key%s"):format(
+                child,
+                hint and (" (did you mean %q?)"):format(hint) or ""
+            )
+        else
+            local kind = type_kind(declared)
+            local actual = type(value)
+
+            if kind == "boolean" and actual ~= "boolean" then
+                errors[#errors + 1] = ("%s: expected a boolean, got %s"):format(child, actual)
+            elseif kind == "number" and actual ~= "number" then
+                errors[#errors + 1] = ("%s: expected a number, got %s"):format(child, actual)
+            elseif kind == "string" and actual ~= "string" then
+                errors[#errors + 1] = ("%s: expected a string, got %s"):format(child, actual)
+            elseif kind == "array" and actual ~= "table" then
+                errors[#errors + 1] = ("%s: expected a list, got %s"):format(child, actual)
+            elseif kind == nil then
+                -- An enum lives as its own component; properties point at it
+                -- through a type ending in "::Enum".
+                local enum_name = declared:match("^(.-)::Enum$")
+                local allowed = enum_name and (schema_enums[enum_name] or schema_enums[short_name(enum_name)])
+                local nested = not allowed and (schema_components[declared] or schema_components[short_name(declared)])
+
+                if allowed then
+                    check_enum(child, value, allowed, errors)
+                elseif nested then
+                    if actual == "table" then
+                        validate(value, nested, child, errors)
+                    else
+                        errors[#errors + 1] = ("%s: expected an object, got %s"):format(child, actual)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function load_schema(path)
+    local types, enums = parse_schema(path)
+    if not types then
+        return false
+    end
+
+    schema_components, schema_enums = {}, {}
+    for name, props in pairs(types) do
+        schema_components[name] = props
+        schema_components[short_name(name)] = props
+    end
+    for name, values in pairs(enums or {}) do
+        schema_enums[name] = values
+        schema_enums[short_name(name)] = values
+    end
+
+    local root = types["caelestia::config::ConfigRoot"]
+    for name, props in pairs(types) do
+        if name:match("::ConfigRoot$") then
+            root = root or props
+        end
+    end
+    schema_root = root
+    return root ~= nil
+end
+
+local function check_schema(node, label)
+    if not schema_root then
+        return
+    end
+    local errors = {}
+    validate(node, schema_root, "config", errors)
+    if #errors == 0 then
+        return
+    end
+    for _, message in ipairs(errors) do
+        io.stderr:write(("%s: %s\n"):format(label, message))
+    end
+    fail(("%d schema error%s in %s"):format(#errors, #errors == 1 and "" or "s", label))
+end
+
+local function ensure_schema(opts)
+    if opts.no_schema then
+        return
+    end
+    local path = opts.schema or find_schema()
+    if path then
+        if not load_schema(path) then
+            fail(("no ConfigRoot type in %s"):format(path))
+        end
+    elseif not opts.quiet then
+        io.stderr:write("padilha-config: no qmltypes found, skipping key validation\n")
+    end
+end
+
+--------------------------------------------------------------------------
+-- CLI
+--------------------------------------------------------------------------
+
+local function usage()
+    io.stderr:write([[
+usage: padilha-config init [--force]        write the default ~/.config/padilha/init.lua
+       padilha-config compile [--config PATH] [--out PATH] [--schema PATH]
+                              [--no-schema] [--check] [--print] [--quiet]
+       padilha-config set KEY VALUE [--config PATH] [--schema PATH]
+                              [--no-schema] [--quiet]
+       padilha-config unset KEY [--config PATH] [--schema PATH]
+                              [--no-schema] [--quiet]
+       padilha-config capture [--shell PATH] [--base PATH] [--ui PATH]
+                              [--schema PATH] [--no-schema] [--quiet]
+
+  set/unset write ui.lua next to init.lua; it is generated, not hand-edited.
+  capture promotes the settings UI's shell.json edits into ui.lua.
+  --config PATH  Lua config to compile  (default: $XDG_CONFIG_HOME/padilha/init.lua,
+                 then the old $XDG_CONFIG_HOME/lilith/init.lua)
+  --out PATH     JSON to write         (default: $XDG_CONFIG_HOME/padilha/shell.json)
+  --shell PATH   shell.json for capture (default: the --out path)
+  --base PATH    baseline for capture  (default: <shell>.base)
+  --ui PATH      generated Lua overlay (default: next to the shell.json)
+  --schema PATH  qmltypes to validate against (default: the built module, then the system one)
+  --no-schema    skip key and type validation
+  --no-merge     ignore what the settings UI saved; init.lua wins outright
+  --check        parse and validate only, write nothing
+  --print        write the JSON to stdout instead of a file
+  --quiet        no success message
+]])
+    os.exit(2)
+end
+
+local function parse_args(argv)
+    local opts = { command = nil, args = {}, check = false, print = false, quiet = false }
+
+    local i = 1
+    while i <= #argv do
+        local arg = argv[i]
+        if arg == "--config" or arg == "--out" or arg == "--schema" or arg == "--shell"
+            or arg == "--base" or arg == "--ui" then
+            i = i + 1
+            if not argv[i] then
+                usage()
+            end
+            opts[arg:sub(3)] = argv[i]
+        elseif arg == "--no-schema" then
+            opts.no_schema = true
+        elseif arg == "--no-merge" then
+            opts.no_merge = true
+        elseif arg == "--force" then
+            opts.force = true
+        elseif arg == "--check" then
+            opts.check = true
+        elseif arg == "--print" then
+            opts.print = true
+        elseif arg == "--quiet" then
+            opts.quiet = true
+        elseif arg == "-h" or arg == "--help" then
+            usage()
+        elseif arg:sub(1, 1) == "-" then
+            if not opts.command then
+                io.stderr:write("padilha-config: unknown option " .. arg .. "\n")
+                usage()
+            end
+            opts.args[#opts.args + 1] = arg
+        else
+            if opts.command then
+                opts.args[#opts.args + 1] = arg
+            else
+                opts.command = arg
+            end
+        end
+        i = i + 1
+    end
+
+    return opts
+end
+
+local function config_home()
+    return os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or ".") .. "/.config")
+end
+
+local function dir_exists(path)
+    return os.execute("test -d " .. quote(path)) == true
+end
+
+-- Match the shell: ~/.config/padilha if that directory exists, otherwise the
+-- old ~/.config/lilith if that one exists, otherwise the primary path (which
+-- `init` creates). The legacy directory is read, never created.
+local function config_dir()
+    local home = config_home()
+    local primary = home .. "/padilha"
+    local legacy = home .. "/lilith"
+    if dir_exists(primary) then
+        return primary
+    end
+    if dir_exists(legacy) then
+        return legacy
+    end
+    return primary
+end
+
+local function write_default_config(force)
+    local target = config_dir() .. "/init.lua"
+    if exists(target) and not force then
+        io.stderr:write(("padilha-config: %s already exists (use --force to replace it)\n"):format(target))
+        os.exit(1)
+    end
+
+    local source = real_dir() .. "/../share/init.lua"
+    local f = io.open(source, "rb")
+    if not f then
+        fail(("cannot find the default config at %s"):format(source))
+    end
+    local text = f:read("*a")
+    f:close()
+
+    os.execute("mkdir -p -- " .. quote(dirname(target)) .. " 2>/dev/null")
+    local tmp = target .. ".tmp"
+    local out = io.open(tmp, "wb")
+    if not out then
+        fail(("cannot write %s"):format(tmp))
+    end
+    out:write(text)
+    out:close()
+    if not os.rename(tmp, target) then
+        os.remove(tmp)
+        fail(("cannot replace %s"):format(target))
+    end
+    io.write(("wrote %s\n"):format(target))
+end
+
+local function write_setting(opts)
+    local config = opts.config or (config_dir() .. "/init.lua")
+    if not exists(config) then
+        fail(("no config at %s (see examples/init.lua)"):format(config))
+    end
+
+    ensure_schema(opts)
+    local ui = load_ui(config)
+    local path = ui_path(config)
+
+    if opts.command == "set" then
+        if #opts.args ~= 2 then
+            usage()
+        end
+        set_key(ui, opts.args[1], parse_cli_value(opts.args[2]))
+    else
+        if #opts.args ~= 1 then
+            usage()
+        end
+        if not unset_key(ui, opts.args[1]) then
+            if not opts.quiet then
+                io.write(("not set: %s\n"):format(opts.args[1]))
+            end
+            return
+        end
+    end
+
+    check_schema(ui, path)
+    local written = write_ui(config, ui)
+    if not opts.quiet then
+        io.write(("wrote %s\n"):format(written))
+    end
+end
+
+-- Promote the settings UI's edits from shell.json into ui.lua. Called after
+-- the shell saves, so the next compile has a Lua source instead of a JSON
+-- diff to reconstruct.
+local function capture_ui(opts)
+    -- --out is the compile destination; the usage block promises capture
+    -- defaults the shell path to it.
+    local shell = opts.shell or opts.out or (config_dir() .. "/shell.json")
+    local base_path = opts.base or (shell .. ".base")
+    local target = opts.ui or (dirname(shell) .. "/ui.lua")
+
+    local current = read_json(shell)
+    if not current then
+        return
+    end
+    local base = read_json(base_path)
+    if not base then
+        return
+    end
+
+    local ui = diff_json(base, current) or {}
+    ensure_schema(opts)
+
+    if schema_root then
+        local errors = {}
+        validate(ui, schema_root, "config", errors)
+        if #errors > 0 then
+            io.stderr:write(("padilha-config: capture skipped: %s\n"):format(errors[1]))
+            return
+        end
+    end
+
+    local written = write_lua(
+        target,
+        ui,
+        "-- Maria Padilha settings captured from shell.json.\n"
+            .. "-- Generated; edit init.lua or local.lua for hand-written overrides.\n"
+    )
+    if not opts.quiet then
+        io.write(("wrote %s\n"):format(written))
+    end
+end
+
+local function main(argv)
+    local opts = parse_args(argv)
+
+    if opts.command == "init" then
+        if #opts.args > 0 then
+            usage()
+        end
+        write_default_config(opts.force)
+        return
+    end
+    if opts.command == "set" or opts.command == "unset" then
+        write_setting(opts)
+        return
+    end
+    if opts.command == "capture" then
+        if #opts.args > 0 then
+            usage()
+        end
+        capture_ui(opts)
+        return
+    end
+    if opts.command ~= "compile" or #opts.args > 0 then
+        usage()
+    end
+
+    local config = opts.config or (config_dir() .. "/init.lua")
+    local out = opts.out or (config_dir() .. "/shell.json")
+
+    ensure_schema(opts)
+
+    if not exists(config) then
+        fail(("no config at %s (see examples/init.lua)"):format(config))
+    end
+
+    local root, err = load_table(config)
+    if not root then
+        fail(err)
+    end
+    check_schema(root, config)
+
+    local overlay = dirname(config) .. "/local.lua"
+    local used_overlay = false
+    if exists(overlay) then
+        local local_cfg, lerr = load_table(overlay)
+        if not local_cfg then
+            fail(lerr)
+        end
+        check_schema(local_cfg, overlay)
+        root = deep_merge(root, local_cfg)
+        used_overlay = true
+    end
+
+    -- The baseline is init.lua + local.lua only. ui.lua is a settings edit,
+    -- so it stays out of the baseline that `capture` diffs against.
+    local compiled = root
+
+    local ui_file = ui_path(config)
+    local used_ui = false
+    if exists(ui_file) then
+        local ui_cfg, uerr = load_table(ui_file)
+        if not ui_cfg then
+            fail(uerr)
+        end
+        check_schema(ui_cfg, ui_file)
+        root = deep_merge(root, ui_cfg)
+        used_ui = true
+    end
+
+    -- What the Lua sources produce is `compiled`; the file the shell may have
+    -- edited is `out`. Keep the UI's changes unless --no-merge. --print and
+    -- --check show the Lua sources alone, so a diff of the printed JSON stays
+    -- honest.
+    if not opts.no_merge and not opts.check and not opts.print then
+        local current = read_json(out)
+        if current then
+            local base = read_json(out .. ".base") or current
+            root = carry(base, current, root)
+        end
+    end
+
+    local sources = {}
+    if used_overlay then
+        sources[#sources + 1] = "local.lua"
+    end
+    if used_ui then
+        sources[#sources + 1] = "ui.lua"
+    end
+    local suffix = #sources > 0 and (" (+ " .. table.concat(sources, ", ") .. ")") or ""
+
+    local ok, json = pcall(encode, root)
+    if not ok then
+        fail(config .. ": " .. tostring(json))
+    end
+
+    if opts.check then
+        if not opts.quiet then
+            io.write(("ok: %s%s\n"):format(config, suffix))
+        end
+        return
+    end
+
+    if opts.print then
+        io.write(json)
+        return
+    end
+
+    local dir = dirname(out)
+    os.execute("mkdir -p -- " .. quote(dir) .. " 2>/dev/null")
+
+    local tmp = out .. ".tmp"
+    local f, werr = io.open(tmp, "wb")
+    if not f then
+        fail(("cannot write %s: %s"):format(tmp, tostring(werr)))
+    end
+    f:write(json)
+    f:close()
+
+    local renamed, rerr = os.rename(tmp, out)
+    if not renamed then
+        os.remove(tmp)
+        fail(("cannot replace %s: %s"):format(out, tostring(rerr)))
+    end
+
+    -- The baseline is what init.lua alone produced; next time, the difference
+    -- between it and the file on disk is the settings UI's doing.
+    local base_json = encode(compiled)
+    local btmp = out .. ".base.tmp"
+    local bf = io.open(btmp, "wb")
+    if bf then
+        bf:write(base_json)
+        bf:close()
+        if not os.rename(btmp, out .. ".base") then
+            os.remove(btmp)
+        end
+    end
+
+    if not opts.quiet then
+        io.write(("compiled %s%s -> %s (%d bytes)\n"):format(
+            config,
+            suffix,
+            out,
+            #json
+        ))
+    end
+end
+
+main(arg)

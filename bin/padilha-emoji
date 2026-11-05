@@ -1,1 +1,49 @@
-lilith-emoji
+#!/bin/sh
+# Emoji and glyph picker over the data file this repo ships; no network and no
+# runtime beyond fuzzel and wl-copy.
+#
+#   padilha-emoji        print every line (the searchable data)
+#   padilha-emoji -p     pick one and copy its glyph
+set -u
+
+# Resolve next to the script, so a git checkout and an installed bin/ share
+# the same ../share/emojis.txt.
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+script_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || exit 1
+data=$script_dir/../share/emojis.txt
+
+usage() {
+    printf 'usage: %s [-p]\n' "${0##*/}"
+}
+
+picker=
+while [ $# -gt 0 ]; do
+    case $1 in
+        -p|--picker) picker=1 ;;
+        -f|--fetch)
+            printf '%s: fetching is not supported; update share/emojis.txt by hand\n' "${0##*/}" >&2
+            exit 2
+            ;;
+        -h|--help) usage; exit 0 ;;
+        *)
+            printf '%s: unknown option: %s\n' "${0##*/}" "$1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+[ -r "$data" ] || { printf '%s: cannot read %s\n' "${0##*/}" "$data" >&2; exit 1; }
+
+if [ -z "$picker" ]; then
+    cat "$data"
+    exit 0
+fi
+
+# Escape cancels fuzzel with a non-zero status: nothing to copy, not an error.
+chosen=$(fuzzel --dmenu --placeholder='Type to search emojis' < "$data") || exit 0
+[ -n "$chosen" ] || exit 0
+
+# The first field is the glyph; the rest is search text for fuzzel.
+printf '%s' "${chosen%%[[:space:]]*}" | wl-copy

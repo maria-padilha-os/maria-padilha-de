@@ -1,18 +1,18 @@
-# Maintainer: Lilith <lilith@localhost>
+# Maintainer: Maria Padilha <maria-padilha@localhost>
 #
-# Lilith is developed in place, with the packaging directory inside the
+# Maria Padilha is developed in place, with the packaging directory inside the
 # checkout. The source here is the release tarball exported by tools/release.sh,
 # which is why there is a local source and no URL yet.
-pkgname=lilith
+pkgname=maria-padilha
 pkgver=0.1.1
 pkgrel=1
-pkgdesc="Desktop Lilith: a Wayland desktop on Hyprland and Quickshell"
+pkgdesc="Desktop Maria Padilha: a Wayland desktop on Hyprland and Quickshell"
 arch=('x86_64')
-url="https://github.com/Mateus-M-Reis/lilith"
+url="https://github.com/maria-padilha-os/maria-padilha-de"
 license=('GPL-3.0-only')
-# The desktop shipped as `padilha` before the rename; this package replaces it.
-conflicts=('padilha')
-provides=('padilha')
+# The desktop shipped as `lilith` before this rename; this package replaces it.
+conflicts=('lilith')
+provides=('lilith')
 depends=(
     'quickshell'
     'qt6-base'
@@ -57,8 +57,9 @@ optdepends=(
 options=('!strip')  # the shell is a QML tree; stripping breaks nothing but helps nothing
 
 # Built from the release tarball, not from the checkout: tools/release.sh
-# exports HEAD into packaging/lilith-$pkgver.tar.gz. The source is generated
-# next to the recipe, so a checksum of it would only check our own output.
+# exports HEAD into packaging/maria-padilha-$pkgver.tar.gz. The source is
+# generated next to the recipe, so a checksum of it would only check our own
+# output.
 source=("$pkgname-$pkgver.tar.gz")
 sha256sums=('SKIP')
 
@@ -84,22 +85,26 @@ package() {
 
     # The commands keep their relative layout (bin/lib/share) because they
     # resolve their data next to themselves; /usr/bin only carries links.
-    install -d "$pkgdir/usr/lib/lilith"
-    cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/lilith/"
-    chmod 755 "$pkgdir/usr/lib/lilith/bin/"*
-    install -Dm 644 KEYBINDS.md "$pkgdir/usr/lib/lilith/share/KEYBINDS.md"
+    install -d "$pkgdir/usr/lib/maria-padilha"
+    cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/maria-padilha/"
+    chmod 755 "$pkgdir/usr/lib/maria-padilha/bin/"*
+    install -Dm 644 KEYBINDS.md "$pkgdir/usr/lib/maria-padilha/share/KEYBINDS.md"
     if [ -d extensions ]; then
-        cp -R extensions "$pkgdir/usr/lib/lilith/share/"
+        cp -R extensions "$pkgdir/usr/lib/maria-padilha/share/"
     fi
 
     install -d "$pkgdir/usr/bin"
-    for cmd in lilith lilith-brightness lilith-config lilith-session lilith-shell-watch lilith-theme lilith-daylight \
-        lilith-reload lilith-shot lilith-record lilith-clipboard lilith-emoji; do
-        ln -s "/usr/lib/lilith/bin/$cmd" "$pkgdir/usr/bin/$cmd"
+    commands=(padilha padilha-brightness padilha-config padilha-session padilha-shell-watch padilha-theme \
+        padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji)
+    for cmd in "${commands[@]}"; do
+        ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
+        # Compatibility: the old command names point at the same files.
+        ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/lilith${cmd#padilha}"
     done
 
-    # A session entry: the desktop's own entry point, so the greeter lists Lilith.
-    install -Dm 644 session/lilith.desktop "$pkgdir/usr/share/wayland-sessions/lilith.desktop"
+    # A session entry: the desktop's own entry point, so the greeter lists
+    # Maria Padilha.
+    install -Dm 644 session/maria-padilha.desktop "$pkgdir/usr/share/wayland-sessions/maria-padilha.desktop"
 
     # Optional systemd user units; they are inert until the user enables them.
     # They call the installed commands in /usr/bin, so they install verbatim.

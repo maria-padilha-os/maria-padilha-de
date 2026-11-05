@@ -1,8 +1,8 @@
-title: Lilith
+title: Maria Padilha
 description: A Wayland desktop environment on Hyprland and Quickshell
 theme: minima
-baseurl: "/lilith"
-url: "https://mateus-m-reis.github.io"
+baseurl: "/maria-padilha-de"
+url: "https://maria-padilha-os.github.io"
 header_pages:
   - install.md
   - desktop.md

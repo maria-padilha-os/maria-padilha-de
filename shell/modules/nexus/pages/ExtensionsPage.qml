@@ -80,7 +80,7 @@ PageBase {
             Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.large
             visible: !Extensions.loading && Extensions.list.length === 0
-            text: Tr.tr("No extensions installed. An extension is a folder under ~/.config/lilith/extensions with an extension.json manifest and a Tab.qml tab.")
+            text: Tr.tr("No extensions installed. An extension is a folder under ~/.config/padilha/extensions with an extension.json manifest and a Tab.qml tab.")
             color: Colours.palette.m3onSurfaceVariant
             font: Tokens.font.body.small
             wrapMode: Text.WordWrap

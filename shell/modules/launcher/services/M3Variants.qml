@@ -80,7 +80,7 @@ Searcher {
 
         function onClicked(list: AppList): void {
             list.screenState.launcher = false;
-            Quickshell.execDetached(["lilith", "scheme", "set", "--variant", variant]);
+            Quickshell.execDetached(["padilha", "scheme", "set", "--variant", variant]);
         }
     }
 }

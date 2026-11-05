@@ -174,7 +174,7 @@ local function profile_from_ini(root, prefix)
 end
 
 local function firefox_profile(prefix)
-    local override = os.getenv("LILITH_FIREFOX_PROFILE_DIR")
+    local override = os.getenv("PADILHA_FIREFOX_PROFILE_DIR") or os.getenv("LILITH_FIREFOX_PROFILE_DIR")
     if override and override ~= "" then
         local dir = prefixed(prefix, override)
         if is_dir(dir) then
@@ -223,7 +223,7 @@ M.apps = {
         hash = true, enabled = "enableQt" },
     { id = "qt-engine", base = "config", dest = "qtengine/config.json", template = "qtengine.json",
         enabled = "enableQt" },
-    { id = "micro", base = "config", dest = "micro/colorschemes/lilith.micro", template = "micro.micro",
+    { id = "micro", base = "config", dest = "micro/colorschemes/padilha.micro", template = "micro.micro",
         hash = true, enabled = "enableMicro" },
 }
 
@@ -371,7 +371,7 @@ function M.apply(scheme, opts)
         local template = read_template("discord.scss")
         if template then
             local stamp = tostring(os.time()) .. "-" .. tostring(math.random(100000))
-            local tmp = (os.getenv("TMPDIR") or "/tmp") .. "/lilith-scss-" .. stamp
+            local tmp = (os.getenv("TMPDIR") or "/tmp") .. "/padilha-scss-" .. stamp
             os.execute("mkdir -p " .. quote(tmp))
 
             local vars = {}
@@ -438,6 +438,10 @@ function M.apply(scheme, opts)
                 if not good then
                     errors[#errors + 1] = "firefox: " .. tostring(rendered)
                 else
+                    -- Compatibility path: the dotfiles repository's
+                    -- firefox/chrome/userChrome.css imports chrome/lilith.css
+                    -- and is not ours to rename. The palette inside is Maria
+                    -- Padilha's.
                     local dest = profile .. "/chrome/lilith.css"
                     local wrote, write_err = M.write(dest, rendered)
                     if wrote then

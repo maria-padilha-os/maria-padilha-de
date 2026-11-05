@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — rebranded to Maria Padilha
+
+- Rebranded the product from Lilith to **Maria Padilha**. Commands are
+  `padilha-*` (plain `padilha`; `lilith-*` remains as a compatibility alias),
+  the package is `maria-padilha`, the install tree is `/usr/lib/maria-padilha`,
+  the session entry is **Maria Padilha**, and user config/state live in
+  `~/.config/padilha` and `~/.local/state/padilha`. `PADILHA_CONFIG` is the
+  primary environment variable; `LILITH_CONFIG` remains the fallback.
+- Repositories are now `maria-padilha-os/maria-padilha-de` and
+  `maria-padilha-os/maria-padilha-dotfiles`; the docs site uses
+  `baseurl: /maria-padilha-de`. The Quickshell id and
+  `~/.local/state/caelestia` are unchanged.
+
 ## 0.1.1 — unreleased; deployment on hold
 
 This is the preparation state described in `DEPLOY.md`. No package, Pages site,

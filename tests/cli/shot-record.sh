@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Contract tests for lilith-shot and lilith-record. Neither needs a live
+# Contract tests for padilha-shot and padilha-record. Neither needs a live
 # session: --dry-run prints the exact commands they would execute.
 
 set -uo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
-shot="$root/bin/lilith-shot"
-record="$root/bin/lilith-record"
+shot="$root/bin/padilha-shot"
+record="$root/bin/padilha-record"
 
 pass=0
 fail=0

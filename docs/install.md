@@ -3,24 +3,24 @@ layout: default
 title: Install
 ---
 
-# Install Lilith
+# Install Maria Padilha
 
-Lilith is packaged for Arch Linux and Arch-based distributions (Manjaro is the
+Maria Padilha is packaged for Arch Linux and Arch-based distributions (Manjaro is the
 tested one). It must run on a machine where Hyprland already works.
 
 ## Full desktop
 
 ```sh
-mkdir -p ~/Códigos/lilith
-git clone https://github.com/Mateus-M-Reis/lilith.git \
-    ~/Códigos/lilith/lilith-de
-cd ~/Códigos/lilith/lilith-de
+mkdir -p ~/Códigos
+git clone https://github.com/maria-padilha-os/maria-padilha-de.git \
+    ~/Códigos/maria-padilha-de
+cd ~/Códigos/maria-padilha-de
 
 ./install.sh --dry-run --full
 ./install.sh --full
 ```
 
-Then reboot or log out and choose **Lilith** in the display manager's session
+Then reboot or log out and choose **Maria Padilha** in the display manager's session
 menu.
 
 ## Rice only
@@ -40,14 +40,14 @@ entry or systemd units. Log back into your existing Hyprland session.
 - Builds the shell with CMake and Ninja.
 - Installs the shell and commands under `/usr`, and (for `--full`) the session
   entry under `/usr/share/wayland-sessions`.
-- Fetches the dotfiles repository as `lilith-dotfiles` next to the desktop
+- Fetches the dotfiles repository as `maria-padilha-dotfiles` next to the desktop
   checkout if needed, then links
   `~/.config/hypr` (both profiles) and `~/.config/nvim`, `~/.config/wezterm`
   (full). Existing real directories are backed up as
-  `~/.config/<name>.pre-lilith-<timestamp>`.
+  `~/.config/<name>.pre-padilha-<timestamp>`.
 
 Use `--no-dotfiles` to leave `~/.config` alone, or `--dry-run` to see every
 command first.
 
 The complete guide, including uninstall and troubleshooting, is
-[INSTALL.md](https://github.com/Mateus-M-Reis/lilith/blob/main/INSTALL.md).
+[INSTALL.md](https://github.com/maria-padilha-os/maria-padilha-de/blob/main/INSTALL.md).

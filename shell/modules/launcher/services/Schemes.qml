@@ -40,7 +40,7 @@ Searcher {
         id: getSchemes
 
         running: true
-        command: ["lilith", "scheme", "list"]
+        command: ["padilha", "scheme", "list"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const schemeData = JSON.parse(text);
@@ -57,7 +57,7 @@ Searcher {
         id: getCurrent
 
         running: true
-        command: ["lilith", "scheme", "get"]
+        command: ["padilha", "scheme", "get"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const variant = text.trim();
@@ -75,7 +75,7 @@ Searcher {
 
         function onClicked(list: AppList): void {
             list.screenState.launcher = false;
-            Quickshell.execDetached(["lilith", "scheme", "set", "--variant", name]);
+            Quickshell.execDetached(["padilha", "scheme", "set", "--variant", name]);
         }
     }
 }

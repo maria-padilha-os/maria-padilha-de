@@ -126,7 +126,7 @@ PageBase {
 
             command: [
                 "sh", "-c",
-                `cat "$1" 2>/dev/null || cat /usr/lib/lilith/share/KEYBINDS.md 2>/dev/null`,
+                `cat "$1" 2>/dev/null || cat /usr/lib/maria-padilha/share/KEYBINDS.md 2>/dev/null || cat /usr/lib/lilith/share/KEYBINDS.md 2>/dev/null`,
                 "sh", `${Quickshell.shellDir}/../KEYBINDS.md`
             ]
 

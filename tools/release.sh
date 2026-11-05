@@ -32,9 +32,9 @@ echo "release: head is $describe, version $version"
 }
 echo "release: tests pass"
 
-tarball="packaging/lilith-$version.tar.gz"
+tarball="packaging/maria-padilha-$version.tar.gz"
 # The recipe and the tarball must not contain each other.
-git archive --format=tar.gz --prefix="lilith-$version/" \
+git archive --format=tar.gz --prefix="maria-padilha-$version/" \
     -o "$tarball" HEAD -- . ':(exclude)packaging'
 echo "release: wrote $tarball ($(du -h "$tarball" | cut -f1))"
 
@@ -46,4 +46,4 @@ cd packaging
 makepkg -f --nocheck
 echo
 echo "release: package built. Install it with:"
-echo "    sudo pacman -U $root/packaging/lilith-$version-1-x86_64.pkg.tar.zst"
+echo "    sudo pacman -U $root/packaging/maria-padilha-$version-1-x86_64.pkg.tar.zst"

@@ -1,48 +1,49 @@
-# Lilith development notes
+# Maria Padilha development notes
 
-Snapshot: 2026-11-04, after the dotfiles split, the first repo-owner agents, and
-the Padilha -> Lilith rebrand. This is the internal working record; user-facing
+Snapshot: 2026-11-05, after the dotfiles split, the first repo-owner agents, and
+the rebrand back to Maria Padilha. This is the internal working record; user-facing
 docs are in `README.md`, `INSTALL.md`, `docs/`, and `KEYBINDS.md`.
 
 ## Repositories
 
 | path | remote | role | owner |
 | --- | --- | --- | --- |
-| `~/Códigos/lilith/lilith-de` | `Mateus-M-Reis/lilith` | shell, session, theme engine, installer, package | agent `3a98b400…` |
-| `~/Códigos/lilith/lilith-dotfiles` | `Mateus-M-Reis/lilith-dotfiles` | Hyprland, nvim, wezterm configs (the rice) | agent `2aec77cd…` |
-| `~/Códigos/lilith` | not a git repo | org root, `README.md`, `bootstrap.sh` | coordinator |
-| `lilith-os` | not created | archiso/Calamares image | future |
+| `maria-padilha-de/` | `maria-padilha-os/maria-padilha-de` | shell, session, theme engine, installer, package | agent `3a98b400…` |
+| `maria-padilha-dotfiles/` | `maria-padilha-os/maria-padilha-dotfiles` | Hyprland, nvim, wezterm configs (the rice) | agent `2aec77cd…` |
+| workspace root | not a git repo | `README.md`, `bootstrap.sh` | coordinator |
+| `maria-padilha-os/` | not created | archiso/Calamares image | future |
 
-Both repositories are private at the moment. The org root is intentional: it
+Both repositories are private at the moment. The workspace root is intentional: it
 is not a repository and does not use submodules. `bootstrap.sh` clones the
 siblings; the desktop installer fetches the dotfiles repository as
-`lilith-dotfiles` next to itself when it is missing.
+`maria-padilha-dotfiles` next to itself when it is missing.
 
 ## Decisions made
 
 - **One documentation site, not one Pages site per repository.** The Jekyll
-  source is `lilith-de/docs/`; it has sections for desktop, dotfiles, and
-  (later) OS. `baseurl` is `/padilha`. Per-project Pages would duplicate
+  source is `maria-padilha-de/docs/`; it has sections for desktop, dotfiles, and
+  (later) OS. `baseurl` is `/maria-padilha-de`. Per-project Pages would duplicate
   navigation and split search.
 - **Two install profiles.** `./install.sh --full` installs the desktop session
   and all dotfiles; `--rice` installs the shell, commands, and Hyprland config
   only. Existing real config directories are backed up as
-  `~/.config/<name>.pre-lilith-<timestamp>`.
-- **Dotfiles are a separate repository.** `lilith-de` no longer carries the
-  configs; it fetches the dotfiles repository as `lilith-dotfiles` next to
-  itself or uses `LILITH_DOTFILES` (`PADILHA_DOTFILES` is still accepted).
-- **The dotfiles linker moved** to `lilith-dotfiles/bin/lilith-dots` (it was
-  `bin/padilha-dots` in `lilith-de`).
+  `~/.config/<name>.pre-padilha-<timestamp>`.
+- **Dotfiles are a separate repository.** `maria-padilha-de` no longer carries the
+  configs; it fetches the dotfiles repository as `maria-padilha-dotfiles` next to
+  itself or uses `PADILHA_DOTFILES` (`LILITH_DOTFILES` is still accepted).
+- **The dotfiles linker lives** at
+  `maria-padilha-dotfiles/bin/padilha-dots`.
 - **Brand rename.** The product, commands, package, session entry, install
-  tree, user config, and user state are now Lilith: `lilith-*` commands (plain
-  `lilith`), the `lilith` package, `/usr/lib/lilith`, **Lilith** at the
-  greeter, `~/.config/lilith`, and `~/.local/state/lilith`. The old `padilha-*`
-  commands remain as temporary compatibility aliases. The workspace and
-  checkouts are `lilith`, `lilith-de`, and `lilith-dotfiles`; the GitHub
-  repositories are still `padilha`/`padilha-dotfiles`, and the Quickshell id
-  stays `caelestia`. The installer looks for `../lilith-dotfiles`;
-  `LILITH_DOTFILES` overrides it.
-- **Donations, not paywalls or ads.** Lilith stays GPL-3.0-only. The GitHub
+  tree, user config, and user state are Maria Padilha: `padilha-*` commands (plain
+  `padilha`), the `maria-padilha` package, `/usr/lib/maria-padilha`,
+  **Maria Padilha** at the greeter, `~/.config/padilha`, and
+  `~/.local/state/padilha`. The old `lilith-*` commands remain as compatibility
+  aliases, `PADILHA_CONFIG` is primary with `LILITH_CONFIG` as the fallback, and
+  the GitHub repositories are `maria-padilha-os/maria-padilha-de` and
+  `maria-padilha-os/maria-padilha-dotfiles`. The Quickshell id stays
+  `caelestia`. The installer looks for `../maria-padilha-dotfiles`;
+  `PADILHA_DOTFILES` overrides it, with `LILITH_DOTFILES` accepted as a fallback.
+- **Donations, not paywalls or ads.** Maria Padilha stays GPL-3.0-only. The GitHub
   Sponsor button is configured through `.github/FUNDING.yml`; Ko-fi,
   Liberapay, Open Collective, or Pix can be added to the same file. GitHub
   Sponsors enrollment is still pending.
@@ -79,8 +80,8 @@ siblings; the desktop installer fetches the dotfiles repository as
   regenerated from the current scheme without recomputing the palette. Semantic
   blocks (selection, error, diff, focus accents) stay opaque for contrast.
   Restart MC to load it. The static MC files (`ini`, `mc.keymap`, `mc.ext.ini`)
-  live in `lilith-dotfiles/mc/` and are linked file by file; the skin stays
-  generated in `lilith-de`.
+  live in `maria-padilha-dotfiles/mc/` and are linked file by file; the skin stays
+  generated in `maria-padilha-de`.
 - Promo-window scheduler prototype at `tools/promo-agents`: config-driven
   windows, one headless `dsh` at a time chosen round-robin across repos, git
   worktrees, stop margin, tests,
@@ -95,7 +96,7 @@ siblings; the desktop installer fetches the dotfiles repository as
   collide within the same second. New `tests/cli/promo-agents.sh` (23 checks)
   is part of `tests/all.sh`.
 - The black desktop was the stale wallpaper path left by the org move; it is
-  repaired to `lilith-de/share/wallpapers/day.jpg`. NvimTree had no
+  repaired to `maria-padilha-de/share/wallpapers/day.jpg`. NvimTree had no
   `NvimTree*` groups in the caelestia colorscheme, so its window stayed on
   base46's dark group; it now follows the light surface and will follow
   `Normal` at night.
@@ -106,7 +107,7 @@ siblings; the desktop installer fetches the dotfiles repository as
    runs, package build, docs preview, clean-VM install, rollback. Do not execute
    the deployment steps yet.
 2. **Configure and enable the promo scheduler.** Copy
-   `tools/promo-agents.example.toml` to `~/.config/lilith/agents.toml`, fill in
+   `tools/promo-agents.example.toml` to `~/.config/padilha/agents.toml`, fill in
    the verified DeepSeek windows/timezone and cost cap, create queue tasks, and
    install the timer. The schedule in the example is a placeholder; do not
    enable this before deployment readiness either.
@@ -115,17 +116,17 @@ siblings; the desktop installer fetches the dotfiles repository as
    mirror. The site is one site, not per project.
 4. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
-5. **`padilha-os`.** Not started; it should be an archiso/Calamares repository
-   that consumes the tagged `padilha-de`/`padilha-dotfiles` packages.
+5. **`maria-padilha-os`.** Not started; it should be an archiso/Calamares repository
+   that consumes the tagged `maria-padilha-de`/`maria-padilha-dotfiles` packages.
 
 ## Agent ownership and coordination
 
 The intended shape is one long-lived owner per repository:
 
-- `padilha-de` owner: shell, session, theme engine, installer, package, docs;
-- `padilha-dotfiles` owner: Hyprland, nvim, wezterm;
-- `padilha-os` owner: image/installer, once the repository exists;
-- docs are currently part of `padilha-de`; if they grow, split `padilha-docs`;
+- `maria-padilha-de` owner: shell, session, theme engine, installer, package, docs;
+- `maria-padilha-dotfiles` owner: Hyprland, nvim, wezterm;
+- `maria-padilha-os` owner: image/installer, once the repository exists;
+- docs are currently part of `maria-padilha-de`; if they grow, split `maria-padilha-docs`;
 - coordinator (main session): cross-repo decisions, version pins, reviews,
   merges, funding, and scheduling.
 
@@ -140,10 +141,10 @@ Rules for repo owners:
 
 ## Safety while developing live
 
-- `bin/lilith-shell-watch` is running and is autostarted from `execs.lua`. It
+- `bin/padilha-shell-watch` is running and is autostarted from `execs.lua`. It
   checks Quickshell every 10 seconds, restarts it after a crash with a bounded
-  backoff, and logs to `~/.local/state/lilith/shell-watch.log`. A
-  `lilith-reload` marker keeps it from racing a deliberate reload.
+  backoff, and logs to `~/.local/state/padilha/shell-watch.log`. A
+  `padilha-reload` marker keeps it from racing a deliberate reload.
 - The idle lock is disabled: `hypridle` now only powers the panel down after
   five minutes. The shell lock screen crashed Quickshell on 2026-11-04 (PAM
   subprocess exited and the shell process disappeared), so do not restore
@@ -151,7 +152,7 @@ Rules for repo owners:
   requests the shell lock; the watchdog will recover the shell if it crashes.
 - Before changing a live QML/config file: commit it, keep a backup, and prefer
   editing the repository through the symlink. If the UI disappears, run
-  `bin/lilith-session` from a TTY or ask Hyprland to execute it; the watchdog
+  `bin/padilha-session` from a TTY or ask Hyprland to execute it; the watchdog
   should already be doing this.
 - Keep a known-good tag in both repositories before risky changes:
   `git tag known-good-<date>` (the current one is `known-good-2026-11-04`).
@@ -171,7 +172,7 @@ pricing and windows change.
 
 Components:
 
-1. **Window config** (`~/.config/lilith/agents.toml`, local, not committed):
+1. **Window config** (`~/.config/padilha/agents.toml`, local, not committed):
    - timezone and discount windows (start/end);
    - stop margin (20–30 minutes);
    - repositories and their queue directories;
@@ -221,5 +222,5 @@ Only after that should the coordinator agent auto-review/merge.
    the funding links.
 4. Enable the promo scheduler on one repository with a verified window and a
    cost cap; keep `max_rounds_per_window` bounded for the first windows.
-5. Create `padilha-os` only after the desktop/dotfiles packages have tagged
+5. Create `maria-padilha-os` only after the desktop/dotfiles packages have tagged
    releases.

@@ -16,7 +16,7 @@ PageBase {
     readonly property int panelTabCount: Extensions.tabs.length
 
     property string quickshellVersion
-    property string lilithVersion
+    property string padilhaVersion
 
     title: Tr.tr("About")
 
@@ -35,12 +35,12 @@ PageBase {
             }
         }
 
-        // The desktop's own version: the checkout first, the packaged copy next.
+        // The desktop's own version: current locations first, pre-rename copies last.
         Process {
             running: true
-            command: ["sh", "-c", "cat \"$HOME/.config/lilith/share/version\" 2>/dev/null || cat /usr/lib/lilith/share/version 2>/dev/null"]
+            command: ["sh", "-c", "cat \"$HOME/.config/padilha/share/version\" 2>/dev/null || cat /usr/lib/maria-padilha/share/version 2>/dev/null || cat \"$HOME/.config/lilith/share/version\" 2>/dev/null || cat /usr/lib/lilith/share/version 2>/dev/null"]
             stdout: StdioCollector {
-                onStreamFinished: root.lilithVersion = text.trim()
+                onStreamFinished: root.padilhaVersion = text.trim()
             }
         }
 
@@ -67,13 +67,13 @@ PageBase {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.topMargin: Tokens.spacing.small
-                    text: "Padilha"
+                    text: "Maria Padilha"
                     font: Tokens.font.headline.builders.large.width(110).build()
                 }
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.lilithVersion ? `v${root.lilithVersion}` : "…"
+                    text: root.padilhaVersion ? `v${root.padilhaVersion}` : "…"
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
                 }
