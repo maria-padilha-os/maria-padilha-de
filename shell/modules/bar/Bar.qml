@@ -113,7 +113,14 @@ ColumnLayout {
         id: repeater
 
         model: ScriptModel {
-            values: root.Config.bar.entries.values.filter(e => e.enabled)
+            values: {
+                const entries = root.Config.bar.entries.values.filter(e => e.enabled).slice();
+                const powerIndex = entries.findIndex(e => e.id === "power");
+                // Settings sits directly above the power button (or last if the
+                // power entry is disabled).
+                entries.splice(powerIndex === -1 ? entries.length : powerIndex, 0, { id: "settings" });
+                return entries;
+            }
         }
 
         DelegateChooser {
@@ -174,6 +181,14 @@ ColumnLayout {
                 delegate: EntryWrapper {
                     StatusIcons {
                         objectName: "taskbarStatusIcons"
+                    }
+                }
+            }
+            DelegateChoice {
+                roleValue: "settings"
+                delegate: EntryWrapper {
+                    Settings {
+                        objectName: "taskbarSettingsButton"
                     }
                 }
             }
