@@ -111,7 +111,12 @@ QtObject {
             }
         },
         Component {
-            PlaceholderComp {}
+            // Plugins
+            StackPage {
+                Component {
+                    PluginsPage {}
+                }
+            }
         },
 
         // Shell
