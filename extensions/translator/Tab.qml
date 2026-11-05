@@ -14,6 +14,7 @@ Item {
     Widget {
         anchors.fill: parent
         api: root.api
+        active: root.active
         compact: true
     }
 }

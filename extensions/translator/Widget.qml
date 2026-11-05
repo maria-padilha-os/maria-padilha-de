@@ -14,6 +14,7 @@ Item {
 
     property var api
     property bool compact: false
+    property bool active: true
 
     readonly property var themePalette: root.api && root.api.colours ? root.api.colours.palette : null
 
@@ -75,7 +76,22 @@ Item {
     property alias sourceText: sourcePanel.text
     property alias resultText: resultPanel.text
 
-    Component.onCompleted: sourcePanel.focusEditor()
+    Component.onCompleted: {
+        sourcePanel.focusEditor();
+        if (root.active)
+            root.pasteFromClipboard();
+    }
+
+    onActiveChanged: {
+        if (root.active)
+            root.pasteFromClipboard();
+    }
+
+    function pasteFromClipboard(): void {
+        if (root.busy || root.sourceText.trim().length > 0)
+            return;
+        pasteProc.running = true;
+    }
 
     function copyResult() {
         if (root.resultText.length === 0)
@@ -434,6 +450,38 @@ Item {
         id: copyProc
 
         onExited: root.setStatus(Tr.tr("Copied to clipboard."), false)
+    }
+
+    // When the tab is opened (for example with Super+Alt+T) and the source is
+    // still empty, take the clipboard text. 500 characters is MyMemory's cap.
+    Process {
+        id: pasteProc
+
+        command: ["timeout", "2", "wl-paste", "--no-newline"]
+        stdout: StdioCollector {
+            id: pasteOut
+        }
+        stderr: StdioCollector {
+            id: pasteErr
+        }
+
+        onExited: (exitCode) => {
+            if (exitCode !== 0 || root.sourceText.trim().length > 0)
+                return;
+
+            let text = pasteOut.text.replace(/\r?\n$/, "");
+            if (text.trim().length === 0)
+                return;
+
+            if (text.length > 500) {
+                text = text.slice(0, 500);
+                root.setStatus(Tr.tr("Pasted from the clipboard (truncated to 500 characters)."), false);
+            } else {
+                root.setStatus(Tr.tr("Pasted from the clipboard."), false);
+            }
+            root.sourceText = text;
+            sourcePanel.focusEditor();
+        }
     }
 
     // Editable/read-only text box with a palette-coloured border and a thin

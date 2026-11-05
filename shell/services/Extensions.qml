@@ -40,6 +40,19 @@ Singleton {
         GlobalConfig.dashboard.extensionTabs = current;
     }
 
+    // Absolute index of an extension tab in the dashboard tab bar (built-ins
+    // that are enabled first, then enabled extensions in sorted order).
+    function tabIndex(id: string): int {
+        const builtins = [
+            GlobalConfig.dashboard.showDashboard,
+            GlobalConfig.dashboard.showMedia,
+            GlobalConfig.dashboard.showPerformance,
+            GlobalConfig.dashboard.showWeather
+        ].filter(Boolean).length;
+        const index = root.tabs.findIndex(ext => ext.id === id);
+        return index < 0 ? -1 : builtins + index;
+    }
+
     function refresh(): void {
         loading = true;
         scanProc.running = true;

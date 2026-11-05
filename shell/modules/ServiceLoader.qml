@@ -12,6 +12,7 @@ Scope {
         Notifs;
         Players;
         Brightness;
+        Extensions;
         Weather.reload();
 
         if (GlobalConfig.utilities.vpn.enabled)

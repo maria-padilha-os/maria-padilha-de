@@ -16,6 +16,47 @@ Scope {
     // Open the dashboard directly on `tab`; pressing the same shortcut again
     // closes it. The index is built from the enabled tabs only, matching the
     // order in the dashboard's tab bar (Content.qml).
+    // Open the dashboard directly on an extension tab; pressing the same
+    // shortcut again closes it. Enables the tab first if needed.
+    property string pendingExtensionId: ""
+
+    Timer {
+        id: extensionRetry
+
+        interval: 400
+        onTriggered: {
+            if (root.pendingExtensionId.length > 0)
+                root.openExtension(root.pendingExtensionId);
+        }
+    }
+
+    function openExtension(extensionId: string): void {
+        if (root.hasFullscreen)
+            return;
+        let index = Extensions.tabIndex(extensionId);
+        if (index < 0) {
+            // The scan may still be in flight on a fresh shell.
+            if (Extensions.list.length === 0) {
+                root.pendingExtensionId = extensionId;
+                Extensions.refresh();
+                extensionRetry.restart();
+                return;
+            }
+            Extensions.setTabEnabled(extensionId, true);
+            index = Extensions.tabIndex(extensionId);
+        }
+        root.pendingExtensionId = "";
+        if (index < 0)
+            return;
+        const screenState = ShellState.forActive();
+        if (screenState.dashboard && screenState.dashboardTab === index) {
+            screenState.dashboard = false;
+            return;
+        }
+        screenState.dashboardTab = index;
+        screenState.dashboard = true;
+    }
+
     function openDashboard(tab: string): void {
         if (root.hasFullscreen)
             return;
@@ -123,6 +164,38 @@ Scope {
         name: "dashboardWeather"
         description: "Open dashboard on the weather tab"
         onPressed: root.openDashboard("weather")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionTranslator"
+        description: "Open dashboard on the translator tab"
+        onPressed: root.openExtension("translator")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionCalculator"
+        description: "Open dashboard on the calculator tab"
+        onPressed: root.openExtension("calculator")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionMaps"
+        description: "Open dashboard on the maps tab"
+        onPressed: root.openExtension("maps")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionTuner"
+        description: "Open dashboard on the guitar tuner tab"
+        onPressed: root.openExtension("tuner")
     }
 
     // qmllint disable unresolved-type
