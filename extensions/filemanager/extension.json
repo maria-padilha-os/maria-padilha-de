@@ -1,0 +1,8 @@
+{
+    "name": "Files",
+    "description": "Browse and open files",
+    "version": "1.0",
+    "icon": "folder",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + E"
+}
