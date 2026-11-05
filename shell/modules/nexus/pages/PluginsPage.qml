@@ -14,7 +14,12 @@ PageBase {
     id: root
 
     property var plugins: []
+    property var opened: null
     property bool loading: false
+
+    readonly property bool listVisible: opened === null
+
+    property alias loader: loader
 
     title: Tr.tr("Plugins")
 
@@ -35,10 +40,12 @@ PageBase {
             }
             result.push({
                 path: path,
+                directoryPath: path.replace(/\/plugin\.json$/, ""),
                 directory: path.split("/").slice(-2, -1)[0] ?? "",
                 name: manifest?.name ?? "",
                 description: manifest?.description ?? "",
                 version: manifest?.version ?? "",
+                entry: manifest?.entry ?? "Page.qml",
                 valid: manifest !== null
             });
         }
@@ -49,6 +56,7 @@ PageBase {
     function refresh(): void {
         loading = true;
         plugins = [];
+        opened = null;
         scanProc.running = true;
     }
 
@@ -64,14 +72,23 @@ PageBase {
             Layout.fillWidth: true
             spacing: Tokens.spacing.small
 
+            IconButton {
+                visible: !root.listVisible
+                icon: "arrow_back"
+                type: IconButton.Tonal
+                isRound: true
+                onClicked: root.opened = null
+            }
+
             StyledText {
                 Layout.fillWidth: true
-                text: root.loading ? Tr.tr("Looking for plugins…") : Tr.tr("%1 plugins").arg(root.plugins.length)
+                text: root.listVisible ? root.loading ? Tr.tr("Looking for plugins…") : Tr.tr("%1 plugins").arg(root.plugins.length) : root.opened?.name ?? ""
                 font: Tokens.font.body.medium
                 elide: Text.ElideRight
             }
 
             IconButton {
+                visible: root.listVisible
                 icon: "refresh"
                 type: IconButton.Tonal
                 isRound: true
@@ -81,32 +98,50 @@ PageBase {
         }
 
         SectionHeader {
-            visible: root.plugins.length > 0
+            visible: root.listVisible && root.plugins.length > 0
             text: Tr.tr("Installed")
         }
 
         Repeater {
-            model: root.plugins
+            model: root.listVisible ? root.plugins : []
 
-            delegate: InfoRow {
+            delegate: NavRow {
                 required property var modelData
                 required property int index
 
                 first: index === 0
                 last: index === root.plugins.length - 1
                 icon: "extension"
-                label: modelData.name || modelData.directory
+                text: modelData.name || modelData.directory
                 subtext: modelData.valid ? modelData.description : Tr.tr("plugin.json is not valid JSON")
-                value: modelData.version
+                onClicked: root.opened = modelData
             }
         }
 
         StyledText {
             Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.large
-            visible: !root.loading && root.plugins.length === 0
-            text: Tr.tr("No plugins installed. A plugin is a folder under ~/.config/lilith/plugins with a plugin.json manifest; loading them is not wired up yet.")
+            visible: root.listVisible && !root.loading && root.plugins.length === 0
+            text: Tr.tr("No plugins installed. A plugin is a folder under ~/.config/lilith/plugins with a plugin.json manifest and a QML entry file.")
             color: Colours.palette.m3onSurfaceVariant
+            font: Tokens.font.body.small
+            wrapMode: Text.WordWrap
+        }
+
+        Loader {
+            id: loader
+
+            visible: !root.listVisible
+            Layout.fillWidth: true
+            Layout.preferredHeight: 640
+            source: root.listVisible ? "" : `file://${root.opened.directoryPath}/${root.opened.entry}`
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            visible: !root.listVisible && loader.status === Loader.Error
+            text: Tr.tr("This plugin failed to load. Check its entry file: %1").arg(root.opened?.entry ?? "")
+            color: Colours.palette.m3error
             font: Tokens.font.body.small
             wrapMode: Text.WordWrap
         }
