@@ -86,6 +86,7 @@ Singleton {
                 description: manifest?.description ?? "",
                 version: manifest?.version ?? "",
                 icon: manifest?.icon ?? "extension",
+                shortcut: manifest?.shortcut ?? "",
                 tab: manifest?.tab ?? "",
                 tabUrl: manifest?.tab ? `file://${dirPath}/${manifest.tab}` : "",
                 valid: manifest !== null

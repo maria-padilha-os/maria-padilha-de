@@ -201,6 +201,14 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "extensionFiles"
+        description: "Open dashboard on the files tab"
+        onPressed: root.openExtension("filemanager")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "session"
         description: "Toggle session menu"
         onPressed: {

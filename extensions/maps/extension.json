@@ -3,5 +3,6 @@
     "description": "OpenStreetMap viewer and search",
     "version": "1.0",
     "icon": "map",
-    "tab": "Tab.qml"
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + O"
 }

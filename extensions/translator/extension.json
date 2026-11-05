@@ -3,5 +3,6 @@
     "description": "Translate text between languages",
     "version": "1.0",
     "icon": "translate",
-    "tab": "Tab.qml"
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + T"
 }

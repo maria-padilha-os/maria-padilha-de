@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import QtQuick.Templates
 import Quickshell
 import Caelestia.Config
@@ -51,6 +52,10 @@ Item {
 
                 iconName: modelData.iconName
                 text: modelData.text
+
+                ToolTip.visible: hovered
+                ToolTip.text: modelData.tooltip ?? ""
+                ToolTip.delay: 450
             }
         }
     }

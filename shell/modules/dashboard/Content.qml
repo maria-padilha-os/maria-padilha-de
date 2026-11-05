@@ -23,24 +23,28 @@ Item {
                 component: dashComponent,
                 iconName: "dashboard",
                 text: Tr.tr("Dashboard"),
+                tooltip: Tr.tr("Dashboard") + " (Super + Alt + D)",
                 enabled: Config.dashboard.showDashboard
             },
             {
                 component: mediaComponent,
                 iconName: "queue_music",
                 text: Tr.tr("Media"),
+                tooltip: Tr.tr("Media") + " (Super + Alt + M)",
                 enabled: Config.dashboard.showMedia
             },
             {
                 component: performanceComponent,
                 iconName: "speed",
                 text: Tr.tr("Performance"),
+                tooltip: Tr.tr("Performance") + " (Super + Alt + P)",
                 enabled: Config.dashboard.showPerformance
             },
             {
                 component: weatherComponent,
                 iconName: "cloud",
                 text: Tr.tr("Weather"),
+                tooltip: Tr.tr("Weather") + " (Super + Alt + W)",
                 enabled: Config.dashboard.showWeather
             }
         ];
@@ -48,6 +52,7 @@ Item {
             component: extensionTabComponent,
             iconName: ext.icon,
             text: ext.name,
+            tooltip: ext.name + (ext.shortcut.length > 0 ? ` (${ext.shortcut})` : ""),
             enabled: true,
             extension: ext
         }));

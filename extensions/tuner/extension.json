@@ -3,5 +3,6 @@
     "description": "Tune a guitar with the microphone",
     "version": "1.0",
     "icon": "graphic_eq",
-    "tab": "Tab.qml"
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + G"
 }

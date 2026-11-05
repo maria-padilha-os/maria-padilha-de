@@ -3,5 +3,6 @@
     "description": "qalc front-end",
     "version": "1.0",
     "icon": "calculate",
-    "tab": "Tab.qml"
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + C"
 }

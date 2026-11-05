@@ -81,7 +81,7 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + N` | sidebar |
 | `Super + Shift + P` | show all panels |
 | `Super + Alt + D` / `M` / `P` / `W` | dashboard: dash / media / performance / weather |
-| `Super + Alt + T` / `C` / `O` / `G` | dashboard: translator / calculator / maps / guitar tuner tabs |
+| `Super + Alt + T` / `C` / `O` / `G` / `E` | dashboard: translator / calculator / maps / guitar tuner / files tabs |
 | `Ctrl + Alt + C` | clear notifications |
 | `Ctrl + Alt + Delete` | session menu |
 | `Super + Escape` | lock |
