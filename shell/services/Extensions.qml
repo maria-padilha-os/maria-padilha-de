@@ -47,6 +47,7 @@ Singleton {
 
     function parse(output: string): var {
         const result = [];
+        const seen = new Set();
         for (const chunk of output.split("EXTENSION:")) {
             const trimmed = chunk.trim();
             if (!trimmed)
@@ -62,6 +63,9 @@ Singleton {
             } catch (e) {
                 manifest = null;
             }
+            if (seen.has(id))
+                continue;
+            seen.add(id);
             result.push({
                 id: id,
                 dirPath: dirPath,
@@ -87,8 +91,8 @@ Singleton {
 
         command: [
             "sh", "-c",
-            `dir="$1"; [ -d "$dir" ] || exit 0; for d in "$dir"/*/; do [ -f "$d/extension.json" ] || continue; printf 'EXTENSION:%s\\n' "$d"; cat "$d/extension.json"; printf '\\n'; done`,
-            "sh", `${Paths.home}/.config/lilith/extensions`
+            `for base in "$1" "$2"; do [ -d "$base" ] || continue; for d in "$base"/*/; do [ -f "$d/extension.json" ] || continue; printf 'EXTENSION:%s\\n' "$d"; cat "$d/extension.json"; printf '\\n'; done; done`,
+            "sh", `${Paths.home}/.config/lilith/extensions`, "/usr/lib/lilith/share/extensions"
         ]
 
         stdout: StdioCollector {

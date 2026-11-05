@@ -19,7 +19,8 @@ Media, Performance and Weather.
 ```
 
 `<id>` is the directory name; it is what the config stores when the tab is
-enabled.
+enabled. Lilith also scans the packaged extensions in
+`/usr/lib/lilith/share/extensions`; a user directory with the same id wins.
 
 ## Manifest
 
@@ -64,6 +65,7 @@ The shell assigns `api` while creating the item, so it is available from
 | `brightness` | monitor brightness service |
 | `hypr` | monitor and bind service |
 | `paths` | the `Paths` helper |
+| `extension` | the manifest of the running extension, including `dirPath` |
 
 Extension files may import `Caelestia.Config` and `Caelestia.I18n`. The `qs.*`
 modules are internal to the shell tree and cannot be resolved from
@@ -87,3 +89,10 @@ taking the shell down.
 mkdir -p ~/.config/lilith/extensions
 cp -r examples/extensions/hello ~/.config/lilith/extensions/hello
 ```
+
+## Bundled extensions
+
+The repository ships `calculator`, `maps`, `stopwatch`, `translator` and
+`tuner` under `extensions/`; the installer and package put them in
+`/usr/lib/lilith/share/extensions`. See `extensions/README.md` for what each
+one does.

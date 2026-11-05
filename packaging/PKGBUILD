@@ -75,6 +75,9 @@ package() {
     cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/lilith/"
     chmod 755 "$pkgdir/usr/lib/lilith/bin/"*
     install -Dm 644 KEYBINDS.md "$pkgdir/usr/lib/lilith/share/KEYBINDS.md"
+    if [ -d extensions ]; then
+        cp -R extensions "$pkgdir/usr/lib/lilith/share/"
+    fi
 
     install -d "$pkgdir/usr/bin"
     for cmd in lilith lilith-brightness lilith-config lilith-session lilith-shell-watch lilith-theme lilith-daylight \

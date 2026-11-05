@@ -1,0 +1,8 @@
+{
+    "name": "Stopwatch",
+    "description": "Stopwatch with laps",
+    "version": "1.0",
+    "icon": "timer",
+    "entry": "Page.qml",
+    "tab": "Tab.qml"
+}

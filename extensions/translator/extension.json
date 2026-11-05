@@ -1,0 +1,8 @@
+{
+    "name": "Translator",
+    "description": "Translate text between languages",
+    "version": "1.0",
+    "icon": "translate",
+    "entry": "Page.qml",
+    "tab": "Tab.qml"
+}

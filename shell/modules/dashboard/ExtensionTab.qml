@@ -19,7 +19,7 @@ Item {
             return;
         loadedUrl = url;
         if (url)
-            loader.setSource(url, { api: Extensions.api });
+            loader.setSource(url, { api: Object.assign({}, Extensions.api, { extension: root.extension }) });
         else
             loader.source = "";
     }

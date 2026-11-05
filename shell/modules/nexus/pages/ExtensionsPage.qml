@@ -28,7 +28,7 @@ PageBase {
     function open(ext): void {
         opened = ext;
         loader.setSource(ext.entryUrl, {
-            api: Extensions.api
+            api: Object.assign({}, Extensions.api, { extension: ext })
         });
     }
 
