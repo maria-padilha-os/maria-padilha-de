@@ -143,6 +143,7 @@ run_sudo install -d /usr/lib/lilith/bin /usr/lib/lilith/lib /usr/lib/lilith/shar
 run_sudo cp -R --preserve=mode,timestamps "$root/bin/." /usr/lib/lilith/bin/
 run_sudo cp -R --preserve=mode,timestamps "$root/lib/." /usr/lib/lilith/lib/
 run_sudo cp -R --preserve=mode,timestamps "$root/share/." /usr/lib/lilith/share/
+run_sudo install -Dm644 "$root/KEYBINDS.md" /usr/lib/lilith/share/KEYBINDS.md
 run_sudo chmod 755 /usr/lib/lilith/bin/*
 
 commands=(
