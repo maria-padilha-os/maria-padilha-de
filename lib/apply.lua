@@ -148,18 +148,20 @@ local function profile_from_ini(root, prefix)
         return root .. "/" .. path
     end
 
+    -- Modern Firefox records the profile chosen for this installation in the
+    -- [Install...] section; that wins over the legacy Profile Default flag.
+    if install_default then
+        local dir = resolve(install_default)
+        if dir and is_dir(dir) then
+            return dir
+        end
+    end
     for _, profile in ipairs(profiles) do
         if profile.default then
             local dir = resolve(profile.path)
             if dir and is_dir(dir) then
                 return dir
             end
-        end
-    end
-    if install_default then
-        local dir = resolve(install_default)
-        if dir and is_dir(dir) then
-            return dir
         end
     end
     for _, profile in ipairs(profiles) do
@@ -183,7 +185,9 @@ local function firefox_profile(prefix)
     if home == "" then
         return nil
     end
+    local xdg_config = os.getenv("XDG_CONFIG_HOME") or (home .. "/.config")
     local roots = {
+        xdg_config .. "/mozilla/firefox",
         home .. "/.mozilla/firefox",
         home .. "/.var/app/org.mozilla.firefox/.mozilla/firefox",
         home .. "/snap/firefox/common/.mozilla/firefox",
