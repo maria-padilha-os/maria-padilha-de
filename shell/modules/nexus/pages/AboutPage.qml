@@ -12,8 +12,8 @@ import qs.modules.nexus.common
 PageBase {
     id: root
 
-    // Plugin support is not wired up yet; always 0 for now
-    readonly property int pluginCount: 0
+    readonly property int extensionCount: Extensions.list.length
+    readonly property int panelTabCount: Extensions.tabs.length
 
     property string quickshellVersion
     property string lilithVersion
@@ -140,16 +140,21 @@ PageBase {
             value: CUtils.qtVersion || "…"
         }
 
-        // Plugins
+        // Extensions
         SectionHeader {
-            text: Tr.tr("Plugins")
+            text: Tr.tr("Extensions")
         }
 
         InfoRow {
             first: true
+            label: Tr.tr("Installed extensions")
+            value: root.extensionCount.toString()
+        }
+
+        InfoRow {
             last: true
-            label: Tr.tr("Loaded plugins")
-            value: root.pluginCount.toString()
+            label: Tr.tr("Panel tabs")
+            value: root.panelTabCount.toString()
         }
     }
 }

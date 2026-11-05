@@ -25,6 +25,8 @@ class DashboardConfig : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, showMedia, true)
     CONFIG_PROPERTY(bool, showPerformance, true)
     CONFIG_PROPERTY(bool, showWeather, true)
+    // Extension ids whose dashboard tab is enabled, in addition to the built-ins.
+    CONFIG_PROPERTY(QStringList, extensionTabs, {})
     CONFIG_PROPERTY(bool, showClockSeconds, false)
     CONFIG_GLOBAL_PROPERTY(int, mediaUpdateInterval, 500)
     CONFIG_GLOBAL_PROPERTY(int, resourceUpdateInterval, 1000)

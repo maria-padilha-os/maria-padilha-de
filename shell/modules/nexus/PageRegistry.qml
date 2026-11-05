@@ -50,9 +50,9 @@ QtObject {
             category: "system"
         },
         {
-            label: Tr.tr("Plugins"),
+            label: Tr.tr("Extensions"),
             icon: "extension",
-            description: Tr.tr("Installed plugin manifests"),
+            description: Tr.tr("Settings pages and panel tabs"),
             category: "system"
         },
 

@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
 
-// A plugin entry is a plain QML item; the settings app gives it the content
+// An extension entry is a plain QML item; the settings app gives it the content
 // area. Shell modules (qs.services, Caelestia.Config, ...) are importable.
 Rectangle {
+    property var api
+
     color: "transparent"
 
     ColumnLayout {
@@ -18,7 +20,7 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignHCenter
-            text: qsTr("Copy examples/plugins/hello to ~/.config/lilith/plugins/")
+            text: qsTr("Copy examples/extensions/hello to ~/.config/lilith/extensions/")
             color: "#aaaaaa"
             font.pixelSize: 14
         }

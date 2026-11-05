@@ -1,0 +1,8 @@
+{
+    "name": "Hello",
+    "description": "Minimal demo extension",
+    "version": "1.0",
+    "icon": "extension",
+    "entry": "Page.qml",
+    "tab": "Tab.qml"
+}

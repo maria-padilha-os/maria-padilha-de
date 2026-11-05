@@ -111,10 +111,10 @@ QtObject {
             }
         },
         Component {
-            // Plugins
+            // Extensions
             StackPage {
                 Component {
-                    PluginsPage {}
+                    ExtensionsPage {}
                 }
             }
         },

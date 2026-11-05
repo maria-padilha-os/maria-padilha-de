@@ -9,6 +9,7 @@ import Caelestia.Config
 import Caelestia.I18n
 import qs.components
 import qs.components.filedialog
+import qs.services
 
 Item {
     id: root
@@ -43,7 +44,14 @@ Item {
                 enabled: Config.dashboard.showWeather
             }
         ];
-        return allTabs.filter(tab => tab.enabled);
+        const extensionTabs = Extensions.tabs.map(ext => ({
+            component: extensionTabComponent,
+            iconName: ext.icon,
+            text: ext.name,
+            enabled: true,
+            extension: ext
+        }));
+        return allTabs.filter(tab => tab.enabled).concat(extensionTabs);
     }
 
     readonly property real nonAnimWidth: view.implicitWidth + viewWrapper.anchors.margins * 2
@@ -142,6 +150,11 @@ Item {
 
                         sourceComponent: modelData.component
 
+                        onLoaded: {
+                            if (modelData.extension)
+                                item.extension = modelData.extension;
+                        }
+
                         Component.onCompleted: active = Qt.binding(() => {
                             if (index === view.currentIndex)
                                 return true;
@@ -180,6 +193,12 @@ Item {
                 id: weatherComponent
 
                 WeatherTab {}
+            }
+
+            Component {
+                id: extensionTabComponent
+
+                ExtensionTab {}
             }
 
             Behavior on contentX {

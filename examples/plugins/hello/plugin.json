@@ -1,6 +1,0 @@
-{
-    "name": "Hello",
-    "description": "Minimal demo plugin",
-    "version": "1.0",
-    "entry": "Page.qml"
-}
