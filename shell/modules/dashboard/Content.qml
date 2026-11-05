@@ -99,24 +99,41 @@ Item {
 
             flickableDirection: Flickable.HorizontalFlick
 
-            // The panel keeps the size of the largest tab instead of shrinking
-            // to the selected one; otherwise a narrow extension tab squeezes
-            // the whole tab bar.
-            readonly property real widestTab: {
-                let width = 0;
-                for (let i = 0; i < repeater.count; i++)
-                    width = Math.max(width, repeater.itemAt(i)?.implicitWidth ?? 0);
-                return width;
+            readonly property bool extensionSelected: currentItem?.modelData?.extension !== undefined
+
+            // Remember the last built-in tab size. Extension tabs borrow it,
+            // so switching to one neither shrinks nor grows the panel.
+            property real stableWidth: 0
+            property real stableHeight: 0
+
+            Binding {
+                target: view
+                property: "stableWidth"
+                value: view.currentItem?.implicitWidth ?? 0
+                when: !view.extensionSelected && view.currentItem !== null
+                restoreMode: Binding.RestoreNone
             }
-            readonly property real tallestTab: {
-                let height = 0;
-                for (let i = 0; i < repeater.count; i++)
-                    height = Math.max(height, repeater.itemAt(i)?.implicitHeight ?? 0);
-                return height;
+            Binding {
+                target: view
+                property: "stableHeight"
+                value: view.currentItem?.implicitHeight ?? 0
+                when: !view.extensionSelected && view.currentItem !== null
+                restoreMode: Binding.RestoreNone
             }
 
-            implicitWidth: Math.max(currentItem?.implicitWidth ?? 0, widestTab)
-            implicitHeight: Math.max(currentItem?.implicitHeight ?? 0, tallestTab)
+            implicitWidth: extensionSelected ? Math.max(currentItem?.implicitWidth ?? 0, stableWidth) : currentItem?.implicitWidth ?? 0
+            implicitHeight: extensionSelected ? Math.max(currentItem?.implicitHeight ?? 0, stableHeight) : currentItem?.implicitHeight ?? 0
+
+            Component.onCompleted: {
+                for (let i = 0; i < repeater.count; i++) {
+                    const loader = repeater.itemAt(i);
+                    if (loader && loader.modelData?.extension === undefined) {
+                        stableWidth = loader.implicitWidth;
+                        stableHeight = loader.implicitHeight;
+                        break;
+                    }
+                }
+            }
 
             contentX: currentItem?.x ?? 0
             contentWidth: row.implicitWidth
@@ -167,8 +184,11 @@ Item {
                         sourceComponent: modelData.component
 
                         onLoaded: {
-                            if (modelData.extension)
+                            if (modelData.extension) {
                                 item.extension = modelData.extension;
+                                item.panelWidth = Qt.binding(() => view.stableWidth);
+                                item.panelHeight = Qt.binding(() => view.stableHeight);
+                            }
                         }
 
                         Component.onCompleted: active = Qt.binding(() => {

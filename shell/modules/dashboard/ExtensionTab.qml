@@ -7,11 +7,13 @@ Item {
     id: root
 
     property var extension
+    property real panelWidth: 0
+    property real panelHeight: 0
 
     property alias loader: loader
 
-    implicitWidth: loader.item?.implicitWidth ?? 420
-    implicitHeight: loader.item?.implicitHeight ?? 240
+    implicitWidth: panelWidth > 0 ? panelWidth : loader.item?.implicitWidth ?? 420
+    implicitHeight: panelHeight > 0 ? panelHeight : loader.item?.implicitHeight ?? 240
 
     function load(): void {
         const url = root.extension?.tabUrl ?? "";
@@ -33,5 +35,12 @@ Item {
         id: loader
 
         anchors.fill: parent
+
+        onLoaded: {
+            if (item) {
+                item.width = Qt.binding(() => loader.width);
+                item.height = Qt.binding(() => loader.height);
+            }
+        }
     }
 }
