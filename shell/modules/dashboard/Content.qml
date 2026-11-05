@@ -99,8 +99,24 @@ Item {
 
             flickableDirection: Flickable.HorizontalFlick
 
-            implicitWidth: currentItem?.implicitWidth ?? 0
-            implicitHeight: currentItem?.implicitHeight ?? 0
+            // The panel keeps the size of the largest tab instead of shrinking
+            // to the selected one; otherwise a narrow extension tab squeezes
+            // the whole tab bar.
+            readonly property real widestTab: {
+                let width = 0;
+                for (let i = 0; i < repeater.count; i++)
+                    width = Math.max(width, repeater.itemAt(i)?.implicitWidth ?? 0);
+                return width;
+            }
+            readonly property real tallestTab: {
+                let height = 0;
+                for (let i = 0; i < repeater.count; i++)
+                    height = Math.max(height, repeater.itemAt(i)?.implicitHeight ?? 0);
+                return height;
+            }
+
+            implicitWidth: Math.max(currentItem?.implicitWidth ?? 0, widestTab)
+            implicitHeight: Math.max(currentItem?.implicitHeight ?? 0, tallestTab)
 
             contentX: currentItem?.x ?? 0
             contentWidth: row.implicitWidth
