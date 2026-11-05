@@ -3,9 +3,9 @@ layout: default
 title: Install
 ---
 
-# Install Padilha
+# Install Lilith
 
-Padilha is packaged for Arch Linux and Arch-based distributions (Manjaro is the
+Lilith is packaged for Arch Linux and Arch-based distributions (Manjaro is the
 tested one). It must run on a machine where Hyprland already works.
 
 ## Full desktop
@@ -20,7 +20,7 @@ cd ~/Códigos/lilith/lilith-de
 ./install.sh --full
 ```
 
-Then reboot or log out and choose **Padilha** in the display manager's session
+Then reboot or log out and choose **Lilith** in the display manager's session
 menu.
 
 ## Rice only
@@ -44,7 +44,7 @@ entry or systemd units. Log back into your existing Hyprland session.
   checkout if needed, then links
   `~/.config/hypr` (both profiles) and `~/.config/nvim`, `~/.config/wezterm`
   (full). Existing real directories are backed up as
-  `~/.config/<name>.pre-padilha-<timestamp>`.
+  `~/.config/<name>.pre-lilith-<timestamp>`.
 
 Use `--no-dotfiles` to leave `~/.config` alone, or `--dry-run` to see every
 command first.

@@ -243,7 +243,7 @@ function M.apply(scheme, opts)
         local template = read_template("discord.scss")
         if template then
             local stamp = tostring(os.time()) .. "-" .. tostring(math.random(100000))
-            local tmp = (os.getenv("TMPDIR") or "/tmp") .. "/padilha-scss-" .. stamp
+            local tmp = (os.getenv("TMPDIR") or "/tmp") .. "/lilith-scss-" .. stamp
             os.execute("mkdir -p " .. quote(tmp))
 
             local vars = {}

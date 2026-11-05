@@ -1,8 +1,8 @@
-# Padilha development notes
+# Lilith development notes
 
-Snapshot: 2026-11-04, after the dotfiles split and the first repo-owner agents
-were started. This is the internal working record; user-facing docs are in
-`README.md`, `INSTALL.md`, `docs/`, and `KEYBINDS.md`.
+Snapshot: 2026-11-04, after the dotfiles split, the first repo-owner agents, and
+the Padilha -> Lilith rebrand. This is the internal working record; user-facing
+docs are in `README.md`, `INSTALL.md`, `docs/`, and `KEYBINDS.md`.
 
 ## Repositories
 
@@ -27,17 +27,22 @@ siblings; the desktop installer fetches the dotfiles repository as
 - **Two install profiles.** `./install.sh --full` installs the desktop session
   and all dotfiles; `--rice` installs the shell, commands, and Hyprland config
   only. Existing real config directories are backed up as
-  `~/.config/<name>.pre-padilha-<timestamp>`.
+  `~/.config/<name>.pre-lilith-<timestamp>`.
 - **Dotfiles are a separate repository.** `lilith-de` no longer carries the
   configs; it fetches the dotfiles repository as `lilith-dotfiles` next to
-  itself or uses `PADILHA_DOTFILES`.
-- **The old `bin/padilha-dots` moved** to `lilith-dotfiles/bin/padilha-dots`.
-- **Checkout rename.** The workspace and checkouts are `lilith`, `lilith-de`,
-  and `lilith-dotfiles`; the GitHub repositories, the `padilha-*` commands, the
-  package, the session entry, and `~/.config/padilha` keep the Padilha name.
-  The installer looks for `../lilith-dotfiles`; `PADILHA_DOTFILES` still
-  overrides it. Renaming the brand side is a separate, deploy-sized change.
-- **Donations, not paywalls or ads.** Padilha stays GPL-3.0-only. The GitHub
+  itself or uses `LILITH_DOTFILES` (`PADILHA_DOTFILES` is still accepted).
+- **The dotfiles linker moved** to `lilith-dotfiles/bin/lilith-dots` (it was
+  `bin/padilha-dots` in `lilith-de`).
+- **Brand rename.** The product, commands, package, session entry, install
+  tree, user config, and user state are now Lilith: `lilith-*` commands (plain
+  `lilith`), the `lilith` package, `/usr/lib/lilith`, **Lilith** at the
+  greeter, `~/.config/lilith`, and `~/.local/state/lilith`. The old `padilha-*`
+  commands remain as temporary compatibility aliases. The workspace and
+  checkouts are `lilith`, `lilith-de`, and `lilith-dotfiles`; the GitHub
+  repositories are still `padilha`/`padilha-dotfiles`, and the Quickshell id
+  stays `caelestia`. The installer looks for `../lilith-dotfiles`;
+  `LILITH_DOTFILES` overrides it.
+- **Donations, not paywalls or ads.** Lilith stays GPL-3.0-only. The GitHub
   Sponsor button is configured through `.github/FUNDING.yml`; Ko-fi,
   Liberapay, Open Collective, or Pix can be added to the same file. GitHub
   Sponsors enrollment is still pending.
@@ -101,7 +106,7 @@ siblings; the desktop installer fetches the dotfiles repository as
    runs, package build, docs preview, clean-VM install, rollback. Do not execute
    the deployment steps yet.
 2. **Configure and enable the promo scheduler.** Copy
-   `tools/promo-agents.example.toml` to `~/.config/padilha/agents.toml`, fill in
+   `tools/promo-agents.example.toml` to `~/.config/lilith/agents.toml`, fill in
    the verified DeepSeek windows/timezone and cost cap, create queue tasks, and
    install the timer. The schedule in the example is a placeholder; do not
    enable this before deployment readiness either.
@@ -135,10 +140,10 @@ Rules for repo owners:
 
 ## Safety while developing live
 
-- `bin/padilha-shell-watch` is running and is autostarted from `execs.lua`. It
+- `bin/lilith-shell-watch` is running and is autostarted from `execs.lua`. It
   checks Quickshell every 10 seconds, restarts it after a crash with a bounded
-  backoff, and logs to `~/.local/state/padilha/shell-watch.log`. A
-  `padilha-reload` marker keeps it from racing a deliberate reload.
+  backoff, and logs to `~/.local/state/lilith/shell-watch.log`. A
+  `lilith-reload` marker keeps it from racing a deliberate reload.
 - The idle lock is disabled: `hypridle` now only powers the panel down after
   five minutes. The shell lock screen crashed Quickshell on 2026-11-04 (PAM
   subprocess exited and the shell process disappeared), so do not restore
@@ -146,7 +151,7 @@ Rules for repo owners:
   requests the shell lock; the watchdog will recover the shell if it crashes.
 - Before changing a live QML/config file: commit it, keep a backup, and prefer
   editing the repository through the symlink. If the UI disappears, run
-  `bin/padilha-session` from a TTY or ask Hyprland to execute it; the watchdog
+  `bin/lilith-session` from a TTY or ask Hyprland to execute it; the watchdog
   should already be doing this.
 - Keep a known-good tag in both repositories before risky changes:
   `git tag known-good-<date>` (the current one is `known-good-2026-11-04`).
@@ -166,7 +171,7 @@ pricing and windows change.
 
 Components:
 
-1. **Window config** (`~/.config/padilha/agents.toml`, local, not committed):
+1. **Window config** (`~/.config/lilith/agents.toml`, local, not committed):
    - timezone and discount windows (start/end);
    - stop margin (20–30 minutes);
    - repositories and their queue directories;

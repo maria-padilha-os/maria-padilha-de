@@ -18,9 +18,9 @@ guess; verify DeepSeek's current discount hours before using it.
 1. Copy the example:
 
    ```sh
-   mkdir -p ~/.config/padilha/agents/queue/padilha-de
-   mkdir -p ~/.config/padilha/agents/queue/padilha-dotfiles
-   cp tools/promo-agents.example.toml ~/.config/padilha/agents.toml
+   mkdir -p ~/.config/lilith/agents/queue/padilha-de
+   mkdir -p ~/.config/lilith/agents/queue/padilha-dotfiles
+   cp tools/promo-agents.example.toml ~/.config/lilith/agents.toml
    ```
 
 2. Edit the windows, timezone, stop margin, and repository paths. The supplied
@@ -29,7 +29,7 @@ guess; verify DeepSeek's current discount hours before using it.
 3. Queue the first task. A task is a focused Markdown brief, not a vague goal:
 
    ```sh
-   tools/promo-agents --config ~/.config/padilha/agents.toml \
+   tools/promo-agents --config ~/.config/lilith/agents.toml \
        --enqueue padilha-de <<'EOF'
    # Fix the keyboard-backlight restore
 
@@ -70,9 +70,9 @@ tools/promo-agents --enqueue padilha-de --title "Audit the installer"
 tools/promo-agents --enqueue padilha-dotfiles --title "Check the tree colours"
 ```
 
-Queues are FIFO and repositories alternate: one lilith-de task, then one
-lilith-dotfiles task, then back. A repository with an empty queue is skipped, so
-the other can take consecutive rounds. If nothing is worth doing, leave the
+Queues are FIFO and repositories alternate: one padilha-de task, then one
+padilha-dotfiles task, then back. A repository with an empty queue is skipped,
+so the other can take consecutive rounds. If nothing is worth doing, leave the
 queues empty; the scheduler will not manufacture rounds to fill the window.
 
 ## What a tick does
@@ -82,7 +82,7 @@ queues empty; the scheduler will not manufacture rounds to fill the window.
 - Otherwise, for each repo with a queued task and no running agent:
   - refuses a dirty checkout;
   - creates a git worktree under
-    `~/.local/state/padilha/agents/worktrees/<repo>/...` on branch
+    `~/.local/state/lilith/agents/worktrees/<repo>/...` on branch
     `agent/<timestamp>-<slug>`;
   - starts `dsh --profile headless` with a repo-owner prompt and the task;
   - records the PID, worktree, branch, and log.
@@ -123,9 +123,9 @@ a system timer (or run the tick from cron). A system unit has to run as the
 same user that owns `~/.dsh` and the checkouts:
 
 ```ini
-# /etc/systemd/system/padilha-agents.service
+# /etc/systemd/system/lilith-agents.service
 [Unit]
-Description=Padilha promo-window agent tick
+Description=Lilith promo-window agent tick
 After=network-online.target
 
 [Service]
@@ -137,9 +137,9 @@ ExecStart=/usr/bin/python3 /home/machine/Códigos/lilith/lilith-de/tools/promo-a
 ```
 
 ```ini
-# /etc/systemd/system/padilha-agents.timer
+# /etc/systemd/system/lilith-agents.timer
 [Unit]
-Description=Tick the Padilha promo-window scheduler
+Description=Tick the Lilith promo-window scheduler
 
 [Timer]
 OnBootSec=2min
@@ -152,7 +152,7 @@ WantedBy=timers.target
 
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl enable --now padilha-agents.timer
+sudo systemctl enable --now lilith-agents.timer
 ```
 
 Adjust the hardcoded paths before installing. A plain `while` loop calling

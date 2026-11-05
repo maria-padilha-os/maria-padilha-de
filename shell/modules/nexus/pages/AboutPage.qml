@@ -16,7 +16,7 @@ PageBase {
     readonly property int pluginCount: 0
 
     property string quickshellVersion
-    property string padilhaVersion
+    property string lilithVersion
 
     title: Tr.tr("About")
 
@@ -38,9 +38,9 @@ PageBase {
         // The desktop's own version: the checkout first, the packaged copy next.
         Process {
             running: true
-            command: ["sh", "-c", "cat \"$HOME/.config/padilha/share/version\" 2>/dev/null || cat /usr/lib/padilha/share/version 2>/dev/null"]
+            command: ["sh", "-c", "cat \"$HOME/.config/lilith/share/version\" 2>/dev/null || cat /usr/lib/lilith/share/version 2>/dev/null"]
             stdout: StdioCollector {
-                onStreamFinished: root.padilhaVersion = text.trim()
+                onStreamFinished: root.lilithVersion = text.trim()
             }
         }
 
@@ -73,7 +73,7 @@ PageBase {
 
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
-                    text: root.padilhaVersion ? `v${root.padilhaVersion}` : "…"
+                    text: root.lilithVersion ? `v${root.lilithVersion}` : "…"
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.medium
                 }

@@ -1,7 +1,7 @@
 [Unit]
-Description=Padilha desktop shell
-After=padilha-session.target
-PartOf=padilha-session.target
+Description=Lilith desktop shell
+After=lilith-session.target
+PartOf=lilith-session.target
 StartLimitIntervalSec=60
 StartLimitBurst=5
 
@@ -16,11 +16,13 @@ Environment=XDG_CURRENT_DESKTOP=Hyprland
 Environment=XDG_SESSION_TYPE=wayland
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
 # The settings UI spawns this exact compiler when it saves.
-Environment=PADILHA_CONFIG=/usr/bin/padilha-config
+Environment=LILITH_CONFIG=/usr/bin/lilith-config
+# The settings module still reads the old name during the transition.
+Environment=PADILHA_CONFIG=/usr/bin/lilith-config
 # WAYLAND_DISPLAY, DISPLAY and HYPRLAND_INSTANCE_SIGNATURE are inherited from
 # the user manager: Hyprland imports them when it starts.
-ExecStartPre=-/usr/bin/padilha-config compile --quiet
-ExecStartPre=-/usr/bin/padilha-daylight --once
+ExecStartPre=-/usr/bin/lilith-config compile --quiet
+ExecStartPre=-/usr/bin/lilith-daylight --once
 ExecStart=/usr/bin/qs -c caelestia -n
 ExecStop=-/usr/bin/qs -c caelestia kill
 Restart=on-failure

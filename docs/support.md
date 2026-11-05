@@ -3,9 +3,9 @@ layout: default
 title: Support
 ---
 
-# Support Padilha
+# Support Lilith
 
-Padilha is free software under the GPL-3.0-only. Donations are optional: no
+Lilith is free software under the GPL-3.0-only. Donations are optional: no
 feature is paywalled, no build is held back, and there are no ads or trackers.
 
 <p>

@@ -1,0 +1,37 @@
+#!/bin/sh
+# Clipboard history in fuzzel: pick an entry to put back on the clipboard, or
+# delete it. A cancelled picker (Escape) is a no-op, not an error.
+set -u
+
+usage() {
+    printf 'usage: %s [-d]\n' "${0##*/}"
+}
+
+delete=
+while [ $# -gt 0 ]; do
+    case $1 in
+        -d|--delete) delete=1 ;;
+        -h|--help) usage; exit 0 ;;
+        *)
+            printf '%s: unknown option: %s\n' "${0##*/}" "$1" >&2
+            usage >&2
+            exit 2
+            ;;
+    esac
+    shift
+done
+
+# fuzzel exits non-zero when the user backs out; keep that out of the caller's
+# exit status and leave the clipboard alone.
+if [ -n "$delete" ]; then
+    chosen=$(cliphist list | fuzzel --dmenu --prompt='del > ' --placeholder='Delete from clipboard') || exit 0
+else
+    chosen=$(cliphist list | fuzzel --dmenu --placeholder='Type to search clipboard') || exit 0
+fi
+[ -n "$chosen" ] || exit 0
+
+if [ -n "$delete" ]; then
+    printf '%s\n' "$chosen" | cliphist delete
+else
+    printf '%s\n' "$chosen" | cliphist decode | wl-copy
+fi

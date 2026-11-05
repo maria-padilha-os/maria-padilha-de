@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Contract tests for bin/padilha-clipboard and bin/padilha-emoji. The pickers
+# Contract tests for bin/lilith-clipboard and bin/lilith-emoji. The pickers
 # need a Wayland session, so fuzzel/cliphist/wl-copy are faked here; what is
 # under test is the plumbing around them and the promises in the usage text.
 
 set -uo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
-clipboard="$root/bin/padilha-clipboard"
-emoji="$root/bin/padilha-emoji"
+clipboard="$root/bin/lilith-clipboard"
+emoji="$root/bin/lilith-emoji"
 data="$root/share/emojis.txt"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

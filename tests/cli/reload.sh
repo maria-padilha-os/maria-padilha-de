@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Contract tests for bin/padilha-reload: the restart path must not leave the
+# Contract tests for bin/lilith-reload: the restart path must not leave the
 # desktop without a shell because the old instance's runtime directory is
 # still around.
 
 set -uo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
-reload="$root/bin/padilha-reload"
+reload="$root/bin/lilith-reload"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 

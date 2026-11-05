@@ -1,6 +1,6 @@
 [Unit]
-Description=Padilha session
-Wants=padilha-shell.service padilha-daylight.service
+Description=Lilith session
+Wants=lilith-shell.service lilith-daylight.service
 After=graphical-session.target
 PartOf=graphical-session.target
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Contract tests for bin/padilha-theme: the promises the theme engine makes to
+# Contract tests for bin/lilith-theme: the promises the theme engine makes to
 # every file it writes.
 
 set -uo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
-theme="$root/bin/padilha-theme"
+theme="$root/bin/lilith-theme"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
@@ -110,7 +110,7 @@ check "light mode has a light surface" "[ $light_surface -ge 90 ]" "tone $light_
 
 echo "daylight"
 
-daylight="$root/bin/padilha-daylight"
+daylight="$root/bin/lilith-daylight"
 hour=$((10#$(date +%H)))
 if [ "$hour" -ge 6 ] && [ "$hour" -lt 18 ]; then
     want=day; wantmode=light; wantwall=day.jpg

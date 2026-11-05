@@ -1,15 +1,18 @@
-# Maintainer: Padilha <padilha@localhost>
+# Maintainer: Lilith <lilith@localhost>
 #
-# Padilha is developed in place, with the packaging directory inside the
+# Lilith is developed in place, with the packaging directory inside the
 # checkout. The source here is the release tarball exported by tools/release.sh,
 # which is why there is a local source and no URL yet.
-pkgname=padilha
+pkgname=lilith
 pkgver=0.1.1
 pkgrel=1
-pkgdesc="Desktop Maria Padilha: a Wayland desktop on Hyprland and Quickshell"
+pkgdesc="Desktop Lilith: a Wayland desktop on Hyprland and Quickshell"
 arch=('x86_64')
 url="https://github.com/padilha/desktop"
 license=('GPL-3.0-only')
+# The desktop shipped as `padilha` before the rename; this package replaces it.
+conflicts=('padilha')
+provides=('padilha')
 depends=(
     'quickshell'
     'qt6-base'
@@ -41,7 +44,7 @@ optdepends=(
 options=('!strip')  # the shell is a QML tree; stripping breaks nothing but helps nothing
 
 # Built from the release tarball, not from the checkout: tools/release.sh
-# exports HEAD into packaging/padilha-$pkgver.tar.gz. The source is generated
+# exports HEAD into packaging/lilith-$pkgver.tar.gz. The source is generated
 # next to the recipe, so a checksum of it would only check our own output.
 source=("$pkgname-$pkgver.tar.gz")
 sha256sums=('SKIP')
@@ -68,18 +71,18 @@ package() {
 
     # The commands keep their relative layout (bin/lib/share) because they
     # resolve their data next to themselves; /usr/bin only carries links.
-    install -d "$pkgdir/usr/lib/padilha"
-    cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/padilha/"
-    chmod 755 "$pkgdir/usr/lib/padilha/bin/"*
+    install -d "$pkgdir/usr/lib/lilith"
+    cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/lilith/"
+    chmod 755 "$pkgdir/usr/lib/lilith/bin/"*
 
     install -d "$pkgdir/usr/bin"
-    for cmd in padilha padilha-brightness padilha-config padilha-session padilha-shell-watch padilha-theme padilha-daylight \
-        padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji; do
-        ln -s "/usr/lib/padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
+    for cmd in lilith lilith-brightness lilith-config lilith-session lilith-shell-watch lilith-theme lilith-daylight \
+        lilith-reload lilith-shot lilith-record lilith-clipboard lilith-emoji; do
+        ln -s "/usr/lib/lilith/bin/$cmd" "$pkgdir/usr/bin/$cmd"
     done
 
-    # A session entry: the same compositor the distro starts, under our name.
-    install -Dm 644 session/padilha.desktop "$pkgdir/usr/share/wayland-sessions/padilha.desktop"
+    # A session entry: the desktop's own entry point, so the greeter lists Lilith.
+    install -Dm 644 session/lilith.desktop "$pkgdir/usr/share/wayland-sessions/lilith.desktop"
 
     # Optional systemd user units; they are inert until the user enables them.
     # They call the installed commands in /usr/bin, so they install verbatim.

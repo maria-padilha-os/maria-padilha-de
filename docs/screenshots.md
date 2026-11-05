@@ -14,7 +14,7 @@ not recorded from a live window.
 
 | Day | Night |
 | --- | --- |
-| ![Padilha desktop at day](assets/screenshots/desktop-day.webp) | ![Padilha desktop at night](assets/screenshots/desktop-night.webp) |
+| ![Lilith desktop at day](assets/screenshots/desktop-day.webp) | ![Lilith desktop at night](assets/screenshots/desktop-night.webp) |
 
 ![Day and night palette transition](assets/screenshots/palette.gif)
 

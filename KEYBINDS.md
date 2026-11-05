@@ -1,6 +1,6 @@
 # Keyboard shortcuts
 
-Padilha uses **Super** as its main modifier (the Windows/Command key). Tap
+Lilith uses **Super** as its main modifier (the Windows/Command key). Tap
 Super alone to open the launcher.
 
 The live definitions are `~/.config/hypr/hyprland/keybinds.lua` and
@@ -112,7 +112,7 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + Shift + C` | colour picker |
 | `Super + Shift + R` | reload Hyprland |
 | `Ctrl + Super + Shift + R` | stop the shell |
-| `Ctrl + Super + Alt + R` | restart the shell (`padilha-reload`) |
+| `Ctrl + Super + Alt + R` | restart the shell (`lilith-reload`) |
 
 ## Media, volume, brightness
 

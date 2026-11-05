@@ -3,7 +3,7 @@ layout: default
 title: Home
 ---
 
-# Padilha
+# Lilith
 
 A Wayland desktop built on [Hyprland](https://hyprland.org) and
 [Quickshell](https://quickshell.org), with a wallpaper-driven colour system and
@@ -12,7 +12,7 @@ a small Lua configuration layer.
 <p>
   <a href="{{ '/install.html' | relative_url }}"
      style="display:inline-block;padding:0.6em 1em;background:#904b3e;color:#fff;border-radius:6px;text-decoration:none;">
-    Install Padilha
+    Install Lilith
   </a>
   <a href="{{ '/support.html' | relative_url }}"
      style="display:inline-block;padding:0.6em 1em;border:1px solid #904b3e;color:#904b3e;border-radius:6px;text-decoration:none;">
@@ -20,7 +20,7 @@ a small Lua configuration layer.
   </a>
 </p>
 
-Padilha is early software (`0.1.x`). There are two ways in:
+Lilith is early software (`0.1.x`). There are two ways in:
 
 - **[The desktop]({{ '/install.html' | relative_url }})** — shell, session,
   theme engine, installer, and the full set of configs.

@@ -22,8 +22,8 @@ available:
 ```sh
 gem install --user-install --no-document jekyll minima erb csv logger
 gem_bin=$(ruby -e 'print File.join(Gem.user_dir, "bin")')
-"$gem_bin/jekyll" build --source docs --destination /tmp/padilha-docs --baseurl ""
-python3 -m http.server --directory /tmp/padilha-docs 4000
+"$gem_bin/jekyll" build --source docs --destination /tmp/lilith-docs --baseurl ""
+python3 -m http.server --directory /tmp/lilith-docs 4000
 ```
 
 The minima theme emits Sass deprecation warnings; the build itself succeeds.

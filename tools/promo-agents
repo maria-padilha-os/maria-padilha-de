@@ -9,7 +9,7 @@ merges anything. The coordinator reviews the branches.
 
 Typical use:
 
-    tools/promo-agents --config ~/.config/padilha/agents.toml --once
+    tools/promo-agents --config ~/.config/lilith/agents.toml --once
     tools/promo-agents --config ... --dry-run
     tools/promo-agents --config ... --status
     tools/promo-agents --config ... --stop
@@ -46,12 +46,12 @@ def expand(path: str) -> Path:
 
 def state_dir_default() -> Path:
     base = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local/state")
-    return Path(base) / "padilha" / "agents"
+    return Path(base) / "lilith" / "agents"
 
 
 def config_default() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME") or str(Path.home() / ".config")
-    return Path(base) / "padilha" / "agents.toml"
+    return Path(base) / "lilith" / "agents.toml"
 
 
 def parse_clock(value: str) -> clock_time:
@@ -84,7 +84,7 @@ def load_config(path: Path) -> dict:
         if "path" not in repo:
             raise SystemExit(f"{path}: repos.{name}.path is required")
         repo["path"] = expand(repo["path"])
-        repo.setdefault("queue", expand(f"~/.config/padilha/agents/queue/{name}"))
+        repo.setdefault("queue", expand(f"~/.config/lilith/agents/queue/{name}"))
         repo.setdefault("tests", [])
         repo.setdefault("push", False)
 

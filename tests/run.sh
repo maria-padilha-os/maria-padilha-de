@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Contract tests for bin/padilha-config. Run from anywhere; exits non-zero on
+# Contract tests for bin/lilith-config. Run from anywhere; exits non-zero on
 # the first broken guarantee.
 #
 # The point is not coverage, it is the promises in CONFIG.md: a bad config
@@ -8,7 +8,7 @@
 set -uo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-padilha_config="$root/bin/padilha-config"
+lilith_config="$root/bin/lilith-config"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
@@ -22,7 +22,7 @@ bad() { fail=$((fail + 1)); printf '  FAIL %s\n' "$1"; [ -n "${2:-}" ] && printf
 expect_fail() {
     local name=$1 file=$2 pattern=$3
     local err status
-    err=$("$padilha_config" compile --config "$file" --check 2>&1)
+    err=$("$lilith_config" compile --config "$file" --check 2>&1)
     status=$?
     if [ "$status" -eq 0 ]; then
         bad "$name" "exited 0, expected failure"
@@ -38,14 +38,14 @@ echo "valid configs"
 cat > "$tmp/good.lua" <<'LUA'
 return {
     appearance = { transparency = { enabled = false } },
-    general = { idle = { timeouts = padilha.array {} } },
+    general = { idle = { timeouts = lilith.array {} } },
 }
 LUA
 # --no-schema: this test is about the JSON, and a checkout that has not been
 # built yet must still pass the compiler suite.
-out=$("$padilha_config" compile --config "$tmp/good.lua" --print --no-schema 2>&1)
+out=$("$lilith_config" compile --config "$tmp/good.lua" --print --no-schema 2>&1)
 if printf '%s' "$out" | python3 -m json.tool >/dev/null 2>&1; then ok "emits valid JSON"; else bad "emits valid JSON" "$out"; fi
-if printf '%s' "$out" | grep -q '"timeouts": \[\]'; then ok "padilha.array{} is a list"; else bad "padilha.array{} is a list" "$out"; fi
+if printf '%s' "$out" | grep -q '"timeouts": \[\]'; then ok "lilith.array{} is a list"; else bad "lilith.array{} is a list" "$out"; fi
 
 echo "overlay"
 
@@ -56,7 +56,7 @@ LUA
 cat > "$tmp/withlocal/local.lua" <<'LUA'
 return { appearance = { transparency = { enabled = true } } }
 LUA
-out=$("$padilha_config" compile --config "$tmp/withlocal/init.lua" --print 2>&1)
+out=$("$lilith_config" compile --config "$tmp/withlocal/init.lua" --print 2>&1)
 if printf '%s' "$out" | grep -q '"enabled": true' && printf '%s' "$out" | grep -q '"enabled": false'; then
     ok "local.lua overrides, keeps the rest"
 else
@@ -72,26 +72,26 @@ LUA
 cat > "$tmp/uiwrite/local.lua" <<'LUA'
 return { enabled = true }
 LUA
-"$padilha_config" set enabled false --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
+"$lilith_config" set enabled false --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
 if [ -s "$tmp/uiwrite/ui.lua" ] && grep -q 'enabled = false' "$tmp/uiwrite/ui.lua"; then
     ok "set writes a readable Lua overlay"
 else
     bad "set writes a readable Lua overlay" "$(cat "$tmp/uiwrite/ui.lua" 2>/dev/null)"
 fi
-out=$("$padilha_config" compile --config "$tmp/uiwrite/init.lua" --print --no-schema 2>&1)
+out=$("$lilith_config" compile --config "$tmp/uiwrite/init.lua" --print --no-schema 2>&1)
 if printf '%s' "$out" | grep -q '"enabled": false'; then
     ok "ui.lua overrides local.lua"
 else
     bad "ui.lua overrides local.lua" "$out"
 fi
 
-"$padilha_config" set general.idle.timeouts '[]' --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
-if grep -q 'padilha.array {}' "$tmp/uiwrite/ui.lua"; then
+"$lilith_config" set general.idle.timeouts '[]' --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
+if grep -q 'lilith.array {}' "$tmp/uiwrite/ui.lua"; then
     ok "set preserves an empty list"
 else
     bad "set preserves an empty list" "$(cat "$tmp/uiwrite/ui.lua" 2>/dev/null)"
 fi
-out=$("$padilha_config" compile --config "$tmp/uiwrite/init.lua" --print --no-schema 2>&1)
+out=$("$lilith_config" compile --config "$tmp/uiwrite/init.lua" --print --no-schema 2>&1)
 if printf '%s' "$out" | grep -q '"timeouts": \[\]'; then
     ok "the list survives the compile"
 else
@@ -99,7 +99,7 @@ else
 fi
 
 before=$(cat "$tmp/uiwrite/ui.lua")
-if "$padilha_config" set appearanc.enabled false --config "$tmp/uiwrite/init.lua" \
+if "$lilith_config" set appearanc.enabled false --config "$tmp/uiwrite/init.lua" \
     --schema "$root/tests/fixtures/schema.qmltypes" >/dev/null 2>&1; then
     bad "set validates before writing"
 else
@@ -107,7 +107,7 @@ else
     if [ "$before" = "$after" ]; then ok "set validates before writing"; else bad "set validates before writing" "ui.lua changed"; fi
 fi
 
-"$padilha_config" unset enabled --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
+"$lilith_config" unset enabled --config "$tmp/uiwrite/init.lua" --no-schema >/dev/null 2>&1
 if ! grep -q 'enabled' "$tmp/uiwrite/ui.lua"; then
     ok "unset removes the key"
 else
@@ -120,22 +120,22 @@ mkdir -p "$tmp/capture"
 cat > "$tmp/capture/init.lua" <<'LUA'
 return { enabled = true }
 LUA
-"$padilha_config" compile --config "$tmp/capture/init.lua" --out "$tmp/capture/shell.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/capture/init.lua" --out "$tmp/capture/shell.json" --no-schema --quiet
 printf '{\n  "enabled": false\n}\n' > "$tmp/capture/shell.json"
-"$padilha_config" capture --shell "$tmp/capture/shell.json" --ui "$tmp/capture/ui.lua" --no-schema >/dev/null 2>&1
+"$lilith_config" capture --shell "$tmp/capture/shell.json" --ui "$tmp/capture/ui.lua" --no-schema >/dev/null 2>&1
 if grep -q 'enabled = false' "$tmp/capture/ui.lua"; then
     ok "capture promotes a UI edit"
 else
     bad "capture promotes a UI edit" "$(cat "$tmp/capture/ui.lua" 2>/dev/null)"
 fi
-out=$("$padilha_config" compile --config "$tmp/capture/init.lua" --print --no-schema 2>&1)
+out=$("$lilith_config" compile --config "$tmp/capture/init.lua" --print --no-schema 2>&1)
 if printf '%s' "$out" | grep -q '"enabled": false'; then
     ok "the captured edit is compiled"
 else
     bad "the captured edit is compiled" "$out"
 fi
 cp "$tmp/capture/shell.json.base" "$tmp/capture/shell.json"
-"$padilha_config" capture --shell "$tmp/capture/shell.json" --ui "$tmp/capture/ui.lua" --no-schema >/dev/null 2>&1
+"$lilith_config" capture --shell "$tmp/capture/shell.json" --ui "$tmp/capture/ui.lua" --no-schema >/dev/null 2>&1
 if grep -q 'return {}' "$tmp/capture/ui.lua"; then
     ok "capture clears an edit that returned to the baseline"
 else
@@ -149,10 +149,10 @@ cat > "$tmp/capture-tree/init.lua" <<'LUA'
 return {
     appearance = { transparency = { enabled = true } },
     bar = { height = 40 },
-    general = { idle = { timeouts = padilha.array {} } },
+    general = { idle = { timeouts = lilith.array {} } },
 }
 LUA
-"$padilha_config" compile --config "$tmp/capture-tree/init.lua" --out "$tmp/capture-tree/shell.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/capture-tree/init.lua" --out "$tmp/capture-tree/shell.json" --no-schema --quiet
 cat > "$tmp/capture-tree/shell.json" <<'JSON'
 {
   "appearance": { "transparency": { "enabled": false } },
@@ -160,14 +160,14 @@ cat > "$tmp/capture-tree/shell.json" <<'JSON'
   "general": { "idle": { "timeouts": [30, 60] } }
 }
 JSON
-"$padilha_config" capture --shell "$tmp/capture-tree/shell.json" --ui "$tmp/capture-tree/ui.lua" --no-schema >/dev/null 2>&1
+"$lilith_config" capture --shell "$tmp/capture-tree/shell.json" --ui "$tmp/capture-tree/ui.lua" --no-schema >/dev/null 2>&1
 if ! grep -q 'height' "$tmp/capture-tree/ui.lua"; then
     ok "an unchanged value stays out of ui.lua"
 else
     bad "an unchanged value stays out of ui.lua" "$(cat "$tmp/capture-tree/ui.lua" 2>/dev/null)"
 fi
 
-if "$padilha_config" compile --config "$tmp/capture-tree/init.lua" --print --no-schema > "$tmp/capture-tree/compiled.json" 2>/dev/null &&
+if "$lilith_config" compile --config "$tmp/capture-tree/init.lua" --print --no-schema > "$tmp/capture-tree/compiled.json" 2>/dev/null &&
     /usr/bin/python3 - "$tmp/capture-tree/compiled.json" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
@@ -182,7 +182,7 @@ else
 fi
 
 # The usage block says capture defaults its shell path to --out.
-"$padilha_config" capture --out "$tmp/capture-tree/shell.json" --ui "$tmp/capture-tree/ui2.lua" --no-schema >/dev/null 2>&1
+"$lilith_config" capture --out "$tmp/capture-tree/shell.json" --ui "$tmp/capture-tree/ui2.lua" --no-schema >/dev/null 2>&1
 if grep -q 'compact = true' "$tmp/capture-tree/ui2.lua"; then
     ok "capture defaults --shell to --out"
 else
@@ -204,7 +204,7 @@ printf 'return 42\n' > "$tmp/number.lua"
 expect_fail "non-table return is rejected" "$tmp/number.lua" "must return a table"
 
 printf 'local t = {} t.self = t return { bar = t }\n' > "$tmp/recursive.lua"
-err=$("$padilha_config" compile --config "$tmp/recursive.lua" --no-schema --check 2>&1)
+err=$("$lilith_config" compile --config "$tmp/recursive.lua" --no-schema --check 2>&1)
 if printf '%s' "$err" | grep -qi "refers to itself"; then ok "recursive table is rejected"; else bad "recursive table is rejected" "$err"; fi
 
 echo "schema"
@@ -213,7 +213,7 @@ schema="$root/tests/fixtures/schema.qmltypes"
 cat > "$tmp/schema_good.lua" <<'LUA'
 return { enabled = true, appearance = { transparency = { enabled = false } } }
 LUA
-if "$padilha_config" compile --config "$tmp/schema_good.lua" --schema "$schema" --check >/dev/null 2>&1; then
+if "$lilith_config" compile --config "$tmp/schema_good.lua" --schema "$schema" --check >/dev/null 2>&1; then
     ok "valid keys pass"
 else
     bad "valid keys pass"
@@ -222,7 +222,7 @@ fi
 cat > "$tmp/schema_unknown.lua" <<'LUA'
 return { enabled = true, appearanc = {} }
 LUA
-err=$("$padilha_config" compile --config "$tmp/schema_unknown.lua" --schema "$schema" --check 2>&1)
+err=$("$lilith_config" compile --config "$tmp/schema_unknown.lua" --schema "$schema" --check 2>&1)
 if printf '%s' "$err" | grep -q 'unknown key' && printf '%s' "$err" | grep -q 'did you mean "appearance"'; then
     ok "unknown key suggests the real one"
 else
@@ -232,7 +232,7 @@ fi
 cat > "$tmp/schema_type.lua" <<'LUA'
 return { enabled = "yes" }
 LUA
-err=$("$padilha_config" compile --config "$tmp/schema_type.lua" --schema "$schema" --check 2>&1)
+err=$("$lilith_config" compile --config "$tmp/schema_type.lua" --schema "$schema" --check 2>&1)
 if printf '%s' "$err" | grep -q 'expected a boolean, got string'; then
     ok "wrong type is reported"
 else
@@ -242,14 +242,14 @@ fi
 cat > "$tmp/schema_nested.lua" <<'LUA'
 return { appearance = { transparency = { enable = true } } }
 LUA
-err=$("$padilha_config" compile --config "$tmp/schema_nested.lua" --schema "$schema" --check 2>&1)
+err=$("$lilith_config" compile --config "$tmp/schema_nested.lua" --schema "$schema" --check 2>&1)
 if printf '%s' "$err" | grep -q 'appearance.transparency.enable: unknown key'; then
     ok "nested unknown key is caught"
 else
     bad "nested unknown key is caught" "$err"
 fi
 
-if "$padilha_config" compile --config "$tmp/schema_unknown.lua" --no-schema --check >/dev/null 2>&1; then
+if "$lilith_config" compile --config "$tmp/schema_unknown.lua" --no-schema --check >/dev/null 2>&1; then
     ok "--no-schema skips validation"
 else
     bad "--no-schema skips validation"
@@ -258,7 +258,7 @@ fi
 cat > "$tmp/schema_enum.lua" <<'LUA'
 return { mode = "dark" }
 LUA
-if "$padilha_config" compile --config "$tmp/schema_enum.lua" --schema "$schema" --check >/dev/null 2>&1; then
+if "$lilith_config" compile --config "$tmp/schema_enum.lua" --schema "$schema" --check >/dev/null 2>&1; then
     ok "enum values are matched case-insensitively"
 else
     bad "enum values are matched case-insensitively"
@@ -267,7 +267,7 @@ fi
 cat > "$tmp/schema_enum_bad.lua" <<'LUA'
 return { mode = "drak" }
 LUA
-err=$("$padilha_config" compile --config "$tmp/schema_enum_bad.lua" --schema "$schema" --check 2>&1)
+err=$("$lilith_config" compile --config "$tmp/schema_enum_bad.lua" --schema "$schema" --check 2>&1)
 if printf '%s' "$err" | grep -q 'expected one of Auto, Light, Dark' && printf '%s' "$err" | grep -q 'did you mean "Dark"'; then
     ok "unknown enum value lists the options"
 else
@@ -277,7 +277,7 @@ fi
 cat > "$tmp/schema_enum_type.lua" <<'LUA'
 return { mode = 2 }
 LUA
-err=$("$padilha_config" compile --config "$tmp/schema_enum_type.lua" --schema "$schema" --check 2>&1)
+err=$("$lilith_config" compile --config "$tmp/schema_enum_type.lua" --schema "$schema" --check 2>&1)
 if printf '%s' "$err" | grep -q 'mode: expected a string, got number'; then
     ok "a non-string enum value is rejected"
 else
@@ -286,7 +286,7 @@ fi
 
 real_schema="$root/build/qml/Caelestia/Config/caelestia-config.qmltypes"
 if [ -f "$real_schema" ]; then
-    if "$padilha_config" compile --config "$root/examples/init.lua" --check >/dev/null 2>&1; then
+    if "$lilith_config" compile --config "$root/examples/init.lua" --check >/dev/null 2>&1; then
         ok "the shipped example matches the real schema"
     else
         bad "the shipped example matches the real schema"
@@ -297,26 +297,26 @@ echo "settings carry-over"
 
 mkdir -p "$tmp/carry"
 printf 'return { a = 1, b = { c = 2 } }\n' > "$tmp/carry/init.lua"
-"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
 if [ -s "$tmp/carry.json.base" ]; then ok "the baseline is written"; else bad "the baseline is written"; fi
 
 printf '{"a": 9, "b": {"c": 2}, "d": true}\n' > "$tmp/carry.json"
 printf 'return { a = 1, b = { c = 3 } }\n' > "$tmp/carry/init.lua"
-"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
 carried=$(/usr/bin/python3 -c "import json;d=json.load(open('$tmp/carry.json'));print(d['a'],d['b']['c'],d.get('d'))")
 if [ "$carried" = "9 3 True" ]; then ok "a UI edit survives the next compile"; else bad "a UI edit survives the next compile" "$carried"; fi
 
 printf 'return { a = 1, b = { c = 2 } }\n' > "$tmp/carry/init.lua"
-"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet --no-merge
+"$lilith_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet --no-merge
 forced=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/carry.json'))['a'])")
 if [ "$forced" = "1" ]; then ok "--no-merge lets init.lua win"; else bad "--no-merge lets init.lua win" "a=$forced"; fi
 
 printf '{"a": 9}\n' > "$tmp/carry.json"
 cat > "$tmp/empty.lua" <<'LUA'
-return { general = { idle = { timeouts = padilha.array {} } } }
+return { general = { idle = { timeouts = lilith.array {} } } }
 LUA
-"$padilha_config" compile --config "$tmp/empty.lua" --out "$tmp/empty.json" --no-schema --quiet
-"$padilha_config" compile --config "$tmp/empty.lua" --out "$tmp/empty.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/empty.lua" --out "$tmp/empty.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/empty.lua" --out "$tmp/empty.json" --no-schema --quiet
 if grep -q '"timeouts": \[\]' "$tmp/empty.json"; then
     ok "empty lists stay lists through the merge"
 else
@@ -324,24 +324,24 @@ else
 fi
 
 printf 'return { a = 1 }\n' > "$tmp/carry/init.lua"
-"$padilha_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
+"$lilith_config" compile --config "$tmp/carry/init.lua" --out "$tmp/carry.json" --no-schema --quiet
 if grep -q '"b"' "$tmp/carry.json"; then bad "a key dropped from init.lua goes away"; else ok "a key dropped from init.lua goes away"; fi
 
 echo "first run"
 
 init_home="$tmp/fresh"
 mkdir -p "$init_home"
-XDG_CONFIG_HOME="$init_home" "$padilha_config" init > /dev/null 2>&1
+XDG_CONFIG_HOME="$init_home" "$lilith_config" init > /dev/null 2>&1
 check=""
-if [ -s "$init_home/padilha/init.lua" ]; then ok "init writes a default config"; else bad "init writes a default config"; fi
+if [ -s "$init_home/lilith/init.lua" ]; then ok "init writes a default config"; else bad "init writes a default config"; fi
 
-if XDG_CONFIG_HOME="$init_home" "$padilha_config" init > /dev/null 2>&1; then
+if XDG_CONFIG_HOME="$init_home" "$lilith_config" init > /dev/null 2>&1; then
     bad "init refuses to overwrite an existing config"
 else
     ok "init refuses to overwrite an existing config"
 fi
 
-if XDG_CONFIG_HOME="$init_home" "$padilha_config" compile --quiet; then
+if XDG_CONFIG_HOME="$init_home" "$lilith_config" compile --quiet; then
     ok "the default config compiles"
 else
     bad "the default config compiles"
@@ -351,14 +351,14 @@ echo "nothing is replaced on failure"
 
 printf '{"kept": true}\n' > "$tmp/out.json"
 printf 'return { broken = }\n' > "$tmp/bad.lua"
-"$padilha_config" compile --config "$tmp/bad.lua" --out "$tmp/out.json" >/dev/null 2>&1
+"$lilith_config" compile --config "$tmp/bad.lua" --out "$tmp/out.json" >/dev/null 2>&1
 if grep -qx '{"kept": true}' "$tmp/out.json"; then ok "existing output untouched"; else bad "existing output untouched"; fi
 if ls "$tmp"/out.json.tmp >/dev/null 2>&1; then bad "no temp file left behind"; else ok "no temp file left behind"; fi
 
 echo "check mode writes nothing"
 
 rm -f "$tmp/never.json"
-"$padilha_config" compile --config "$tmp/good.lua" --out "$tmp/never.json" --check >/dev/null 2>&1
+"$lilith_config" compile --config "$tmp/good.lua" --out "$tmp/never.json" --check >/dev/null 2>&1
 if [ -e "$tmp/never.json" ]; then bad "--check does not write"; else ok "--check does not write"; fi
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"

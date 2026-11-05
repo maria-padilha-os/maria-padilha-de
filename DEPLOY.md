@@ -34,7 +34,7 @@ Run from `lilith-de` unless stated otherwise.
       sibling `lilith-dotfiles`.
 - [x] The release package builds with `tools/release.sh`; it was not installed
       on the live system. A disposable `pacman --root` install verified the
-      `/usr/bin` links, `padilha-shell-watch`, session entry, and user units.
+      `/usr/bin` links, `lilith-shell-watch`, session entry, and user units.
 - [x] `docs/` builds with Jekyll 4.4.1 + minima (`jekyll build --source docs`),
       warnings only; Pages is still disabled. One docs site, not per-project
       Pages.
@@ -48,7 +48,7 @@ Run from `lilith-de` unless stated otherwise.
 
 ```sh
 tools/release.sh                 # tests, export, makepkg
-sudo pacman -U packaging/padilha-<version>-1-x86_64.pkg.tar.zst
+sudo pacman -U packaging/lilith-<version>-1-x86_64.pkg.tar.zst
 ```
 
 The direct installer path is separate; it is not tracked by pacman. Pick one
@@ -58,7 +58,7 @@ deployment path and document it for users.
 
 1. Back up the target `~/.config/{hypr,nvim,wezterm}` and any existing session.
 2. Run `./install.sh --full` (or `--rice`) from the checkout.
-3. Reboot/log out; confirm the Padilha session, bar, launcher, lock, and a fresh
+3. Reboot/log out; confirm the Lilith session, bar, launcher, lock, and a fresh
    terminal.
 4. Test the dotfiles: Hyprland reload, WezTerm config, Neovim theme, MC skin.
 5. Test the failure paths: shell watchdog restart, display-manager fallback,
@@ -87,12 +87,12 @@ The scheduler is not enabled. Before it is:
 
 - Code: check out `known-good-2026-11-04` in the affected repository.
 - Configs: the installer backs up real directories as
-  `~/.config/<name>.pre-padilha-<timestamp>`.
-- Package: `sudo pacman -Rns padilha`.
-- Direct install: remove `/usr/lib/padilha`, the `/usr/bin/padilha*` links, the
+  `~/.config/<name>.pre-lilith-<timestamp>`.
+- Package: `sudo pacman -Rns lilith`.
+- Direct install: remove `/usr/lib/lilith`, the `/usr/bin/lilith*` links, the
   session entry, and the optional systemd units.
 - Pages: disable Pages in repository settings; no user data is involved.
-- Promo timer: `sudo systemctl disable --now padilha-agents.timer`.
+- Promo timer: `sudo systemctl disable --now lilith-agents.timer`.
 
 ## Open deployment decisions
 

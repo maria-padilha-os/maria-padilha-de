@@ -1,4 +1,4 @@
--- Reads cases on stdin and prints padilha-theme's colour maths:
+-- Reads cases on stdin and prints lilith-theme's colour maths:
 --   hex RRGGBB      -> "hue chroma tone hex"
 --   hct H C T       -> "hex"
 local root = arg[1] or "."

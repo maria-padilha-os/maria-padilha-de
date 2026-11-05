@@ -27,8 +27,8 @@ bad() { fail=$((fail + 1)); printf '  FAIL %s\n' "$1"; [ -n "${2:-}" ] && printf
 # A clean checkout with one commit: worktrees need a HEAD to branch from.
 mkdir -p "$tmp/repo" "$tmp/queue"
 git -C "$tmp/repo" init -q -b main
-git -C "$tmp/repo" config user.email tests@padilha.invalid
-git -C "$tmp/repo" config user.name "Padilha tests"
+git -C "$tmp/repo" config user.email tests@lilith.invalid
+git -C "$tmp/repo" config user.name "Lilith tests"
 printf 'hello\n' > "$tmp/repo/README.md"
 git -C "$tmp/repo" add -A
 git -C "$tmp/repo" commit -qm "init"
@@ -411,8 +411,8 @@ echo "one project at a time"
 mkdir -p "$tmp/repo-one" "$tmp/repo-two" "$tmp/queue-one" "$tmp/queue-two"
 for repo in repo-one repo-two; do
     git -C "$tmp/$repo" init -q -b main
-    git -C "$tmp/$repo" config user.email tests@padilha.invalid
-    git -C "$tmp/$repo" config user.name "Padilha tests"
+    git -C "$tmp/$repo" config user.email tests@lilith.invalid
+    git -C "$tmp/$repo" config user.name "Lilith tests"
     printf 'repo\n' > "$tmp/$repo/README.md"
     git -C "$tmp/$repo" add -A
     git -C "$tmp/$repo" commit -qm "init"

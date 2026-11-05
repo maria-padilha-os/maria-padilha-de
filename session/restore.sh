@@ -1,23 +1,24 @@
 #!/bin/sh
-# Padilha session restore, deliberately small.
+# Lilith session restore, deliberately small.
 #
 #   restore.sh snapshot             save one allowlisted class per window
 #   restore.sh restore [--dry-run]  reopen the last snapshot once per Hyprland run
 #   restore.sh show                 print the saved snapshot
 #   restore.sh watch                snapshot every INTERVAL seconds
 #
-# State is JSON under $XDG_STATE_HOME/padilha. A snapshot records only window
+# State is JSON under $XDG_STATE_HOME/lilith. A snapshot records only window
 # classes and numeric workspace ids; the command is looked up in the fixed table
 # below. Editing the snapshot cannot introduce a new command. No sudo, no root.
 set -u
 umask 077
 
 STATE_HOME=${XDG_STATE_HOME:-"$HOME/.local/state"}
-STATE_DIR=$STATE_HOME/padilha
-SNAP=${PADILHA_RESTORE_FILE:-"$STATE_DIR/session-restore.json"}
-MAX=${PADILHA_RESTORE_MAX:-8}
-WAIT=${PADILHA_RESTORE_WAIT:-10}
-INTERVAL=${PADILHA_RESTORE_INTERVAL:-60}
+STATE_DIR=$STATE_HOME/lilith
+# The old PADILHA_RESTORE_* names are still accepted.
+SNAP=${LILITH_RESTORE_FILE:-${PADILHA_RESTORE_FILE:-"$STATE_DIR/session-restore.json"}}
+MAX=${LILITH_RESTORE_MAX:-${PADILHA_RESTORE_MAX:-8}}
+WAIT=${LILITH_RESTORE_WAIT:-${PADILHA_RESTORE_WAIT:-10}}
+INTERVAL=${LILITH_RESTORE_INTERVAL:-${PADILHA_RESTORE_INTERVAL:-60}}
 DRY_RUN=0
 tmpdir=
 
@@ -231,17 +232,17 @@ cmd_watch() {
 }
 
 case "$MAX" in
-    ''|*[!0-9]*) die "PADILHA_RESTORE_MAX must be an integer" ;;
+    ''|*[!0-9]*) die "LILITH_RESTORE_MAX must be an integer" ;;
 esac
-[ "$MAX" -gt 0 ] || die "PADILHA_RESTORE_MAX must be positive"
+[ "$MAX" -gt 0 ] || die "LILITH_RESTORE_MAX must be positive"
 [ "$MAX" -le 32 ] || MAX=32
 case "$WAIT" in
-    ''|*[!0-9]*) die "PADILHA_RESTORE_WAIT must be an integer" ;;
+    ''|*[!0-9]*) die "LILITH_RESTORE_WAIT must be an integer" ;;
 esac
 case "$INTERVAL" in
-    ''|*[!0-9]*) die "PADILHA_RESTORE_INTERVAL must be an integer" ;;
+    ''|*[!0-9]*) die "LILITH_RESTORE_INTERVAL must be an integer" ;;
 esac
-[ "$INTERVAL" -gt 0 ] || die "PADILHA_RESTORE_INTERVAL must be positive"
+[ "$INTERVAL" -gt 0 ] || die "LILITH_RESTORE_INTERVAL must be positive"
 [ "$(id -u)" -eq 0 ] && die "refusing to run as root"
 
 action=${1:-}

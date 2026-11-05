@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Keep the panel at a time-of-day brightness unless the user just set it.
+
+The curve is a set of local-time anchors, linearly interpolated.  Any change
+that the daemon did not make (brightness keys, the bar slider, brightnessctl)
+is treated as a manual choice and held for LILITH_BRIGHTNESS_HOLD_HOURS
+(default 4).  The hold survives suspend and restart in
+$XDG_STATE_HOME/lilith/brightness.state.
+"""
+
+from __future__ import annotations
+
+import fcntl
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HOLD_HOURS = float(os.environ.get("LILITH_BRIGHTNESS_HOLD_HOURS", "4"))
+POLL_SECONDS = 2
+# minutes since midnight -> percent
+ANCHORS = [
+    (0, 15),
+    (6 * 60, 20),
+    (7 * 60 + 30, 70),
+    (12 * 60, 100),
+    (17 * 60, 85),
+    (19 * 60, 55),
+    (21 * 60, 30),
+    (23 * 60, 20),
+    (24 * 60, 15),
+]
+
+
+def state_path() -> Path:
+    base = os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local/state")
+    return Path(base) / "lilith" / "brightness.state"
+
+
+def get_percent() -> int | None:
+    try:
+        current = int(subprocess.check_output(["brightnessctl", "g"], text=True).strip())
+        maximum = int(subprocess.check_output(["brightnessctl", "m"], text=True).strip())
+        return round(current * 100 / maximum)
+    except Exception:
+        return None
+
+
+def set_percent(value: int) -> None:
+    subprocess.run(
+        ["brightnessctl", "s", f"{value}%"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+
+
+def target_percent(now: float) -> int:
+    lt = time.localtime(now)
+    minutes = lt.tm_hour * 60 + lt.tm_min + lt.tm_sec / 60
+    for (m0, v0), (m1, v1) in zip(ANCHORS, ANCHORS[1:]):
+        if m0 <= minutes <= m1:
+            fraction = (minutes - m0) / (m1 - m0) if m1 > m0 else 0
+            return round(v0 + (v1 - v0) * fraction)
+    return ANCHORS[-1][1]
+
+
+def load_state() -> tuple[float, int]:
+    try:
+        values: dict[str, str] = {}
+        for line in state_path().read_text().splitlines():
+            if "=" in line:
+                key, value = line.split("=", 1)
+                values[key.strip()] = value.strip()
+        return float(values.get("override_until", 0)), int(values.get("last_applied", -1))
+    except Exception:
+        return 0.0, -1
+
+
+def save_state(override_until: float, last_applied: int) -> None:
+    path = state_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(f"override_until={override_until:.0f}\nlast_applied={last_applied}\n")
+    tmp.replace(path)
+
+
+def main() -> int:
+    path = state_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock = open(path.with_suffix(".lock"), "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return 0
+
+    override_until, _ = load_state()
+    current = get_percent()
+    while current is None:
+        time.sleep(1)
+        current = get_percent()
+
+    last_seen = current
+    last_set = 0.0
+    last_loop = time.time()
+    save_state(override_until, current)
+
+    while True:
+        now = time.time()
+        resumed = now - last_loop > 60
+        last_loop = now
+        current = get_percent()
+        if current is None:
+            time.sleep(POLL_SECONDS)
+            continue
+
+        # A change across a suspend/resume is the hardware coming back, not
+        # the user; only changes while awake count as manual.
+        if resumed:
+            last_seen = current
+        elif abs(current - last_seen) > 2 and now - last_set > 5:
+            # Any change we did not make is the user: hold their value.
+            override_until = now + HOLD_HOURS * 3600
+            last_seen = current
+            save_state(override_until, current)
+            time.sleep(POLL_SECONDS)
+            continue
+
+        if now >= override_until:
+            want = target_percent(now)
+            if abs(want - current) >= 1:
+                set_percent(want)
+                last_seen = want
+                last_set = time.time()
+                save_state(override_until, want)
+            else:
+                last_seen = current
+        else:
+            last_seen = current
+
+        time.sleep(POLL_SECONDS)
+
+
+if __name__ == "__main__":
+    if "--target" in sys.argv:
+        print(target_percent(time.time()))
+    elif "--status" in sys.argv:
+        override_until, last_applied = load_state()
+        print(
+            f"current={get_percent()}% target={target_percent(time.time())}% "
+            f"override_until={int(override_until)} last_applied={last_applied}"
+        )
+    else:
+        sys.exit(main())

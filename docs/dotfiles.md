@@ -6,14 +6,14 @@ title: Dotfiles
 # The rice
 
 `lilith-dotfiles` is the standalone rice: the Hyprland, Neovim, and WezTerm
-configs, linked into `~/.config` by `bin/padilha-dots`.
+configs, linked into `~/.config` by `bin/lilith-dots`.
 
 ```sh
 git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git \
     ~/Códigos/lilith/lilith-dotfiles
 ```
 
-The Hyprland config starts the shell through `padilha-session`, which comes
+The Hyprland config starts the shell through `lilith-session`, which comes
 from the desktop package. Install that first with `./install.sh --rice`, or put
 the desktop's `bin/` on `PATH` for a checkout.
 
@@ -21,11 +21,11 @@ the desktop's `bin/` on `PATH` for a checkout.
 
 ```sh
 cd ~/Códigos/lilith/lilith-dotfiles
-./bin/padilha-dots            # hypr, nvim, wezterm
-./bin/padilha-dots hypr       # only Hyprland
+./bin/lilith-dots             # hypr, nvim, wezterm
+./bin/lilith-dots hypr        # only Hyprland
 ```
 
-`padilha-dots` refuses to replace a real directory. Move an existing config
+`lilith-dots` refuses to replace a real directory. Move an existing config
 aside once, then rerun it.
 
 ## What is in the rice

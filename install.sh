@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Padilha installer.
+# Lilith installer.
 #
 #   ./install.sh --full        the full desktop session (default)
 #   ./install.sh --rice        Hyprland + Quickshell, keeping the current session
@@ -16,7 +16,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 mode=full
 dry_run=0
 with_dotfiles=1
-dotfiles_dir="${PADILHA_DOTFILES:-$root/../lilith-dotfiles}"
+dotfiles_dir="${LILITH_DOTFILES:-${PADILHA_DOTFILES:-$root/../lilith-dotfiles}}"
 
 usage() {
     cat <<'EOF'
@@ -27,8 +27,9 @@ usage: ./install.sh [--full|--rice] [--dry-run] [--no-dotfiles]
   --dry-run      print what would happen, change nothing
   --no-dotfiles  do not link ~/.config/{hypr,nvim,wezterm}
 
-PADILHA_DOTFILES=DIR points at an existing dotfiles checkout
-(default: ../lilith-dotfiles next to this repository).
+LILITH_DOTFILES=DIR points at an existing dotfiles checkout
+(default: ../lilith-dotfiles next to this repository). The old
+PADILHA_DOTFILES name is still accepted.
 
 The rice profile still needs root for the shell and commands under /usr. It
 does not install a session entry or systemd user units.
@@ -84,7 +85,7 @@ while (( $# )); do
 done
 
 if ! command -v pacman >/dev/null 2>&1; then
-    die "pacman not found; Padilha is packaged for Arch and Manjaro"
+    die "pacman not found; Lilith is packaged for Arch and Manjaro"
 fi
 
 if (( dry_run == 0 )); then
@@ -127,34 +128,34 @@ run "$root/tools/build.sh"
 
 log "Installing the shell and commands under /usr"
 run_sudo cmake --install "$root/build" --prefix /usr
-run_sudo install -d /usr/lib/padilha/bin /usr/lib/padilha/lib /usr/lib/padilha/share
-run_sudo cp -R --preserve=mode,timestamps "$root/bin/." /usr/lib/padilha/bin/
-run_sudo cp -R --preserve=mode,timestamps "$root/lib/." /usr/lib/padilha/lib/
-run_sudo cp -R --preserve=mode,timestamps "$root/share/." /usr/lib/padilha/share/
-run_sudo chmod 755 /usr/lib/padilha/bin/*
+run_sudo install -d /usr/lib/lilith/bin /usr/lib/lilith/lib /usr/lib/lilith/share
+run_sudo cp -R --preserve=mode,timestamps "$root/bin/." /usr/lib/lilith/bin/
+run_sudo cp -R --preserve=mode,timestamps "$root/lib/." /usr/lib/lilith/lib/
+run_sudo cp -R --preserve=mode,timestamps "$root/share/." /usr/lib/lilith/share/
+run_sudo chmod 755 /usr/lib/lilith/bin/*
 
 commands=(
-    padilha
-    padilha-brightness
-    padilha-config
-    padilha-session
-    padilha-shell-watch
-    padilha-theme
-    padilha-daylight
-    padilha-reload
-    padilha-shot
-    padilha-record
-    padilha-clipboard
-    padilha-emoji
+    lilith
+    lilith-brightness
+    lilith-config
+    lilith-session
+    lilith-shell-watch
+    lilith-theme
+    lilith-daylight
+    lilith-reload
+    lilith-shot
+    lilith-record
+    lilith-clipboard
+    lilith-emoji
 )
 for cmd in "${commands[@]}"; do
-    run_sudo ln -sfn "/usr/lib/padilha/bin/$cmd" "/usr/bin/$cmd"
+    run_sudo ln -sfn "/usr/lib/lilith/bin/$cmd" "/usr/bin/$cmd"
 done
 
 if [ "$mode" = full ]; then
     log "Installing the session entry and systemd user units"
-    run_sudo install -Dm644 "$root/session/padilha.desktop" \
-        /usr/share/wayland-sessions/padilha.desktop
+    run_sudo install -Dm644 "$root/session/lilith.desktop" \
+        /usr/share/wayland-sessions/lilith.desktop
     run_sudo install -d /usr/lib/systemd/user
     run_sudo install -m644 "$root"/session/systemd/user/* /usr/lib/systemd/user/
 fi
@@ -171,7 +172,7 @@ link_dotfiles() {
             run mkdir -p "$dst"
             for file in ini mc.keymap mc.ext.ini; do
                 if [ -e "$dst/$file" ] && [ ! -L "$dst/$file" ]; then
-                    backup="$dst/$file.pre-padilha-$(date +%Y%m%d-%H%M%S)"
+                    backup="$dst/$file.pre-lilith-$(date +%Y%m%d-%H%M%S)"
                     warn "backing up $dst/$file -> $backup"
                     run mv "$dst/$file" "$backup"
                 fi
@@ -179,18 +180,18 @@ link_dotfiles() {
             continue
         fi
         if [ -e "$dst" ] && [ ! -L "$dst" ]; then
-            backup="$dst.pre-padilha-$(date +%Y%m%d-%H%M%S)"
+            backup="$dst.pre-lilith-$(date +%Y%m%d-%H%M%S)"
             warn "backing up $dst -> $backup"
             run mv "$dst" "$backup"
         fi
     done
-    run "$dotfiles_dir/bin/padilha-dots" "$@"
+    run "$dotfiles_dir/bin/lilith-dots" "$@"
 }
 
 if (( with_dotfiles )); then
-    if [ ! -x "$dotfiles_dir/bin/padilha-dots" ]; then
+    if [ ! -x "$dotfiles_dir/bin/lilith-dots" ]; then
         if [ -e "$dotfiles_dir" ]; then
-            die "$dotfiles_dir exists but has no bin/padilha-dots"
+            die "$dotfiles_dir exists but has no bin/lilith-dots"
         fi
         log "Fetching lilith-dotfiles"
         run git clone https://github.com/Mateus-M-Reis/padilha-dotfiles.git "$dotfiles_dir"
@@ -207,8 +208,8 @@ if [ "$mode" = full ]; then
     cat <<'EOF'
 
 Installed the full desktop.
-1. Reboot (or log out) and choose "Padilha" at the display manager.
-2. If the greeter still lists plain Hyprland, pick Padilha from the session menu.
+1. Reboot (or log out) and choose "Lilith" at the display manager.
+2. If the greeter still lists plain Hyprland, pick Lilith from the session menu.
 3. Super+Escape locks; Super+Shift+Escape explains that sleep is disabled
    (s2idle/hibernate are broken on some laptops), Super+/ opens the cheat sheet
    if your build has it.
@@ -224,7 +225,7 @@ The current display manager and session entry are untouched.
 
 1. Log out and back into your existing Hyprland session, or run `hyprctl reload`
    for the config changes.
-2. `padilha-session` starts the shell; the Hyprland config calls it at login.
+2. `lilith-session` starts the shell; the Hyprland config calls it at login.
 3. If you kept your own Hyprland config (--no-dotfiles), start Quickshell with
    `qs -c caelestia` after setting the QML import path from the build.
 
