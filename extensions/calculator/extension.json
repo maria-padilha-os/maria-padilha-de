@@ -3,6 +3,5 @@
     "description": "qalc front-end",
     "version": "1.0",
     "icon": "calculate",
-    "entry": "Page.qml",
     "tab": "Tab.qml"
 }

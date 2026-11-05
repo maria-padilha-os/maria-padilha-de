@@ -3,6 +3,5 @@
     "description": "OpenStreetMap viewer and search",
     "version": "1.0",
     "icon": "map",
-    "entry": "Page.qml",
     "tab": "Tab.qml"
 }

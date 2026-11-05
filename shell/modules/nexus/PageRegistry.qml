@@ -52,7 +52,7 @@ QtObject {
         {
             label: Tr.tr("Extensions"),
             icon: "extension",
-            description: Tr.tr("Settings pages and panel tabs"),
+            description: Tr.tr("Enable tabs in the top panel"),
             category: "system"
         },
 

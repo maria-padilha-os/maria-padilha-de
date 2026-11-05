@@ -3,6 +3,5 @@
     "description": "Tune a guitar with the microphone",
     "version": "1.0",
     "icon": "graphic_eq",
-    "entry": "Page.qml",
     "tab": "Tab.qml"
 }

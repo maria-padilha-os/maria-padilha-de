@@ -153,7 +153,7 @@ PageBase {
 
         InfoRow {
             last: true
-            label: Tr.tr("Panel tabs")
+            label: Tr.tr("Top panel tabs")
             value: root.panelTabCount.toString()
         }
     }

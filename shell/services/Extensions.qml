@@ -73,9 +73,7 @@ Singleton {
                 description: manifest?.description ?? "",
                 version: manifest?.version ?? "",
                 icon: manifest?.icon ?? "extension",
-                entry: manifest?.entry ?? "Page.qml",
                 tab: manifest?.tab ?? "",
-                entryUrl: `file://${dirPath}/${manifest?.entry ?? "Page.qml"}`,
                 tabUrl: manifest?.tab ? `file://${dirPath}/${manifest.tab}` : "",
                 valid: manifest !== null
             });

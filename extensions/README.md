@@ -2,7 +2,7 @@
 
 These ship with Lilith and are installed to
 `/usr/lib/lilith/share/extensions` by `install.sh` and the package. Settings →
-Extensions lists them; **Show in the top panel** adds a dashboard tab.
+Extensions lists them and toggles their tab in the top panel.
 
 | id | what it does | tab size |
 | --- | --- | --- |
