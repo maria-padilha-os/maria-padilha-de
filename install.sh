@@ -139,6 +139,7 @@ runtime_deps=(
     imagemagick
     micro
     xdg-utils
+    jq
     hypridle
     hyprsunset
     trash-cli

@@ -30,6 +30,7 @@ depends=(
     'imagemagick'
     'micro'
     'xdg-utils'
+    'jq'
     # Started by hypr/hyprland/execs.lua. The shell still runs without them,
     # but a "complete desktop" install loses keyring, polkit, idle, night
     # light, trash cleanup, clipboard history and the pickers.

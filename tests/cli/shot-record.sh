@@ -52,5 +52,22 @@ contains "sound recording adds the output" "$out" "-a default_output"
 out=$("$record" -p --dry-run 2>&1)
 contains "pause signals the recorder" "$out" "pkill -USR2"
 
+echo "monitor detection"
+
+fake=$(mktemp -d)
+trap 'rm -rf "$fake"' EXIT
+mkdir -p "$fake/bin"
+cat >"$fake/bin/hyprctl" <<'SH'
+#!/bin/sh
+printf '%s\n' '[{"name":"eDP-1","focused":true,"refreshRate":60.0}]'
+SH
+chmod +x "$fake/bin/hyprctl"
+
+out=$(PATH="$fake/bin:$PATH" "$record" --dry-run 2>&1)
+contains "recording targets the focused monitor" "$out" "-w eDP-1"
+
+out=$(PATH="$fake/bin:$PATH" "$shot" --dry-run 2>&1)
+contains "screenshot targets the focused monitor" "$out" "-o eDP-1"
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

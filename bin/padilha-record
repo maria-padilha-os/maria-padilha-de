@@ -50,13 +50,12 @@ notify() { notify-send -a padilha-record "$@"; }
 monitor_json() { hyprctl monitors -j 2>/dev/null; }
 
 focused() {
-    monitor_json | tr '}' '\n' | grep '"focused": true' |
-        sed -n 's/.*"name": "\([^"]*\)".*/\1/p' | head -n 1
+    monitor_json | jq -r '.[] | select(.focused == true) | .name' 2>/dev/null | head -n 1
 }
 
 refresh() {
-    monitor_json | tr '}' '\n' | grep '"focused": true' |
-        sed -n 's/.*"refreshRate": \([0-9.]*\).*/\1/p' | head -n 1 | cut -d. -f1
+    monitor_json | jq -r '.[] | select(.focused == true) | .refreshRate' 2>/dev/null |
+        head -n 1 | cut -d. -f1
 }
 
 if [ "$pause" = 1 ]; then
