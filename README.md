@@ -78,9 +78,11 @@ The shell is a fork of [Caelestia](https://github.com/caelestia-dots/shell)
 ## Requirements
 
 Maria Padilha is packaged for Arch Linux and Arch-based distributions such as
-Manjaro. The package depends on:
+Manjaro. It requires:
 
-- Hyprland, Quickshell, and `hyprlock`
+- Hyprland and Quickshell
+- `hyprlock` for screen locking (installed by `install.sh --full`; an
+  opt-in/recommended package dependency)
 - Qt 6 (`qt6-base`, `qt6-declarative`)
 - PipeWire, aubio, libcava, libqalculate, and lm_sensors
 - Lua, ImageMagick, and `jq`

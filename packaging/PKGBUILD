@@ -43,9 +43,9 @@ depends=(
     'wl-clipboard'
     'cliphist'
     'fuzzel'
-    'hyprlock'
 )
 optdepends=(
+    'hyprlock: stable screen locking (recommended)'
     'sass: Discord theme compilation'
     'neovim: alternative editor (install.sh --editor nvim)'
     'clang: C/C++/Objective-C language server for micro (clangd)'
