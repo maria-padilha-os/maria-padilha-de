@@ -64,3 +64,36 @@ jobs:
 
       - name: Run static checks
         run: bash tools/lint.sh
+
+  build:
+    name: shell build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install the build dependencies
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm --needed \
+            base-devel cmake git meson ninja python pkgconf \
+            qt6-base qt6-declarative qt6-shadertools \
+            alsa-lib fftw iniparser libglvnd libpipewire libpulse \
+            lm_sensors ncurses portaudio sdl2 sndio aubio libqalculate pam
+
+      # libcava is AUR-only. Build the upstream 1.0.0 tag directly so the
+      # plugin's Cava dependency is available without an AUR helper.
+      - name: Build and install libcava
+        run: |
+          git clone --depth 1 --branch 1.0.0 \
+            https://github.com/LukashonakV/cava.git /tmp/libcava
+          meson setup /tmp/libcava/build /tmp/libcava \
+            -Dcava_font=false --prefix=/usr
+          ninja -C /tmp/libcava/build
+          ninja -C /tmp/libcava/build install
+
+      - uses: actions/checkout@v7.0.1
+
+      - name: Configure and build the shell
+        run: tools/build.sh
