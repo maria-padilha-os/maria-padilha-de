@@ -1,21 +1,26 @@
 # Supporting Maria Padilha
 
-Maria Padilha is free software under the GPL-3.0-only. Donations are optional: no
+Maria Padilha is free software under GPL-3.0-only. Donations are optional: no
 feature is paywalled, no build is held back, and there are no ads or trackers.
 
 ## GitHub Sponsors
 
-If the account is enrolled in GitHub Sponsors, the Sponsor button on the
-repository comes from `.github/FUNDING.yml` and points here:
+The repository's `.github/FUNDING.yml` is wired to
+[`@Mateus-M-Reis`](https://github.com/Mateus-M-Reis), but GitHub Sponsors
+enrollment is still pending. Until GitHub approves the listing:
 
-<https://github.com/sponsors/Mateus-M-Reis>
+- the repository's Sponsor button is not active;
+- there is no working payment page yet.
+
+No code or documentation change will be needed once the listing is approved; the
+button will pick up the handle from `FUNDING.yml`.
 
 ## Other ways to help
 
-- Add a Ko-fi, Liberapay, Open Collective, or Pix entry to
-  `.github/FUNDING.yml`; GitHub will render it next to the Sponsor button.
 - Star the repositories and report bugs with logs; that is useful work too.
 - If you want paid support or a specific integration, open an issue and say so.
+- If you have a Ko-fi, Liberapay, Open Collective, or Pix account, it can be
+  added to `.github/FUNDING.yml` with the other funding entries.
 
 The money, when it exists, goes to hardware, hosting, and development time —
 not to closing the source.
