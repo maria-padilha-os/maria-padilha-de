@@ -20,6 +20,21 @@ downstream knows Lua exists.
 During the transition, `~/.config/lilith` is still read as a fallback when
 `~/.config/padilha` does not exist; new configs belong in the new directory.
 
+## Environment variables
+
+- `PADILHA_CONFIG` — the absolute path to the `padilha-config` executable,
+  exported by `padilha-session` for the settings UI. Do not point it at a
+  directory.
+- `PADILHA_CONFIG_DIR` — the Hyprland user-config root, default
+  `~/.config/padilha`. The legacy `PADILHA_CONFIG` name is still accepted for
+  this purpose when it really names a directory.
+- `PADILHA_DOTFILES` — an existing dotfiles checkout for `install.sh`; the old
+  `LILITH_DOTFILES` is the fallback.
+- `PADILHA_FIREFOX_PROFILE_DIR` — force the Firefox profile used by
+  `padilha-theme` and `padilha-dots`.
+- `PADILHA_BACKLIGHT_DIR` — override the sysfs backlight directory for
+  `padilha-brightness` (mainly for tests).
+
 ## Theme settings
 
 `~/.config/padilha/theme.lua` is optional and read by every `padilha-theme
