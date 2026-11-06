@@ -16,10 +16,9 @@ Do not, until this checklist is signed off:
 - build and publish a release package or tag a release;
 - enroll or publish donation links.
 
-The `known-good-2026-11-04` and `known-good-2026-11-05` tags are rollback
-points, not releases. Both predate the Maria Padilha rebrand, so a rollback
-would also undo the rename; cut a new known-good tag after the rebrand is
-verified.
+The `known-good-2026-11-04` and `known-good-2026-11-05` tags predate the
+Maria Padilha rebrand. `known-good-2026-11-06e` is the post-rebrand 0.2.0
+rollback point in both repositories. None of these are releases.
 
 ## Preflight
 
