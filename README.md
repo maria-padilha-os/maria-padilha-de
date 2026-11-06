@@ -65,12 +65,35 @@ network, Bluetooth, display, and battery widgets. Network names are blurred in
 the published capture. The [widget MP4](docs/assets/demo/widgets.mp4) is
 shorter to load.
 
+| Audio | Network | Bluetooth |
+| --- | --- | --- |
+| ![Audio widget](docs/assets/screenshots/bar-audio.webp) | ![Network widget, SSIDs blurred](docs/assets/screenshots/bar-network.webp) | ![Bluetooth widget](docs/assets/screenshots/bar-bluetooth.webp) |
+
+| Display | Battery |
+| --- | --- |
+| ![Display widget](docs/assets/screenshots/bar-display.webp) | ![Battery widget](docs/assets/screenshots/bar-battery.webp) |
+
 ### Dashboard tabs
 
-![Switching between the dashboard, media, and performance tabs](docs/assets/demo/tabs.gif)
+![Switching between the dashboard tabs](docs/assets/demo/tabs.gif)
 
 The dashboard tabs are part of the shell and share the same palette. See the
 [tab MP4](docs/assets/demo/tabs.mp4).
+
+| Dashboard | Media | Performance | Calculator |
+| --- | --- | --- | --- |
+| ![Dashboard tab](docs/assets/screenshots/tabs/dashboard.webp) | ![Media tab](docs/assets/screenshots/tabs/media.webp) | ![Performance tab](docs/assets/screenshots/tabs/performance.webp) | ![Calculator tab](docs/assets/screenshots/tabs/calculator.webp) |
+
+| Maps | Stopwatch | Translator | Tuner |
+| --- | --- | --- | --- |
+| ![Maps tab](docs/assets/screenshots/tabs/maps.webp) | ![Stopwatch tab](docs/assets/screenshots/tabs/stopwatch.webp) | ![Translator tab](docs/assets/screenshots/tabs/translator.webp) | ![Tuner tab](docs/assets/screenshots/tabs/tuner.webp) |
+
+### Panels
+
+![Desktop, launcher, dashboard, and settings panels](docs/assets/demo/panels.gif)
+
+The top bar, launcher, dashboard, and settings window shown together. The
+[panel MP4](docs/assets/demo/panels.mp4) is smaller than the GIF.
 
 ## Settings
 

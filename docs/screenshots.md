@@ -43,9 +43,13 @@ Network names are blurred in the published capture.
 
 ## Dashboard tabs
 
-| Dashboard | Media |
-| --- | --- |
-| ![Dashboard tab](assets/screenshots/tabs/dashboard.webp) | ![Media tab](assets/screenshots/tabs/media.webp) |
+| Dashboard | Media | Performance | Calculator |
+| --- | --- | --- | --- |
+| ![Dashboard tab](assets/screenshots/tabs/dashboard.webp) | ![Media tab](assets/screenshots/tabs/media.webp) | ![Performance tab](assets/screenshots/tabs/performance.webp) | ![Calculator tab](assets/screenshots/tabs/calculator.webp) |
+
+| Maps | Stopwatch | Translator | Tuner |
+| --- | --- | --- | --- |
+| ![Maps tab](assets/screenshots/tabs/maps.webp) | ![Stopwatch tab](assets/screenshots/tabs/stopwatch.webp) | ![Translator tab](assets/screenshots/tabs/translator.webp) | ![Tuner tab](assets/screenshots/tabs/tuner.webp) |
 
 ![Switching dashboard tabs](assets/demo/tabs.gif)
 
@@ -54,9 +58,14 @@ Network names are blurred in the published capture.
   Your browser does not support the video element.
 </video>
 
-| Performance |
-| --- |
-| ![Performance tab](assets/screenshots/tabs/performance.webp) |
+## Panels
+
+![Desktop, launcher, dashboard, and settings](assets/demo/panels.gif)
+
+<video controls loop muted playsinline poster="assets/screenshots/settings.webp">
+  <source src="assets/demo/panels.mp4" type="video/mp4">
+  Your browser does not support the video element.
+</video>
 
 ## Settings
 
