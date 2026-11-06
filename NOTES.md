@@ -119,8 +119,8 @@ siblings; the desktop installer fetches the dotfiles repository as
    the verified DeepSeek windows/timezone and cost cap, create queue tasks, and
    install the timer. The schedule in the example is a placeholder; do not
    enable this before deployment readiness either.
-3. **First release.** Tag, release notes and the clean-VM install are the
-   remaining deployment steps. `docs/README.md` documents the Pages source.
+3. **Clean-machine check.** The `v0.2.0` tag and GitHub release are done;
+   the clean-VM install remains. `docs/README.md` documents the Pages source.
 4. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
 5. **`maria-padilha-os`.** Not started; it should be an archiso/Calamares repository
@@ -224,7 +224,7 @@ Only after that should the coordinator agent auto-review/merge.
 
 ## Next actions
 
-1. Publish the v0.2.0 GitHub release and complete the clean-VM install.
+1. Complete the clean-VM install for 0.2.0 (the release is published).
 2. Enroll/finish the funding links.
 3. Enable the promo scheduler in the private `maria-padilha-agents` repo with a
    verified window and a cost cap; keep `max_rounds_per_window` bounded for the

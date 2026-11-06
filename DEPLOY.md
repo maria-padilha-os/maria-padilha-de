@@ -1,19 +1,17 @@
 # Release and deployment readiness
 
-**Status: public source and docs; no GitHub release.** The repositories are
-public and GitHub Pages serves the docs from `main` `/docs`. A local package is
-installed on the development machine for testing; no clean-machine install or
-GitHub release has been published.
+**Status: 0.2.0 released publicly; no clean-machine install.** The repositories
+are public, GitHub Pages serves the docs from `main` `/docs`, and the `v0.2.0`
+release (package plus checksum) is published. A clean-machine install remains.
 
 ## Current hold
 
 Do not, until this checklist is signed off:
 
-- install or publish on a clean or public machine (the development laptop has
-  a local package install for testing, not a release);
+- install on a clean machine (the development laptop has a local package
+  install for testing, not a clean-install check);
 - install/enable the promo-agent system timer (it belongs to the private
   `maria-padilha-agents` repository, not this product repo);
-- publish a GitHub release or release package;
 - enroll or publish donation links.
 
 The `known-good-2026-11-04` and `known-good-2026-11-05` tags predate the
@@ -45,6 +43,7 @@ Run from `maria-padilha-de` unless stated otherwise.
       <https://maria-padilha-os.github.io/maria-padilha-de/>.
 - [x] The current release version and changelog are decided
       (`packaging/PKGBUILD` 0.2.0, `CHANGELOG.md`).
+- [x] The `v0.2.0` GitHub release is published with the package and checksum.
 - [ ] A clean VM or spare user account is available for the first real install.
       The disposable root checks layout only, not a login/session.
 - [x] Suspend is still known-broken; do not include it in a demo.
