@@ -6,6 +6,7 @@ provides a complete shell, a login session, a wallpaper-driven colour system,
 and a Lua configuration layer.
 
 [![tests](https://github.com/maria-padilha-os/maria-padilha-de/actions/workflows/tests.yml/badge.svg)](https://github.com/maria-padilha-os/maria-padilha-de/actions/workflows/tests.yml)
+[![release](https://img.shields.io/github/v/release/maria-padilha-os/maria-padilha-de)](https://github.com/maria-padilha-os/maria-padilha-de/releases/latest)
 
 The name comes from Maria Padilha, a figure in Brazilian folk religion.
 
@@ -207,6 +208,8 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 - [CHANGELOG.md](CHANGELOG.md) — what changed and the known issues
 - [docs/](docs/) — the GitHub Pages source: install, desktop, dotfiles, support
 - [SUPPORT.md](SUPPORT.md) — optional donations and other ways to help
+- [CONTRIBUTING.md](CONTRIBUTING.md) — development loop and pull-request rules
+- [SECURITY.md](SECURITY.md) — private vulnerability reporting
 - [ARCHITECTURE.md](ARCHITECTURE.md) — how the layers fit together
 - [CONFIG.md](CONFIG.md) — the configuration contract
 - [dotfiles](https://github.com/maria-padilha-os/maria-padilha-dotfiles) — the Hyprland, nvim and wezterm configs
