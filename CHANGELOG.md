@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `padilha-brightness` reads the backlight through sysfs and only calls
+  `brightnessctl` when it needs to change the value, instead of spawning two
+  helpers every two seconds.
+
 ## 0.2.0 — Maria Padilha (2026-11-06)
 
 - Rebranded the product from Lilith back to **Maria Padilha**. Commands are

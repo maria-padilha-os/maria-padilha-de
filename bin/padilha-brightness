@@ -26,6 +26,8 @@ HOLD_HOURS = float(
     )
 )
 POLL_SECONDS = 2
+# Read brightness from sysfs; only setting it needs the brightnessctl helper.
+BACKLIGHT_DIR = Path(os.environ.get("PADILHA_BACKLIGHT_DIR", "/sys/class/backlight"))
 # minutes since midnight -> percent
 ANCHORS = [
     (0, 15),
@@ -50,6 +52,20 @@ def state_path() -> Path:
 
 
 def get_percent() -> int | None:
+    """Read sysfs first; the polling loop must not spawn two processes every 2s."""
+    try:
+        for device in sorted(BACKLIGHT_DIR.iterdir()):
+            try:
+                current = int((device / "brightness").read_text())
+                maximum = int((device / "max_brightness").read_text())
+            except (OSError, ValueError):
+                continue
+            if maximum > 0:
+                return round(current * 100 / maximum)
+    except OSError:
+        pass
+
+    # Fallback for a machine where the sysfs node is not readable by the user.
     try:
         current = int(subprocess.check_output(["brightnessctl", "g"], text=True).strip())
         maximum = int(subprocess.check_output(["brightnessctl", "m"], text=True).strip())
