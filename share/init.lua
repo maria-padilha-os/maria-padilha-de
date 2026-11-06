@@ -1,4 +1,4 @@
--- Padilha user config.
+-- Maria Padilha user config.
 --
 -- Everything here is data: the compiler merges it over the shell's built-in
 -- defaults and writes the JSON the shell reads. Machine-specific overrides go

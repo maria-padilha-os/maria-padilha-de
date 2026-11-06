@@ -1,6 +1,6 @@
 # Templates
 
-Every file here is a Padilha template: `{{ $colour }}` where a colour from
+Every file here is a Maria Padilha template: `{{ $colour }}` where a colour from
 `scheme.json` goes, `{{ $mode }}` where `Light`/`Dark` goes.
 
 They started as the Caelestia 2.5.0 set (GPL-3.0, like the shell this desktop

@@ -1,4 +1,4 @@
--- The Padilha palette: one seed colour in, the shell's whole colour set out.
+-- The Maria Padilha palette: one seed colour in, the shell's whole colour set out.
 --
 -- The role table is Material 3's: six tonal palettes (primary, secondary,
 -- tertiary, neutral, neutral-variant, error) and a fixed tone per role. The
