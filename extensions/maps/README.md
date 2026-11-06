@@ -1,7 +1,7 @@
 # Maps
 
-An OpenStreetMap viewer and place search for the Lilith desktop, bundled as an
-extension.
+An OpenStreetMap viewer and place search for the Maria Padilha desktop, bundled
+as an extension.
 
 - 3x3 raster tile grid, starting at Porto Alegre (`-30.0346, -51.2177`) at
   zoom 12. Drag to pan; `+`/`−` and the mouse wheel zoom between 3 and 18.
@@ -16,11 +16,10 @@ extension.
 | file | role |
 | --- | --- |
 | `extension.json` | manifest |
-| `Page.qml` | large settings-page entry, fills the host content area |
 | `Tab.qml` | dashboard tab entry, 560×360 |
 | `Widget.qml` | the map, search field, results and controls |
 
-Install by copying this directory to `~/.config/lilith/extensions/maps`, then
+Install by copying this directory to `~/.config/padilha/extensions/maps`, then
 enable it under Settings → Extensions → **Show in the top panel**.
 
 ## Data sources and limits
@@ -40,9 +39,11 @@ enable it under Settings → Extensions → **Show in the top panel**.
 
 ## OpenStreetMap policy compliance
 
-- Tile requests identify the app: `Lilith-Maps/1.0 (+https://github.com/Mateus-M-Reis/lilith)`.
-- Tiles are cached under `~/.cache/lilith/maps/<z>/<x>/<y>.png`; a cached tile is never
-  refetched by a pan, zoom or shell restart.
+- Tile requests identify the app:
+  `Padilha-Maps/1.0 (+https://github.com/maria-padilha-os/maria-padilha-de)`.
+- Tiles are cached under `$XDG_CACHE_HOME/caelestia/maps/<z>/<x>/<y>.png`
+  (`~/.cache/caelestia/maps/` by default); a cached tile is never refetched by
+  a pan, zoom or shell restart.
 - Only the nine tiles of the visible 3x3 grid are requested, and only while the
   Maps tab is the selected tab. Nothing is prefetched.
 - Requests are staggered instead of fired as a burst.

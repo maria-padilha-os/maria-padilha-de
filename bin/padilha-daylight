@@ -137,6 +137,21 @@ local function set_wallpaper(path)
     return true
 end
 
+-- A period marker alone is not proof the theme landed. Check the outputs the
+-- shell actually reads, including that the saved wallpaper still exists.
+local function state_ready()
+    if not exists(state_dir .. "/scheme.json") then
+        return false
+    end
+    local f = io.open(wall_state .. "/path.txt", "r")
+    if not f then
+        return false
+    end
+    local path = f:read("*l")
+    f:close()
+    return path ~= nil and path ~= "" and exists(path)
+end
+
 --------------------------------------------------------------------------
 -- Switch
 --------------------------------------------------------------------------
@@ -233,7 +248,11 @@ local function check()
         f:close()
     end
 
-    if current == previous and not opts.dry_run and not opts.force then
+    -- A matching period is not enough: a first run can fail after writing
+    -- daylight.period, and a login must repair a missing scheme or wallpaper
+    -- rather than trust the marker. This is why padilha-session --once exists.
+    local ready = state_ready()
+    if current == previous and ready and not opts.dry_run and not opts.force then
         return
     end
 

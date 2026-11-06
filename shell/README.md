@@ -1,3 +1,12 @@
+> **Fork notice.** This tree is the **Maria Padilha** fork of Caelestia shell
+> 2.5.0 (`upstream.json`). The rest of this file is kept from upstream for
+> attribution and API reference; its AUR/Nix install instructions, Ko-fi link,
+> Discord invite and `~/.config/caelestia` paths describe Caelestia, not this
+> desktop. Install Maria Padilha with `maria-padilha-de/install.sh` or the
+> `maria-padilha` package, and use `~/.config/padilha` for configuration.
+> Crash reports belong at
+> <https://github.com/maria-padilha-os/maria-padilha-de/issues>, not upstream.
+
 <h1 align=center>caelestia-shell</h1>
 
 <div align=center>

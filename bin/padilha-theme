@@ -35,6 +35,36 @@ local function die(msg)
     os.exit(1)
 end
 
+local function quote(s)
+    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
+end
+
+local tmp_counter = 0
+local function tmp_path(path)
+    tmp_counter = tmp_counter + 1
+    local token = tostring({}):match("0x%x+") or tostring(os.time())
+    return path .. ".tmp." .. token .. "." .. tmp_counter
+end
+
+local function valid_variant(name)
+    for _, variant in ipairs(schememod.variants) do
+        if variant == name then
+            return true
+        end
+    end
+    return false
+end
+
+local function check(what, mode, variant)
+    if mode ~= "light" and mode ~= "dark" then
+        die(what .. ": --mode wants light or dark, got " .. tostring(mode))
+    end
+    if not valid_variant(variant) then
+        die(what .. ": unknown --variant " .. tostring(variant) .. " (" ..
+            table.concat(schememod.variants, ", ") .. ")")
+    end
+end
+
 local function usage()
     io.stderr:write([[
 usage: padilha-theme <command> [options]
@@ -90,13 +120,21 @@ end
 
 local function infer(opts)
     if opts.seed then
-        local h, c = colour.hct_from_hex(opts.seed)
-        local r, g, b = colour.from_hex(opts.seed)
+        local seed = opts.seed:gsub("^#", ""):lower()
+        if not seed:match("^%x%x%x%x%x%x$") then
+            die("--seed wants RRGGBB (six hex digits, # is optional)")
+        end
+        opts.seed = seed
+        local h, c = colour.hct_from_hex(seed)
+        local r, g, b = colour.from_hex(seed)
+        local mode = opts.mode or (colour.lstar_from_rgb(r, g, b) > 60 and "light" or "dark")
+        local variant = opts.variant or "tonalspot"
+        check("seed", mode, variant)
         return {
-            mode = opts.mode or (colour.lstar_from_rgb(r, g, b) > 60 and "light" or "dark"),
-            variant = opts.variant or "tonalspot",
+            mode = mode,
+            variant = variant,
             seed = { h = h, c = c },
-            seed_hex = opts.seed:gsub("^#", ""),
+            seed_hex = seed,
         }
     end
 
@@ -115,6 +153,7 @@ local function infer(opts)
     if opts.variant then
         info.variant = opts.variant
     end
+    check("wallpaper", info.mode, info.variant)
     return info
 end
 
@@ -128,8 +167,8 @@ if command == "seed" then
     if opts.json then
         io.write(json.encode({ mode = info.mode, variant = info.variant, seed = info.seed_hex }))
     else
-        io.write(string.format("seed %s  mode %s  variant %s  (h=%.1f c=%.1f)\n", info.seed_hex, info.mode, info.variant,
-            info.seed.h, info.seed.c))
+        io.write(string.format("seed %s  mode %s  variant %s  (h=%.1f c=%.1f)\n",
+            info.seed_hex, info.mode, info.variant, info.seed.h, info.seed.c))
     end
     return
 elseif command == "apply" then
@@ -137,26 +176,14 @@ elseif command == "apply" then
     local scheme = schememod.build(info.seed.h, info.seed.c, info.mode, info.variant)
     local apply = require("apply")
 
-    -- Theme settings are Lua, like everything else: ~/.config/padilha/theme.lua
-    -- returns a table (postHook, enableBtop = false, ...).
-    local config = {}
-    local cfg_path = opts.prefix and (opts.prefix .. "/caelestia/cli.lua")
-        or ((os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/caelestia/cli.lua")
-    local chunk = loadfile(cfg_path)
-    if chunk then
-        local ok, value = pcall(chunk)
-        if ok and type(value) == "table" then
-            config = value
-        end
-    end
-
+    -- apply.lua reads ~/.config/padilha/theme.lua itself, so every caller
+    -- (daylight, wallpaper change, this command) honours the same settings.
     local written, errors = apply.apply(scheme, {
         prefix = opts.prefix,
         signals = opts.signals ~= false,
         broadcast = opts.broadcast,
         dconf = opts.dconf,
         hooks = opts.hooks,
-        config = config,
     })
 
     for _, path in ipairs(written) do
@@ -188,16 +215,20 @@ elseif command == "scheme" then
         end
         local dir = out:match("^(.*)/[^/]+$")
         if dir and dir ~= "" then
-            os.execute("mkdir -p " .. ("'" .. dir .. "'"))
+            os.execute("mkdir -p " .. quote(dir))
         end
-        local tmp = out .. ".tmp"
+        local tmp = tmp_path(out)
         local f, err = io.open(tmp, "w")
         if not f then
             die(err or ("cannot write " .. tmp))
         end
         f:write(text)
         f:close()
-        os.rename(tmp, out)
+        local renamed, rename_err = os.rename(tmp, out)
+        if not renamed then
+            os.remove(tmp)
+            die(rename_err or ("cannot replace " .. out))
+        end
         if not opts.quiet then
             io.write(string.format("%s: %s, %s, %d colours\n", out, scheme.mode, scheme.variant,
                 (function()

@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased — rebranded to Maria Padilha
+## Unreleased — Maria Padilha name restored
 
-- Rebranded the product from Lilith to **Maria Padilha**. Commands are
+- Rebranded the product from Lilith back to **Maria Padilha**. Commands are
   `padilha-*` (plain `padilha`; `lilith-*` remains as a compatibility alias),
   the package is `maria-padilha`, the install tree is `/usr/lib/maria-padilha`,
   the session entry is **Maria Padilha**, and user config/state live in
@@ -12,11 +12,25 @@
   `maria-padilha-os/maria-padilha-dotfiles`; the docs site uses
   `baseurl: /maria-padilha-de`. The Quickshell id and
   `~/.local/state/caelestia` are unchanged.
+- Fixed the direct installer: it built the shell with a relative
+  `INSTALL_QSCONFDIR`, so `cmake --install --prefix /usr` wrote
+  `/usr/etc/xdg/quickshell/caelestia` instead of
+  `/etc/xdg/quickshell/caelestia`. The build now receives the absolute path,
+  and `tests/cli/installer.sh` checks the plan.
+- Theme settings in `~/.config/padilha/theme.lua` are now read by every apply
+  (daylight and wallpaper changes included); `padilha-theme` validates `--mode`,
+  `--variant` and `--seed` instead of raising a Lua traceback, and a matching
+  `daylight.period` no longer hides a missing `scheme.json` at login.
+- A fresh `--full` install now pulls the session daemons that `execs.lua`
+  starts: `hypridle`, `hyprsunset`, `trash-cli`, `gnome-keyring`,
+  `polkit-gnome`, `bluez-utils`, `wl-clipboard`, `cliphist`, and `fuzzel`.
+  The PKGBUILD also declares `cmake`/`ninja` as makedepends.
 
-## 0.1.1 — unreleased; deployment on hold
+## 0.1.1 — historical snapshot; that release used the Lilith name
 
 This is the preparation state described in `DEPLOY.md`. No package, Pages site,
-or promo timer has been published.
+or promo timer has been published. The naming in this section is historical:
+the Unreleased section above reverses it.
 
 ### Added
 
@@ -38,12 +52,13 @@ or promo timer has been published.
 
 ### Changed
 
-- Renamed the product from Padilha to Lilith. Commands are `lilith-*` (plain
-  `lilith`; the old `padilha-*` names remain as temporary compatibility
-  aliases), the package is `lilith`, the install tree is `/usr/lib/lilith`, the
-  session entry is **Lilith**, and user config/state live in
-  `~/.config/lilith` and `~/.local/state/lilith`. `LILITH_DOTFILES` replaces
-  `PADILHA_DOTFILES`, which is still accepted during the transition.
+- Renamed the product from Padilha to Lilith (reversed in Unreleased). Commands
+  were `lilith-*` (plain `lilith`; the old `padilha-*` names remained as
+  temporary compatibility aliases), the package was `lilith`, the install tree
+  was `/usr/lib/lilith`, the session entry was **Lilith**, and user
+  config/state lived in `~/.config/lilith` and `~/.local/state/lilith`.
+  `LILITH_DOTFILES` replaced `PADILHA_DOTFILES`, which was still accepted
+  during the transition.
 - The workspace checkouts are now `~/Códigos/lilith/lilith-de` and
   `.../lilith-dotfiles`, and the installer expects the dotfiles checkout as
   `../lilith-dotfiles`. The GitHub repositories and the Quickshell id

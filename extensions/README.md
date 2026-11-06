@@ -1,8 +1,10 @@
 # Bundled extensions
 
-These ship with Lilith and are installed to
-`/usr/lib/lilith/share/extensions` by `install.sh` and the package. Settings →
-Extensions lists them and toggles their tab in the top panel.
+These ship with Maria Padilha and are installed to
+`/usr/lib/maria-padilha/share/extensions` by `install.sh` and the package.
+The shell still reads the pre-rename `/usr/lib/lilith/share/extensions` while
+that tree exists. Settings → Extensions lists them and toggles their tab in the
+top panel.
 
 | id | what it does | tab size |
 | --- | --- | --- |
@@ -15,10 +17,11 @@ Extensions lists them and toggles their tab in the top panel.
 To try the checkout copies before installing:
 
 ```sh
-mkdir -p ~/.config/lilith/extensions
+mkdir -p ~/.config/padilha/extensions
 cp -r extensions/calculator extensions/maps extensions/stopwatch \
-      extensions/translator extensions/tuner ~/.config/lilith/extensions/
+      extensions/translator extensions/tuner ~/.config/padilha/extensions/
 ```
 
-User extensions in `~/.config/lilith/extensions` override bundled ones with the
-same id.
+User extensions in `~/.config/padilha/extensions` override bundled ones with the
+same id. The old `~/.config/lilith/extensions` is read as a fallback during the
+transition.

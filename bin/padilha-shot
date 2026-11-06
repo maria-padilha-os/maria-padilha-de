@@ -66,6 +66,8 @@ if [ -n "$mon" ]; then
 else
     grim - > "$dest"
 fi || { notify "Screenshot failed" "grim could not capture the screen"; exit 1; }
-wl-copy < "$dest" || true
-
-notify -h "STRING:image-path:$dest" "Screenshot taken" "Copied to the clipboard"
+if wl-copy < "$dest"; then
+    notify -h "STRING:image-path:$dest" "Screenshot taken" "Copied to the clipboard"
+else
+    notify -h "STRING:image-path:$dest" "Screenshot saved" "$dest (clipboard unavailable)"
+fi

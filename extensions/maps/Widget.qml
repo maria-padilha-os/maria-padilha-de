@@ -12,7 +12,11 @@ Item {
 
     property var api
     property bool active: true
-    property string cacheDir: (root.api && root.api.paths ? root.api.paths.home : "") + "/.cache/lilith/maps"
+    // Paths.cache is ~/.cache/caelestia and honours XDG_CACHE_HOME.
+    property string cacheDir: (root.api && root.api.paths && root.api.paths.cache
+        ? root.api.paths.cache
+        : ((root.api && root.api.paths ? root.api.paths.home : "") + "/.cache/caelestia")) + "/maps"
+    readonly property string userAgent: "Padilha-Maps/1.0 (+https://github.com/maria-padilha-os/maria-padilha-de)"
 
     // The shell assigns `api` when it creates the item, so it may still be
     // unset on the first frame. Everything below tolerates that.
@@ -162,7 +166,7 @@ Item {
         request.open("GET", "https://nominatim.openstreetmap.org/search?format=json&q=" + encodeURIComponent(query) + "&limit=5");
         request.setRequestHeader("Accept", "application/json");
         // Nominatim rejects Qt's stock user agent; identify the application.
-        request.setRequestHeader("User-Agent", "Lilith-Maps/1.0 (+https://github.com/Mateus-M-Reis/lilith)");
+        request.setRequestHeader("User-Agent", root.userAgent);
         request.send();
     }
 
@@ -325,8 +329,8 @@ Item {
                                 return;
                             fetch.command = [
                                 "sh", "-c",
-                                `cache="$2"; [ -f "$cache" ] && exit 0; mkdir -p "$(dirname "$cache")" || exit 1; curl -fsSL --max-time 20 -A "Lilith-Maps/1.0 (+https://github.com/Mateus-M-Reis/lilith)" -o "$cache.tmp" "$1" || { rm -f "$cache.tmp"; exit 1; }; mv "$cache.tmp" "$cache"`,
-                                "sh", tile.tileUrl, tile.cachePath
+                                `cache="$2"; [ -f "$cache" ] && exit 0; mkdir -p "$(dirname "$cache")" || exit 1; curl -fsSL --max-time 20 -A "$3" -o "$cache.tmp" "$1" || { rm -f "$cache.tmp"; exit 1; }; mv "$cache.tmp" "$cache"`,
+                                "sh", tile.tileUrl, tile.cachePath, root.userAgent
                             ];
                             fetch.running = true;
                         }

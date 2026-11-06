@@ -332,7 +332,6 @@ echo "first run"
 init_home="$tmp/fresh"
 mkdir -p "$init_home"
 XDG_CONFIG_HOME="$init_home" "$padilha_config" init > /dev/null 2>&1
-check=""
 if [ -s "$init_home/padilha/init.lua" ]; then ok "init writes a default config"; else bad "init writes a default config"; fi
 
 if XDG_CONFIG_HOME="$init_home" "$padilha_config" init > /dev/null 2>&1; then

@@ -20,14 +20,14 @@ not recorded from a live window.
 
 ## Launcher
 
-![Fuzzel launcher over the Maria Padilha wallpaper](assets/screenshots/launcher.webp)
+![The Maria Padilha launcher over the wallpaper](assets/screenshots/launcher.webp)
 
-The launcher is fuzzel; its colours come from the same wallpaper-derived
-palette as the bar and the applications.
+The launcher is part of the shell (not fuzzel); its colours come from the same
+wallpaper-derived palette as the bar and the applications.
 
 ## Dashboard
 
-![The dashboard over a Neovim buffer](assets/screenshots/dashboard.webp)
+![The dashboard panels](assets/screenshots/dashboard.webp)
 
 The dashboard, media, performance, and weather panels are Quickshell surfaces
 painted from the active palette.

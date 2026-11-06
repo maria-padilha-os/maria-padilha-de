@@ -14,10 +14,6 @@ local function shell_quote(s)
     return "'" .. s:gsub("'", "'\\''") .. "'"
 end
 
-local function quote(s)
-    return '"' .. s:gsub("\\", "\\\\"):gsub('"', '\\"') .. '"'
-end
-
 local function run(cmd)
     local p = io.popen(cmd)
     if not p then
@@ -31,7 +27,8 @@ end
 -- [{ hex = "rrggbb", count = n }], most common first
 function M.histogram(path, colours)
     colours = colours or 128
-    local cmd = string.format("magick %s -resize 128x128 -filter point -colors %d -format %%c histogram:info:- 2>/dev/null",
+    local cmd = string.format(
+        "magick %s -resize 128x128 -filter point -colors %d -format %%c histogram:info:- 2>/dev/null",
         shell_quote(path), colours)
     local out = run(cmd)
     if not out or out == "" then

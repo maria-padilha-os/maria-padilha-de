@@ -4,6 +4,11 @@ Snapshot: 2026-11-05, after the dotfiles split, the first repo-owner agents, and
 the rebrand back to Maria Padilha. This is the internal working record; user-facing
 docs are in `README.md`, `INSTALL.md`, `docs/`, and `KEYBINDS.md`.
 
+> The DeepSeek promo-window scheduler was removed from this repository. It now
+> lives in the private `maria-padilha-agents` repository under
+> `maria-padilha-os`; the scheduler sections below are kept as a historical
+> design record and are not part of the desktop build.
+
 ## Repositories
 
 | path | remote | role | owner |

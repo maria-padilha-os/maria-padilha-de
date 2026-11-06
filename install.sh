@@ -138,6 +138,16 @@ runtime_deps=(
     lua
     imagemagick
     micro
+    xdg-utils
+    hypridle
+    hyprsunset
+    trash-cli
+    gnome-keyring
+    polkit-gnome
+    bluez-utils
+    wl-clipboard
+    cliphist
+    fuzzel
 )
 
 if [ "$editor" = nvim ]; then
@@ -159,7 +169,9 @@ else
 fi
 
 log "Building the shell"
-run "$root/tools/build.sh"
+# Absolute destination: with --prefix /usr, CMake's relative default would
+# install the shell tree under /usr/etc instead of /etc/xdg.
+run env PADILHA_QSCONFDIR=/etc/xdg/quickshell/caelestia "$root/tools/build.sh"
 
 log "Installing the shell and commands under /usr"
 run_sudo cmake --install "$root/build" --prefix /usr
@@ -168,6 +180,7 @@ run_sudo cp -R --preserve=mode,timestamps "$root/bin/." /usr/lib/maria-padilha/b
 run_sudo cp -R --preserve=mode,timestamps "$root/lib/." /usr/lib/maria-padilha/lib/
 run_sudo cp -R --preserve=mode,timestamps "$root/share/." /usr/lib/maria-padilha/share/
 run_sudo install -Dm644 "$root/KEYBINDS.md" /usr/lib/maria-padilha/share/KEYBINDS.md
+run_sudo install -Dm644 "$root/upstream.json" /usr/lib/maria-padilha/upstream.json
 if [ -d "$root/extensions" ]; then
     run_sudo install -d /usr/lib/maria-padilha/share/extensions
     run_sudo cp -R --preserve=mode,timestamps "$root/extensions/." /usr/lib/maria-padilha/share/extensions/

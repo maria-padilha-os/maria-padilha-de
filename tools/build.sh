@@ -24,9 +24,16 @@ print(entry["pin"].lstrip("v"), entry["sha"])
 PY
 )
 
+# The CMake default is relative (etc/xdg/...), which `cmake --install
+# --prefix /usr` would resolve to /usr/etc/... Instead of the system path.
+# The package passes an absolute path too; install.sh sets this variable for
+# the direct installer, and a plain checkout build keeps the relative default.
+qsconfdir=${PADILHA_QSCONFDIR:-etc/xdg/quickshell/caelestia}
+
 cmake -S shell -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$root/stage" \
+    -DINSTALL_QSCONFDIR="$qsconfdir" \
     -DVERSION="$version" \
     -DGIT_REVISION="$sha"
 

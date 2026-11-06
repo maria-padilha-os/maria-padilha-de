@@ -13,6 +13,7 @@ license=('GPL-3.0-only')
 # The desktop shipped as `lilith` before this rename; this package replaces it.
 conflicts=('lilith')
 provides=('lilith')
+makedepends=('cmake' 'ninja')
 depends=(
     'quickshell'
     'qt6-base'
@@ -29,6 +30,18 @@ depends=(
     'imagemagick'
     'micro'
     'xdg-utils'
+    # Started by hypr/hyprland/execs.lua. The shell still runs without them,
+    # but a "complete desktop" install loses keyring, polkit, idle, night
+    # light, trash cleanup, clipboard history and the pickers.
+    'hypridle'
+    'hyprsunset'
+    'trash-cli'
+    'gnome-keyring'
+    'polkit-gnome'
+    'bluez-utils'
+    'wl-clipboard'
+    'cliphist'
+    'fuzzel'
 )
 optdepends=(
     'sass: Discord theme compilation'
@@ -46,9 +59,6 @@ optdepends=(
     'grim: screenshots'
     'slurp: region selection'
     'swappy: annotate screenshots'
-    'wl-clipboard: screenshot and clipboard copy'
-    'cliphist: clipboard history'
-    'fuzzel: launcher, clipboard and emoji picker'
     'gpu-screen-recorder: screen recording'
     'btop: system monitor themes'
     'papirus-icon-theme: icon theme the GTK templates name'
@@ -92,6 +102,8 @@ package() {
     if [ -d extensions ]; then
         cp -R extensions "$pkgdir/usr/lib/maria-padilha/share/"
     fi
+    # `padilha doctor` compares the running Hyprland with the pin.
+    install -Dm 644 upstream.json "$pkgdir/usr/lib/maria-padilha/upstream.json"
 
     install -d "$pkgdir/usr/bin"
     commands=(padilha padilha-brightness padilha-config padilha-session padilha-shell-watch padilha-theme \

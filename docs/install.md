@@ -36,7 +36,8 @@ entry or systemd units. Log back into your existing Hyprland session.
 
 ## What the installer changes
 
-- Installs the Arch packages listed in the PKGBUILD with `pacman -S --needed`.
+- Installs its runtime dependency list with `pacman -S --needed` (kept in
+  sync with `packaging/PKGBUILD`).
 - Builds the shell with CMake and Ninja.
 - Installs the shell and commands under `/usr`, and (for `--full`) the session
   entry under `/usr/share/wayland-sessions`.

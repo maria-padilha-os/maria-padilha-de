@@ -57,7 +57,7 @@ through this loop is a bug, not a preference.
 - **The config schema is C++.** `libcaelestia-config` defines every valid key
   and its default. A new *setting* is a C++ change; only layout and behaviour
   are QML.
-- **Quickshell is the floor under 284 files.** A breaking release there is a
+- **Quickshell is the floor under roughly 500 files.** A breaking release there is a
   tree-wide edit, which is why it is pinned and watched.
 - **Hyprland's Lua config is young.** Dispatcher names and environment
   handling still move between minor versions; the keybinds are the canary.

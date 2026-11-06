@@ -20,6 +20,16 @@ local function quote(s)
     return "'" .. s:gsub("'", "'\\''") .. "'"
 end
 
+-- A fixed `.tmp` name is fine for one writer and wrong for two. The theme can
+-- be applied by the daylight daemon and a wallpaper command at the same time,
+-- so make every temporary file unique to the process.
+local tmp_counter = 0
+local function tmp_path(path)
+    tmp_counter = tmp_counter + 1
+    local token = tostring({}):match("0x%x+") or tostring(os.time())
+    return path .. ".tmp." .. token .. "." .. tmp_counter
+end
+
 local function mkdir(path)
     local dir = path:match("^(.*)/[^/]+$")
     if dir and dir ~= "" then
@@ -31,7 +41,7 @@ end
 -- sees half a theme.
 function M.write(path, text)
     mkdir(path)
-    local tmp = path .. ".tmp"
+    local tmp = tmp_path(path)
     local f, err = io.open(tmp, "w")
     if not f then
         return nil, err or ("cannot write " .. tmp)
@@ -201,6 +211,31 @@ local function firefox_profile(prefix)
     return nil
 end
 
+-- The optional theme settings. `theme.lua` returns either { theme = {...} }
+-- (the documented shape) or the theme table itself, so both
+-- `return { theme = { enableBtop = false } }` and `return { enableBtop = false }`
+-- work. Keep the old caelestia/cli.lua lookup for pre-rename installs.
+function M.load_config()
+    local candidates = {
+        M.bases.config .. "/padilha/theme.lua",
+        M.bases.config .. "/lilith/theme.lua",
+        M.bases.config .. "/caelestia/cli.lua",
+    }
+    for _, path in ipairs(candidates) do
+        local chunk = loadfile(path)
+        if chunk then
+            local ok, value = pcall(chunk)
+            if ok and type(value) == "table" then
+                if type(value.theme) == "table" then
+                    return value
+                end
+                return { theme = value }
+            end
+        end
+    end
+    return {}
+end
+
 -- The list of applications. `template` is a file in share/templates/;
 -- `base` picks the XDG directory; `hash` asks for #rrggbb; `reload` is a
 -- shell command run after the file is written; `enabled` is the config key.
@@ -289,7 +324,7 @@ function M.apply(scheme, opts)
     }
     local written, errors = {}, {}
     local colours = scheme.colours
-    local config = opts.config
+    local config = opts.config or M.load_config()
 
     -- scheme.json first: everything else can lag, this cannot.
     local ok, err = M.write(bases.state .. "/caelestia/scheme.json", require("json").encode(scheme))
@@ -356,11 +391,11 @@ function M.apply(scheme, opts)
         local template = read_template("spicetify-" .. scheme.mode .. ".ini")
         if template then
             local text = T.render(template, colours, { mode = scheme.mode })
-            local ok, err = M.write(bases.config .. "/spicetify/Themes/caelestia/color.ini", text)
-            if ok then
+            local write_ok, write_err = M.write(bases.config .. "/spicetify/Themes/caelestia/color.ini", text)
+            if write_ok then
                 written[#written + 1] = "spicetify/Themes/caelestia/color.ini"
             else
-                errors[#errors + 1] = "spicetify: " .. tostring(err)
+                errors[#errors + 1] = "spicetify: " .. tostring(write_err)
             end
         end
     end
@@ -394,11 +429,11 @@ function M.apply(scheme, opts)
                 for _, client in ipairs({ "Equicord", "Vencord", "BetterDiscord", "equibop", "vesktop", "legcord" }) do
                     local dir = bases.config .. "/" .. client
                     if os.execute("test -d " .. quote(dir)) == true then
-                        local ok, err = M.write(dir .. "/themes/caelestia.theme.css", css)
-                        if ok then
+                        local write_ok, write_err = M.write(dir .. "/themes/caelestia.theme.css", css)
+                        if write_ok then
                             written[#written + 1] = client .. "/themes/caelestia.theme.css"
                         else
-                            errors[#errors + 1] = "discord " .. client .. ": " .. tostring(err)
+                            errors[#errors + 1] = "discord " .. client .. ": " .. tostring(write_err)
                         end
                     end
                 end
@@ -415,11 +450,11 @@ function M.apply(scheme, opts)
         local template = read_template("mc-skin.ini")
         if template then
             local text = replace_plain(template, "{{ $aliases }}", require("mcskin").aliases(colours))
-            local ok, err = M.write(bases.data .. "/mc/skins/caelestia.ini", text)
-            if ok then
+            local write_ok, write_err = M.write(bases.data .. "/mc/skins/caelestia.ini", text)
+            if write_ok then
                 written[#written + 1] = "mc/skins/caelestia.ini"
             else
-                errors[#errors + 1] = "mc skin: " .. tostring(err)
+                errors[#errors + 1] = "mc skin: " .. tostring(write_err)
             end
         end
     end
@@ -466,12 +501,14 @@ function M.apply(scheme, opts)
     if opts.broadcast then
         local tmp = bases.state .. "/caelestia/sequences.txt"
         os.execute(string.format(
-            'for p in /dev/pts/[0-9]*; do timeout 0.1 tee "$p" < %s > /dev/null 2>&1 || true; done',
+            'for p in /dev/pts/[0-9]*; do '
+                .. 'timeout 0.1 tee "$p" < %s > /dev/null 2>&1 || true; done',
             quote(tmp)))
     end
 
     if opts.dconf then
-        os.execute("dconf write /org/gnome/desktop/interface/color-scheme \"'prefer-" .. scheme.mode .. "'\" 2>/dev/null")
+        os.execute("dconf write /org/gnome/desktop/interface/color-scheme \"'prefer-"
+            .. scheme.mode .. "'\" 2>/dev/null")
         os.execute("dconf write /org/gnome/desktop/interface/gtk-theme \"'adw-gtk3-dark'\" 2>/dev/null")
         os.execute("dconf write /org/gnome/desktop/interface/icon-theme \"'Papirus-" ..
             scheme.mode:gsub("^%l", string.upper) .. "'\" 2>/dev/null")

@@ -31,12 +31,15 @@ jobs:
           pacman-key --init
           pacman-key --populate archlinux
           pacman -Syu --noconfirm --needed \
-            ca-certificates dart-sass diffutils git lua imagemagick python python-pip
+            ca-certificates dart-sass diffutils git lua imagemagick \
+            python python-pip
 
       # The colour oracle is test-only and not in the Arch repos; the wheel
       # keeps the job from needing a compiler.
       - name: Install the colour oracle
-        run: python -m pip install --break-system-packages --no-cache-dir materialyoucolor==3.0.4
+        run: |
+          python -m pip install --break-system-packages --no-cache-dir \
+            materialyoucolor==3.0.4
 
       - uses: actions/checkout@v7.0.1
 

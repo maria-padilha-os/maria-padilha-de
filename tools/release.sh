@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # Cut a release: test, export HEAD as the tarball the PKGBUILD builds from,
 # and say what is left for a human to do.
 #

@@ -40,7 +40,7 @@ and troubleshooting.
 | Day | Night |
 | --- | --- |
 | ![Maria Padilha desktop at day](docs/assets/screenshots/desktop-day.webp) | ![Maria Padilha desktop at night](docs/assets/screenshots/desktop-night.webp) |
-| ![Launcher over the wallpaper](docs/assets/screenshots/launcher.webp) | ![Dashboard over a Neovim buffer](docs/assets/screenshots/dashboard.webp) |
+| ![Launcher over the wallpaper](docs/assets/screenshots/launcher.webp) | ![Dashboard panels](docs/assets/screenshots/dashboard.webp) |
 
 ![Day and night palette transition](docs/assets/screenshots/palette.gif)
 
@@ -150,7 +150,7 @@ return {
 ```
 
 `padilha-config compile` validates the file against the shell's schema and
-writes `~/.config/caelestia/shell.json`. Apply a change with:
+writes `~/.config/padilha/shell.json`. Apply a change with:
 
 ```sh
 padilha-config compile && padilha-reload
@@ -163,9 +163,11 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 
 | command | purpose |
 | --- | --- |
-| `padilha` | small command surface for keybinds (wallpaper, scheme, …) |
+| `padilha` | small command surface for keybinds (wallpaper, scheme, `doctor`) |
 | `padilha-config` | compile the Lua configuration; `set`, `unset`, `capture` |
 | `padilha-session` | compile, paint the palette, and start the shell |
+| `padilha-shell-watch` | restart the shell after a crash (bounded backoff) |
+| `padilha-brightness` | day/night panel brightness, with a manual hold |
 | `padilha-theme` | render a wallpaper's palette into application configs |
 | `padilha-daylight` | switch the wallpaper and palette by time of day |
 | `padilha-reload` | restart the shell safely |

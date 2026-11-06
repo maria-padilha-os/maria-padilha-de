@@ -223,6 +223,20 @@ INI
     else
         bad "padilha-dots skips a missing profile without failing"
     fi
+
+    # The new environment variable is the one the theme engine prefers; the
+    # dotfiles installer used to accept only the pre-rename name.
+    ff_override="$tmp/dots-override"
+    mkdir -p "$ff_override/custom-profile" "$ff_override/home/.config"
+    if HOME="$ff_override/home" XDG_CONFIG_HOME="$ff_override/home/.config" \
+        PADILHA_FIREFOX_PROFILE_DIR="$ff_override/custom-profile" \
+        "$dots" firefox > /dev/null 2>&1; then
+        ok "padilha-dots accepts PADILHA_FIREFOX_PROFILE_DIR"
+    else
+        bad "padilha-dots accepts PADILHA_FIREFOX_PROFILE_DIR"
+    fi
+    check "the override profile gets the Firefox chrome" \
+        "[ -L '$ff_override/custom-profile/chrome/userChrome.css' ]"
 else
     printf '  skip %s\n' "padilha-dots not checked out"
 fi
@@ -255,6 +269,46 @@ if [ "$wantmode" = dark ]; then
     check "the shipped default is black" "[ $(tone "$surface") -le 12 ]" "tone $(tone "$surface")"
 else
     check "the shipped default is white" "[ $(tone "$surface") -ge 90 ]" "tone $(tone "$surface")"
+fi
+
+# A period marker is not proof the theme landed; a login must repair it.
+rm -f "$tmp/day/home/machine/.local/state/caelestia/scheme.json"
+"$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
+check "a matching period still repairs a missing scheme" \
+    "test -s '$tmp/day/home/machine/.local/state/caelestia/scheme.json'"
+
+echo "theme settings"
+
+mkdir -p "$tmp/theme-home/padilha"
+printf 'return { theme = { enableBtop = false } }\n' > "$tmp/theme-home/padilha/theme.lua"
+XDG_CONFIG_HOME="$tmp/theme-home" "$theme" apply --seed ff1a1a --mode dark \
+    --prefix "$tmp/theme-tree" --no-signals > /dev/null 2>&1
+check "theme.lua disables btop" \
+    "! test -e '$tmp/theme-tree$tmp/theme-home/btop/themes/caelestia.theme'"
+check "the rest of the theme is still written" \
+    "test -s '$tmp/theme-tree$tmp/theme-home/gtk-3.0/gtk.css'"
+
+echo "bad input"
+
+if "$theme" scheme --seed zzz --print > /dev/null 2>&1; then
+    bad "an invalid seed is refused"
+else
+    ok "an invalid seed is refused"
+fi
+if "$theme" scheme --seed ff1a1a --mode banana --print > /dev/null 2>&1; then
+    bad "an invalid mode is refused"
+else
+    ok "an invalid mode is refused"
+fi
+if "$theme" scheme --seed ff1a1a --variant nope --print > /dev/null 2>&1; then
+    bad "an invalid variant is refused"
+else
+    ok "an invalid variant is refused"
+fi
+if "$theme" scheme --seed '#ff1a1a' --print > /dev/null 2>&1; then
+    ok "a hash-prefixed seed is accepted"
+else
+    bad "a hash-prefixed seed is accepted"
 fi
 
 echo "unknown colours fail loudly"

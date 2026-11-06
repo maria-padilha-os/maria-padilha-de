@@ -9,7 +9,7 @@ set -u
 # Resolve next to the script, so a git checkout and an installed bin/ share
 # the same ../share/emojis.txt.
 self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
-script_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || exit 1
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$self")" && pwd) || exit 1
 data=$script_dir/../share/emojis.txt
 
 usage() {

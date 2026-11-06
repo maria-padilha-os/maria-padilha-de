@@ -20,7 +20,7 @@ light and dark variants.
 
 ## Calculator
 
-The launcher has a native calculator mode. Open it with `Super + Space` and
+The launcher has a native calculator mode. Tap `Super` to open the launcher and
 type `>calc 2+2`; the `Qalculator` binding uses libqalculate, so units,
 currency, variables, and exact fractions work. Clicking the result copies the
 raw value. `XF86Calculator` opens galculator, and `qalc -i` in a terminal gives

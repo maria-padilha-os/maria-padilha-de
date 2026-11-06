@@ -37,6 +37,10 @@ local function die(message)
     os.exit(1)
 end
 
+local function quote(s)
+    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
+end
+
 local function usage()
     io.stderr:write([[
 usage: padilha <command>
@@ -102,8 +106,9 @@ if command == "wallpaper" then
         io.write(json.encode(built))
     elseif random then
         local dir = args[1] or (desktop.pictures .. "/wallpapers")
-        local p = io.popen("find " .. ("'" .. dir .. "'") ..
-            [[ -maxdepth 2 -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | shuf -n 1]])
+        local p = io.popen("find " .. quote(dir) ..
+            [[ -maxdepth 2 -type f \( -iname '*.jpg' -o -iname '*.jpeg' ]] ..
+            [[ -o -iname '*.png' -o -iname '*.webp' \) | shuf -n 1]])
         local path = p and p:read("*l")
         if p then
             p:close()

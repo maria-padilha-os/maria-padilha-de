@@ -8,7 +8,7 @@ set -u
 # Follow the symlink: a packaged install keeps the real file in
 # /usr/lib/maria-padilha/bin and only links it into /usr/bin.
 self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
-bin_dir=$(CDPATH= cd -- "$(dirname -- "$self")" && pwd) || exit 1
+bin_dir=$(CDPATH='' cd -- "$(dirname -- "$self")" && pwd) || exit 1
 
 config="$bin_dir/padilha-config"
 # The shell's settings UI spawns `padilha-config capture`; name the exact

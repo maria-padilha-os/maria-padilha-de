@@ -13,7 +13,7 @@ local C = require("colour")
 
 local M = {}
 
-local floor, min, max, abs = math.floor, math.min, math.max, math.abs
+local min, abs = math.min, math.abs
 
 --------------------------------------------------------------------------
 -- Variants: how the seed becomes six palettes

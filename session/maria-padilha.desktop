@@ -3,3 +3,4 @@ Name=Maria Padilha
 Comment=Desktop Maria Padilha
 Exec=hyprland
 Type=Application
+DesktopNames=Hyprland

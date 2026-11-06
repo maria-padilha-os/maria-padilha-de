@@ -17,7 +17,7 @@ end
 -- text, colours, { hash = bool, mode = "light"|"dark" } -> rendered text
 function M.render(text, colours, opts)
     opts = opts or {}
-    local out, missing = {}, {}
+    local missing = {}
 
     local rendered = text:gsub("{{%s*%$(%w+)%s*}}", function(name)
         if name == "mode" then

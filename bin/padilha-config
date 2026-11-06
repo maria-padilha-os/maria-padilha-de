@@ -23,6 +23,15 @@ local function quote(s)
     return "'" .. s:gsub("'", "'\\''") .. "'"
 end
 
+-- Do not share one `<file>.tmp` between concurrent compiles (the settings UI
+-- can capture while the session compiles).
+local tmp_counter = 0
+local function tmp_path(path)
+    tmp_counter = tmp_counter + 1
+    local token = tostring({}):match("0x%x+") or tostring(os.time())
+    return path .. ".tmp." .. token .. "." .. tmp_counter
+end
+
 local function dirname(path)
     return path:match("^(.*)/[^/]+$") or "."
 end
@@ -218,7 +227,10 @@ local function json_decode(text)
                 return table.concat(out)
             elseif c == "\\" then
                 local e = text:sub(pos + 1, pos + 1)
-                local simple = { ['"'] = '"', ["\\"] = "\\", ["/"] = "/", b = "\b", f = "\f", n = "\n", r = "\r", t = "\t" }
+                local simple = {
+                    ['"'] = '"', ["\\"] = "\\", ["/"] = "/",
+                    b = "\b", f = "\f", n = "\n", r = "\r", t = "\t",
+                }
                 if e == "u" then
                     local code = tonumber(text:sub(pos + 2, pos + 5), 16)
                     if not code then
@@ -569,7 +581,7 @@ local function write_lua(path, value, comment)
         .. "\n"
 
     os.execute("mkdir -p -- " .. quote(dirname(path)) .. " 2>/dev/null")
-    local tmp = path .. ".tmp"
+    local tmp = tmp_path(path)
     local f, err = io.open(tmp, "wb")
     if not f then
         fail(("cannot write %s: %s"):format(tmp, tostring(err)))
@@ -1062,7 +1074,7 @@ local function write_default_config(force)
     f:close()
 
     os.execute("mkdir -p -- " .. quote(dirname(target)) .. " 2>/dev/null")
-    local tmp = target .. ".tmp"
+    local tmp = tmp_path(target)
     local out = io.open(tmp, "wb")
     if not out then
         fail(("cannot write %s"):format(tmp))
@@ -1261,7 +1273,7 @@ local function main(argv)
     local dir = dirname(out)
     os.execute("mkdir -p -- " .. quote(dir) .. " 2>/dev/null")
 
-    local tmp = out .. ".tmp"
+    local tmp = tmp_path(out)
     local f, werr = io.open(tmp, "wb")
     if not f then
         fail(("cannot write %s: %s"):format(tmp, tostring(werr)))
@@ -1278,7 +1290,7 @@ local function main(argv)
     -- The baseline is what init.lua alone produced; next time, the difference
     -- between it and the file on disk is the settings UI's doing.
     local base_json = encode(compiled)
-    local btmp = out .. ".base.tmp"
+    local btmp = tmp_path(out .. ".base")
     local bf = io.open(btmp, "wb")
     if bf then
         bf:write(base_json)

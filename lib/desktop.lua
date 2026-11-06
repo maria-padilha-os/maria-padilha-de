@@ -2,7 +2,6 @@
 -- which wallpaper is current, which variant was chosen, and what the shell
 -- should paint. Kept out of apply.lua so the engine stays about rendering.
 
-local C = require("colour")
 local seed = require("seed")
 local schememod = require("scheme")
 local applymod = require("apply")
@@ -24,6 +23,13 @@ local lib_dir = source:match("^(.*)/[^/]+$") or "."
 
 local function quote(s)
     return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
+end
+
+local tmp_counter = 0
+local function tmp_path(path)
+    tmp_counter = tmp_counter + 1
+    local token = tostring({}):match("0x%x+") or tostring(os.time())
+    return path .. ".tmp." .. token .. "." .. tmp_counter
 end
 
 local function read_file(path)
@@ -65,7 +71,7 @@ end
 
 function M.set_variant(variant)
     os.execute("mkdir -p " .. quote(state_dir))
-    local tmp = variant_file .. ".tmp"
+    local tmp = tmp_path(variant_file)
     local f = io.open(tmp, "wb")
     if not f then
         return false
@@ -159,6 +165,39 @@ local function capture(cmd)
     local text = p:read("*a")
     p:close()
     return text
+end
+
+local function lua_table(path)
+    local chunk = loadfile(path)
+    if not chunk then
+        return nil
+    end
+    local ok, value = pcall(chunk)
+    if ok and type(value) == "table" then
+        return value
+    end
+    return nil
+end
+
+-- The daylight window belongs to share/defaults.lua and the user's
+-- daylight.lua; doctor must not carry a second, stale copy of 06:00/18:00.
+local function daylight_hours()
+    local merged = {}
+    for _, path in ipairs({
+        lib_dir .. "/../share/defaults.lua",
+        config_dir() .. "/daylight.lua",
+    }) do
+        for key, value in pairs(lua_table(path) or {}) do
+            merged[key] = value
+        end
+    end
+
+    local day_start = tonumber(merged.day_start) or 6
+    local night_start = tonumber(merged.night_start) or 18
+    if day_start < 0 or day_start > 23 or night_start < 0 or night_start > 23 or night_start <= day_start then
+        return 6, 18
+    end
+    return day_start, night_start
 end
 
 local function size(path)
@@ -286,7 +325,8 @@ function M.diagnostics()
         period:close()
     end
     local hour = tonumber(os.date("%H"))
-    local want = (hour >= 6 and hour < 18) and "day" or "night"
+    local day_start, night_start = daylight_hours()
+    local want = (hour >= day_start and hour < night_start) and "day" or "night"
     if saved == want then
         add("ok", "daylight", "period is " .. want)
     elseif saved then

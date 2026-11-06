@@ -327,7 +327,7 @@ function M.rgb_from_hct(hue, chroma, tone)
 
     -- Fix hue and chroma, bisect J until Y matches the tone.
     local lo, hi = 0, 100
-    local j = lo
+    local j
     for _ = 1, 32 do
         j = (lo + hi) / 2
         local _, y = M.xyz_from_cam16(j, chroma, hue)
