@@ -56,13 +56,14 @@ A short [MP4 tour](docs/assets/demo/tour.mp4) is included too. The stills were
 captured on an empty workspace and assembled into a GIF/video; nothing was
 recorded from the live agent or browser windows.
 
-### Deskbar widgets
+### Bar widgets
 
-![Hovering the audio and display widgets in the bar](docs/assets/demo/widgets.gif)
+![Hovering the audio, network, Bluetooth, display, and battery widgets in the bar](docs/assets/demo/widgets.gif)
 
-Hover the status icons in the bar to open the audio, display, network, and
-battery widgets. The [widget MP4](docs/assets/demo/widgets.mp4) is shorter to
-load.
+Hover the status icons in the vertical bar (the deskbar) to open the audio,
+network, Bluetooth, display, and battery widgets. Network names are blurred in
+the published capture. The [widget MP4](docs/assets/demo/widgets.mp4) is
+shorter to load.
 
 ### Dashboard tabs
 

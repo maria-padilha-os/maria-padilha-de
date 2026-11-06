@@ -21,15 +21,20 @@ workspace, not recorded from a live desktop.
 
 The MP4 is a short slideshow of the same stills; it is not a screen recording.
 
-## Deskbar widgets
+## Bar widgets
 
-Hover the status icons in the bar to open the widgets:
+Hover the status icons in the vertical bar (the deskbar) to open the widgets.
+Network names are blurred in the published capture.
 
-| Audio | Display |
-| --- | --- |
-| ![Audio widget](assets/screenshots/bar-audio.webp) | ![Display widget](assets/screenshots/bar-display.webp) |
+| Audio | Network (names hidden) | Bluetooth |
+| --- | --- | --- |
+| ![Audio widget](assets/screenshots/bar-audio.webp) | ![Network widget with network names blurred](assets/screenshots/bar-network.webp) | ![Bluetooth widget](assets/screenshots/bar-bluetooth.webp) |
 
-![Hovering the audio and display widgets](assets/demo/widgets.gif)
+| Display | Battery | |
+| --- | --- | --- |
+| ![Display widget](assets/screenshots/bar-display.webp) | ![Battery widget](assets/screenshots/bar-battery.webp) | |
+
+![Hovering the bar status widgets](assets/demo/widgets.gif)
 
 <video controls loop muted playsinline poster="assets/screenshots/bar-audio.webp">
   <source src="assets/demo/widgets.mp4" type="video/mp4">
