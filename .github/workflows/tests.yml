@@ -62,5 +62,26 @@ jobs:
 
       - uses: actions/checkout@v7.0.1
 
-      - name: Run make lint
+      - name: Run static checks
         run: bash tools/lint.sh
+
+  build:
+    name: shell build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install the build dependencies
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm --needed \
+            base-devel cmake git ninja python \
+            qt6-base qt6-declarative qt6-shadertools \
+            libpipewire aubio libcava libqalculate lm_sensors pam
+
+      - uses: actions/checkout@v7.0.1
+
+      - name: Configure and build the shell
+        run: tools/build.sh
