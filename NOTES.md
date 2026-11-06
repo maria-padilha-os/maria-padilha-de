@@ -18,7 +18,7 @@ docs are in `README.md`, `INSTALL.md`, `docs/`, and `KEYBINDS.md`.
 | workspace root | not a git repo | `README.md`, `bootstrap.sh` | coordinator |
 | `maria-padilha-os/` | not created | archiso/Calamares image | future |
 
-Both repositories are private at the moment. The workspace root is intentional: it
+Both product repositories are public; `maria-padilha-agents` stays private. The workspace root is intentional: it
 is not a repository and does not use submodules. `bootstrap.sh` clones the
 siblings; the desktop installer fetches the dotfiles repository as
 `maria-padilha-dotfiles` next to itself when it is missing.
@@ -54,10 +54,10 @@ siblings; the desktop installer fetches the dotfiles repository as
   Sponsors enrollment is still pending.
 - **DeepSeek promo work is opt-in and scheduled**, never an always-on loop at
   full price. See the design below.
-- **Deployment is on hold.** Nothing is published or installed on a clean
-  machine; the release checklist lives in `DEPLOY.md`. Preparation work, tests,
-  dry-runs, and local live fixes continue, but no Pages, no release package, no
-  promo timer, and no donation publication until that checklist is signed off.
+- **Deployment is on hold for releases.** The public repos and Pages site are
+  live, but no GitHub release or clean-machine install has been published. The
+  release checklist lives in `DEPLOY.md`; the promo timer and donation
+  publication remain off until it is signed off.
 
 ## Current state
 
@@ -119,9 +119,8 @@ siblings; the desktop installer fetches the dotfiles repository as
    the verified DeepSeek windows/timezone and cost cap, create queue tasks, and
    install the timer. The schedule in the example is a placeholder; do not
    enable this before deployment readiness either.
-3. **GitHub Pages activation.** `docs/README.md` documents Settings → Pages →
-   main `/docs`. Private repositories may need a paid plan or a public docs
-   mirror. The site is one site, not per project.
+3. **First release.** Tag, release notes and the clean-VM install are the
+   remaining deployment steps. `docs/README.md` documents the Pages source.
 4. **Funding links.** GitHub Sponsors handle is wired; enrollment is a user
    action. Add Ko-fi/Liberapay/Pix to `.github/FUNDING.yml` when chosen.
 5. **`maria-padilha-os`.** Not started; it should be an archiso/Calamares repository
@@ -216,7 +215,7 @@ Only after that should the coordinator agent auto-review/merge.
 ## Known issues
 
 - s2idle suspend hangs; lid-close is `lock`. Do not suspend casually.
-- GitHub Pages is not enabled, and both repos are private.
+- The public docs are live; `maria-padilha-agents` stays private.
 - GitHub Sponsors enrollment and non-GitHub donation links are pending.
 - The MC skin's selection/error backgrounds may remain opaque by design; review
   whether "fully transparent" should override contrast for those too.
@@ -225,12 +224,10 @@ Only after that should the coordinator agent auto-review/merge.
 
 ## Next actions
 
-1. Review the MC and dotfiles agent results; apply the skin and any border/scheme
-   fixes.
-2. Commit the agents' scoped changes and run both repos' tests.
-3. Enable GitHub Pages (or decide on the public docs mirror) and enroll/finish
-   the funding links.
-4. Enable the promo scheduler on one repository with a verified window and a
-   cost cap; keep `max_rounds_per_window` bounded for the first windows.
-5. Create `maria-padilha-os` only after the desktop/dotfiles packages have tagged
+1. Publish the v0.2.0 GitHub release and complete the clean-VM install.
+2. Enroll/finish the funding links.
+3. Enable the promo scheduler in the private `maria-padilha-agents` repo with a
+   verified window and a cost cap; keep `max_rounds_per_window` bounded for the
+   first windows.
+4. Create `maria-padilha-os` only after the desktop/dotfiles packages have tagged
    releases.

@@ -1,8 +1,9 @@
 # Release and deployment readiness
 
-**Status: no public deployment.** The project is being prepared. A local
-package was installed on the development machine for live testing; nothing has
-been exercised on a clean machine, published, or released.
+**Status: public source and docs; no GitHub release.** The repositories are
+public and GitHub Pages serves the docs from `main` `/docs`. A local package is
+installed on the development machine for testing; no clean-machine install or
+GitHub release has been published.
 
 ## Current hold
 
@@ -10,10 +11,9 @@ Do not, until this checklist is signed off:
 
 - install or publish on a clean or public machine (the development laptop has
   a local package install for testing, not a release);
-- enable GitHub Pages or make the repositories public;
 - install/enable the promo-agent system timer (it belongs to the private
   `maria-padilha-agents` repository, not this product repo);
-- build and publish a release package or tag a release;
+- publish a GitHub release or release package;
 - enroll or publish donation links.
 
 The `known-good-2026-11-04` and `known-good-2026-11-05` tags predate the
@@ -24,8 +24,7 @@ rollback point in both repositories. None of these are releases.
 
 Run from `maria-padilha-de` unless stated otherwise.
 
-- [ ] `git status` is clean in both repositories. The review fixes are
-      intentionally uncommitted for the coordinator to inspect.
+- [x] `git status` is clean in both repositories.
 - [x] `bash tests/all.sh` passes.
 - [x] GitHub Actions is green for `maria-padilha-de`; the dotfiles repo has no CI.
 - [x] `./install.sh --dry-run --full` and `--rice` print a sane plan, including
@@ -42,8 +41,8 @@ Run from `maria-padilha-de` unless stated otherwise.
       install verified the `/usr/bin` links, `padilha-shell-watch`, session
       entry, and user units.
 - [x] `docs/` builds with Jekyll 4.4.1 + minima (`jekyll build --source docs`),
-      warnings only; Pages is still disabled. One docs site, not per-project
-      Pages.
+      warnings only. One docs site, not per-project Pages. Published at
+      <https://maria-padilha-os.github.io/maria-padilha-de/>.
 - [x] The current release version and changelog are decided
       (`packaging/PKGBUILD` 0.2.0, `CHANGELOG.md`).
 - [ ] A clean VM or spare user account is available for the first real install.

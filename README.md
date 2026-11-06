@@ -200,6 +200,8 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 
 ## Documentation
 
+- [Docs site](https://maria-padilha-os.github.io/maria-padilha-de/) — the published
+  GitHub Pages site
 - [INSTALL.md](INSTALL.md) — installation, profiles, uninstall, troubleshooting
 - [DEPLOY.md](DEPLOY.md) — release readiness and rollback (deployment on hold)
 - [CHANGELOG.md](CHANGELOG.md) — what changed and the known issues
