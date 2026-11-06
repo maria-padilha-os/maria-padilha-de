@@ -1,0 +1,8 @@
+{
+    "name": "Unit converter",
+    "description": "Offline length, mass, temperature, data and time conversions",
+    "version": "1.0",
+    "icon": "straighten",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + U"
+}

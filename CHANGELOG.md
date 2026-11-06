@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- New dashboard extensions: **Notes** (plain-text files under
+  `~/.local/share/padilha/notes`), **Calendar** (local month view and
+  `events.json` under `~/.local/share/padilha/calendar`), and **Unit converter**
+  (offline length, mass, temperature, data and time). They are in
+  `share/extensions/`, use `Super + Alt + N` / `A` / `U`, and have no network
+  access.
 - `padilha-brightness` reads the backlight through sysfs and only calls
   `brightnessctl` when it needs to change the value, instead of spawning two
   helpers every two seconds.

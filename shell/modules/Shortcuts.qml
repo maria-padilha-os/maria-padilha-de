@@ -209,6 +209,30 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "extensionNotes"
+        description: "Open dashboard on the notes tab"
+        onPressed: root.openExtension("notes")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionCalendar"
+        description: "Open dashboard on the calendar tab"
+        onPressed: root.openExtension("calendar")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionUnitConverter"
+        description: "Open dashboard on the unit converter tab"
+        onPressed: root.openExtension("unit-converter")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "session"
         description: "Toggle session menu"
         onPressed: {

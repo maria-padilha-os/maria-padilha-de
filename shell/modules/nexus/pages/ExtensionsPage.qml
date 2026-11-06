@@ -69,7 +69,7 @@ PageBase {
                 first: index === 0
                 last: index === Extensions.list.length - 1
                 text: modelData.name
-                subtext: !modelData.valid ? Tr.tr("extension.json is not valid JSON") : modelData.tab.length > 0 ? modelData.description : Tr.tr("No tab available")
+                subtext: !modelData.valid ? Tr.tr("extension.json is not valid JSON") : modelData.tab.length > 0 ? modelData.description + (modelData.shortcut.length > 0 ? ` · ${modelData.shortcut}` : "") : Tr.tr("No tab available")
                 checked: Extensions.isTabEnabled(modelData.id)
                 enabled: modelData.valid && modelData.tab.length > 0
                 onToggled: Extensions.setTabEnabled(modelData.id, checked)
