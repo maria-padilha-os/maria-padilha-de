@@ -72,6 +72,14 @@ shorter to load.
 The dashboard tabs are part of the shell and share the same palette. See the
 [tab MP4](docs/assets/demo/tabs.mp4).
 
+## Settings
+
+![The Nexus settings window](docs/assets/demo/settings.gif)
+
+**Nexus** is the settings window: wallpaper and colours, display, network,
+Bluetooth, audio, updates, extensions, and the bar panels. The
+[settings MP4](docs/assets/demo/settings.mp4) is smaller than the GIF.
+
 ## Features
 
 - **Shell** — bar, launcher, notifications, on-screen display, dashboard, and

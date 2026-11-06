@@ -58,6 +58,20 @@ Network names are blurred in the published capture.
 | --- |
 | ![Performance tab](assets/screenshots/tabs/performance.webp) |
 
+## Settings
+
+Nexus is the settings window, covering wallpaper and colours, display,
+network, Bluetooth, audio, updates, extensions, and the bar panels.
+
+![The Nexus settings window](assets/screenshots/settings.webp)
+
+![Opening the Nexus settings window](assets/demo/settings.gif)
+
+<video controls loop muted playsinline poster="assets/screenshots/settings.webp">
+  <source src="assets/demo/settings.mp4" type="video/mp4">
+  Your browser does not support the video element.
+</video>
+
 ## Launcher
 
 ![The Maria Padilha launcher opening over the wallpaper](assets/demo/launcher.gif)
