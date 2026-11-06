@@ -46,7 +46,7 @@ Run from `maria-padilha-de` unless stated otherwise.
       warnings only; Pages is still disabled. One docs site, not per-project
       Pages.
 - [x] The current release version and changelog are decided
-      (`packaging/PKGBUILD` 0.1.1, `CHANGELOG.md`).
+      (`packaging/PKGBUILD` 0.2.0, `CHANGELOG.md`).
 - [ ] A clean VM or spare user account is available for the first real install.
       The disposable root checks layout only, not a login/session.
 - [x] Suspend is still known-broken; do not include it in a demo.

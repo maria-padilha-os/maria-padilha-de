@@ -239,6 +239,20 @@ INI
     fi
     check "the override profile gets the Firefox chrome" \
         "[ -L '$ff_override/custom-profile/chrome/userChrome.css' ]"
+
+    # MC rewrites ini on exit; it must be a copy, while keymap/ext stay linked.
+    mc_home="$tmp/dots-mc"
+    mkdir -p "$mc_home/.config"
+    HOME="$mc_home" XDG_CONFIG_HOME="$mc_home/.config" "$dots" mc > /dev/null 2>&1
+    mc_ini="$mc_home/.config/mc/ini"
+    check "padilha-dots copies the mutable MC ini" \
+        "[ -f '$mc_ini' ] && [ ! -L '$mc_ini' ]"
+    check "padilha-dots links the MC keymap" \
+        "[ -L '$mc_home/.config/mc/mc.keymap' ]"
+    printf '\n[local-test]\nvalue=keep\n' >> "$mc_ini"
+    HOME="$mc_home" XDG_CONFIG_HOME="$mc_home/.config" "$dots" mc > /dev/null 2>&1
+    check "padilha-dots keeps a locally changed MC ini" \
+        "grep -q '^value=keep$' '$mc_ini'"
 else
     printf '  skip %s\n' "padilha-dots not checked out"
 fi

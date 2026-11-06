@@ -45,3 +45,22 @@ jobs:
 
       - name: Run every contract test
         run: tests/all.sh
+
+  lint:
+    name: static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install the lint toolchain
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+          pacman -Syu --noconfirm --needed \
+            ca-certificates git lua luacheck ruff shellcheck yamllint
+
+      - uses: actions/checkout@v7.0.1
+
+      - name: Run make lint
+        run: make lint

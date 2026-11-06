@@ -20,7 +20,7 @@ a small Lua configuration layer.
   </a>
 </p>
 
-Maria Padilha is early software (`0.1.x`). There are two ways in:
+Maria Padilha is early software (`0.2.x`). There are two ways in:
 
 - **[The desktop]({{ '/install.html' | relative_url }})** — shell, session,
   theme engine, installer, and the full set of configs.

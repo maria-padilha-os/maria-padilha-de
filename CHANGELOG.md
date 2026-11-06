@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Maria Padilha name restored
+## 0.2.0 — Maria Padilha (2026-11-06)
 
 - Rebranded the product from Lilith back to **Maria Padilha**. Commands are
   `padilha-*` (plain `padilha`; `lilith-*` remains as a compatibility alias),
@@ -12,6 +12,10 @@
   `maria-padilha-os/maria-padilha-dotfiles`; the docs site uses
   `baseurl: /maria-padilha-de`. The Quickshell id and
   `~/.local/state/caelestia` are unchanged.
+- Screen locking moved out of Quickshell to `padilha-lock` + `hyprlock`, so a
+  locker or PAM failure cannot take the shell and session down. The in-shell
+  lock remains opt-in with `PADILHA_ALLOW_SHELL_LOCK=1`; `hyprlock.conf` is
+  generated from the wallpaper palette.
 - Fixed the direct installer: it built the shell with a relative
   `INSTALL_QSCONFDIR`, so `cmake --install --prefix /usr` wrote
   `/usr/etc/xdg/quickshell/caelestia` instead of
@@ -24,13 +28,17 @@
 - A fresh `--full` install now pulls the session daemons that `execs.lua`
   starts: `hypridle`, `hyprsunset`, `trash-cli`, `gnome-keyring`,
   `polkit-gnome`, `bluez-utils`, `wl-clipboard`, `cliphist`, and `fuzzel`.
-  The PKGBUILD also declares `cmake`/`ninja` as makedepends.
+  The PKGBUILD also declares `cmake`/`ninja` as makedepends and `hyprlock` as
+  a recommended optdepend.
+- `padilha-record` and `padilha-shot` now find the focused monitor correctly;
+  `jq` is a declared dependency.
+- The CI workflow runs `make lint` in addition to the contract tests.
 
 ## 0.1.1 — historical snapshot; that release used the Lilith name
 
 This is the preparation state described in `DEPLOY.md`. No package, Pages site,
 or promo timer has been published. The naming in this section is historical:
-the Unreleased section above reverses it.
+the 0.2.0 section above reverses it.
 
 ### Added
 
@@ -52,7 +60,7 @@ the Unreleased section above reverses it.
 
 ### Changed
 
-- Renamed the product from Padilha to Lilith (reversed in Unreleased). Commands
+- Renamed the product from Padilha to Lilith (reversed in 0.2.0). Commands
   were `lilith-*` (plain `lilith`; the old `padilha-*` names remained as
   temporary compatibility aliases), the package was `lilith`, the install tree
   was `/usr/lib/lilith`, the session entry was **Lilith**, and user

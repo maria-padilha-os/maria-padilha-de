@@ -9,7 +9,7 @@ and a Lua configuration layer.
 
 The name comes from Maria Padilha, a figure in Brazilian folk religion.
 
-> **Status:** early development (0.1.x). The shell, session, theme engine, and
+> **Status:** early development (0.2.x). The shell, session, theme engine, and
 > package are usable; the settings application and greeter integration are
 > still in progress.
 
