@@ -43,7 +43,6 @@ and troubleshooting.
 | ![Maria Padilha desktop at day](docs/assets/screenshots/desktop-day.webp) | ![Maria Padilha desktop at night](docs/assets/screenshots/desktop-night.webp) |
 | ![Launcher over the wallpaper](docs/assets/screenshots/launcher.webp) | ![Dashboard panels](docs/assets/screenshots/dashboard.webp) |
 
-![Day and night palette transition](docs/assets/screenshots/palette.gif)
 
 The night image is the night palette preview, captured by switching the
 wallpaper and palette; it is not a separate theme. The GIF is generated from
@@ -56,6 +55,21 @@ those two stills. More views are in the [gallery](docs/screenshots.md).
 A short [MP4 tour](docs/assets/demo/tour.mp4) is included too. The stills were
 captured on an empty workspace and assembled into a GIF/video; nothing was
 recorded from the live agent or browser windows.
+
+### Deskbar widgets
+
+![Hovering the audio and display widgets in the bar](docs/assets/demo/widgets.gif)
+
+Hover the status icons in the bar to open the audio, display, network, and
+battery widgets. The [widget MP4](docs/assets/demo/widgets.mp4) is shorter to
+load.
+
+### Dashboard tabs
+
+![Switching between the dashboard, media, and performance tabs](docs/assets/demo/tabs.gif)
+
+The dashboard tabs are part of the shell and share the same palette. See the
+[tab MP4](docs/assets/demo/tabs.mp4).
 
 ## Features
 

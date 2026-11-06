@@ -21,6 +21,38 @@ workspace, not recorded from a live desktop.
 
 The MP4 is a short slideshow of the same stills; it is not a screen recording.
 
+## Deskbar widgets
+
+Hover the status icons in the bar to open the widgets:
+
+| Audio | Display |
+| --- | --- |
+| ![Audio widget](assets/screenshots/bar-audio.webp) | ![Display widget](assets/screenshots/bar-display.webp) |
+
+![Hovering the audio and display widgets](assets/demo/widgets.gif)
+
+<video controls loop muted playsinline poster="assets/screenshots/bar-audio.webp">
+  <source src="assets/demo/widgets.mp4" type="video/mp4">
+  Your browser does not support the video element.
+</video>
+
+## Dashboard tabs
+
+| Dashboard | Media |
+| --- | --- |
+| ![Dashboard tab](assets/screenshots/tabs/dashboard.webp) | ![Media tab](assets/screenshots/tabs/media.webp) |
+
+![Switching dashboard tabs](assets/demo/tabs.gif)
+
+<video controls loop muted playsinline poster="assets/screenshots/tabs/dashboard.webp">
+  <source src="assets/demo/tabs.mp4" type="video/mp4">
+  Your browser does not support the video element.
+</video>
+
+| Performance |
+| --- |
+| ![Performance tab](assets/screenshots/tabs/performance.webp) |
+
 ## Launcher
 
 ![The Maria Padilha launcher opening over the wallpaper](assets/demo/launcher.gif)
@@ -47,4 +79,3 @@ painted from the active palette.
 
 ![Day and night palette transition](assets/demo/day-night.gif)
 
-The longer palette crossfade is the [palette GIF](assets/screenshots/palette.gif).
