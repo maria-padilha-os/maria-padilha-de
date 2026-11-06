@@ -10,7 +10,7 @@ self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
 root=$(CDPATH='' cd -- "$(dirname -- "$self")/.." && pwd)
 runtime="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
-# Padilha is primary; keep using the old tree only while it is the one that
+# Maria Padilha is primary; keep using the old tree only while it is the one that
 # exists (the same rule the shell uses for its config directory).
 state="$state_home/padilha"
 if [ ! -d "$state" ] && [ -d "$state_home/lilith" ]; then

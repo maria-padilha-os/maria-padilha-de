@@ -16,7 +16,7 @@ Item {
     property string cacheDir: (root.api && root.api.paths && root.api.paths.cache
         ? root.api.paths.cache
         : ((root.api && root.api.paths ? root.api.paths.home : "") + "/.cache/caelestia")) + "/maps"
-    readonly property string userAgent: "Padilha-Maps/1.0 (+https://github.com/maria-padilha-os/maria-padilha-de)"
+    readonly property string userAgent: "Maria-Padilha-Maps/1.0 (+https://github.com/maria-padilha-os/maria-padilha-de)"
 
     // The shell assigns `api` when it creates the item, so it may still be
     // unset on the first frame. Everything below tolerates that.

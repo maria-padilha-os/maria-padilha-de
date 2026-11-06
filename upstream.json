@@ -1,5 +1,5 @@
 {
-  "$comment": "What Padilha sits on. Updated by hand; checked by tools/upstream-watch.sh.",
+  "$comment": "What Maria Padilha sits on. Updated by hand; checked by tools/upstream-watch.sh.",
   "shell": {
     "repo": "https://github.com/caelestia-dots/shell",
     "pin": "v2.5.0",

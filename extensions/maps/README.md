@@ -40,7 +40,7 @@ enable it under Settings → Extensions → **Show in the top panel**.
 ## OpenStreetMap policy compliance
 
 - Tile requests identify the app:
-  `Padilha-Maps/1.0 (+https://github.com/maria-padilha-os/maria-padilha-de)`.
+  `Maria-Padilha-Maps/1.0 (+https://github.com/maria-padilha-os/maria-padilha-de)`.
 - Tiles are cached under `$XDG_CACHE_HOME/caelestia/maps/<z>/<x>/<y>.png`
   (`~/.cache/caelestia/maps/` by default); a cached tile is never refetched by
   a pan, zoom or shell restart.
