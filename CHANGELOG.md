@@ -32,7 +32,7 @@
   a recommended optdepend.
 - `padilha-record` and `padilha-shot` now find the focused monitor correctly;
   `jq` is a declared dependency.
-- The CI workflow runs `make lint` in addition to the contract tests.
+- The CI workflow runs the lint suite in addition to the contract tests.
 
 ## 0.1.1 — historical snapshot; that release used the Lilith name
 
