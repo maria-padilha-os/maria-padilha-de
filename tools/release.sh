@@ -13,8 +13,13 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root"
 
 version=$(sed -n 's/^pkgver=//p' packaging/PKGBUILD)
+pkgrel=$(sed -n 's/^pkgrel=//p' packaging/PKGBUILD)
 [ -n "$version" ] || {
     echo "release: cannot read pkgver from packaging/PKGBUILD" >&2
+    exit 1
+}
+[ -n "$pkgrel" ] || {
+    echo "release: cannot read pkgrel from packaging/PKGBUILD" >&2
     exit 1
 }
 
@@ -46,4 +51,4 @@ cd packaging
 makepkg -f --nocheck
 echo
 echo "release: package built. Install it with:"
-echo "    sudo pacman -U $root/packaging/maria-padilha-$version-1-x86_64.pkg.tar.zst"
+echo "    sudo pacman -U $root/packaging/maria-padilha-$version-$pkgrel-x86_64.pkg.tar.zst"

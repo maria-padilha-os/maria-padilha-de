@@ -131,7 +131,7 @@ Build and install the package instead of using the direct installer:
 
 ```sh
 tools/release.sh
-sudo pacman -U packaging/maria-padilha-0.1.1-1-x86_64.pkg.tar.zst
+sudo pacman -U packaging/maria-padilha-<version>-<pkgrel>-x86_64.pkg.tar.zst
 ```
 
 The package installs the same `/usr` tree but does not link the dotfiles or
