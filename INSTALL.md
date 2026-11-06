@@ -28,10 +28,10 @@ who already runs Hyprland and only wants the shell, theme, and Hyprland config.
 
 The installer has its own runtime list in `install.sh`, kept in sync with
 `packaging/PKGBUILD`; the important pieces are Hyprland, Quickshell, Qt 6,
-PipeWire, `brightnessctl`, Python, Lua, ImageMagick, the session daemons
-(`hypridle`, `hyprsunset`, `gnome-keyring`, `polkit-gnome`), the clipboard
-tools, and fuzzel. Screenshots, recording, and the Discord theme use optional
-packages listed in the PKGBUILD.
+PipeWire, `brightnessctl`, Python, Lua, ImageMagick, `hyprlock`, the session
+daemons (`hypridle`, `hyprsunset`, `gnome-keyring`, `polkit-gnome`), the
+clipboard tools, and fuzzel. Screenshots, recording, and the Discord theme use
+optional packages listed in the PKGBUILD.
 
 ## Quick start
 
@@ -78,7 +78,8 @@ including `sudo` and `pacman`.
 ## First login
 
 - `Super + Return` / `Super + T` opens the terminal.
-- `Super + Escape` locks; `Super + Alt + Escape` restarts the shell and locks.
+- `Super + Escape` locks through `hyprlock`; the shell's own lock is opt-in and
+  off by default.
 - `Super + Alt + h/l` changes workspace; `Super + Alt + j/k` changes monitor.
 - `Super + Ctrl + h/j/k/l` resizes the active window.
 - `Super + Shift + P` shows all panels.

@@ -241,6 +241,8 @@ end
 -- shell command run after the file is written; `enabled` is the config key.
 M.apps = {
     { id = "hypr", base = "config", dest = "hypr/scheme/current.lua", lua_table = true, enabled = "enableHypr" },
+    { id = "hyprlock", base = "config", dest = "hypr/hyprlock.conf", template = "hyprlock.conf",
+        enabled = "enableHyprlock" },
     { id = "fuzzel", base = "config", dest = "fuzzel/fuzzel.ini", template = "fuzzel.ini", enabled = "enableFuzzel" },
     { id = "btop", base = "config", dest = "btop/themes/caelestia.theme", template = "btop.theme", hash = true,
         reload = "killall -USR2 btop", enabled = "enableBtop" },

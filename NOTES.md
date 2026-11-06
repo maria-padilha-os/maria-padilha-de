@@ -64,8 +64,11 @@ siblings; the desktop installer fetches the dotfiles repository as
 - Shell, session, installer, theme engine, and package build and tests pass.
 - Vim-style keymap and `KEYBINDS.md` are in place.
 - Brightness follows a day/night curve with a four-hour manual hold; zram is
-  active; `hypridle` only powers the panel down after five minutes. Auto-lock is
-  disabled until the shell lock is fixed.
+  active; `hypridle` only powers the panel down after five minutes. Auto-lock
+  stays disabled. Manual `Super+Escape` now runs `padilha-lock`, which uses
+  `hyprlock` in its own process; the in-shell lock is opt-in only
+  (`PADILHA_ALLOW_SHELL_LOCK=1`) until the Quickshell PAM failure paths are
+  fixed upstream.
 - Neovim has an opt-in `caelestia` colorscheme (ayu-like light/dark, tinted by
   the wallpaper). The base46 ayu themes remain intact.
 - WezTerm owns its `0.85` surface opacity. Hyprland's WezTerm-specific rule is
@@ -151,10 +154,12 @@ Rules for repo owners:
   backoff, and logs to `~/.local/state/padilha/shell-watch.log`. A
   `padilha-reload` marker keeps it from racing a deliberate reload.
 - The idle lock is disabled: `hypridle` now only powers the panel down after
-  five minutes. The shell lock screen crashed Quickshell on 2026-11-04 (PAM
-  subprocess exited and the shell process disappeared), so do not restore
-  `qs ... lock` to hypridle until that path is fixed. Manual `Super+Escape` still
-  requests the shell lock; the watchdog will recover the shell if it crashes.
+  five minutes. The shell lock screen crashed Quickshell on 2026-11-04, and
+  Quickshell 0.3.2 still has unfixed PAM paths (upstream #1275: a failed fork
+  can `kill(-1)` the session; #1401: output changes during a lock can crash
+  the lock surface). `Super+Escape` uses `hyprlock` through `padilha-lock`;
+  the shell lock is available only with `PADILHA_ALLOW_SHELL_LOCK=1`. Do not
+  restore `qs ... lock` to hypridle.
 - Before changing a live QML/config file: commit it, keep a backup, and prefer
   editing the repository through the symlink. If the UI disappears, run
   `bin/padilha-session` from a TTY or ask Hyprland to execute it; the watchdog

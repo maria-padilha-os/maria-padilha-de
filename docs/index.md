@@ -33,7 +33,8 @@ image. This site is the shared documentation for all of them.
 
 ## What it looks like
 
-- A bar, launcher, notifications, OSD, dashboard, and lock screen.
+- A bar, launcher, notifications, OSD, dashboard, and a hyprlock-based lock
+  screen.
 - One wallpaper palette applied to Hyprland, GTK, Qt/Kvantum, terminals, btop,
   cava, fuzzel, Neovim, Discord, Midnight Commander, and Firefox.
 - A light wallpaper by day and a dark one at night, with the palette reapplied

@@ -1,0 +1,51 @@
+#!/bin/sh
+# Lock the session through hyprlock, not through the shell process.
+#
+# Quickshell 0.3.2 can kill the whole session when a PAM helper fails to fork
+# (upstream #1275), and its lock surface has crashed on output changes before.
+# hyprlock runs in its own process; a locker crash then cannot take the shell
+# and the session with it.
+#
+#   padilha-lock              lock now
+#   padilha-lock -h           show this help
+#
+# PADILHA_ALLOW_SHELL_LOCK=1 restores the old `qs ipc lock lock` path for
+# development. It is deliberately opt-in and not used by the keybind.
+set -u
+
+usage() {
+    printf 'usage: %s\n' "${0##*/}"
+}
+
+case "${1:-}" in
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    '')
+        ;;
+    *)
+        usage >&2
+        exit 2
+        ;;
+esac
+
+if [ "${PADILHA_ALLOW_SHELL_LOCK:-0}" = 1 ]; then
+    if command -v qs >/dev/null 2>&1; then
+        exec qs -c caelestia ipc call lock lock
+    fi
+    printf '%s: qs is not on PATH\n' "${0##*/}" >&2
+    exit 1
+fi
+
+if command -v hyprlock >/dev/null 2>&1; then
+    exec hyprlock
+fi
+
+printf '%s: hyprlock is not installed; the unstable shell lock was not started\n' "${0##*/}" >&2
+if command -v notify-send >/dev/null 2>&1; then
+    notify-send -u critical -a padilha-lock \
+        'Screen lock unavailable' \
+        'Install hyprlock: sudo pacman -S hyprlock'
+fi
+exit 1

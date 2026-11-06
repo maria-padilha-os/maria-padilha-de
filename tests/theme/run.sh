@@ -77,6 +77,8 @@ seq="$tmp/tree/home/machine/.local/state/caelestia/sequences.txt"
 
 check "gtk gets hashed colours" "grep -q 'window_bg_color #' '$gtk'"
 check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
+lockconf="$tmp/tree/home/machine/.config/hypr/hyprlock.conf"
+check "hyprlock gets a palette" "test -s '$lockconf' && grep -q 'rgba(' '$lockconf'"
 check "terminals get OSC 11" "grep -q ']11;rgb:' '$seq'"
 check "htop is left alone" "! test -e '$tmp/tree/home/machine/.config/htop/htoprc'"
 check "nvtop is left alone" "! test -e '$tmp/tree/home/machine/.config/nvtop/nvtop.colors'"

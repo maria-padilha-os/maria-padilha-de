@@ -5,7 +5,7 @@
 # which is why there is a local source and no URL yet.
 pkgname=maria-padilha
 pkgver=0.1.1
-pkgrel=2
+pkgrel=3
 pkgdesc="Desktop Maria Padilha: a Wayland desktop on Hyprland and Quickshell"
 arch=('x86_64')
 url="https://github.com/maria-padilha-os/maria-padilha-de"
@@ -43,6 +43,7 @@ depends=(
     'wl-clipboard'
     'cliphist'
     'fuzzel'
+    'hyprlock'
 )
 optdepends=(
     'sass: Discord theme compilation'
@@ -107,8 +108,8 @@ package() {
     install -Dm 644 upstream.json "$pkgdir/usr/lib/maria-padilha/upstream.json"
 
     install -d "$pkgdir/usr/bin"
-    commands=(padilha padilha-brightness padilha-config padilha-session padilha-shell-watch padilha-theme \
-        padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji)
+    commands=(padilha padilha-brightness padilha-config padilha-session padilha-lock padilha-shell-watch \
+        padilha-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji)
     for cmd in "${commands[@]}"; do
         ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
         # Compatibility: the old command names point at the same files.

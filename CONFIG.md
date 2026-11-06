@@ -35,10 +35,10 @@ return {
 }
 ```
 
-The switches are `enableHypr`, `enableFuzzel`, `enableBtop`, `enableCava`,
-`enableGtk`, `enableQt`, `enableMicro`, `enableSpicetify`, `enableDiscord`,
-`enableMc`, and `enableFirefox`. A missing file, or an omitted key, means
-enabled. `postHook` runs only with `padilha-theme apply --hooks`.
+The switches are `enableHypr`, `enableHyprlock`, `enableFuzzel`, `enableBtop`,
+`enableCava`, `enableGtk`, `enableQt`, `enableMicro`, `enableSpicetify`,
+`enableDiscord`, `enableMc`, and `enableFirefox`. A missing file, or an omitted
+key, means enabled. `postHook` runs only with `padilha-theme apply --hooks`.
 
 ## Precedence
 

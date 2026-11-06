@@ -7,7 +7,8 @@ title: Desktop
 
 The shell is a fork of [Caelestia](https://github.com/caelestia-dots/shell),
 adapted to this desktop. It provides the bar, launcher, notifications, OSD,
-dashboard, lock screen, and the panels around them.
+dashboard, optional in-shell lock, and the panels around them. Screen locking
+itself goes through `padilha-lock` and `hyprlock`.
 
 ## Day and night
 
@@ -37,7 +38,7 @@ Python semantics rather than human-readable math.
 | `Super + Alt + h/l` | previous / next workspace |
 | `Super + Alt + j/k` | previous / next monitor |
 | `Super + Shift + P` | show all panels |
-| `Super + Escape` | lock |
+| `Super + Escape` | lock (`hyprlock`) |
 
 The full map is in
 [KEYBINDS.md](https://github.com/maria-padilha-os/maria-padilha-de/blob/main/KEYBINDS.md).

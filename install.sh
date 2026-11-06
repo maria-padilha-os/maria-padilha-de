@@ -149,6 +149,7 @@ runtime_deps=(
     wl-clipboard
     cliphist
     fuzzel
+    hyprlock
 )
 
 if [ "$editor" = nvim ]; then
@@ -193,6 +194,7 @@ commands=(
     padilha-brightness
     padilha-config
     padilha-session
+    padilha-lock
     padilha-shell-watch
     padilha-theme
     padilha-daylight

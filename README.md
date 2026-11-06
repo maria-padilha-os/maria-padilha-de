@@ -50,8 +50,11 @@ those two stills. More views are in the [gallery](docs/screenshots.md).
 
 ## Features
 
-- **Shell** — bar, launcher, notifications, on-screen display, dashboard, lock
-  screen, and the panels around them.
+- **Shell** — bar, launcher, notifications, on-screen display, dashboard, and
+  the panels around them.
+- **Locking** — `padilha-lock` runs `hyprlock` in its own process, so a locker
+  fault cannot take the shell and the session with it. The in-shell lock is
+  opt-in.
 - **Colour** — a wallpaper is scored into a Material You palette and written to
   Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, spicetify,
   Neovim, Discord, and Midnight Commander.
@@ -77,10 +80,12 @@ The shell is a fork of [Caelestia](https://github.com/caelestia-dots/shell)
 Maria Padilha is packaged for Arch Linux and Arch-based distributions such as
 Manjaro. The package depends on:
 
-- Hyprland and Quickshell
+- Hyprland, Quickshell, and `hyprlock`
 - Qt 6 (`qt6-base`, `qt6-declarative`)
 - PipeWire, aubio, libcava, libqalculate, and lm_sensors
-- Lua and ImageMagick
+- Lua, ImageMagick, and `jq`
+- the session daemons: `hypridle`, `hyprsunset`, `gnome-keyring`,
+  `polkit-gnome`, `trash-cli`, and `bluez-utils`
 
 Building additionally needs CMake, Ninja, Python 3, and a C++ toolchain.
 Optional tools enable screenshots, recording, the pickers, and the Discord
@@ -166,6 +171,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha` | small command surface for keybinds (wallpaper, scheme, `doctor`) |
 | `padilha-config` | compile the Lua configuration; `set`, `unset`, `capture` |
 | `padilha-session` | compile, paint the palette, and start the shell |
+| `padilha-lock` | lock through `hyprlock` in its own process |
 | `padilha-shell-watch` | restart the shell after a crash (bounded backoff) |
 | `padilha-brightness` | day/night panel brightness, with a manual hold |
 | `padilha-theme` | render a wallpaper's palette into application configs |

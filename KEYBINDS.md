@@ -84,8 +84,7 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + Alt + T` / `C` / `O` / `G` / `E` | dashboard: translator / calculator / maps / guitar tuner / files tabs |
 | `Ctrl + Alt + C` | clear notifications |
 | `Ctrl + Alt + Delete` | session menu |
-| `Super + Escape` | lock |
-| `Super + Alt + Escape` | restore lock (restart shell, then lock) |
+| `Super + Escape` | lock (`hyprlock`) |
 | `Super + Shift + Escape` | sleep-disabled notice (suspend/hibernate are broken here) |
 | `Ctrl + Alt + V` | audio settings (`pwvucontrol`) |
 
