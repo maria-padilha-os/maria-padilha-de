@@ -1,0 +1,8 @@
+{
+    "name": "Calendar",
+    "description": "Local month view and events",
+    "version": "1.0",
+    "icon": "calendar_month",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + A"
+}

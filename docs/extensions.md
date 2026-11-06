@@ -83,5 +83,11 @@ enabled and the top panel is open.
 ## Bundled extensions
 
 The repository ships `calculator`, `maps`, `stopwatch`, `translator` and
-`tuner` under `extensions/`; the installer and package put them in
-`/usr/lib/maria-padilha/share/extensions`. See `extensions/README.md`.
+`tuner` under `extensions/`, plus `notes`, `calendar` and `unit-converter`
+under `share/extensions/`; the installer and package put them in
+`/usr/lib/maria-padilha/share/extensions`. The dashboard scanner also reads
+those checkout directories while developing. See `extensions/README.md`.
+
+`notes` stores plain-text files and `calendar` stores `events.json` under
+`~/.local/share/padilha/` (honouring `XDG_DATA_HOME`); neither has network
+access. `unit-converter` works entirely from a local factor table.
