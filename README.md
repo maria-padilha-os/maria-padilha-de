@@ -49,6 +49,14 @@ The night image is the night palette preview, captured by switching the
 wallpaper and palette; it is not a separate theme. The GIF is generated from
 those two stills. More views are in the [gallery](docs/screenshots.md).
 
+## Demo
+
+![Desktop tour: day desktop, launcher, dashboard, night desktop](docs/assets/demo/tour.gif)
+
+A short [MP4 tour](docs/assets/demo/tour.mp4) is included too. The stills were
+captured on an empty workspace and assembled into a GIF/video; nothing was
+recorded from the live agent or browser windows.
+
 ## Features
 
 - **Shell** — bar, launcher, notifications, on-screen display, dashboard, and
