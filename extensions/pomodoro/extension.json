@@ -1,0 +1,8 @@
+{
+    "name": "Pomodoro",
+    "description": "Focus and break timer with desktop notifications",
+    "version": "1.0",
+    "icon": "hourglass_top",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + B"
+}

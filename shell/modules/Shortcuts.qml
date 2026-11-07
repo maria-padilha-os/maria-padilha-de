@@ -209,6 +209,30 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "extensionSystemMonitor"
+        description: "Open dashboard on the system monitor tab"
+        onPressed: root.openExtension("system-monitor")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionPomodoro"
+        description: "Open dashboard on the pomodoro tab"
+        onPressed: root.openExtension("pomodoro")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "extensionDiskUsage"
+        description: "Open dashboard on the disk usage tab"
+        onPressed: root.openExtension("disk-usage")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "session"
         description: "Toggle session menu"
         onPressed: {
