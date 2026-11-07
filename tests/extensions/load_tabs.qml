@@ -3,7 +3,7 @@ import Quickshell
 
 // Runs under `qs -p`: instantiate every extension tab with the same API shape
 // the dashboard provides. `active` is false so tabs do not start network,
-// audio or clipboard work while this test is running.
+// audio, service or timer work while this test is running.
 QtObject {
     id: harness
 
@@ -24,7 +24,7 @@ QtObject {
     property int failures: 0
     property bool finished: false
     property Timer settleTimer: Timer {
-        interval: 100
+        interval: 200
         onTriggered: harness.finish()
     }
 

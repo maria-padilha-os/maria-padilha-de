@@ -212,6 +212,10 @@ Scope {
         name: "extensionNotes"
         description: "Open dashboard on the notes tab"
         onPressed: root.openExtension("notes")
+
+        name: "extensionSystemMonitor"
+        description: "Open dashboard on the system monitor tab"
+        onPressed: root.openExtension("system-monitor")
     }
 
     // qmllint disable unresolved-type
@@ -220,6 +224,10 @@ Scope {
         name: "extensionCalendar"
         description: "Open dashboard on the calendar tab"
         onPressed: root.openExtension("calendar")
+
+        name: "extensionPomodoro"
+        description: "Open dashboard on the pomodoro tab"
+        onPressed: root.openExtension("pomodoro")
     }
 
     // qmllint disable unresolved-type
@@ -228,6 +236,10 @@ Scope {
         name: "extensionUnitConverter"
         description: "Open dashboard on the unit converter tab"
         onPressed: root.openExtension("unit-converter")
+
+        name: "extensionDiskUsage"
+        description: "Open dashboard on the disk usage tab"
+        onPressed: root.openExtension("disk-usage")
     }
 
     // qmllint disable unresolved-type

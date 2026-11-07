@@ -27,6 +27,10 @@ Both honour `XDG_DATA_HOME`. The dashboard scanner reads the checkout's
 `share/extensions/` while developing and the installed copies under
 `/usr/lib/maria-padilha/share/extensions` after installation.
 
+| `system-monitor` | CPU, memory and load average | 520×360 |
+| `pomodoro` | focus/break timer with desktop notifications | 420×340 |
+| `disk-usage` | read-only mounted filesystem usage | 560×400 |
+
 To try the checkout copies before installing:
 
 ```sh
@@ -35,6 +39,9 @@ cp -r extensions/calculator extensions/maps extensions/stopwatch \
       extensions/translator extensions/tuner ~/.config/padilha/extensions/
 cp -r share/extensions/notes share/extensions/calendar \
       share/extensions/unit-converter ~/.config/padilha/extensions/
+
+      extensions/translator extensions/tuner extensions/system-monitor \
+      extensions/pomodoro extensions/disk-usage ~/.config/padilha/extensions/
 ```
 
 User extensions in `~/.config/padilha/extensions` override bundled ones with the

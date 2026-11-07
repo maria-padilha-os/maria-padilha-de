@@ -1,0 +1,8 @@
+{
+    "name": "Disk usage",
+    "description": "Read-only usage for mounted filesystems",
+    "version": "1.0",
+    "icon": "hard_drive",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + Shift + U"
+}

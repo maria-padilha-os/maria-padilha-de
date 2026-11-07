@@ -101,12 +101,12 @@ Singleton {
     Process {
         id: scanProc
 
-        // User extensions win, then the checkout's share/extensions tree (for
-        // development), then the old checkout layout, then installed copies.
+        // User extensions win, then the checkout trees while developing, then
+        // the installed copies.
         command: [
             "sh", "-c",
             `for base in "$1" "$2" "$3" "$4" "$5" "$6"; do [ -d "$base" ] || continue; for d in "$base"/*/; do [ -f "$d/extension.json" ] || continue; printf 'EXTENSION:%s\\n' "$d"; cat "$d/extension.json"; printf '\\n'; done; done`,
-            "sh", `${Paths.home}/.config/padilha/extensions`, `${Paths.home}/.config/lilith/extensions`, `${Quickshell.shellDir}/../share/extensions`, `${Quickshell.shellDir}/../extensions`, "/usr/lib/maria-padilha/share/extensions", "/usr/lib/lilith/share/extensions"
+            "sh", `${Paths.home}/.config/padilha/extensions`, `${Paths.home}/.config/lilith/extensions`, `${Quickshell.shellDir}/../extensions`, `${Quickshell.shellDir}/../share/extensions`, "/usr/lib/maria-padilha/share/extensions", "/usr/lib/lilith/share/extensions"
         ]
 
         stdout: StdioCollector {

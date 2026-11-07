@@ -82,12 +82,17 @@ enabled and the top panel is open.
 
 ## Bundled extensions
 
-The repository ships `calculator`, `maps`, `stopwatch`, `translator` and
-`tuner` under `extensions/`, plus `notes`, `calendar` and `unit-converter`
-under `share/extensions/`; the installer and package put them in
-`/usr/lib/maria-padilha/share/extensions`. The dashboard scanner also reads
-those checkout directories while developing. See `extensions/README.md`.
+The repository ships `calculator`, `maps`, `stopwatch`, `translator`, `tuner`,
+`system-monitor`, `pomodoro`, `disk-usage`, `notes`, `calendar` and
+`unit-converter` under `extensions/` and `share/extensions/`; the installer and
+package put them in `/usr/lib/maria-padilha/share/extensions`. The dashboard
+scanner also reads the checkout directories while developing. See
+`extensions/README.md`.
 
 `notes` stores plain-text files and `calendar` stores `events.json` under
 `~/.local/share/padilha/` (honouring `XDG_DATA_HOME`); neither has network
 access. `unit-converter` works entirely from a local factor table.
+`system-monitor` reads CPU and memory from the shell services and the load
+average from `/proc/loadavg`. `pomodoro` only counts down while its tab is
+selected and uses `notify-send` for phase changes. `disk-usage` lists the
+mounted filesystems reported by the `Storage` service and never writes to them.
