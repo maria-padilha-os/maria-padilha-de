@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- New dashboard extensions: **System monitor** (CPU and memory from the shell
+  services, load average from `/proc/loadavg`), **Pomodoro** (configurable
+  focus/break timer with desktop notifications) and **Disk usage** (read-only
+  mounted filesystem usage from the `Storage` service). They use the existing
+  extension contract and the `Super + Alt + I` / `B` / `U` shortcuts.
 - `padilha-brightness` reads the backlight through sysfs and only calls
   `brightnessctl` when it needs to change the value, instead of spawning two
   helpers every two seconds.

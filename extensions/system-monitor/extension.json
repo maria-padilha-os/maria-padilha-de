@@ -1,0 +1,8 @@
+{
+    "name": "System monitor",
+    "description": "CPU, memory and load average",
+    "version": "1.0",
+    "icon": "monitoring",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + I"
+}

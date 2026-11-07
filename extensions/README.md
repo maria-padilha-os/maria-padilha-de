@@ -13,13 +13,17 @@ top panel.
 | `stopwatch` | start/stop, laps, reset | 340×230 |
 | `translator` | MyMemory translation between nine languages | 480×280 |
 | `tuner` | microphone guitar tuner (Goertzel pitch detection, reference tones) | 420×260 |
+| `system-monitor` | CPU, memory and load average | 520×360 |
+| `pomodoro` | focus/break timer with desktop notifications | 420×340 |
+| `disk-usage` | read-only mounted filesystem usage | 560×400 |
 
 To try the checkout copies before installing:
 
 ```sh
 mkdir -p ~/.config/padilha/extensions
 cp -r extensions/calculator extensions/maps extensions/stopwatch \
-      extensions/translator extensions/tuner ~/.config/padilha/extensions/
+      extensions/translator extensions/tuner extensions/system-monitor \
+      extensions/pomodoro extensions/disk-usage ~/.config/padilha/extensions/
 ```
 
 User extensions in `~/.config/padilha/extensions` override bundled ones with the

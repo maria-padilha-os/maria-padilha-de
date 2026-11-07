@@ -15,9 +15,9 @@ Item {
     property var laps: []
 
     readonly property var palette: root.api && root.api.colours ? root.api.colours.palette : null
-    readonly property color fg: root.palette ? root.palette.m3onSurface : "white"
-    readonly property color muted: root.palette ? root.palette.m3onSurfaceVariant : "#aaaaaa"
-    readonly property color accent: root.palette ? root.palette.m3primary : "#a0c4ff"
+    readonly property color fg: root.palette ? root.palette.m3onSurface : "transparent"
+    readonly property color muted: root.palette ? root.palette.m3onSurfaceVariant : "transparent"
+    readonly property color accent: root.palette ? root.palette.m3primary : "transparent"
 
     function formatTime(ms: real) {
         const total = Math.max(0, Math.floor(ms / 10));

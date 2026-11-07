@@ -82,6 +82,12 @@ enabled and the top panel is open.
 
 ## Bundled extensions
 
-The repository ships `calculator`, `maps`, `stopwatch`, `translator` and
-`tuner` under `extensions/`; the installer and package put them in
+The repository ships `calculator`, `maps`, `stopwatch`, `translator`,
+`tuner`, `system-monitor`, `pomodoro` and `disk-usage` under `extensions/`;
+the installer and package put them in
 `/usr/lib/maria-padilha/share/extensions`. See `extensions/README.md`.
+
+`system-monitor` reads CPU and memory from the shell services and the load
+average from `/proc/loadavg`. `pomodoro` only counts down while its tab is
+selected and uses `notify-send` for phase changes. `disk-usage` lists the
+mounted filesystems reported by the `Storage` service and never writes to them.
