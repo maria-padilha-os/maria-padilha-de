@@ -22,6 +22,14 @@
     --padilha-outline: {{ $outline }};
     --padilha-outline-variant: {{ $outlineVariant }};
 
+    /* Thunderbird 158 consumes these, not the generic --color-accent. */
+    --color-accent-primary: var(--padilha-primary) !important;
+    --color-accent-primary-hover: var(--padilha-primary) !important;
+    --color-accent-primary-active: var(--padilha-primary) !important;
+    --color-accent-primary-selected: var(--padilha-primary-container) !important;
+    --color-accent-primary-selected-unfocused: var(--padilha-surface-high) !important;
+    accent-color: var(--padilha-primary) !important;
+
     --lwt-accent-color: var(--padilha-surface) !important;
     --lwt-text-color: var(--padilha-on-surface) !important;
     --toolbar-bgcolor: var(--padilha-surface-container) !important;
