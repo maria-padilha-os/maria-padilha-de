@@ -274,8 +274,6 @@ M.apps = {
     { id = "fuzzel", base = "config", dest = "fuzzel/fuzzel.ini", template = "fuzzel.ini", enabled = "enableFuzzel" },
     { id = "btop", base = "config", dest = "btop/themes/caelestia.theme", template = "btop.theme", hash = true,
         reload = "killall -USR2 btop", enabled = "enableBtop" },
-    { id = "lazygit", base = "config", dest = "lazygit/config.yml", template = "lazygit-{mode}.yml", hash = true,
-        enabled = "enableLazygit" },
     { id = "cava", base = "config", dest = "cava/config", template = "cava.conf", hash = true,
         reload = "killall -USR2 cava", enabled = "enableCava" },
     { id = "gtk3", base = "config", dest = "gtk-3.0/gtk.css", template = "gtk.css", hash = true,

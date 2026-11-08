@@ -277,9 +277,6 @@ check "dry run follows the clock" "printf '%s' \"$out\" | grep -q \"period=$want
 
 rm -rf "$tmp/day"
 "$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
-lazygit="$tmp/tree/home/machine/.config/lazygit/config.yml"
-check "lazygit gets a themed config" "test -s '$lazygit' && grep -q 'lightTheme: false' '$lazygit'"
-
 # Thunderbird: a profile exists only after its first launch.
 tb="$tmp/thumb"
 mkdir -p "$tb/home/machine/.config/thunderbird/tb.default"
