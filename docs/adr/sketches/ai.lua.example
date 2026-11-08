@@ -1,0 +1,92 @@
+-- ADR 0001 sketch — configuration shape, not a working install.
+--
+-- Copy to ~/.config/padilha/ai.lua and set mode 0600:
+--   install -m 600 /dev/null ~/.config/padilha/ai.lua
+--   $EDITOR ~/.config/padilha/ai.lua
+--
+-- This file is read only by the assistant backend. It is NOT read by
+-- padilha-config, is never compiled into shell.json, and must never be
+-- committed, copied into env.local.lua, or passed through an environment
+-- variable.
+
+return {
+    -- The model the panel starts on. It must name an entry in `models`.
+    default_model = "local",
+
+    models = {
+        ["local"] = {
+            provider = "local",
+            model = "qwen2.5-coder:7b",
+            context = 32768,
+            tools = true,
+        },
+        work = {
+            provider = "anthropic",
+            model = "claude-sonnet-4-5",
+            context = 200000,
+            tools = true,
+        },
+    },
+
+    providers = {
+        -- A local server: loopback HTTP is allowed only with the explicit
+        -- switch below. No credential is needed.
+        ["local"] = {
+            kind = "openai-compatible",
+            base_url = "http://127.0.0.1:11434/v1",
+        },
+
+        -- A remote provider. The key is resolved from the user's keyring at
+        -- request time; it is never stored in this file in this example.
+        anthropic = {
+            kind = "anthropic",
+            base_url = "https://api.anthropic.com",
+            credential = {
+                store = "secret-service",
+                service = "padilha-ai",
+                account = "anthropic",
+            },
+            -- Alternative to the keyring: inline only in this 0600 file.
+            -- api_key = "PASTE_KEY_HERE",
+        },
+    },
+
+    permissions = {
+        -- Writes are off globally. A root's mode must also be "rw", and even
+        -- then every write needs a one-operation confirmation.
+        write = false,
+
+        -- Reserved. Must remain false in v1; there is no command tool.
+        exec = false,
+
+        -- No implicit roots. Only these directories (under $HOME, not $HOME
+        -- itself) are visible. Read-only is the default.
+        roots = {
+            { path = "~/Documents", mode = "ro" },
+            { path = "~/Projects", mode = "ro" },
+        },
+
+        -- Extra denies on top of the built-in list. The built-ins (`.ssh`,
+        -- `.gnupg`, `.dsh`, browser profiles, credential files,
+        -- `env.local.lua`, `ai.lua`, the audit tree, ...) cannot be removed.
+        deny = {
+            "~/Documents/private",
+        },
+
+        max_file_bytes = 262144,
+        max_request_bytes = 4194304,
+        max_tool_calls = 8,
+    },
+
+    -- "off" keeps the transcript in memory only. "session" keeps it until the
+    -- shell exits. "persist" writes JSONL under the state directory with mode
+    -- 0600 and a retention policy; it is opt-in.
+    history = "off",
+
+    network = {
+        allow_insecure_loopback = true,
+        timeout_ms = 120000,
+        total_timeout_ms = 600000,
+        -- proxy = "http://127.0.0.1:8080", -- explicit only; env proxies ignored
+    },
+}

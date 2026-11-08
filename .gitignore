@@ -9,6 +9,10 @@ result-*
 # User config left behind when the checkout lived in ~/.config/padilha
 /init.lua
 /local.lua
+# Assistant credentials/policy must never enter the tree.
+/ai.lua
+/ai.roots.lua
+/ai.key
 
 # scratch trees from tests and hand runs
 .scratch/

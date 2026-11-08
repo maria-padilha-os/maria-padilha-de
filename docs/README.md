@@ -26,3 +26,9 @@ Pages is enabled.
 
 `baseurl` in `_config.yml` is `/maria-padilha-de`, matching the repository name;
 change it if the GitHub repository is renamed.
+
+## Decision records
+
+Architecture decisions are recorded in [`adr/`](adr/). The current proposal is
+[ADR 0001 — Built-in AI assistant and permissioned home access](adr/0001-built-in-ai-assistant.md).
+The sketches next to it are review aids, not installed code.
