@@ -280,6 +280,23 @@ rm -rf "$tmp/day"
 lazygit="$tmp/tree/home/machine/.config/lazygit/config.yml"
 check "lazygit gets a themed config" "test -s '$lazygit' && grep -q 'lightTheme: false' '$lazygit'"
 
+# Thunderbird: a profile exists only after its first launch.
+tb="$tmp/thumb"
+mkdir -p "$tb/home/machine/.config/thunderbird/tb.default"
+cat > "$tb/home/machine/.config/thunderbird/profiles.ini" <<'INI'
+[Profile0]
+Name=default
+IsRelative=1
+Path=tb.default
+Default=1
+INI
+"$theme" apply --seed ff1a1a --mode light --prefix "$tb" --no-signals > /dev/null 2>&1
+tbchrome="$tb/home/machine/.config/thunderbird/tb.default/chrome"
+check "thunderbird gets a palette stylesheet" "test -s '$tbchrome/padilha.css'"
+check "thunderbird enables custom stylesheets" "grep -q 'toolkit.legacyUserProfileCustomizations.stylesheets' '$tb/home/machine/.config/thunderbird/tb.default/user.js'"
+check "thunderbird chrome imports the palette" "grep -q 'padilha.css' '$tbchrome/userChrome.css'"
+check "thunderbird follows light mode" "grep -q 'browser.theme.content-theme' '$tb/home/machine/.config/thunderbird/tb.default/user.js'"
+
 check "a switch writes the wallpaper state" "test -s '$tmp/day/home/machine/.local/state/caelestia/wallpaper/path.txt'"
 check "a switch writes the scheme" "test -s '$tmp/day/home/machine/.local/state/caelestia/scheme.json'"
 
