@@ -28,6 +28,12 @@
     --color-accent-primary-active: var(--padilha-primary) !important;
     --color-accent-primary-selected: var(--padilha-primary-container) !important;
     --color-accent-primary-selected-unfocused: var(--padilha-surface-high) !important;
+    --color-accent-primary-selected: var(--padilha-primary) !important;
+    --text-color-accent-primary-selected: var(--padilha-on-primary) !important;
+    --selected-item-color: var(--padilha-primary) !important;
+    --selected-item-text-color: var(--padilha-on-primary) !important;
+    --in-content-accent-color: var(--padilha-primary) !important;
+    --in-content-focus-outline-color: var(--padilha-primary) !important;
     accent-color: var(--padilha-primary) !important;
 
     --lwt-accent-color: var(--padilha-surface) !important;
