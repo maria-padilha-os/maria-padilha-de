@@ -1,0 +1,6 @@
+[Unit]
+Description=Write the current Maria Padilha palette into Thunderbird
+
+[Service]
+Type=oneshot
+ExecStart=/home/machine/Códigos/maria-padilha/maria-padilha-de/bin/padilha-thunderbird-theme

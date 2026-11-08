@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the Caelestia scheme for Thunderbird palette updates
+
+[Path]
+PathChanged=%h/.local/state/caelestia/scheme.json
+Unit=padilha-thunderbird-theme.service
+
+[Install]
+WantedBy=default.target

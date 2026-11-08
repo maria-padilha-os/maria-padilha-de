@@ -14,6 +14,7 @@ path to letting the user manager own that lifetime instead.
 | `padilha-session.target` | the session's root; wants the two services below |
 | `padilha-shell.service` | compile config, paint colours, run `qs -c caelestia -n` |
 | `padilha-daylight.service` | the two-wallpaper clock, restarted on failure |
+| `padilha-thunderbird-theme.path` | rewrites Thunderbird's palette whenever `scheme.json` changes |
 
 They are installed by the package and are inert until something starts
 `graphical-session.target`. That something is `uwsm`, and it is the honest
