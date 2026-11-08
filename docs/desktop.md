@@ -14,7 +14,7 @@ itself goes through `padilha-lock` and `hyprlock`.
 
 `padilha-daylight` switches between a light wallpaper at 06:00 and a dark one at
 18:00. Each switch rebuilds the Material You palette from the image and applies
-it to Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, Neovim,
+it to Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, lazygit, cava, fuzzel, Neovim,
 Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
 colorscheme follows the same palette and switches between its ayu-inspired
 light and dark variants.

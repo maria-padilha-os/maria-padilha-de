@@ -277,6 +277,9 @@ check "dry run follows the clock" "printf '%s' \"$out\" | grep -q \"period=$want
 
 rm -rf "$tmp/day"
 "$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
+lazygit="$tmp/tree/home/machine/.config/lazygit/config.yml"
+check "lazygit gets a themed config" "test -s '$lazygit' && grep -q 'lightTheme: false' '$lazygit'"
+
 check "a switch writes the wallpaper state" "test -s '$tmp/day/home/machine/.local/state/caelestia/wallpaper/path.txt'"
 check "a switch writes the scheme" "test -s '$tmp/day/home/machine/.local/state/caelestia/scheme.json'"
 
