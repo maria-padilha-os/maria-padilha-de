@@ -79,6 +79,7 @@ Monitor order follows Hyprland's monitor IDs.
 | --- | --- |
 | tap `Super` | launcher |
 | `Super + N` | sidebar |
+| `Super + A` | assistant |
 | `Super + Shift + P` | show all panels |
 | `Super + Alt + D` / `M` / `P` / `W` | dashboard: dash / media / performance / weather |
 | `Super + Alt + T` / `C` / `O` / `G` / `E` | dashboard: translator / calculator / maps / guitar tuner / files tabs |

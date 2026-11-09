@@ -11,6 +11,12 @@ directories the user approves, reads text files by default, redacts
 secret-shaped content before returning it, and writes only after a separate
 one-operation confirmation. It is not a shell.
 
+The companion **Assistant** drawer talks to the same process over
+newline-delimited JSON (`padilha-ai --stdio`). The panel never receives the
+provider key or raw filesystem access; it sends messages and model metadata to
+the child and renders redacted replies. Toggle it with `Super + A` or the
+sparkle button in the bar.
+
 ## No roots approved
 
 A fresh install has no access at all. There is no implicit `$HOME`, current
@@ -94,3 +100,35 @@ padilha-ai audit tail -n 20
 symlinks are refused. It is loaded in a restricted Lua environment without
 `os`, `io`, `require`, `load`, or `dofile`, so the file cannot run code. See
 `share/ai.lua.example` for the shape.
+
+## Chat transport
+
+The v1 transport supports OpenAI-compatible `/chat/completions` endpoints.
+Declare a model and provider in `ai.lua`:
+
+```lua
+return {
+    default_model = "local",
+    models = {
+        ["local"] = { provider = "local", model = "qwen2.5-coder:7b", context = 32768 },
+    },
+    providers = {
+        ["local"] = {
+            kind = "openai-compatible",
+            base_url = "http://127.0.0.1:11434/v1",
+        },
+    },
+    network = { allow_insecure_loopback = true },
+}
+```
+
+Remote providers use HTTPS and either an inline `api_key` in the `0600`
+`ai.lua` file or a `credential = { store = "file", path = "~/.config/..." }`
+file (also `0600`). The `secret-service` and `pass` stores are not implemented
+in this build; the request fails with `credential_unavailable` instead of
+falling back to an insecure source.
+
+`padilha-ai --stdio` emits a `ready` event with the configured models. A
+`chat` command returns a single `done` event with the answer; the current
+transport is non-streaming. The panel shows the configured roots and a
+`chat_not_configured` notice when no provider is available.

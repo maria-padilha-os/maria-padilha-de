@@ -426,5 +426,32 @@ else
     bad "stdio protocol exposes only broker operations" "$out"
 fi
 
+echo "chat protocol catalogue"
+
+cat >"$config_file" <<'LUA'
+return {
+    default_model = "local",
+    models = {
+        ["local"] = { provider = "local", model = "stub", context = 8192 },
+    },
+    providers = {
+        ["local"] = {
+            kind = "openai-compatible",
+            base_url = "http://127.0.0.1:18765/v1",
+        },
+    },
+    permissions = { write = false, roots = {} },
+    network = { allow_insecure_loopback = true },
+}
+LUA
+chmod 600 "$config_file"
+out=$(printf '%s\n' '{"cmd":"shutdown"}' | ai --stdio 2>&1)
+if printf '%s' "$out" | grep -q '"chat": true' &&
+    printf '%s' "$out" | grep -q '"id": "local"'; then
+    ok "stdio advertises configured chat models"
+else
+    bad "stdio advertises configured chat models" "$out"
+fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

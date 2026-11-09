@@ -299,7 +299,24 @@ Scope {
             if (root.hasFullscreen)
                 return;
             const screenState = ShellState.forActive();
+            if (!screenState.sidebar)
+                screenState.assistant = false;
             screenState.sidebar = !screenState.sidebar;
+        }
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "assistant"
+        description: "Toggle assistant"
+        onPressed: {
+            if (root.hasFullscreen)
+                return;
+            const screenState = ShellState.forActive();
+            if (!screenState.assistant)
+                screenState.sidebar = false;
+            screenState.assistant = !screenState.assistant;
         }
     }
 

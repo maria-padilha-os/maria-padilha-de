@@ -3,6 +3,7 @@ import Quickshell
 import Caelestia.Config
 import qs.components
 import qs.modules.bar as Bar
+import qs.modules.assistant as AssistantPanel
 import qs.modules.dashboard as Dashboard
 import qs.modules.launcher as Launcher
 import qs.modules.notifications as Notifications
@@ -33,6 +34,7 @@ Item {
     readonly property alias utilities: utilities
     readonly property alias toasts: toasts
     readonly property alias sidebar: sidebar
+    readonly property alias assistant: assistant
 
     anchors.fill: parent
     anchors.margins: borderThickness
@@ -144,6 +146,17 @@ Item {
 
     Sidebar.Wrapper {
         id: sidebar
+
+        screenState: root.screenState
+
+        anchors.top: notifications.bottom
+        anchors.bottom: utilities.top
+        anchors.right: parent.right
+        anchors.topMargin: -notifications.anchors.topMargin
+    }
+
+    AssistantPanel.Wrapper {
+        id: assistant
 
         screenState: root.screenState
 

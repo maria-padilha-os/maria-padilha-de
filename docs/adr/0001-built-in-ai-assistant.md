@@ -5,7 +5,7 @@ title: "ADR 0001: Built-in AI assistant"
 
 # ADR 0001 — Built-in AI assistant and permissioned home access
 
-- **Status:** Accepted for the home-access broker (`bin/padilha-ai`); the panel and provider integration remain future work.
+- **Status:** Accepted. The home-access broker, OpenAI-compatible chat transport, right-side panel, bar indicator, and `Super + A` are implemented; home-file tools inside chat remain future work.
 - **Date:** 2026-11-08
 - **Owner:** `maria-padilha-de` repository owner
 - **Reviewers:** coordinator and the security reviewer for the desktop
@@ -42,9 +42,10 @@ this repository only declares the named global shortcut.
 
 **D1 — Separate panel.** The assistant is a right-side drawer with its own
 `ScreenState.assistant` flag and its own `shell/modules/assistant/` module. It
-is not a dashboard tab, not a bar entry, and not a Nexus settings page. It is
-opened by `Super + A`, by the `drawers` IPC handler, or by clicking a
-completion toast after a background turn. It is never opened automatically.
+is not a dashboard tab and not a Nexus settings page. It is opened by
+`Super + A`, by the `drawers` IPC handler, by the compact bar indicator, or by
+clicking a completion toast after a background turn. The bar indicator toggles
+the panel; it is not a chat widget. The panel is never opened automatically.
 
 **D2 — Separate backend process.** The QML panel never talks to a provider and
 never sees the API key. It starts one unprivileged child, `padilha-ai --stdio`,
@@ -147,8 +148,9 @@ Trust boundaries:
 - `Super + A` toggles. If the panel is open and a request is streaming, a
   second press must not silently hide a live request: it focuses the panel and
   shows the Stop control; `Esc` cancels first, then closes.
-- No bar button, no dashboard tab, no launcher mode in v1. The optional bar
-  indicator in §5.6 is an indicator, not an entry point.
+- The compact bar indicator is a toggle and status light, not a chat widget or
+  dashboard tab. It is not the only entry point: `Super + A` and the `drawers`
+  IPC handler remain available.
 
 ### 5.2 Layout
 
@@ -251,7 +253,7 @@ right edge, inside the shell's drawer layer
 - In-panel state row: `idle`, `streaming`, `waiting for confirmation`, or
   `error`, plus the active model and a context-usage hint. This is the primary
   indicator.
-- Optional bar indicator: a small dot in the status area, hidden when idle.
+- Bar indicator: a compact sparkle button in the bar, dim when idle.
   - pulsing: streaming
   - amber: a confirmation is waiting
   - red: an error not yet viewed

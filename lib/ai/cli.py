@@ -19,6 +19,7 @@ from .broker import (
     TooLarge,
     UnsafePath,
 )
+from .chat import ChatError, chat_models, complete
 from .config import ConfigError
 from .policy import home_from_environment
 from .redact import redact
@@ -33,6 +34,8 @@ def _emit_json(value: Any) -> None:
 
 def _error_dict(exc: BaseException) -> dict[str, Any]:
     if isinstance(exc, BrokerError):
+        return exc.as_dict()
+    if isinstance(exc, ChatError):
         return exc.as_dict()
     if isinstance(exc, ConfigError):
         return {"code": "config_error", "message": str(exc)}
@@ -529,6 +532,8 @@ def _run_stdio(broker: Broker) -> int:
         "write": broker.config.write_enabled,
         "exec": False,
         "audit": str(broker.audit.path),
+        "models": chat_models(broker.config),
+        "chat": bool(chat_models(broker.config)),
     }
     _emit_json(ready)
     sys.stdout.flush()
@@ -589,6 +594,7 @@ def _run_stdio(broker: Broker) -> int:
                 sys.stdout.flush()
         except (
             BrokerError,
+            ChatError,
             ConfigError,
             OSError,
             ValueError,
@@ -760,11 +766,23 @@ def _dispatch_protocol(
         broker.execute_command(str(request.get("command", "")))
         return None
 
-    if command == "start":
-        raise BrokerError(
-            "this build is the home-access broker; chat providers are not configured",
-            code="chat_not_implemented",
+    if command in ("chat", "start"):
+        if command == "start":
+            return None
+        result = complete(
+            broker.config,
+            request.get("model"),
+            request.get("messages"),
         )
+        broker.audit.record(
+            "chat_turn",
+            model=result.get("model"),
+            provider=result.get("provider"),
+            messages=len(request.get("messages") or []),
+            answer_bytes=len(result.get("text", "")),
+            redactions=result.get("redactions", 0),
+        )
+        return {"type": "done", "stop": "complete", **result}
 
     raise BrokerError("unknown command", code="unknown_command")
 

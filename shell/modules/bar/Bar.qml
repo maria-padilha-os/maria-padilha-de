@@ -115,10 +115,17 @@ ColumnLayout {
         model: ScriptModel {
             values: {
                 const entries = root.Config.bar.entries.values.filter(e => e.enabled).slice();
-                const powerIndex = entries.findIndex(e => e.id === "power");
+                let insertAt = entries.findIndex(e => e.id === "power");
+                if (insertAt === -1)
+                    insertAt = entries.length;
+                // Existing profiles do not have the assistant entry yet.
+                if (!entries.some(e => e.id === "assistant")) {
+                    entries.splice(insertAt, 0, { id: "assistant" });
+                    insertAt++;
+                }
                 // Settings sits directly above the power button (or last if the
                 // power entry is disabled).
-                entries.splice(powerIndex === -1 ? entries.length : powerIndex, 0, { id: "settings" });
+                entries.splice(insertAt, 0, { id: "settings" });
                 return entries;
             }
         }
@@ -185,13 +192,15 @@ ColumnLayout {
                 }
             }
             DelegateChoice {
-                roleValue: "settings"
+                roleValue: "assistant"
                 delegate: EntryWrapper {
-                    Settings {
-                        objectName: "taskbarSettingsButton"
+                    AssistantButton {
+                        objectName: "taskbarAssistantButton"
                     }
                 }
             }
+            DelegateChoice {
+                roleValue: "settings"
             DelegateChoice {
                 roleValue: "power"
                 delegate: EntryWrapper {
