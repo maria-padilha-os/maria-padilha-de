@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- New permissioned home-folder broker `padilha-ai` (ADR 0001). It exposes only
+  explicitly approved roots, reads UTF-8 text by default, refuses the built-in
+  credential/browser/agent deny list and symlink escapes, redacts secrets before
+  content leaves the process, and writes metadata-only audit records. Writes
+  need a separate one-use confirmation; commands are never executed. Grants and
+  revocations are managed with `padilha-ai roots`.
 - New dashboard extensions: **Notes** (plain-text files under
   `~/.local/share/padilha/notes`), **Calendar** (local month view and
   `events.json` under `~/.local/share/padilha/calendar`), and **Unit converter**

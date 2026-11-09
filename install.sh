@@ -203,6 +203,7 @@ commands=(
     padilha-record
     padilha-clipboard
     padilha-emoji
+    padilha-ai
 )
 for cmd in "${commands[@]}"; do
     run_sudo ln -sfn "/usr/lib/maria-padilha/bin/$cmd" "/usr/bin/$cmd"
