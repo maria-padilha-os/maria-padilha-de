@@ -41,7 +41,8 @@ fi
 if command -v luacheck >/dev/null 2>&1; then
     echo "== luacheck"
     luacheck --no-color --codes lib/*.lua \
-        bin/padilha bin/padilha-config bin/padilha-theme bin/padilha-daylight ||
+        bin/padilha bin/padilha-config bin/padilha-theme bin/padilha-daylight \
+        bin/padilha-mc-theme ||
         fail "luacheck"
 fi
 

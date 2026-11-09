@@ -3,4 +3,8 @@ Description=Write the current Maria Padilha palette into Thunderbird
 
 [Service]
 Type=oneshot
+# Let the installed padilha-theme finish writing its transparent MC skin first;
+# this service runs from the checkout and replaces it with explicit surfaces.
+ExecStartPre=/usr/bin/sleep 2
 ExecStart=/home/machine/Códigos/maria-padilha/maria-padilha-de/bin/padilha-thunderbird-theme
+ExecStart=/home/machine/Códigos/maria-padilha/maria-padilha-de/bin/padilha-mc-theme

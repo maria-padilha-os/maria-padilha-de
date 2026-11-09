@@ -197,6 +197,7 @@ commands=(
     padilha-lock
     padilha-shell-watch
     padilha-theme
+    padilha-mc-theme
     padilha-daylight
     padilha-reload
     padilha-shot

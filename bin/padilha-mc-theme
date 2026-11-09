@@ -1,0 +1,91 @@
+#!/usr/bin/env lua
+-- Write the current palette into Midnight Commander's skin.
+--
+-- Used by the user path unit so an old installed padilha-theme cannot leave MC
+-- on the previous light/dark surface. It reads the scheme the shell already
+-- watches and rewrites only the [aliases] block, so it is safe to run as often
+-- as scheme.json changes.
+
+local function script_dir()
+    -- Follow the symlink: packaged installs put the real files under
+    -- /usr/lib/maria-padilha/bin and only links in /usr/bin.
+    local raw = arg[0] or "padilha-mc-theme"
+    local p = io.popen("readlink -f -- '" .. raw:gsub("'", "'\\''") .. "' 2>/dev/null")
+    local resolved = p and p:read("*l")
+    if p then
+        p:close()
+    end
+    local path = (resolved and resolved ~= "") and resolved or raw
+    return path:match("^(.*)/[^/]+$") or "."
+end
+
+local root = script_dir() .. "/.."
+package.path = root .. "/lib/?.lua;" .. package.path
+
+local json = require("json")
+local mcskin = require("mcskin")
+
+local function die(msg)
+    io.stderr:write("padilha-mc-theme: ", msg, "\n")
+    os.exit(1)
+end
+
+local function quote(s)
+    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
+end
+
+local home = os.getenv("HOME") or ""
+if home == "" then
+    die("HOME is not set")
+end
+local state = (os.getenv("XDG_STATE_HOME") or (home .. "/.local/state")) .. "/caelestia/scheme.json"
+local data = os.getenv("XDG_DATA_HOME") or (home .. "/.local/share")
+local dest = data .. "/mc/skins/caelestia.ini"
+
+local f, open_err = io.open(state, "r")
+if not f then
+    die("cannot read " .. state .. ": " .. tostring(open_err))
+end
+local raw = f:read("*a")
+f:close()
+
+local ok, scheme = pcall(json.decode, raw)
+if not ok then
+    die(state .. ": " .. tostring(scheme))
+end
+if type(scheme) ~= "table" or type(scheme.colours) ~= "table" then
+    die(state .. ": no colours")
+end
+
+local t = io.open(root .. "/share/templates/mc-skin.ini", "r")
+if not t then
+    die("missing share/templates/mc-skin.ini")
+end
+local template = t:read("*a")
+t:close()
+
+-- The replacement is literal text: `%` must be escaped so gsub does not read
+-- it as a capture.
+local aliases = mcskin.aliases(scheme.colours)
+local text, replaced = template:gsub("{{%s*%$aliases%s*}}", (aliases:gsub("%%", "%%%%")))
+if replaced == 0 then
+    die("mc-skin.ini has no $aliases placeholder")
+end
+
+local dir = dest:match("^(.*)/[^/]+$") or "."
+if not os.execute("mkdir -p " .. quote(dir)) then
+    die("cannot create " .. dir)
+end
+
+local tmp = dest .. ".tmp"
+local out = io.open(tmp, "w")
+if not out then
+    die("cannot write " .. tmp)
+end
+out:write(text)
+out:close()
+local renamed, rename_err = os.rename(tmp, dest)
+if not renamed then
+    os.remove(tmp)
+    die("cannot replace " .. dest .. ": " .. tostring(rename_err))
+end

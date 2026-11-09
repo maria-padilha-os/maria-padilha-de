@@ -232,6 +232,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha-shell-watch` | restart the shell after a crash (bounded backoff) |
 | `padilha-brightness` | day/night panel brightness, with a manual hold |
 | `padilha-theme` | render a wallpaper's palette into application configs |
+| `padilha-mc-theme` | rewrite the Midnight Commander skin from the current scheme |
 | `padilha-daylight` | switch the wallpaper and palette by time of day |
 | `padilha-reload` | restart the shell safely |
 | `padilha-shot` | screenshots |

@@ -85,12 +85,37 @@ check "nvtop is left alone" "! test -e '$tmp/tree/home/machine/.config/nvtop/nvt
 mc="$tmp/tree/home/machine/.local/share/mc/skins/caelestia.ini"
 mc_fg=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['onSurface'])")
 check "mc gets a skin" "test -s '$mc'"
-check "mc surfaces use the terminal background" "grep -qx '    Main = default' '$mc' && grep -qx '    Dialog = default' '$mc'"
-check "no mc surface is opaque" "! grep -Eq '^    (Main|Dialog|Input|Top|Menu|Bottom|Help|ShadowBg|EditorVoid|EditorLineNumber) = #' '$mc'"
+mc_surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
+check "mc main surface is explicit" "grep -qx '    Main = #$mc_surface' '$mc'"
+check "mc no longer uses terminal default surfaces" "! grep -Eq '^    (Main|Dialog|Input|Top|Menu|Bottom|Help|ShadowBg|EditorVoid) = default$' '$mc'"
 check "mc foregrounds keep the scheme" "grep -qx \"    MainFg = #$mc_fg\" '$mc'"
 check "mc selection stays an opaque accent" "grep -Eq '^    Selected = #[0-9a-fA-F]{6}\$' '$mc'"
 check "mc sections use the generated aliases" "grep -q '^    _default_ = MainFg;Main$' '$mc'"
 check "mc sections carry no frozen colours" "! sed -n '/^\\[core\\]/,\$p' '$mc' | grep -Eq '#[0-9a-fA-F]{6}'"
+
+# The path unit re-runs this outside padilha-theme, so it has to stand alone.
+cp "$mc" "$tmp/mc-before"
+if XDG_STATE_HOME="$tmp/tree/home/machine/.local/state" \
+    XDG_DATA_HOME="$tmp/tree/home/machine/.local/share" \
+    "$root/bin/padilha-mc-theme" > "$tmp/mc-theme.log" 2>&1; then
+    ok "the standalone mc theme command runs"
+else
+    bad "the standalone mc theme command runs" "$(tail -3 "$tmp/mc-theme.log")"
+fi
+check "the standalone command reproduces the skin" "cmp -s '$tmp/mc-before' '$mc'"
+
+# The path unit can fire while scheme.json is still being written. A truncated
+# palette must fail loudly instead of replacing a good skin with half of one.
+mkdir -p "$tmp/bad-state/caelestia"
+head -c 120 "$tmp/tree/home/machine/.local/state/caelestia/scheme.json" > "$tmp/bad-state/caelestia/scheme.json"
+if XDG_STATE_HOME="$tmp/bad-state" \
+    XDG_DATA_HOME="$tmp/tree/home/machine/.local/share" \
+    "$root/bin/padilha-mc-theme" > "$tmp/mc-bad.log" 2>&1; then
+    bad "a truncated scheme is refused"
+else
+    ok "a truncated scheme is refused"
+fi
+check "a refused scheme leaves the skin untouched" "cmp -s '$tmp/mc-before' '$mc'"
 
 bar="$tmp/tree/home/machine/.local/state/caelestia/scheme-bar.json"
 check "the pinned bar palette is written" "test -s '$bar'"
