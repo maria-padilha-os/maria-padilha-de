@@ -29,6 +29,10 @@ change it if the GitHub repository is renamed.
 
 ## Decision records
 
-Architecture decisions are recorded in [`adr/`](adr/). The current proposal is
+Architecture decisions are recorded in [`adr/`](adr/). The current decision is
 [ADR 0001 — Built-in AI assistant and permissioned home access](adr/0001-built-in-ai-assistant.md).
 The sketches next to it are review aids, not installed code.
+
+The implemented permission layer is documented in
+[Assistant home access](assistant.html): approved roots, read-only defaults,
+two-step writes, revocation, and the audit trail.

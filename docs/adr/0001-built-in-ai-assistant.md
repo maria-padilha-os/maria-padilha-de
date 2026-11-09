@@ -5,7 +5,7 @@ title: "ADR 0001: Built-in AI assistant"
 
 # ADR 0001 — Built-in AI assistant and permissioned home access
 
-- **Status:** Proposed — design only; nothing in this ADR is wired into the shell yet.
+- **Status:** Accepted for the home-access broker (`bin/padilha-ai`); the panel and provider integration remain future work.
 - **Date:** 2026-11-08
 - **Owner:** `maria-padilha-de` repository owner
 - **Reviewers:** coordinator and the security reviewer for the desktop

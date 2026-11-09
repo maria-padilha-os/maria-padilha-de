@@ -109,7 +109,7 @@ package() {
 
     install -d "$pkgdir/usr/bin"
     commands=(padilha padilha-brightness padilha-config padilha-session padilha-lock padilha-shell-watch \
-        padilha-theme padilha-mc-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji)
+        padilha-theme padilha-mc-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji padilha-ai)
     for cmd in "${commands[@]}"; do
         ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
         # Compatibility: the old command names point at the same files.

@@ -64,8 +64,9 @@ through this loop is a bug, not a preference.
 
 ## Decisions
 
-Architecture decision records live in `docs/adr/`. ADR 0001 (proposed) defines
-the built-in assistant's separate panel and backend process, the
-provider-agnostic chat service, and the permissioned home-folder policy:
+Architecture decision records live in `docs/adr/`. ADR 0001 is accepted for
+the home-access broker and still defines the built-in assistant's separate
+panel and backend process, the provider-agnostic chat service, and the
+permissioned home-folder policy:
 
 - [ADR 0001 — Built-in AI assistant and permissioned home access](docs/adr/0001-built-in-ai-assistant.md)

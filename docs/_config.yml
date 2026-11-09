@@ -6,6 +6,7 @@ url: "https://maria-padilha-os.github.io"
 header_pages:
   - install.md
   - desktop.md
+  - assistant.md
   - dotfiles.md
   - screenshots.md
   - support.md

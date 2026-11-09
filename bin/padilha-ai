@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Permissioned home-folder broker for the Maria Padilha assistant.
+
+The real implementation lives in lib/ai/ so the tests can import it; this
+wrapper only finds the checkout (or the packaged /usr/lib/maria-padilha tree)
+and calls the CLI.
+"""
+
+import sys
+from pathlib import Path
+
+root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(root / "lib"))
+
+from ai.cli import main
+
+if __name__ == "__main__":
+    raise SystemExit(main())
