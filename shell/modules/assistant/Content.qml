@@ -22,7 +22,6 @@ Item {
             Layout.fillHeight: true
             radius: Tokens.rounding.large
             color: Colours.tPalette.m3surfaceContainerLow
-            clip: true
 
         ColumnLayout {
             anchors.fill: parent
@@ -182,6 +181,7 @@ Item {
         }
 
         StyledRect {
+            Layout.topMargin: Tokens.padding.large - Tokens.spacing.medium
             Layout.fillWidth: true
             implicitHeight: 1
             color: Colours.tPalette.m3outlineVariant

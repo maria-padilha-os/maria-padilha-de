@@ -31,7 +31,7 @@ Item {
         anchors.centerIn: parent
 
         text: Assistant.streaming ? "graphic_eq" : "auto_awesome"
-        color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+        color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3secondary
         fontStyle: Tokens.font.icon.builders.small.weight(Font.Bold).build()
 
         Behavior on color {
