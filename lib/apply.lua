@@ -564,7 +564,8 @@ function M.apply(scheme, opts)
     if opts.dconf then
         os.execute("dconf write /org/gnome/desktop/interface/color-scheme \"'prefer-"
             .. scheme.mode .. "'\" 2>/dev/null")
-        os.execute("dconf write /org/gnome/desktop/interface/gtk-theme \"'adw-gtk3-dark'\" 2>/dev/null")
+        local gtk_theme = scheme.mode == "light" and "adw-gtk3" or "adw-gtk3-dark"
+        os.execute("dconf write /org/gnome/desktop/interface/gtk-theme \"'" .. gtk_theme .. "'\" 2>/dev/null")
         os.execute("dconf write /org/gnome/desktop/interface/icon-theme \"'Papirus-" ..
             scheme.mode:gsub("^%l", string.upper) .. "'\" 2>/dev/null")
     end
