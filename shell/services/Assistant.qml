@@ -117,7 +117,7 @@ Singleton {
         const index = root.messages.findIndex(m => m.id === root.activeId);
         if (index >= 0) {
             const next = root.messages.slice();
-            next[index] = { ...next[index], streaming: false, cancelled: true };
+            next[index] = Object.assign({}, next[index], { streaming: false, cancelled: true });
             root.messages = next;
         }
         root.streaming = false;
