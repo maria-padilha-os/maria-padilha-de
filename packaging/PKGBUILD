@@ -101,6 +101,7 @@ package() {
     install -d "$pkgdir/usr/lib/maria-padilha"
     cp -R --preserve=mode,timestamps bin lib share "$pkgdir/usr/lib/maria-padilha/"
     chmod 755 "$pkgdir/usr/lib/maria-padilha/bin/"*
+    find "$pkgdir/usr/lib/maria-padilha/lib" -type f -exec chmod 644 {} +
     install -Dm 644 KEYBINDS.md "$pkgdir/usr/lib/maria-padilha/share/KEYBINDS.md"
     if [ -d extensions ]; then
         cp -R extensions "$pkgdir/usr/lib/maria-padilha/share/"

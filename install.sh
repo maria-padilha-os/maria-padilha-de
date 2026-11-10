@@ -200,6 +200,9 @@ run_sudo cmake --install "$root/build" --prefix /usr
 run_sudo install -d /usr/lib/maria-padilha/bin /usr/lib/maria-padilha/lib /usr/lib/maria-padilha/share
 run_sudo cp -R --preserve=mode,timestamps "$root/bin/." /usr/lib/maria-padilha/bin/
 run_sudo cp -R --preserve=mode,timestamps "$root/lib/." /usr/lib/maria-padilha/lib/
+# A local lib file can legitimately be 0600 in the checkout; the installed
+# copy must still be readable by the user who runs padilha-ai.
+run_sudo find /usr/lib/maria-padilha/lib -type f -exec chmod 644 {} +
 run_sudo cp -R --preserve=mode,timestamps "$root/share/." /usr/lib/maria-padilha/share/
 run_sudo install -Dm644 "$root/KEYBINDS.md" /usr/lib/maria-padilha/share/KEYBINDS.md
 run_sudo install -Dm644 "$root/upstream.json" /usr/lib/maria-padilha/upstream.json
