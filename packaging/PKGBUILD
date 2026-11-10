@@ -48,6 +48,7 @@ optdepends=(
     'hyprlock: stable screen locking (recommended)'
     'sass: Discord theme compilation'
     'neovim: alternative editor (install.sh --editor nvim)'
+    'thunderbird: optional Office/Mail app and mailto: handler (install.sh --with-office-mail)'
     'clang: C/C++/Objective-C language server for micro (clangd)'
     'lua-language-server: Lua language server for micro'
     'pyright: Python language server for micro'
@@ -109,12 +110,17 @@ package() {
 
     install -d "$pkgdir/usr/bin"
     commands=(padilha padilha-brightness padilha-config padilha-session padilha-lock padilha-shell-watch \
-        padilha-theme padilha-mc-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji padilha-ai)
+        padilha-theme padilha-mc-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji padilha-ai padilha-mail)
     for cmd in "${commands[@]}"; do
         ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
         # Compatibility: the old command names point at the same files.
         ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/lilith${cmd#padilha}"
     done
+
+    # The launcher entry doubles as the mailto: handler. Thunderbird itself is
+    # only an optdepend, so this file must not pull it into depends.
+    install -Dm 644 share/applications/padilha-mail.desktop \
+        "$pkgdir/usr/share/applications/padilha-mail.desktop"
 
     # A session entry: the desktop's own entry point, so the greeter lists
     # Maria Padilha.

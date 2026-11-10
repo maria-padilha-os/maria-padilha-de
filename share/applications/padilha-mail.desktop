@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Mail
+GenericName=Email
+Comment=Open mailto: links in Thunderbird (optional)
+Exec=padilha-mail %u
+Icon=thunderbird
+Terminal=false
+Categories=Network;Email;
+Keywords=email;mail;inbox;thunderbird;
+MimeType=x-scheme-handler/mailto;
+StartupNotify=true

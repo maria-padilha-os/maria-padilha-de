@@ -1,0 +1,90 @@
+#!/bin/sh
+# padilha-mail: open Thunderbird, or explain cleanly that it is not installed.
+#
+# This is both the launcher entry and the x-scheme-handler/mailto handler. It
+# only forwards the URI to Thunderbird; it never reads the Thunderbird profile,
+# configures an account, or writes the URI to a log.
+set -eu
+
+usage() {
+    cat <<'EOF'
+usage: padilha-mail [-h|--help] [mailto:URI]
+
+Launches Thunderbird, or opens a mailto: URI in it. Thunderbird is an optional
+package: when it is absent this prints a short notice (or sends a desktop
+notification) and exits 0 instead of failing the launcher.
+
+Set PADILHA_THUNDERBIRD to an executable to use a Thunderbird outside PATH.
+EOF
+}
+
+case ${1:-} in
+    -h | --help)
+        usage
+        exit 0
+        ;;
+esac
+
+if [ "$#" -gt 1 ]; then
+    printf 'padilha-mail: expected at most one mailto: URI\n' >&2
+    exit 2
+fi
+
+url=
+if [ "$#" -eq 1 ]; then
+    case $1 in
+        mailto:*)
+            url=$1
+            ;;
+        *)
+            # Do not echo the argument: an invalid value may still be private
+            # text that happened to be passed to the handler.
+            printf 'padilha-mail: expected a mailto: URI\n' >&2
+            exit 2
+            ;;
+    esac
+fi
+
+launch() {
+    if [ -n "$url" ]; then
+        exec "$@" "$url"
+    fi
+    exec "$@"
+}
+
+# An explicit path wins so a checkout or a test can point at a stand-in.
+if [ -n "${PADILHA_THUNDERBIRD:-}" ]; then
+    if [ -x "${PADILHA_THUNDERBIRD}" ]; then
+        launch "${PADILHA_THUNDERBIRD}"
+    fi
+    if command -v "${PADILHA_THUNDERBIRD}" >/dev/null 2>&1; then
+        launch "${PADILHA_THUNDERBIRD}"
+    fi
+fi
+
+if command -v thunderbird >/dev/null 2>&1; then
+    launch thunderbird
+fi
+
+# Flatpak and snap installs do not always put a thunderbird binary in PATH.
+if command -v flatpak >/dev/null 2>&1 &&
+    flatpak info org.mozilla.Thunderbird >/dev/null 2>&1; then
+    launch flatpak run org.mozilla.Thunderbird
+fi
+
+if command -v snap >/dev/null 2>&1 &&
+    snap list thunderbird >/dev/null 2>&1; then
+    launch snap run thunderbird
+fi
+
+# Thunderbird is optional, so this is not a broken desktop. Keep the message
+# short and leave the URI out of it: a mailto: URI can carry a private subject
+# or body, and this handler never logs message content.
+notice='Thunderbird is not installed. Install it with: sudo pacman -S thunderbird'
+if command -v notify-send >/dev/null 2>&1; then
+    notify-send --app-name='Maria Padilha' --icon=mail-message-new \
+        'Mail client not installed' "$notice" >/dev/null 2>&1 || true
+else
+    printf '%s\n' "$notice" >&2
+fi
+exit 0

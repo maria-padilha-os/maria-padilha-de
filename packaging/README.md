@@ -16,6 +16,7 @@ recipe runs the same CMake build as `tools/build.sh`, then installs:
 | `/usr/lib/maria-padilha/{bin,lib,share}` | the commands and the data they read next to themselves |
 | `/usr/bin/padilha*` | symlinks into that tree |
 | `/usr/bin/lilith*` | compatibility symlinks for the old command names |
+| `/usr/share/applications/padilha-mail.desktop` | the Mail launcher and `mailto:` handler |
 | `/usr/lib/systemd/user/` | the optional session units |
 
 The commands resolve their own path through `readlink -f`, which is why the
@@ -28,6 +29,28 @@ installing `maria-padilha` replaces it instead of leaving two copies in `/usr`.
 Not packaged, on purpose: the Hyprland configuration, GTK/Qt CSS, and every
 other generated theme file. They live in the user's `~/.config` and are written
 by `padilha-theme`; the package ships the templates, not the output.
+
+## Optional applications
+
+`packaging/apps.list` is the catalogue of optional desktop applications. The
+base package does not depend on them; each one is an `optdepends` entry and an
+installer group. The first group is Office/Mail:
+
+| group | package | launcher | why optional |
+| --- | --- | --- | --- |
+| `office-mail` | `thunderbird` | `padilha-mail` | email client and `mailto:` handler |
+
+Install it with the package manager, or make the installer add the group:
+
+```sh
+sudo pacman -S --needed thunderbird
+./install.sh --full --with-office-mail
+```
+
+`padilha-mail` exits cleanly with a short notice when Thunderbird is absent, so
+the launcher and `mailto:` association do not become a hard dependency. The
+handler only forwards the URI. Thunderbird keeps the account credentials in its
+own profile; the Maria Padilha package never reads, writes, or logs them.
 
 ## Checkout or package?
 

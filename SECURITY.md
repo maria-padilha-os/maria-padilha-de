@@ -37,6 +37,9 @@ Out of scope or handled upstream:
 - Hyprland, Quickshell, Qt, PAM modules, and other distribution packages —
   report those to their maintainers;
 - the private `maria-padilha-agents` repository;
+- Thunderbird account storage and credentials. `padilha-mail` only forwards the
+  `mailto:` URI and never reads the profile, so account issues go to the
+  Thunderbird maintainers;
 - cosmetic theme or wallpaper preferences;
 - known hardware issues such as the s2idle suspend hang documented in the
   README.

@@ -17,6 +17,7 @@ mode=full
 editor=micro
 dry_run=0
 with_dotfiles=1
+with_office_mail=0
 dotfiles_dir="${PADILHA_DOTFILES:-${LILITH_DOTFILES:-}}"
 if [ -z "$dotfiles_dir" ]; then
     dotfiles_dir=$root/../maria-padilha-dotfiles
@@ -28,12 +29,16 @@ fi
 usage() {
     cat <<'EOF'
 usage: ./install.sh [--full|--rice] [--dry-run] [--no-dotfiles] [--editor micro|nvim]
+                    [--with-office-mail]
 
   --full         install the desktop session, shell, commands and configs
   --rice         install Hyprland + Quickshell + theme, keep the current session
   --dry-run      print what would happen, change nothing
   --no-dotfiles  do not link ~/.config/{hypr,nvim,wezterm,mc,firefox,micro}
   --editor EDITOR  default text editor: micro (default) or nvim
+  --with-office-mail
+                 also install the optional Office/Mail group (Thunderbird).
+                 The base desktop does not install or depend on it.
 
 PADILHA_DOTFILES=DIR points at an existing dotfiles checkout
 (default: ../maria-padilha-dotfiles next to this repository, or the old
@@ -81,6 +86,9 @@ while (( $# )); do
     --no-dotfiles)
         with_dotfiles=0
         ;;
+    --with-office-mail | --office-mail)
+        with_office_mail=1
+        ;;
     --editor)
         (( $# >= 2 )) || die "--editor needs micro or nvim"
         editor=$2
@@ -123,6 +131,15 @@ build_deps=(
     python
 )
 
+# Optional application groups. The base profiles never install these; the
+# Office/Mail group is selected with --with-office-mail. Keep it in sync with
+# packaging/apps.list and the package's optdepends.
+office_mail_pkgs=(thunderbird)
+optional_pkgs=()
+if (( with_office_mail )); then
+    optional_pkgs+=("${office_mail_pkgs[@]}")
+fi
+
 runtime_deps=(
     hyprland
     quickshell
@@ -154,6 +171,9 @@ runtime_deps=(
 
 if [ "$editor" = nvim ]; then
     runtime_deps+=(neovim)
+fi
+if [ ${#optional_pkgs[@]} -gt 0 ]; then
+    runtime_deps+=("${optional_pkgs[@]}")
 fi
 
 log "Installing build and runtime dependencies"
@@ -205,12 +225,19 @@ commands=(
     padilha-clipboard
     padilha-emoji
     padilha-ai
+    padilha-mail
 )
 for cmd in "${commands[@]}"; do
     run_sudo ln -sfn "/usr/lib/maria-padilha/bin/$cmd" "/usr/bin/$cmd"
     # Compatibility: the old command names point at the same files.
     run_sudo ln -sfn "/usr/lib/maria-padilha/bin/$cmd" "/usr/bin/lilith${cmd#padilha}"
 done
+
+# The launcher entry is also the mailto: handler. It is installed for both
+# profiles and stays useful if Thunderbird is removed later: padilha-mail
+# reports the missing optional app instead of failing.
+run_sudo install -Dm644 "$root/share/applications/padilha-mail.desktop" \
+    /usr/share/applications/padilha-mail.desktop
 
 if [ "$mode" = full ]; then
     log "Installing the session entry and systemd user units"
@@ -324,6 +351,26 @@ configure_default_editor() {
 }
 
 configure_default_editor "$editor"
+
+# Register the mailto: handler. Leave an existing mail client alone unless the
+# user explicitly selected the Office/Mail group; the handler itself falls
+# back cleanly when Thunderbird is missing.
+configure_mail_handler() {
+    local entry=padilha-mail.desktop
+    local current=
+    if ! command -v xdg-mime >/dev/null 2>&1; then
+        warn "xdg-mime not found; set the mailto: handler to $entry manually"
+        return 0
+    fi
+    current=$(xdg-mime query default x-scheme-handler/mailto 2>/dev/null || true)
+    if [ -n "$current" ] && [ "$current" != "$entry" ] && (( with_office_mail == 0 )); then
+        log "Keeping the existing mailto: handler ($current)"
+        return 0
+    fi
+    run xdg-mime default "$entry" x-scheme-handler/mailto
+}
+
+configure_mail_handler
 
 if [ "$mode" = full ]; then
     cat <<'EOF'
