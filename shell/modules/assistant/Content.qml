@@ -13,10 +13,16 @@ Item {
 
     required property ScreenState screenState
 
-    StyledRect {
+    ColumnLayout {
         anchors.fill: parent
-        radius: Tokens.rounding.large
-        color: Colours.tPalette.m3surfaceContainerLow
+        spacing: Tokens.spacing.medium
+
+        StyledRect {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            radius: Tokens.rounding.large
+            color: Colours.tPalette.m3surfaceContainerLow
+            clip: true
 
         ColumnLayout {
             anchors.fill: parent
@@ -172,6 +178,13 @@ Item {
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
             }
+        }
+        }
+
+        StyledRect {
+            Layout.fillWidth: true
+            implicitHeight: 1
+            color: Colours.tPalette.m3outlineVariant
         }
     }
 
