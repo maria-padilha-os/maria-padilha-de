@@ -1,0 +1,10 @@
+# Maria Padilha optional application catalogue.
+#
+# Thunderbird is deliberately optional: the base desktop package does not
+# depend on it, and the installer only adds this group when asked. Keep this
+# list in sync with packaging/PKGBUILD's optdepends and install.sh's
+# office-mail group. The maria-padilha-os package selection consumes the same
+# group so the ISO work does not need to duplicate the app list.
+#
+# Fields: group<TAB>package<TAB>desktop entry<TAB>description
+office-mail	thunderbird	thunderbird.desktop	Email client and mailto: handler

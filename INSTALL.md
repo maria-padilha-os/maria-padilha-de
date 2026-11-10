@@ -30,8 +30,9 @@ The installer has its own runtime list in `install.sh`, kept in sync with
 `packaging/PKGBUILD`; the important pieces are Hyprland, Quickshell, Qt 6,
 PipeWire, `brightnessctl`, Python, Lua, ImageMagick, `hyprlock`, the session
 daemons (`hypridle`, `hyprsunset`, `gnome-keyring`, `polkit-gnome`), the
-clipboard tools, and fuzzel. Screenshots, recording, and the Discord theme use
-optional packages listed in the PKGBUILD.
+clipboard tools, and fuzzel. Screenshots, recording, the Discord theme, and the
+optional email client use packages listed in the PKGBUILD; Thunderbird is an
+`optdepends`, not a hard dependency.
 
 ## Quick start
 
@@ -107,6 +108,51 @@ padilha wallpaper -f ~/Pictures/wallpapers/example.jpg
 `~/.config/hypr/hyprland/env.local.lua` is for local secrets and is ignored by
 git. Do not commit it. See [CONFIG.md](CONFIG.md) for the configuration contract.
 
+## Email (optional)
+
+Thunderbird is the optional Office/Mail app. It is not part of the base
+dependency list, so a Maria Padilha install works without an email client. The
+`padilha-mail` launcher and the `mailto:` handler are still installed; when
+Thunderbird is absent they show a short notice and exit 0 rather than failing.
+
+Install Thunderbird with the package manager, or ask the installer for its
+group:
+
+```sh
+sudo pacman -S --needed thunderbird
+./install.sh --full --with-office-mail
+```
+
+`--with-office-mail` adds the same package to the installer's Office/Mail
+group; it is not implied by `--full` or `--rice`. The package advertises
+Thunderbird in `optdepends`, so `pacman -Si maria-padilha` lists it without
+pulling it in. The installer registers `padilha-mail.desktop` as the
+`x-scheme-handler/mailto` handler, and leaves an existing handler alone unless
+you selected the Office/Mail group.
+
+To remove it:
+
+```sh
+sudo pacman -Rns thunderbird
+```
+
+The launcher entry and handler stay behind deliberately and report that the
+optional app is missing. To use a different mail client, register its desktop
+entry instead:
+
+```sh
+xdg-mime default <client>.desktop x-scheme-handler/mailto
+```
+
+Account credentials stay inside Thunderbird. Passwords and OAuth tokens live in
+the Thunderbird profile (`~/.thunderbird`, `~/.config/thunderbird`, or the
+Flatpak/snap location) and are protected by Thunderbird and the keyring.
+`padilha-mail` only forwards the `mailto:` URI: it never reads the profile,
+configures an account, or logs the URI, message, or credentials. The optional
+palette writer touches only `chrome/padilha.css` and never account data. Maria
+Padilha config lives in `~/.config/padilha` and state in
+`~/.local/state/padilha`; do not put mail credentials there.
+
 ## Rice-only notes
 
 `--rice` installs the shell and commands but deliberately leaves the session
@@ -169,6 +215,7 @@ The direct installer is not tracked by pacman, so remove exactly what it wrote:
 ```sh
 sudo rm -rf /usr/lib/maria-padilha
 sudo rm -f /usr/bin/padilha /usr/bin/padilha-* /usr/bin/lilith /usr/bin/lilith-*
+sudo rm -f /usr/share/applications/padilha-mail.desktop
 sudo rm -f /usr/share/wayland-sessions/maria-padilha.desktop
 sudo rm -f /usr/lib/systemd/user/padilha-*
 ```

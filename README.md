@@ -124,6 +124,9 @@ Bluetooth, audio, updates, extensions, and the bar panels. The
   changes made from the settings UI.
 - **Session** — a Wayland session entry, `padilha-session`, optional systemd
   user units, and opt-in window restore.
+- **Mail (optional)** — Thunderbird is in the Office/Mail app group, with a
+  `Mail` launcher and a `mailto:` handler. It is not a base dependency, and the
+  handler exits cleanly when it is absent.
 - **Packaging** — a PKGBUILD that installs the shell, commands, session units,
   and the greeter entry.
 
@@ -143,6 +146,8 @@ Manjaro. It requires:
 - Lua, ImageMagick, and `jq`
 - the session daemons: `hypridle`, `hyprsunset`, `gnome-keyring`,
   `polkit-gnome`, `trash-cli`, and `bluez-utils`
+- optionally Thunderbird for the Office/Mail app and `mailto:` links; see
+  [INSTALL.md](INSTALL.md#email-optional)
 
 Building additionally needs CMake, Ninja, Python 3, and a C++ toolchain.
 Optional tools enable screenshots, recording, the pickers, and the Discord
@@ -239,6 +244,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha-record` | screen recording |
 | `padilha-clipboard` | clipboard history picker |
 | `padilha-emoji` | emoji and glyph picker |
+| `padilha-mail` | open Thunderbird or a `mailto:` URI, with a clean fallback |
 
 ## Project layout
 
@@ -247,7 +253,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `shell/` | the shell: QML and a C++ plugin |
 | `bin/` | the commands above |
 | `lib/` | Lua modules behind the theme engine |
-| `share/` | templates, wallpapers, theme defaults, and emoji data |
+| `share/` | templates, wallpapers, theme defaults, emoji data, and the Mail launcher entry |
 | `session/` | session entry, systemd user units, and window restore |
 | `packaging/` | PKGBUILD and packaging notes |
 | `tests/` | contract tests for the compiler, theme, and commands |

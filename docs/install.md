@@ -50,5 +50,22 @@ entry or systemd units. Log back into your existing Hyprland session.
 Use `--no-dotfiles` to leave `~/.config` alone, or `--dry-run` to see every
 command first.
 
+## Email (optional)
+
+Thunderbird is not in the base package. Install it separately, or make the
+installer add its Office/Mail group:
+
+```sh
+sudo pacman -S --needed thunderbird
+./install.sh --full --with-office-mail
+```
+
+The `Mail` launcher (`padilha-mail`) and the `mailto:` handler are installed
+either way. They exit cleanly with a short notice if Thunderbird is absent.
+Account credentials stay in Thunderbird's own profile; `padilha-mail` only
+forwards the URI and never reads or logs account data. See
+[INSTALL.md](https://github.com/maria-padilha-os/maria-padilha-de/blob/main/INSTALL.md#email-optional)
+for removal and the handler details.
+
 The complete guide, including uninstall and troubleshooting, is
 [INSTALL.md](https://github.com/maria-padilha-os/maria-padilha-de/blob/main/INSTALL.md).

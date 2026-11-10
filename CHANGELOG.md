@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Thunderbird is now a first-class optional app instead of a base dependency.
+  It is in the package's `optdepends`, the installer's Office/Mail group
+  (`--with-office-mail`), and `packaging/apps.list`. A new `padilha-mail`
+  command and `padilha-mail.desktop` entry provide the `Mail` launcher and
+  `mailto:` handler, with a clean notice when Thunderbird is absent. Account
+  credentials stay in Thunderbird's profile; the handler never reads or logs
+  them.
 - New permissioned home-folder broker `padilha-ai` (ADR 0001). It exposes only
   explicitly approved roots, reads UTF-8 text by default, refuses the built-in
   credential/browser/agent deny list and symlink escapes, redacts secrets before

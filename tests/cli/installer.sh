@@ -24,6 +24,8 @@ mkdir -p "$tmp/home"
 out=$(run_plan --full)
 contains "full installs the session entry" "$out" "/usr/share/wayland-sessions/maria-padilha.desktop"
 contains "full installs the user units" "$out" "/usr/lib/systemd/user"
+contains "full installs the Mail launcher entry" "$out" \
+    "/usr/share/applications/padilha-mail.desktop"
 contains "the shell is installed with the absolute config dir" "$out" \
     "PADILHA_QSCONFDIR=/etc/xdg/quickshell/caelestia"
 
