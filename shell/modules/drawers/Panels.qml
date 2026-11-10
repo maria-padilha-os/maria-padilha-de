@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Caelestia.Config
 import qs.components
+import qs.services
 import qs.modules.bar as Bar
 import qs.modules.assistant as AssistantPanel
 import qs.modules.dashboard as Dashboard
@@ -35,6 +36,8 @@ Item {
     readonly property alias toasts: toasts
     readonly property alias sidebar: sidebar
     readonly property alias assistant: assistant
+    // Exactly one of the right drawers can be visible at a time.
+    readonly property Item rightDrawer: assistant.visible ? assistant : sidebar
 
     anchors.fill: parent
     anchors.margins: borderThickness
@@ -45,7 +48,7 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        anchors.rightMargin: sessionWrapper.anchors.rightMargin + session.width * (1 - session.offsetScale)
+        anchors.rightMargin: root.rightDrawer.width * (1 - root.rightDrawer.offsetScale) + session.width * (1 - session.offsetScale)
         clip: sidebar.visible || session.visible
 
         implicitWidth: osd.implicitWidth * (1 - osd.offsetScale)
@@ -68,6 +71,7 @@ Item {
 
         screenState: root.screenState
         sidebarPanel: sidebar
+        assistantPanel: assistant
         osdPanel: osdWrapper
         sessionPanel: sessionWrapper
         utilitiesPanel: utilities
@@ -81,8 +85,8 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        anchors.rightMargin: sidebar.width * (1 - sidebar.offsetScale)
-        clip: sidebar.visible
+        anchors.rightMargin: root.rightDrawer.width * (1 - root.rightDrawer.offsetScale)
+        clip: root.rightDrawer.visible
 
         implicitWidth: session.implicitWidth * (1 - session.offsetScale)
         implicitHeight: session.implicitHeight
@@ -139,8 +143,8 @@ Item {
     Toasts.Toasts {
         id: toasts
 
-        anchors.bottom: sidebar.visible ? parent.bottom : utilities.top
-        anchors.right: sidebar.left
+        anchors.bottom: root.rightDrawer.visible ? parent.bottom : utilities.top
+        anchors.right: root.rightDrawer.left
         anchors.margins: Tokens.padding.medium
     }
 

@@ -311,7 +311,7 @@ Scope {
         name: "assistant"
         description: "Toggle assistant"
         onPressed: {
-            if (root.hasFullscreen)
+            if (root.hasFullscreen || !AssistantSettings.enabled)
                 return;
             const screenState = ShellState.forActive();
             if (!screenState.assistant)

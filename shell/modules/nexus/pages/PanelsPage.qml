@@ -1,6 +1,7 @@
 import QtQuick.Layouts
 import Caelestia.Config
 import Caelestia.I18n
+import qs.services
 import qs.modules.nexus.common
 
 PageBase {
@@ -37,18 +38,25 @@ PageBase {
         }
 
         NavRow {
-            icon: "dock_to_right"
+            icon: "right_panel_open"
             text: Tr.tr("Sidebar")
             subtext: Config.sidebar.enabled ? Tr.trCtx("Enabled", "panel status") : Tr.trCtx("Disabled", "panel status")
             onClicked: root.nState.openSubPage(4)
         }
 
         NavRow {
-            last: true
             icon: "construction"
             text: Tr.tr("Utilities")
             subtext: Config.utilities.enabled ? Tr.trCtx("Enabled", "panel status") : Tr.trCtx("Disabled", "panel status")
             onClicked: root.nState.openSubPage(5)
+        }
+
+        NavRow {
+            last: true
+            icon: "auto_awesome"
+            text: Tr.tr("Assistant")
+            subtext: AssistantSettings.enabled ? Tr.trCtx("Enabled", "panel status") : Tr.trCtx("Disabled", "panel status")
+            onClicked: root.nState.openSubPage(6)
         }
     }
 }

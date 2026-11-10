@@ -4,13 +4,14 @@ import QtQuick
 import Caelestia
 import Caelestia.Config
 import qs.components
+import qs.services
 
 Item {
     id: root
 
     required property ScreenState screenState
 
-    readonly property bool shouldBeActive: screenState.assistant
+    readonly property bool shouldBeActive: screenState.assistant && AssistantSettings.enabled
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1

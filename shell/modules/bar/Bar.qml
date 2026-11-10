@@ -119,7 +119,7 @@ ColumnLayout {
                 if (insertAt === -1)
                     insertAt = entries.length;
                 // Existing profiles do not have the assistant entry yet.
-                if (!entries.some(e => e.id === "assistant")) {
+                if (AssistantSettings.enabled && AssistantSettings.showIndicator && !entries.some(e => e.id === "assistant")) {
                     entries.splice(insertAt, 0, { id: "assistant" });
                     insertAt++;
                 }

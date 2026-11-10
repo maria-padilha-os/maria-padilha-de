@@ -60,7 +60,7 @@ QtObject {
         {
             label: Tr.tr("Panels"),
             icon: "dock_to_bottom",
-            description: Tr.tr("Dashboard, taskbar, launcher, sidebar"),
+            description: Tr.tr("Dashboard, taskbar, launcher, sidebar, assistant"),
             category: "shell"
         },
         {

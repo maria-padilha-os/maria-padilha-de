@@ -141,6 +141,9 @@ QtObject {
                 Component {
                     UtilitiesPanel {}
                 }
+                Component {
+                    AssistantPanel {}
+                }
 
                 // Taskbar component sub-pages
                 Component {

@@ -16,6 +16,8 @@ Item {
         implicitHeight: icon.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
         onClicked: {
+            if (!AssistantSettings.enabled)
+                return;
             const screenState = ShellState.forActive();
             if (!screenState.assistant)
                 screenState.sidebar = false;
