@@ -208,6 +208,13 @@ StyledWindow {
         }
 
         PanelBg {
+            id: assistantBg
+
+            panel: panels.assistant
+            deformAmount: 0.03
+        }
+
+        PanelBg {
             id: osdBg
 
             panel: panels.osdWrapper

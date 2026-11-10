@@ -38,7 +38,7 @@ Region {
 
         panel: root.panels.sessionWrapper
         x: root.win.width - width
-        width: panel.width * (1 - root.panels.session.offsetScale) + root.borderThickness + sidebarRegion.width
+        width: panel.width * (1 - root.panels.session.offsetScale) + root.borderThickness + Math.max(sidebarRegion.width, assistantRegion.width)
     }
 
     R {
@@ -47,6 +47,14 @@ Region {
         panel: root.panels.sidebar
         x: root.win.width - width
         width: panel.width * (1 - root.panels.sidebar.offsetScale) + root.borderThickness
+    }
+
+    R {
+        id: assistantRegion
+
+        panel: root.panels.assistant
+        x: root.win.width - width
+        width: panel.width * (1 - root.panels.assistant.offsetScale) + root.borderThickness
     }
 
     R {

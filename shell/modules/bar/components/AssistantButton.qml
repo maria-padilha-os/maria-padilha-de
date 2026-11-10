@@ -34,9 +34,6 @@ Item {
         color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3secondary
         fontStyle: Tokens.font.icon.builders.small.weight(Font.Bold).build()
 
-        Behavior on color {
-            Anim {}
-        }
     }
 
     Rectangle {
