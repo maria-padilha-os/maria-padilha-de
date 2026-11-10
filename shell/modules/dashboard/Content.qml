@@ -17,6 +17,11 @@ Item {
     required property ScreenState screenState
     required property FileDialog facePicker
 
+    Component.onCompleted: {
+        if (Extensions.list.length === 0)
+            Extensions.refresh();
+    }
+
     readonly property var dashboardTabs: {
         const allTabs = [
             {

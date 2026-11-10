@@ -16,6 +16,8 @@ Singleton {
     property list<var> messages: []
     property int nextId: 1
     property int activeId: -1
+    property bool started: false
+    property bool stopping: false
 
     readonly property bool configured: models.length > 0
     readonly property string rootsLabel: roots.length === 0 ? "No folders granted" : roots.map(r => r.display || r.path).join(" · ")
@@ -144,11 +146,26 @@ Singleton {
         // Attachments are intentionally not part of v1.
     }
 
+    function start(): void {
+        if (root.started)
+            return;
+        root.stopping = false;
+        root.started = true;
+    }
+
+    function stop(): void {
+        if (!root.started || root.streaming)
+            return;
+        root.stopping = true;
+        root.started = false;
+        root.ready = false;
+    }
+
     Process {
         id: process
 
         command: ["padilha-ai", "--stdio"]
-        running: true
+        running: root.started
         stdinEnabled: true
 
         stdout: SplitParser {
@@ -165,6 +182,11 @@ Singleton {
         onExited: {
             root.ready = false;
             root.streaming = false;
+            root.started = false;
+            if (root.stopping) {
+                root.stopping = false;
+                return;
+            }
             root.error = "Assistant backend exited.";
         }
     }

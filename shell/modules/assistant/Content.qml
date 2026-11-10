@@ -13,6 +13,9 @@ Item {
 
     required property ScreenState screenState
 
+    Component.onCompleted: Assistant.start()
+    Component.onDestruction: Assistant.stop()
+
     ColumnLayout {
         anchors.fill: parent
         spacing: Tokens.spacing.medium

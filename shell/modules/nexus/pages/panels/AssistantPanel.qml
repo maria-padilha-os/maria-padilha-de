@@ -12,6 +12,8 @@ PageBase {
     title: Tr.tr("Assistant")
     isSubPage: true
 
+    Component.onCompleted: Assistant.start()
+
     ColumnLayout {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top

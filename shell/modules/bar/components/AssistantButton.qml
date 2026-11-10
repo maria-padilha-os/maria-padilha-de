@@ -18,6 +18,7 @@ Item {
         onClicked: {
             if (!AssistantSettings.enabled)
                 return;
+            Assistant.start();
             const screenState = ShellState.forActive();
             if (!screenState.assistant)
                 screenState.sidebar = false;
