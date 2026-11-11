@@ -71,6 +71,8 @@ Item {
     property bool busy: false
     property bool statusIsError: false
     property string status: ""
+    property string pendingFromName: ""
+    property string pendingToName: ""
 
     // Exposed for tests and for the compact tab to prefill text.
     property alias sourceText: sourcePanel.text
@@ -146,82 +148,63 @@ Item {
         resultPanel.text = "";
         root.setStatus(Tr.tr("Translating…"), false);
 
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function () {
-            if (request.readyState !== 4 || !root.busy)
-                return;
-            root.busy = false;
-
-            if (request.status === 0) {
-                root.setStatus(Tr.tr("Network error: could not reach MyMemory."), true);
-                return;
-            }
-            if (request.status !== 200) {
-                root.setStatus(Tr.tr("Translation failed (HTTP %1).").arg(request.status), true);
-                return;
-            }
-
-            var data = null;
-            try {
-                data = JSON.parse(request.responseText);
-            } catch (error) {
-                data = null;
-            }
-            if (!data || typeof data !== "object") {
-                root.setStatus(Tr.tr("The service returned an invalid response."), true);
-                return;
-            }
-
-            var apiStatus = data.responseStatus === undefined || data.responseStatus === null ? 0 : Number(data.responseStatus);
-            var details = data.responseDetails ? String(data.responseDetails) : "";
-            var translated = data.responseData && data.responseData.translatedText ? String(data.responseData.translatedText) : "";
-
-            if (apiStatus !== 200) {
-                if (details.length > 0)
-                    root.setStatus(details, true);
-                else if (translated.length > 0)
-                    root.setStatus(translated, true);
-                else
-                    root.setStatus(Tr.tr("Translation failed."), true);
-                return;
-            }
-            if (translated.length === 0) {
-                root.setStatus(Tr.tr("The service returned an empty translation."), true);
-                return;
-            }
-            if (translated.indexOf("MYMEMORY WARNING") !== -1 || translated.indexOf("QUERY LENGTH LIMIT") !== -1) {
-                // Quota and length problems come back as a 200 with the warning
-                // in translatedText instead of a proper error status.
-                root.setStatus(translated, true);
-                return;
-            }
-
-            resultPanel.text = translated;
-            resultPanel.scrollToTop();
-            root.setStatus(Tr.tr("Translated from %1 to %2.").arg(fromName).arg(toName), false);
-        };
-        request.ontimeout = function () {
-            if (!root.busy)
-                return;
-            root.busy = false;
-            root.setStatus(Tr.tr("The request timed out. Try again."), true);
-        };
-        request.onerror = function () {
-            if (!root.busy)
-                return;
-            root.busy = false;
-            root.setStatus(Tr.tr("Network error: could not reach MyMemory."), true);
-        };
+        root.pendingFromName = fromName;
+        root.pendingToName = toName;
 
         var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=" + encodeURIComponent(fromCode) + "%7C" + encodeURIComponent(toCode);
-        try {
-            request.open("GET", url);
-            request.timeout = 20000;
-            request.send();
-        } catch (error) {
-            root.busy = false;
-            root.setStatus(Tr.tr("Could not start the translation request."), true);
+        translateProc.command = ["curl", "-fsSL", "--max-time", "20", url];
+        translateProc.running = true;
+    }
+
+    function finishTranslation(exitCode, output, errorText) {
+        if (!root.busy)
+            return;
+        root.busy = false;
+
+        if (exitCode !== 0) {
+            var detail = errorText.trim();
+            root.setStatus(detail.length > 0 ? detail : Tr.tr("Network error: could not reach MyMemory."), true);
+            return;
         }
+
+        var data = null;
+        try {
+            data = JSON.parse(output);
+        } catch (error) {
+            data = null;
+        }
+        if (!data || typeof data !== "object") {
+            root.setStatus(Tr.tr("The service returned an invalid response."), true);
+            return;
+        }
+
+        var apiStatus = data.responseStatus === undefined || data.responseStatus === null ? 0 : Number(data.responseStatus);
+        var details = data.responseDetails ? String(data.responseDetails) : "";
+        var translated = data.responseData && data.responseData.translatedText ? String(data.responseData.translatedText) : "";
+
+        if (apiStatus !== 200) {
+            if (details.length > 0)
+                root.setStatus(details, true);
+            else if (translated.length > 0)
+                root.setStatus(translated, true);
+            else
+                root.setStatus(Tr.tr("Translation failed."), true);
+            return;
+        }
+        if (translated.length === 0) {
+            root.setStatus(Tr.tr("The service returned an empty translation."), true);
+            return;
+        }
+        if (translated.indexOf("MYMEMORY WARNING") !== -1 || translated.indexOf("QUERY LENGTH LIMIT") !== -1) {
+            // Quota and length problems come back as a 200 with the warning
+            // in translatedText instead of a proper error status.
+            root.setStatus(translated, true);
+            return;
+        }
+
+        resultPanel.text = translated;
+        resultPanel.scrollToTop();
+        root.setStatus(Tr.tr("Translated from %1 to %2.").arg(root.pendingFromName).arg(root.pendingToName), false);
     }
 
     function swap() {
@@ -482,6 +465,19 @@ Item {
             root.sourceText = text;
             sourcePanel.focusEditor();
         }
+    }
+
+    Process {
+        id: translateProc
+
+        stdout: StdioCollector {
+            id: translateOut
+        }
+        stderr: StdioCollector {
+            id: translateErr
+        }
+
+        onExited: (exitCode) => root.finishTranslation(exitCode, translateOut.text, translateErr.text)
     }
 
     // Editable/read-only text box with a palette-coloured border and a thin
