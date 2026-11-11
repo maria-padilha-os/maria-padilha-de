@@ -29,9 +29,13 @@ change it if the GitHub repository is renamed.
 
 ## Decision records
 
-Architecture decisions are recorded in [`adr/`](adr/). The current decision is
+Architecture decisions are recorded in [`adr/`](adr/). The current accepted
+decision is
 [ADR 0001 — Built-in AI assistant and permissioned home access](adr/0001-built-in-ai-assistant.md).
-The sketches next to it are review aids, not installed code.
+[ADR 0002 — Offline speech input](adr/0002-offline-speech-input.md) is a
+proposed spike report: it compares offline recognisers and a push-to-talk
+capture prototype, and it does not add a microphone dependency or UI. The
+sketches beside ADR 0001 are review aids, not installed code.
 
 The implemented permission layer is documented in
 [Assistant home access](assistant.html): approved roots, read-only defaults,

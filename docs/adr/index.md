@@ -12,6 +12,7 @@ supersedes an earlier one rather than rewriting it.
 | ADR | Status | Decision |
 | --- | --- | --- |
 | [0001](0001-built-in-ai-assistant.html) | Accepted (broker implemented) | A separate assistant panel and backend process, a provider-agnostic chat service, and a permissioned, read-only-by-default home-folder policy. |
+| [0002](0002-offline-speech-input.html) | Proposed (spike; no implementation) | Local-only push-to-talk speech input. Whisper.cpp, sherpa-onnx, and Vosk are compared; whisper.cpp is proposed for v1, with no cloud fallback. |
 
 The sketches beside ADR 0001 are non-normative. They show the shape of the
 config, the last-line path checks, the wire protocol, and the panel layout; they
