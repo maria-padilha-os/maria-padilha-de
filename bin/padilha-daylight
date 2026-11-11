@@ -193,6 +193,7 @@ local function switch(period_name, config, opts)
         prefix = opts.prefix,
         signals = true,
         broadcast = true,
+        dconf = true,
     })
     if #errors > 0 then
         return false, table.concat(errors, "; ")

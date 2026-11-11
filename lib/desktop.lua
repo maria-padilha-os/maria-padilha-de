@@ -119,7 +119,11 @@ function M.set_wallpaper(path, opts)
         M.set_variant(opts.variant)
     end
 
-    local written, errors = applymod.apply(built, { signals = true, broadcast = true })
+    local written, errors = applymod.apply(built, {
+        signals = true,
+        broadcast = true,
+        dconf = true,
+    })
     if #errors > 0 then
         return nil, table.concat(errors, "; ")
     end
