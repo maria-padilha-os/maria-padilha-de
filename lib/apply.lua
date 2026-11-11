@@ -561,6 +561,15 @@ function M.apply(scheme, opts)
             quote(tmp)))
     end
 
+    -- WezTerm reads scheme.json when it loads its config. Touch the config so
+    -- its automatic reload picks up the new palette in already-open windows.
+    local wezterm_config = bases.config .. "/wezterm/wezterm.lua"
+    local wezterm_file = io.open(wezterm_config, "r")
+    if wezterm_file then
+        wezterm_file:close()
+        os.execute("touch " .. quote(wezterm_config) .. " 2>/dev/null")
+    end
+
     if opts.dconf then
         os.execute("dconf write /org/gnome/desktop/interface/color-scheme \"'prefer-"
             .. scheme.mode .. "'\" 2>/dev/null")
