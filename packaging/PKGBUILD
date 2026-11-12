@@ -59,6 +59,7 @@ optdepends=(
     'yaml-language-server: YAML language server for micro'
     'marksman: Markdown language server for micro'
     'zls: Zig language server for micro'
+    'hyprpicker: the bar colour picker'
     'grim: screenshots'
     'slurp: region selection'
     'swappy: annotate screenshots'
@@ -111,7 +112,7 @@ package() {
 
     install -d "$pkgdir/usr/bin"
     commands=(padilha padilha-brightness padilha-config padilha-session padilha-lock padilha-shell-watch \
-        padilha-theme padilha-mc-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji padilha-ai padilha-mail)
+        padilha-theme padilha-mc-theme padilha-daylight padilha-reload padilha-shot padilha-record padilha-clipboard padilha-emoji padilha-colour padilha-ai padilha-mail)
     for cmd in "${commands[@]}"; do
         ln -s "/usr/lib/maria-padilha/bin/$cmd" "$pkgdir/usr/bin/$cmd"
         # Compatibility: the old command names point at the same files.

@@ -227,6 +227,7 @@ commands=(
     padilha-record
     padilha-clipboard
     padilha-emoji
+    padilha-colour
     padilha-ai
     padilha-mail
 )

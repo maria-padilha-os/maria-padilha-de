@@ -19,6 +19,17 @@ Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
 colorscheme follows the same palette and switches between its ayu-inspired
 light and dark variants.
 
+## Colour picker
+
+The palette icon in the bar opens the colour picker. Nothing samples the screen
+until you press **Pick colour**; **Escape** cancels. It uses `hyprpicker`, so it
+works on Wayland without a screenshot file, and no picker process is left
+running once a colour is chosen. The panel shows the swatch, HEX, RGB, and HSL
+values, and each row copies its value on click. The HEX copy button changes to
+a check mark to confirm the write, and the whole panel follows the active
+light or dark palette. `padilha-colour` is the same parser used by the panel and
+can also be called directly (`padilha-colour pick`, `padilha-colour parse VALUE`).
+
 ## Calculator
 
 The launcher has a native calculator mode. Tap `Super` to open the launcher and

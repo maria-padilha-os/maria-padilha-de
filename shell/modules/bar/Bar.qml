@@ -123,6 +123,10 @@ ColumnLayout {
                     entries.splice(insertAt, 0, { id: "assistant" });
                     insertAt++;
                 }
+                // The colour picker is always available next to settings. It
+                // only samples the screen after its button is clicked.
+                entries.splice(insertAt, 0, { id: "colourPicker" });
+                insertAt++;
                 // Settings sits directly above the power button (or last if the
                 // power entry is disabled).
                 entries.splice(insertAt, 0, { id: "settings" });
@@ -196,6 +200,15 @@ ColumnLayout {
                 delegate: EntryWrapper {
                     AssistantButton {
                         objectName: "taskbarAssistantButton"
+                    }
+                }
+            }
+            DelegateChoice {
+                roleValue: "colourPicker"
+                delegate: EntryWrapper {
+                    ColourPicker {
+                        objectName: "taskbarColourPickerButton"
+                        bar: root
                     }
                 }
             }

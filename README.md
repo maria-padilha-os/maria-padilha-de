@@ -244,6 +244,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha-record` | screen recording |
 | `padilha-clipboard` | clipboard history picker |
 | `padilha-emoji` | emoji and glyph picker |
+| `padilha-colour` | colour parsing, picking, and clipboard helper |
 | `padilha-mail` | open Thunderbird or a `mailto:` URI, with a clean fallback |
 
 ## Project layout

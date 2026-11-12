@@ -128,6 +128,11 @@ Item {
         }
 
         Popout {
+            name: "colourpicker"
+            sourceComponent: ColourPicker {}
+        }
+
+        Popout {
             name: "lockstatus"
             sourceComponent: LockStatus {}
         }
