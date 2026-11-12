@@ -14,11 +14,18 @@ QtObject {
     }
 
     // Resolves TemperatureUnit.Auto to a concrete unit based on the locale
+    // Fahrenheit is the everyday weather unit only in a few countries.
+    // Do not use the UK imperial flag: UK weather is reported in Celsius.
+    function temperatureUnitForCountry(countryCode: string): int {
+        const code = String(countryCode || "").toUpperCase();
+        return ["US", "LR", "MM"].indexOf(code) !== -1 ? TemperatureUnit.Fahrenheit : TemperatureUnit.Celsius;
+    }
+
     function resolveTempUnit(unit: int): int {
         if (Number(unit) !== TemperatureUnit.Auto)
             return unit;
-        const system = Qt.locale().measurementSystem;
-        return system === Locale.ImperialUSSystem || system === Locale.ImperialUKSystem ? TemperatureUnit.Fahrenheit : TemperatureUnit.Celsius;
+        const parts = String(Qt.locale().name).split("_");
+        return temperatureUnitForCountry(parts.length > 1 ? parts[1] : "");
     }
 
     // Converts a temperature in Celsius to the given TemperatureUnit

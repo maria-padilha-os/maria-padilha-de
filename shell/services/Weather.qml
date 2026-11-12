@@ -12,6 +12,7 @@ Singleton {
     id: root
 
     property string city
+    property string countryCode: ""
     property string loc
     property var cc
     property list<var> forecast
@@ -34,7 +35,11 @@ Singleton {
     readonly property var cachedCities: new Map()
 
     function formatTemp(temp: var, compact = false): string {
-        const unit = GlobalConfig.services.weatherUnits;
+        let unit = GlobalConfig.services.weatherUnits;
+        // Auto follows the weather location, not the UI language. Otherwise an
+        // English UI in Brazil would report Fahrenheit.
+        if (Number(unit) === TemperatureUnit.Auto && root.countryCode.length > 0)
+            unit = Units.temperatureUnitForCountry(root.countryCode);
         const value = temp !== undefined ? Math.round(Units.toTemperature(temp, unit)) : "--";
         return Units.formatTemp(value, unit, compact);
     }
@@ -52,7 +57,7 @@ Singleton {
         } else if ((!loc || timer.elapsed() > 900) && !ipApiRequestPending && Date.now() >= ipApiBlockedUntil) {
             ipApiRequestPending = true;
 
-            Requests.get("http://ip-api.com/json?fields=status,message,city,lat,lon", (text, metadata) => {
+            Requests.get("http://ip-api.com/json?fields=status,message,city,lat,lon,countryCode", (text, metadata) => {
                 ipApiRequestPending = false;
                 recordIpApiRateLimit(metadata);
 
@@ -78,6 +83,7 @@ Singleton {
                 }
 
                 city = fixCityName(response.city ?? "");
+                root.countryCode = String(response.countryCode ?? "");
                 timer.restart();
                 loc = `${lat},${lon}`;
             }, (error, metadata) => {
@@ -194,6 +200,7 @@ Singleton {
             }
 
             if (geo) {
+                root.countryCode = String(geo.country_code ?? "");
                 const geoCity = geo.type === "city" ? geo.name : geo.city;
                 if (geoCity) {
                     city = fixCityName(geoCity);
@@ -220,6 +227,7 @@ Singleton {
                 const result = json.results[0];
                 loc = result.latitude + "," + result.longitude;
                 city = fixCityName(result.name);
+                root.countryCode = String(result.country_code ?? "");
             } else {
                 loc = "";
                 reload();
