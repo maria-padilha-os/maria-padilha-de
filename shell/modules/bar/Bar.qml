@@ -77,8 +77,13 @@ ColumnLayout {
 
     function handleClick(y: real): void {
         const ch = childAt(width / 2, y) as EntryWrapper;
-        if (ch?.entryId === "clock")
+        if (ch?.entryId === "clock") {
+            // Opening from the clock always starts at the first dashboard tab;
+            // only an already-open dashboard is allowed to remember its tab.
+            if (!root.screenState.dashboard)
+                root.screenState.dashboardTab = 0;
             root.screenState.dashboard = !root.screenState.dashboard;
+        }
     }
 
     function handleWheel(y: real, angleDelta: point): void {
