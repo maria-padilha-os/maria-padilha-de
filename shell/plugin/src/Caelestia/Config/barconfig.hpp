@@ -110,6 +110,8 @@ class BarConfig : public settings::ObjectNode {
 
     CONFIG_PROPERTY(bool, persistent, true)
     CONFIG_PROPERTY(bool, showOnHover, true)
+    // Opt-in: sampling colours is a niche tool, not a core bar item.
+    CONFIG_PROPERTY(bool, showColourPicker, false)
     CONFIG_PROPERTY(int, dragThreshold, 20)
     CONFIG_SUBOBJECT(BarScrollActions, scrollActions)
     CONFIG_SUBOBJECT(BarPopouts, popouts)

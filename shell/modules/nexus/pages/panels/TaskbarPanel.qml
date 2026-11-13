@@ -106,11 +106,18 @@ PageBase {
         }
 
         NavRow {
-            last: true
             icon: "schedule"
             text: Tr.tr("Clock")
             subtext: Tr.tr("Date, icon, background")
             onClicked: root.nState.openSubPage(11)
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("Colour picker")
+            subtext: Tr.tr("Show a screen colour picker next to settings")
+            checked: Config.bar.showColourPicker
+            onToggled: GlobalConfig.bar.showColourPicker = checked
         }
 
         // Scroll actions

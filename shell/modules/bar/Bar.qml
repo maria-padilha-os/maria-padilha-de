@@ -128,10 +128,12 @@ ColumnLayout {
                     entries.splice(insertAt, 0, { id: "assistant" });
                     insertAt++;
                 }
-                // The colour picker is always available next to settings. It
-                // only samples the screen after its button is clicked.
-                entries.splice(insertAt, 0, { id: "colourPicker" });
-                insertAt++;
+                // The colour picker is opt-in; it only samples the screen
+                // after its button is clicked.
+                if (Config.bar.showColourPicker) {
+                    entries.splice(insertAt, 0, { id: "colourPicker" });
+                    insertAt++;
+                }
                 // Settings sits directly above the power button (or last if the
                 // power entry is disabled).
                 entries.splice(insertAt, 0, { id: "settings" });
