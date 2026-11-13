@@ -128,12 +128,6 @@ ColumnLayout {
                     entries.splice(insertAt, 0, { id: "assistant" });
                     insertAt++;
                 }
-                // The colour picker is opt-in; it only samples the screen
-                // after its button is clicked.
-                if (Config.bar.showColourPicker) {
-                    entries.splice(insertAt, 0, { id: "colourPicker" });
-                    insertAt++;
-                }
                 // Settings sits directly above the power button (or last if the
                 // power entry is disabled).
                 entries.splice(insertAt, 0, { id: "settings" });
@@ -207,15 +201,6 @@ ColumnLayout {
                 delegate: EntryWrapper {
                     AssistantButton {
                         objectName: "taskbarAssistantButton"
-                    }
-                }
-            }
-            DelegateChoice {
-                roleValue: "colourPicker"
-                delegate: EntryWrapper {
-                    ColourPicker {
-                        objectName: "taskbarColourPickerButton"
-                        bar: root
                     }
                 }
             }

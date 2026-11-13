@@ -1,0 +1,8 @@
+{
+    "name": "Colour picker",
+    "description": "Sample a colour from the screen",
+    "version": "1.0",
+    "icon": "colorize",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + P"
+}

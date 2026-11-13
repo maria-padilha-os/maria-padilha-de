@@ -7,8 +7,8 @@
 --
 -- Only an explicit `pick` starts the Wayland picker. It runs in the
 -- foreground, exits as soon as a colour is selected (or Escape is pressed),
--- and never captures or writes a screenshot. The shell's bar widget uses
--- `pick --json`; the other commands exist for keybinds and for the tests.
+-- and never captures or writes a screenshot. The shell's colour-picker extension
+-- uses `pick --json`; the other commands exist for keybinds and for tests.
 --
 -- Exit status: 0 success, 1 invalid colour/output, 2 usage, 3 cancelled,
 -- 4 clipboard failure, 5 picker unavailable.

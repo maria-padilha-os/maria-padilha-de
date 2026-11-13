@@ -11,6 +11,7 @@ top panel.
 | `calculator` | qalc front-end with history | 360×220 |
 | `maps` | OpenStreetMap tiles, pan/zoom and Nominatim search | 560×360 |
 | `stopwatch` | start/stop, laps, reset | 340×230 |
+| `colour-picker` | sample a screen colour and copy HEX/RGB/HSL | 360×430 |
 | `translator` | MyMemory translation between nine languages | 480×280 |
 | `tuner` | microphone guitar tuner (Goertzel pitch detection, reference tones) | 420×260 |
 | `notes` | local plain-text notes (create, edit, delete) | 640×420 |
@@ -36,7 +37,8 @@ To try the checkout copies before installing:
 ```sh
 mkdir -p ~/.config/padilha/extensions
 cp -r extensions/calculator extensions/maps extensions/stopwatch \
-      extensions/translator extensions/tuner ~/.config/padilha/extensions/
+      extensions/translator extensions/tuner extensions/colour-picker \
+      ~/.config/padilha/extensions/
 cp -r share/extensions/notes share/extensions/calendar \
       share/extensions/unit-converter ~/.config/padilha/extensions/
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Contract tests for bin/padilha-colour and the bar colour-picker widget.
+# Contract tests for bin/padilha-colour and the colour-picker extension.
 # hyprpicker and wl-copy are faked: CI must never sample the live screen and
 # these tests only exercise parsing, cancellation, clipboard failure, and the
 # QML wiring that starts a picker from an explicit click.
@@ -8,10 +8,10 @@ set -uo pipefail
 
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
 colour="$root/bin/padilha-colour"
-popout="$root/shell/modules/bar/popouts/ColourPicker.qml"
-button="$root/shell/modules/bar/components/ColourPicker.qml"
-content="$root/shell/modules/bar/popouts/Content.qml"
-bar="$root/shell/modules/bar/Bar.qml"
+widget="$root/extensions/colour-picker/Widget.qml"
+tab="$root/extensions/colour-picker/Tab.qml"
+manifest="$root/extensions/colour-picker/extension.json"
+bar="$root/shell/modules/bar"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
@@ -193,18 +193,18 @@ WL_COPY_FAIL=1 "$colour" copy '#123456' > /dev/null 2> "$tmp/copy-fail.err"
 status=$?
 check "copy reports clipboard failure as 4" "[ $status -eq 4 ]" "exit $status"
 
-echo "widget wiring"
+echo "extension wiring"
 
-check "the bar button opens the picker popout" "grep -q 'currentName = \"colourpicker\"' '$button'"
-check "the popout only picks from the button" "grep -q 'onClicked: root.pick()' '$popout'"
-check "the popout does not start a process when loaded" "! grep -Eq 'Component.onCompleted.*pick|running: true' '$popout'"
-check "the popout calls the foreground command" "grep -q 'command: \\[\"padilha-colour\", \"pick\", \"--json\"\\]' '$popout'"
-check "the popout stops a pending picker when dismissed" "grep -q 'pickProc.running = false' '$popout'"
-check "the popout has no screenshot capture" "! grep -Eqi 'screencopy|grim|saveItem' '$popout'"
-check "the popout draws from the active palette" "grep -q 'Colours.palette.m3' '$popout'"
-check "the swatch label uses the contrast colour" "grep -q 'Colours.on(root.hex)' '$popout'"
-check "the popout is registered with the bar" "grep -q 'name: \"colourpicker\"' '$content'"
-check "the bar inserts the picker button" "grep -q 'id: \"colourPicker\"' '$bar'"
+check "the extension manifest declares the picker tab" "grep -q '\"tab\": \"Tab.qml\"' '$manifest'"
+check "the dashboard tab embeds the extension widget" "grep -q 'Widget {' '$tab'"
+check "the picker only starts from an explicit click" "grep -q 'onClicked: root.pick()' '$widget'"
+check "the extension does not start a process when loaded" "! grep -Eq 'Component.onCompleted.*pick|running: true' '$widget'"
+check "the extension calls the foreground command" "grep -q 'command: \[\"padilha-colour\", \"pick\", \"--json\"\]' '$widget'"
+check "the extension stops a pending picker when inactive" "grep -q 'pickProc.running = false' '$widget'"
+check "the extension has no screenshot capture" "! grep -Eqi 'screencopy|grim|saveItem' '$widget'"
+check "the extension draws from the active palette" "grep -q 'root.themePalette.m3' '$widget'"
+check "the swatch label uses the contrast colour" "grep -q 'root.api.colours.on(root.hex)' '$widget'"
+check "the picker is no longer hardcoded in the bar" "! grep -Rqi 'colourPicker\|colourpicker\|ColourPicker' '$bar'"
 check "the picker command never invokes a screenshot tool" "! grep -Eqi 'grim|screencopy|saveItem' '$colour'"
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"

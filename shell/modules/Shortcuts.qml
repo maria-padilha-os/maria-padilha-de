@@ -177,6 +177,14 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "extensionColourPicker"
+        description: "Open dashboard on the colour picker tab"
+        onPressed: root.openExtension("colour-picker")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "extensionCalculator"
         description: "Open dashboard on the calculator tab"
         onPressed: root.openExtension("calculator")
