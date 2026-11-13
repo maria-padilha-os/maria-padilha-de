@@ -28,11 +28,16 @@ Flickable {
                 return;
 
             if (horizontal) {
-                const maxX = Math.max(0, root.contentWidth - root.width);
-                root.contentX = Math.max(0, Math.min(maxX, root.contentX - delta * root.wheelMultiplier));
+                // Margins put the content's top/left edge at a negative
+                // content coordinate; clamping to 0 makes the margin
+                // unreachable by wheel and leaves the first rows cropped.
+                const minX = -root.leftMargin;
+                const maxX = Math.max(minX, root.contentWidth + root.rightMargin - root.width);
+                root.contentX = Math.max(minX, Math.min(maxX, root.contentX - delta * root.wheelMultiplier));
             } else {
-                const maxY = Math.max(0, root.contentHeight + root.topMargin + root.bottomMargin - root.height);
-                root.contentY = Math.max(0, Math.min(maxY, root.contentY - delta * root.wheelMultiplier));
+                const minY = -root.topMargin;
+                const maxY = Math.max(minY, root.contentHeight + root.bottomMargin - root.height);
+                root.contentY = Math.max(minY, Math.min(maxY, root.contentY - delta * root.wheelMultiplier));
             }
             event.accepted = true;
         }
