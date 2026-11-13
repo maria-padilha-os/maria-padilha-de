@@ -69,12 +69,12 @@ Network names are blurred in the published capture.
 
 ## Settings
 
-Nexus is the settings window, covering wallpaper and colours, display,
-network, Bluetooth, audio, updates, extensions, and the bar panels.
+Congá is the settings window, covering wallpaper and colours, display,
+network, power, Bluetooth, audio, updates, extensions, and the bar panels.
 
-![The Nexus settings window](assets/screenshots/settings.webp)
+![The Congá settings window](assets/screenshots/settings.webp)
 
-![Opening the Nexus settings window](assets/demo/settings.gif)
+![Opening the Congá settings window](assets/demo/settings.gif)
 
 <video controls loop muted playsinline poster="assets/screenshots/settings.webp">
   <source src="assets/demo/settings.mp4" type="video/mp4">

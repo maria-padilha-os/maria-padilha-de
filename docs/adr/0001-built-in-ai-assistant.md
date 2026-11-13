@@ -42,7 +42,7 @@ this repository only declares the named global shortcut.
 
 **D1 — Separate panel.** The assistant is a right-side drawer with its own
 `ScreenState.assistant` flag and its own `shell/modules/assistant/` module. It
-is not a dashboard tab and not a Nexus settings page. It is opened by
+is not a dashboard tab and not a Congá settings page. It is opened by
 `Super + A`, by the `drawers` IPC handler, by the compact bar indicator, or by
 clicking a completion toast after a background turn. The bar indicator toggles
 the panel; it is not a chat widget. The panel is never opened automatically.

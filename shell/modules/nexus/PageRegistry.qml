@@ -55,6 +55,12 @@ QtObject {
             description: Tr.tr("Enable tabs in the top panel"),
             category: "system"
         },
+        {
+            label: Tr.tr("Power"),
+            icon: "power_settings_new",
+            description: Tr.tr("Battery, profile, idle and lid policy"),
+            category: "system"
+        },
 
         // Shell
         {

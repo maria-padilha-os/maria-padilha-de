@@ -97,10 +97,10 @@ The top bar, launcher, dashboard, and settings window shown together. The
 
 ## Settings
 
-![The Nexus settings window](docs/assets/demo/settings.gif)
+![The Congá settings window](docs/assets/demo/settings.gif)
 
-**Nexus** is the settings window: wallpaper and colours, display, network,
-Bluetooth, audio, updates, extensions, and the bar panels. The
+**Congá** is the settings window: wallpaper and colours, display, network,
+power, Bluetooth, audio, updates, extensions, and the bar panels. The
 [settings MP4](docs/assets/demo/settings.mp4) is smaller than the GIF.
 
 ## Features

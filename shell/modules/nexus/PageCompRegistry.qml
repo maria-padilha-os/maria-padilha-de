@@ -118,6 +118,14 @@ QtObject {
                 }
             }
         },
+        Component {
+            // Power
+            StackPage {
+                Component {
+                    PowerPage {}
+                }
+            }
+        },
 
         // Shell
         Component {
