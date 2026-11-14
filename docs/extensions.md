@@ -96,3 +96,29 @@ access. `unit-converter` works entirely from a local factor table.
 average from `/proc/loadavg`. `pomodoro` only counts down while its tab is
 selected and uses `notify-send` for phase changes. `disk-usage` lists the
 mounted filesystems reported by the `Storage` service and never writes to them.
+
+### Maps tiles and keys
+
+`maps` follows the palette with CARTO's `light_all` / `dark_all` raster styles
+and falls back to standard OpenStreetMap tiles (with a visible notice and a
+dimmed dark-mode canvas) when CARTO is unavailable or has no key.
+OpenStreetMap is always credited; CARTO is credited whenever a key is configured.
+
+CARTO's raster tiles need a free API key. Supply it at runtime, never in this
+checkout:
+
+```sh
+export PADILHA_MAPS_CARTO_KEY='YOUR_KEY'
+# or ~/.config/padilha/maps.conf (chmod 600)
+# carto_key = YOUR_KEY
+```
+
+The environment wins over the file; `XDG_CONFIG_HOME` is honoured. Request a
+key at <https://carto.com/basemaps/apikey/> and see
+<https://docs.carto.com/faqs/carto-basemaps> for the free-tier limits
+(non-commercial 5 million tile requests per calendar month, commercial 1
+million; keys are per-customer). The extension only asks for the nine visible
+tiles at a time and caches them under
+`$XDG_CACHE_HOME/caelestia/maps/carto/<style>/<z>/<x>/<y>.png`; the key is
+never written to the cache. See `extensions/maps/README.md` for the full
+provider and Nominatim notes.

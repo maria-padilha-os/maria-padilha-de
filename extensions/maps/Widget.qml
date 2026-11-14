@@ -1,12 +1,20 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
+import QtQuick.Effects
+import Quickshell
 import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
+import "MapStyle.js" as MapStyle
 
-// OpenStreetMap viewer with a 3x3 slippy tile grid and Nominatim search.
-// All theme colours come from the Colours singleton passed in `api`.
+// CARTO light/dark basemap viewer with a 3x3 slippy tile grid and Nominatim
+// search. All theme colours come from the Colours singleton passed in `api`.
+//
+// The raster style follows the active palette mode. A CARTO key is optional
+// and comes from PADILHA_MAPS_CARTO_KEY or ~/.config/padilha/maps.conf; with no
+// key, or when CARTO rejects the tile, the widget falls back to standard
+// OpenStreetMap tiles and says so instead of showing an empty canvas.
 Item {
     id: root
 
@@ -33,12 +41,78 @@ Item {
     readonly property color primaryContainer: root.palette ? root.palette.m3primaryContainer : "transparent"
     readonly property color onPrimaryContainer: root.palette ? root.palette.m3onPrimaryContainer : "transparent"
 
+    // A clean white or black canvas behind the tiles while they load, matching
+    // the active palette rather than a fixed colour.
+    readonly property color mapCanvas: root.palette
+        ? (root.darkMode ? root.palette.m3surfaceDim : root.palette.m3surfaceBright)
+        : "transparent"
+
     readonly property int tileSize: 256
     readonly property int gridSize: 3
     readonly property real maxLatitude: 85.05112878
     readonly property int minZoom: 3
-    readonly property int maxZoom: 18
+    readonly property int maxZoom: MapStyle.MAX_ZOOM
     readonly property int maxResults: 5
+
+    // --- Tile provider -----------------------------------------------------
+    // Env wins over the file. Neither is ever written by the extension, so no
+    // key can end up in the checkout or in a cache key.
+    readonly property string envCartoKey: MapStyle.normaliseKey(Quickshell.env("PADILHA_MAPS_CARTO_KEY") || "")
+    property string fileCartoKey: ""
+    readonly property string cartoKey: root.envCartoKey.length > 0 ? root.envCartoKey : MapStyle.normaliseKey(root.fileCartoKey)
+    readonly property bool hasCartoKey: root.cartoKey.length > 0
+    readonly property bool providerAvailable: root.hasCartoKey
+    readonly property string cartoConfigPath: MapStyle.configPath(Quickshell.env("HOME") || "", Quickshell.env("XDG_CONFIG_HOME") || "")
+
+    readonly property bool darkMode: MapStyle.isDarkMode(root.api && root.api.colours, root.palette ? root.palette.m3surface : "")
+    readonly property string tileStyle: MapStyle.styleForMode(root.darkMode)
+
+    // --- Tile status -------------------------------------------------------
+    // Each delegate reports idle/loading/ready/fallback/failed so the map can
+    // show a loading or error state instead of an unexplained blank surface.
+    property var tileStatus: ({})
+    property int reloadToken: 0
+
+    readonly property var tileStates: Object.values(root.tileStatus)
+    readonly property int readyTiles: root.tileStates.filter(state => state === "ready" || state === "fallback").length
+    readonly property int failedTiles: root.tileStates.filter(state => state === "failed").length
+    readonly property int loadingTiles: root.tileStates.filter(state => state === "loading").length
+    readonly property bool anyFallback: root.tileStates.indexOf("fallback") !== -1
+    readonly property bool mapLoading: root.readyTiles === 0 && root.failedTiles === 0
+    readonly property bool mapError: root.failedTiles > 0 && root.readyTiles === 0
+
+    readonly property string mapStatusText: {
+        if (root.mapError)
+            return Tr.tr("Map tiles unavailable — check your connection");
+        if (!root.providerAvailable)
+            return Tr.tr("CARTO key not set — using the OpenStreetMap fallback");
+        if (root.mapLoading)
+            return Tr.tr("Loading map…");
+        if (root.failedTiles > 0)
+            return Tr.tr("%1 map tiles could not load").arg(root.failedTiles);
+        if (root.anyFallback)
+            return Tr.tr("CARTO unavailable — using the OpenStreetMap fallback");
+        return "";
+    }
+
+    function setTileStatus(index: int, state: string) {
+        if (root.tileStatus[index] === state)
+            return;
+        const next = Object.assign({}, root.tileStatus);
+        if (state === "idle")
+            delete next[index];
+        else
+            next[index] = state;
+        root.tileStatus = next;
+    }
+
+    function retryTiles() {
+        root.tileStatus = ({});
+        root.reloadToken += 1;
+    }
+
+    onTileStyleChanged: root.retryTiles()
+    onCartoKeyChanged: root.retryTiles()
 
     // Porto Alegre, RS.
     property real centerLat: -30.0346
@@ -48,6 +122,17 @@ Item {
     property bool searching: false
     property string searchMessage: ""
     property var pendingRequest: null
+
+    FileView {
+        id: mapsConfig
+
+        printErrors: false
+        path: root.cartoConfigPath
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: root.fileCartoKey = MapStyle.parseConfig(text()).cartoKey
+        onLoadFailed: root.fileCartoKey = ""
+    }
 
     // --- Tile math ---------------------------------------------------------
     // Street-map slippy tiles: x/y in tile units, 256 screen pixels per tile.
@@ -270,7 +355,7 @@ Item {
 
             radius: Tokens.rounding.large
             clip: true
-            color: root.surfaceContainerHigh
+            color: root.mapCanvas
 
             Item {
                 id: mapArea
@@ -311,33 +396,62 @@ Item {
 
                         Rectangle {
                             anchors.fill: parent
-                            color: root.surfaceContainerHigh
+                            color: root.mapCanvas
                         }
 
-                        readonly property string tileUrl: tile.valid ? "https://tile.openstreetmap.org/" + root.zoom + "/" + tile.wrappedX + "/" + tile.tileY + ".png" : ""
-                        readonly property string cachePath: root.cacheDir + "/" + root.zoom + "/" + tile.wrappedX + "/" + tile.tileY + ".png"
+                        readonly property string primaryUrl: tile.valid ? MapStyle.cartoTileUrl(root.tileStyle, root.zoom, tile.wrappedX, tile.tileY, root.cartoKey) : ""
+                        readonly property string fallbackUrl: tile.valid ? MapStyle.osmTileUrl(root.zoom, tile.wrappedX, tile.tileY) : ""
+                        readonly property bool fallbackMode: !root.providerAvailable || tile.useFallback
+                        readonly property string tileUrl: tile.fallbackMode ? tile.fallbackUrl : tile.primaryUrl
+                        readonly property string cachePath: MapStyle.tileCachePath(root.cacheDir, tile.fallbackMode ? MapStyle.OSM_PROVIDER : MapStyle.CARTO_PROVIDER, tile.fallbackMode ? "" : root.tileStyle, root.zoom, tile.wrappedX, tile.tileY)
+
+                        property bool useFallback: false
                         property bool ready: false
                         property bool failed: false
+                        property bool loading: false
+
+                        function resetState() {
+                            tile.ready = false;
+                            tile.failed = false;
+                            tile.loading = false;
+                            root.setTileStatus(tile.index, "idle");
+                        }
+
+                        function restart() {
+                            // A style or key change gets one fresh CARTO attempt
+                            // before falling back again.
+                            tile.useFallback = false;
+                            tile.resetState();
+                            if (root.active)
+                                delay.restart();
+                        }
 
                         // Fetches only the tiles of the visible 3x3 grid, only
                         // while this tab is the current one, and only when the
                         // disk cache does not already have the tile. The
-                        // identifying User-Agent is required by the OSM tile
-                        // usage policy; the cache avoids refetching on reloads.
-                        function requestTile(): void {
-                            if (!root.active || !tile.valid || tile.ready || fetch.running)
+                        // identifying User-Agent is required by both providers'
+                        // policies; the cache avoids refetching on reloads.
+                        function requestTile() {
+                            if (!root.active || !tile.valid || tile.ready || tile.loading || fetch.running)
                                 return;
+                            if (tile.tileUrl.length === 0) {
+                                tile.failed = true;
+                                root.setTileStatus(tile.index, "failed");
+                                return;
+                            }
+                            tile.loading = true;
+                            tile.failed = false;
+                            root.setTileStatus(tile.index, "loading");
                             fetch.command = [
                                 "sh", "-c",
-                                `cache="$2"; [ -f "$cache" ] && exit 0; mkdir -p "$(dirname "$cache")" || exit 1; curl -fsSL --max-time 20 -A "$3" -o "$cache.tmp" "$1" || { rm -f "$cache.tmp"; exit 1; }; mv "$cache.tmp" "$cache"`,
+                                `cache="$2"; [ -s "$cache" ] && exit 0; mkdir -p "$(dirname "$cache")" || exit 1; curl -fsSL --max-time 20 -A "$3" -o "$cache.tmp" "$1" || { rm -f "$cache.tmp"; exit 1; }; mv "$cache.tmp" "$cache"`,
                                 "sh", tile.tileUrl, tile.cachePath, root.userAgent
                             ];
                             fetch.running = true;
                         }
 
                         onTileUrlChanged: {
-                            tile.ready = false;
-                            tile.failed = false;
+                            tile.resetState();
                             if (root.active)
                                 delay.restart();
                         }
@@ -345,9 +459,13 @@ Item {
                         Connections {
                             target: root
 
-                            function onActiveChanged(): void {
-                                if (root.active)
+                            function onActiveChanged() {
+                                if (root.active && !tile.ready)
                                     delay.restart();
+                            }
+
+                            function onReloadTokenChanged() {
+                                tile.restart();
                             }
                         }
 
@@ -365,6 +483,30 @@ Item {
                             cache: false
                             fillMode: Image.Pad
                             smooth: false
+                            // The keyless fallback is a normal OSM tile. Dim it
+                            // in dark mode so it still reads as a dark canvas.
+                            layer.enabled: tile.ready && tile.fallbackMode && root.darkMode
+                            layer.effect: MultiEffect {
+                                brightness: -0.55
+                                saturation: -0.7
+                                contrast: 0.1
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            visible: tile.ready && tile.fallbackMode && root.darkMode
+                            color: root.mapCanvas
+                            opacity: 0.3
+                        }
+
+                        Text {
+                            anchors.centerIn: parent
+                            visible: tile.loading
+                            text: Tr.tr("Loading…")
+                            color: root.onSurfaceVariant
+                            opacity: 0.72
+                            font: Tokens.font.body.small
                         }
 
                         Text {
@@ -379,9 +521,21 @@ Item {
                             id: fetch
 
                             onExited: (exitCode) => {
-                                tile.failed = exitCode !== 0;
-                                if (exitCode === 0)
+                                tile.loading = false;
+                                if (exitCode === 0) {
                                     tile.ready = true;
+                                    tile.failed = false;
+                                    root.setTileStatus(tile.index, tile.fallbackMode ? "fallback" : "ready");
+                                    return;
+                                }
+                                if (!tile.fallbackMode && root.providerAvailable) {
+                                    // Try the provider-independent OSM tile once.
+                                    tile.useFallback = true;
+                                    return;
+                                }
+                                tile.ready = false;
+                                tile.failed = true;
+                                root.setTileStatus(tile.index, "failed");
                             }
                         }
 
@@ -433,28 +587,101 @@ Item {
                     anchors.bottom: parent.bottom
                     anchors.margins: Tokens.padding.small
 
-                    width: attributionLabel.implicitWidth + Tokens.padding.medium
-                    height: attributionLabel.implicitHeight + Tokens.padding.extraSmall
+                    width: attributionRow.implicitWidth + Tokens.padding.medium
+                    height: attributionRow.implicitHeight + Tokens.padding.extraSmall
 
                     radius: Tokens.rounding.small
                     color: Qt.alpha(root.surface, 0.82)
 
-                    Text {
-                        id: attributionLabel
+                    Row {
+                        id: attributionRow
 
                         anchors.centerIn: parent
-                        text: "© OpenStreetMap contributors"
-                        color: root.onSurfaceVariant
-                        font: Tokens.font.label.small
+                        spacing: Tokens.spacing.extraSmall
+
+                        Text {
+                            id: osmAttribution
+
+                            text: MapStyle.OSM_ATTRIBUTION
+                            color: root.onSurfaceVariant
+                            font: Tokens.font.label.small
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: Qt.openUrlExternally(MapStyle.OSM_COPYRIGHT_URL)
+                            }
+                        }
+
+                        Text {
+                            visible: root.hasCartoKey
+                            text: "·"
+                            color: root.onSurfaceVariant
+                            font: Tokens.font.label.small
+                        }
+
+                        Text {
+                            id: cartoAttribution
+
+                            visible: root.hasCartoKey
+                            text: MapStyle.CARTO_ATTRIBUTION
+                            color: root.onSurfaceVariant
+                            font: Tokens.font.label.small
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: Qt.openUrlExternally(MapStyle.CARTO_ATTRIBUTION_URL)
+                            }
+                        }
                     }
+                }
 
-                    MouseArea {
-                        id: attributionMouse
+                Rectangle {
+                    id: mapStatus
 
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: Qt.openUrlExternally("https://www.openstreetmap.org/copyright")
+                    visible: root.mapStatusText.length > 0
+                    anchors.left: parent.left
+                    anchors.bottom: attribution.top
+                    anchors.leftMargin: Tokens.padding.small
+                    anchors.bottomMargin: Tokens.padding.small
+
+                    width: Math.max(0, Math.min(statusRow.implicitWidth + Tokens.padding.medium * 2, parent.width - Tokens.padding.small * 4))
+                    height: statusRow.implicitHeight + Tokens.padding.small * 2
+
+                    radius: Tokens.rounding.small
+                    color: Qt.alpha(root.surfaceContainerHigh, 0.94)
+                    border.width: 1
+                    border.color: (root.mapError || root.failedTiles > 0) ? (root.palette ? root.palette.m3error : root.outlineVariant) : root.outlineVariant
+
+                    Row {
+                        id: statusRow
+
+                        anchors.centerIn: parent
+                        spacing: Tokens.spacing.small
+
+                        Text {
+                            text: root.mapStatusText
+                            color: (root.mapError || root.failedTiles > 0) ? (root.palette ? root.palette.m3error : root.onSurfaceVariant) : root.onSurfaceVariant
+                            font: Tokens.font.label.small
+                            elide: Text.ElideRight
+                        }
+
+                        Text {
+                            visible: root.mapError || root.failedTiles > 0 || root.anyFallback
+                            text: Tr.tr("Retry")
+                            color: root.primary
+                            font: Tokens.font.label.small
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.retryTiles()
+                            }
+                        }
                     }
                 }
 

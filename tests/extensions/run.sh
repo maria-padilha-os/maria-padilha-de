@@ -22,6 +22,19 @@ else
     bad "extension contract checker"
 fi
 
+echo "maps style, URLs and cache keys"
+
+# The Maps extension keeps its selection/URL/cache logic in a plain JS module
+# so these checks need no Qt, display or network.
+node_bin=$(command -v node || true)
+if [ -z "$node_bin" ]; then
+    printf '  skip %s\n' "Node.js is not installed"
+elif "$node_bin" "$root/tests/extensions/maps.test.js" > "$tmp/maps.log" 2>&1; then
+    ok "maps style, URL and cache-key rules"
+else
+    bad "maps style, URL and cache-key rules" "$(tail -20 "$tmp/maps.log")"
+fi
+
 echo "QML syntax"
 
 qml_files=()

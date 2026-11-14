@@ -1,6 +1,6 @@
 {
     "name": "Maps",
-    "description": "OpenStreetMap viewer and search",
+    "description": "Light and dark map viewer with place search",
     "version": "1.0",
     "icon": "map",
     "tab": "Tab.qml",
