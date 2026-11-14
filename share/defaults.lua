@@ -1,4 +1,5 @@
--- Two wallpapers, two moods: white for the day, black for the night.
+-- The fallback single-wallpaper schedule: white for the day, black for the
+-- night. A paired theme selected in Nexus overrides these two images.
 --
 -- Both are painted around the same red, so the seed is the same in both
 -- modes: the candle red of the artwork (HCT hue 29, chroma 72). The desktop

@@ -331,11 +331,11 @@ if [ "$hour" -ge 6 ] && [ "$hour" -lt 18 ]; then
 else
     want=night; wantmode=dark; wantwall=night.jpg
 fi
-out=$("$daylight" --dry-run 2>&1)
+out=$(XDG_CONFIG_HOME="$tmp/clean-config" "$daylight" --dry-run 2>&1)
 check "dry run follows the clock" "printf '%s' \"$out\" | grep -q \"period=$want mode=$wantmode wallpaper=.*$wantwall\"" "$out"
 
 rm -rf "$tmp/day"
-"$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
+XDG_CONFIG_HOME="$tmp/clean-config" "$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
 # Thunderbird: a profile exists only after its first launch.
 tb="$tmp/thumb"
 mkdir -p "$tb/home/machine/.config/thunderbird/tb.default"
@@ -364,7 +364,7 @@ fi
 
 # A period marker is not proof the theme landed; a login must repair it.
 rm -f "$tmp/day/home/machine/.local/state/caelestia/scheme.json"
-"$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
+XDG_CONFIG_HOME="$tmp/clean-config" "$daylight" --once --prefix "$tmp/day" > /dev/null 2>&1
 check "a matching period still repairs a missing scheme" \
     "test -s '$tmp/day/home/machine/.local/state/caelestia/scheme.json'"
 

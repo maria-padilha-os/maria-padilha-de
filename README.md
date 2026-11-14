@@ -103,6 +103,22 @@ The top bar, launcher, dashboard, and settings window shown together. The
 power, Bluetooth, audio, updates, extensions, and the bar panels. The
 [settings MP4](docs/assets/demo/settings.mp4) is smaller than the GIF.
 
+### Paired day/night themes
+
+A theme is two wallpapers: one day image and one night image. Add or apply them
+under **Settings → Wallpaper & style → Themes**; the active pair follows the
+same 06:00/18:00 schedule as the single-wallpaper fallback. Definitions live in
+`~/.config/padilha/themes.json` and can also be managed with:
+
+```sh
+padilha theme add --name "Machinedramon" --day DAY.jpg --night NIGHT.jpg
+padilha theme list
+padilha theme use machinedramon
+```
+
+Choosing a single wallpaper with `padilha wallpaper -f` clears the active
+theme, so the explicit choice is not overwritten at the next boundary.
+
 ## Features
 
 - **Shell** — bar, launcher, notifications, on-screen display, dashboard, and

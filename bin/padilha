@@ -31,6 +31,7 @@ local json = require("json")
 local schememod = require("scheme")
 local desktop = require("desktop")
 local seedmod = require("seed")
+local themes = require("themes")
 
 local function die(message)
     io.stderr:write("padilha: ", message, "\n")
@@ -52,6 +53,11 @@ usage: padilha <command>
   scheme get                                   the variant in use
   scheme set --variant NAME                    choose a variant and repaint
   theme mode light|dark                        repaint the current wallpaper
+  theme list [--json]                          paired day/night themes
+  theme use NAME                                apply a theme and make it active
+  theme add --name NAME --day PATH --night PATH define a paired theme
+  theme remove NAME                             delete a paired theme
+  theme current                                 print the active theme id
   doctor                                       check the installed pieces
 ]])
     os.exit(2)
@@ -154,11 +160,75 @@ elseif command == "theme" then
         if not wallpaper then
             die("no wallpaper set; run padilha wallpaper -f PATH first")
         end
-        local built, count, used = desktop.set_wallpaper(wallpaper, { mode = mode })
+        local built, count, used = desktop.set_wallpaper(wallpaper, { mode = mode, keep_theme = true })
         if not built then
             die(count or "could not repaint")
         end
         io.write(string.format("%s: %s, %d files\n", wallpaper, used, count))
+    elseif what == "list" then
+        local list, active = themes.list()
+        if not list then
+            die(active)
+        end
+        if flag("--json") then
+            io.write(json.encode({ themes = list, active = active }))
+        else
+            for _, theme in ipairs(list) do
+                io.write(string.format("%s%s\t%s\t%s\n",
+                    theme.id == active and "* " or "  ", theme.name, theme.day, theme.night))
+            end
+        end
+    elseif what == "current" then
+        io.write(themes.active(), "\n")
+    elseif what == "use" then
+        local wanted = table.remove(args, 1)
+        if not wanted then
+            die("theme use needs a theme name")
+        end
+        local theme, err = themes.get(wanted)
+        if not theme then
+            die(err)
+        end
+        local period = themes.period()
+        local image = period == "day" and theme.day or theme.night
+        if not image or image == "" then
+            die("theme has no " .. period .. " image")
+        end
+        local previous = themes.active()
+        local ok, set_err = themes.set_active(theme.id)
+        if not ok then
+            die(set_err)
+        end
+        local built, count, used = desktop.set_wallpaper(image, {
+            mode = period == "day" and "light" or "dark",
+            keep_theme = true,
+        })
+        if not built then
+            themes.set_active(previous ~= "" and previous or nil)
+            die(count or "could not apply the theme")
+        end
+        io.write(string.format("%s: %s image, %s, %d files\n", theme.name, period, used, count))
+    elseif what == "add" then
+        local name = take_value("--name")
+        local day = take_value("--day")
+        local night = take_value("--night")
+        if not name or not day or not night then
+            die("theme add needs --name, --day and --night")
+        end
+        local id, err = themes.add(name, day, night)
+        if not id then
+            die(err)
+        end
+        io.write(id, "\n")
+    elseif what == "remove" then
+        local id = table.remove(args, 1)
+        if not id then
+            die("theme remove needs a theme id")
+        end
+        local ok, err = themes.remove(id)
+        if not ok then
+            die(err)
+        end
     else
         usage()
     end
@@ -186,7 +256,7 @@ elseif command == "scheme" then
             die("no wallpaper set; run padilha wallpaper -f PATH first")
         end
         desktop.set_variant(variant)
-        local built, count, used = desktop.set_wallpaper(wallpaper, { variant = variant })
+        local built, count, used = desktop.set_wallpaper(wallpaper, { variant = variant, keep_theme = true })
         if not built then
             die(count or "could not repaint")
         end

@@ -127,6 +127,13 @@ function M.set_wallpaper(path, opts)
     if #errors > 0 then
         return nil, table.concat(errors, "; ")
     end
+
+    -- Choosing a single wallpaper is an explicit override; the paired theme
+    -- scheduler must not replace it at the next day/night boundary. Theme
+    -- selection and period switches pass keep_theme=true.
+    if not opts.keep_theme then
+        require("themes").set_active(nil)
+    end
     return built, #written, variant
 end
 

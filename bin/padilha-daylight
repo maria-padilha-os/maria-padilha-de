@@ -38,6 +38,7 @@ package.path = root .. "/lib/?.lua;" .. package.path
 local colour = require("colour")
 local schememod = require("scheme")
 local applymod = require("apply")
+local themes = require("themes")
 
 local home = os.getenv("HOME") or ""
 local config_home = os.getenv("XDG_CONFIG_HOME") or (home .. "/.config")
@@ -157,15 +158,28 @@ end
 --------------------------------------------------------------------------
 
 local function switch(period_name, config, opts)
-    local entry = config[period_name]
-    if not entry or not entry.wallpaper then
+    local entry = config[period_name] or {}
+    local theme_image, theme_id = themes.image_for(period_name)
+    local wallpaper
+    local theme_label = ""
+
+    if theme_image then
+        wallpaper = absolute(theme_image)
+        theme_label = " theme=" .. tostring(theme_id)
+    elseif entry.wallpaper then
+        wallpaper = absolute(entry.wallpaper)
+    else
         return false, "no wallpaper configured for " .. period_name
     end
 
-    local wallpaper = absolute(entry.wallpaper)
     local mode = period_name == "day" and "light" or "dark"
 
+    -- A paired theme takes its seed from the active image. The legacy
+    -- day/night config can still pin a seed for single wallpapers.
     local seed_hex = entry.seed
+    if theme_image then
+        seed_hex = nil
+    end
     if not seed_hex then
         local info, err = require("seed").from_wallpaper(wallpaper)
         if not info then
@@ -181,7 +195,8 @@ local function switch(period_name, config, opts)
     local scheme = schememod.build(h, c, mode, variant)
 
     if opts.dry_run then
-        io.write(string.format("period=%s mode=%s wallpaper=%s seed=%s\n", period_name, mode, wallpaper, seed_hex))
+        io.write(string.format("period=%s mode=%s wallpaper=%s seed=%s%s\n",
+            period_name, mode, wallpaper, seed_hex, theme_label))
         return true
     end
 
@@ -204,7 +219,7 @@ local function switch(period_name, config, opts)
         f:write(period_name .. "\n")
         f:close()
     end
-    log(string.format("period=%s mode=%s seed=%s files=%d", period_name, mode, seed_hex, #written))
+    log(string.format("period=%s mode=%s seed=%s files=%d%s", period_name, mode, seed_hex, #written, theme_label))
     return true
 end
 
