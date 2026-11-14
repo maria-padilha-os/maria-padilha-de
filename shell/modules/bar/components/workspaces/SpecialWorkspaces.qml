@@ -191,7 +191,7 @@ Item {
         sourceComponent: ActiveIndicator {
             activeWs: root.activeWs
             mask: view
-            color: Colours.palette.m3tertiary
+            color: Colours.palette.m3primary
             contentColour: Colours.palette.m3onTertiary
         }
     }

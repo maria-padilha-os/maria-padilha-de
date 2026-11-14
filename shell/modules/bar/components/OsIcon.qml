@@ -41,7 +41,7 @@ Item {
         ColouredIcon {
             source: SysInfo.osLogo
             implicitSize: Math.round(Tokens.font.body.large.pointSize * 1.2)
-            colour: Colours.palette.m3tertiary
+            colour: Colours.palette.m3primary
         }
     }
 }
