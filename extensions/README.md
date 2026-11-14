@@ -12,11 +12,14 @@ top panel.
 | `maps` | OpenStreetMap tiles, pan/zoom and Nominatim search | 560×360 |
 | `stopwatch` | start/stop, laps, reset | 340×230 |
 | `colour-picker` | sample a screen colour and copy HEX/RGB/HSL | 360×430 |
-| `translator` | MyMemory translation between nine languages | 480×280 |
+| `translator` | MyMemory translation between nine languages | 480×280 (min 360×280, fills the dashboard) |
 | `tuner` | microphone guitar tuner (Goertzel pitch detection, reference tones) | 420×260 |
 | `notes` | local plain-text notes (create, edit, delete) | 640×420 |
 | `calendar` | local month view and events | 680×460 |
 | `unit-converter` | offline length, mass, temperature, data and time conversion | 560×340 |
+
+The translator layout, compact behaviour and interaction checklist are in
+[`docs/translator-layout-checklist.md`](../docs/translator-layout-checklist.md).
 
 `notes`, `calendar` and `unit-converter` live in `share/extensions/` because
 they keep their user data next to the other Padilha state:
