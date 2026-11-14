@@ -24,6 +24,7 @@ package.path = root .. "/lib/?.lua;" .. package.path
 
 local json = require("json")
 local mcskin = require("mcskin")
+local mcreload = require("mcreload")
 
 local function die(msg)
     io.stderr:write("padilha-mc-theme: ", msg, "\n")
@@ -89,3 +90,5 @@ if not renamed then
     os.remove(tmp)
     die("cannot replace " .. dest .. ": " .. tostring(rename_err))
 end
+
+mcreload.reload_running()

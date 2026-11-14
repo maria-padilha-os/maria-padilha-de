@@ -104,6 +104,40 @@ else
 fi
 check "the standalone command reproduces the skin" "cmp -s '$tmp/mc-before' '$mc'"
 
+# Only the fork advertises the marker. An upstream mc must never receive
+# SIGUSR1: its default action terminates the process.
+fakebin="$tmp/fakebin"
+mkdir -p "$fakebin"
+cat > "$fakebin/mc" <<'SH'
+#!/bin/sh
+[ "$1" = "-V" ] && printf '%s\n' 'Live skin reload: SIGUSR1 (live-skin-reload)'
+SH
+cat > "$fakebin/pkill" <<'SH'
+#!/bin/sh
+printf '%s\n' "$*" > "${PADILHA_MC_SIGNAL_LOG:?}"
+SH
+chmod +x "$fakebin/mc" "$fakebin/pkill"
+rm -f "$tmp/mc-signal.log"
+env PATH="$fakebin:$PATH" PADILHA_MC_SIGNAL_LOG="$tmp/mc-signal.log" \
+    PADILHA_MC_RELOAD=1 XDG_STATE_HOME="$tmp/tree/home/machine/.local/state" \
+    XDG_DATA_HOME="$tmp/tree/home/machine/.local/share" \
+    "$root/bin/padilha-mc-theme" > "$tmp/mc-signal-run.log" 2>&1
+check "mc reload is signalled only when the fork advertises support" \
+    "[ \"\$(cat '$tmp/mc-signal.log' 2>/dev/null)\" = '-USR1 -x mc' ]" \
+    "$(cat "$tmp/mc-signal-run.log" 2>/dev/null)"
+
+cat > "$fakebin/mc" <<'SH'
+#!/bin/sh
+[ "$1" = "-V" ] && printf '%s\n' 'GNU Midnight Commander 4.8.33'
+SH
+chmod +x "$fakebin/mc"
+rm -f "$tmp/mc-no-signal.log"
+env PATH="$fakebin:$PATH" PADILHA_MC_SIGNAL_LOG="$tmp/mc-no-signal.log" \
+    PADILHA_MC_RELOAD=1 XDG_STATE_HOME="$tmp/tree/home/machine/.local/state" \
+    XDG_DATA_HOME="$tmp/tree/home/machine/.local/share" \
+    "$root/bin/padilha-mc-theme" > "$tmp/mc-no-signal-run.log" 2>&1
+check "upstream mc is never sent SIGUSR1" "! test -e '$tmp/mc-no-signal.log'"
+
 # The path unit can fire while scheme.json is still being written. A truncated
 # palette must fail loudly instead of replacing a good skin with half of one.
 mkdir -p "$tmp/bad-state/caelestia"

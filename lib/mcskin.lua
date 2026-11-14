@@ -1,8 +1,9 @@
 -- Midnight Commander's skin, generated from the scheme.
 --
--- mc reads a skin at startup and keeps it until restarted; there is no
--- reload signal. The [aliases] block is the only part that moves, so the
--- layout below it is stable whatever the wallpaper does.
+-- Upstream mc reads a skin at startup and keeps it until restarted. The
+-- Maria Padilha fork supports SIGUSR1 reload; lib/mcreload signals it only
+-- when `mc -V` advertises the fork's live-skin-reload marker. The [aliases]
+-- block is the only part that moves, so the layout below it is stable.
 
 local M = {}
 

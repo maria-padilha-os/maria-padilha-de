@@ -474,8 +474,9 @@ function M.apply(scheme, opts)
         end
     end
 
-    -- Midnight Commander reads one skin file at startup; it is the only app
-    -- here we cannot poke with a signal.
+    -- Midnight Commander reads one skin file at startup. The Maria Padilha
+    -- fork can reload it on SIGUSR1; lib/mcreload checks its capability marker
+    -- before signalling, so an upstream mc is never killed by a palette apply.
     if config_value(config, "enableMc", true) ~= false then
         local template = read_template("mc-skin.ini")
         if template then
@@ -483,6 +484,9 @@ function M.apply(scheme, opts)
             local write_ok, write_err = M.write(bases.data .. "/mc/skins/caelestia.ini", text)
             if write_ok then
                 written[#written + 1] = "mc/skins/caelestia.ini"
+                if opts.signals then
+                    require("mcreload").reload_running()
+                end
             else
                 errors[#errors + 1] = "mc skin: " .. tostring(write_err)
             end
