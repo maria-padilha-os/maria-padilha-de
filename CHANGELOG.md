@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The Maps tab now follows the wallpaper palette with CARTO's light/dark raster
+  styles, keeps OpenStreetMap as a clearly labelled offline/keyless fallback,
+  and shows loading, failure and retry states. A CARTO key is read at runtime
+  from `PADILHA_MAPS_CARTO_KEY` or `~/.config/padilha/maps.conf` and is never
+  committed; cache keys include the style and omit the key.
 - Thunderbird is now a first-class optional app instead of a base dependency.
   It is in the package's `optdepends`, the installer's Office/Mail group
   (`--with-office-mail`), and `packaging/apps.list`. A new `padilha-mail`

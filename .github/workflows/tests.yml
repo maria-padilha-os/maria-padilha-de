@@ -32,7 +32,7 @@ jobs:
           pacman-key --populate archlinux
           pacman -Syu --noconfirm --needed \
             ca-certificates dart-sass diffutils git jq lua imagemagick \
-            python python-pip
+            nodejs python python-pip
 
       # The colour oracle is test-only and not in the Arch repos; the wheel
       # keeps the job from needing a compiler.
