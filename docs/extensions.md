@@ -90,6 +90,10 @@ package put them in `/usr/lib/maria-padilha/share/extensions`. The dashboard
 scanner also reads the checkout directories while developing. See
 `extensions/README.md`.
 
+The translator tab fills the dashboard surface and switches to a compact layout
+below 640×420. Its [layout checklist](translator-layout-checklist.html) records
+the visual, sizing and interaction checks.
+
 `notes` stores plain-text files and `calendar` stores `events.json` under
 `~/.local/share/padilha/` (honouring `XDG_DATA_HOME`); neither has network
 access. `unit-converter` works entirely from a local factor table.
