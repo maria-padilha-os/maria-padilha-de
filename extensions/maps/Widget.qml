@@ -20,20 +20,23 @@ Item {
 
     // The shell assigns `api` when it creates the item, so it may still be
     // unset on the first frame. Everything below tolerates that.
-    readonly property var palette: root.api && root.api.colours ? root.api.colours.palette : null
+    readonly property var themePalette: root.api && root.api.colours ? root.api.colours.palette : null
 
-    readonly property color onSurface: root.palette ? root.palette.m3onSurface : "transparent"
-    readonly property color onSurfaceVariant: root.palette ? root.palette.m3onSurfaceVariant : "transparent"
-    readonly property color surface: root.palette ? root.palette.m3surface : "transparent"
-    readonly property color surfaceContainerHigh: root.palette ? root.palette.m3surfaceContainerHigh : "transparent"
-    readonly property color surfaceContainerHighest: root.palette ? root.palette.m3surfaceContainerHighest : "transparent"
-    readonly property color outlineVariant: root.palette ? root.palette.m3outlineVariant : "transparent"
-    readonly property color primary: root.palette ? root.palette.m3primary : "transparent"
-    readonly property color onPrimary: root.palette ? root.palette.m3onPrimary : "transparent"
-    readonly property color primaryContainer: root.palette ? root.palette.m3primaryContainer : "transparent"
-    readonly property color onPrimaryContainer: root.palette ? root.palette.m3onPrimaryContainer : "transparent"
+    readonly property color onSurface: root.themePalette ? root.themePalette.m3onSurface : "transparent"
+    readonly property color onSurfaceVariant: root.themePalette ? root.themePalette.m3onSurfaceVariant : "transparent"
+    readonly property color surface: root.themePalette ? root.themePalette.m3surface : "transparent"
+    readonly property color surfaceContainerHigh: root.themePalette ? root.themePalette.m3surfaceContainerHigh : "transparent"
+    readonly property color surfaceContainerHighest: root.themePalette ? root.themePalette.m3surfaceContainerHighest : "transparent"
+    readonly property color outlineVariant: root.themePalette ? root.themePalette.m3outlineVariant : "transparent"
+    readonly property color primary: root.themePalette ? root.themePalette.m3primary : "transparent"
+    readonly property color onPrimary: root.themePalette ? root.themePalette.m3onPrimary : "transparent"
+    readonly property color primaryContainer: root.themePalette ? root.themePalette.m3primaryContainer : "transparent"
+    readonly property color onPrimaryContainer: root.themePalette ? root.themePalette.m3onPrimaryContainer : "transparent"
 
-    readonly property int tileSize: 256
+    readonly property int minimumWidth: 420
+    readonly property int minimumHeight: 300
+    readonly property int controlHeight: Tokens.sizes.bar.innerWidth
+    readonly property int tileSize: 256 // OpenStreetMap's standard raster tile edge.
     readonly property int gridSize: 3
     readonly property real maxLatitude: 85.05112878
     readonly property int minZoom: 3
@@ -203,7 +206,7 @@ Item {
                 id: searchField
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: 40
+                Layout.preferredHeight: root.controlHeight
 
                 leftPadding: Tokens.padding.large
                 rightPadding: Tokens.padding.large
@@ -212,6 +215,8 @@ Item {
 
                 placeholderText: Tr.tr("Search for a place")
                 placeholderTextColor: root.onSurfaceVariant
+                Accessible.role: Accessible.EditableText
+                Accessible.name: Tr.tr("Search for a place")
                 color: root.onSurface
                 selectionColor: Qt.alpha(root.primary, 0.4)
                 selectedTextColor: root.onSurface
@@ -232,11 +237,20 @@ Item {
             Rectangle {
                 id: searchButton
 
-                Layout.preferredHeight: 40
-                Layout.preferredWidth: searchButtonLabel.implicitWidth + Tokens.padding.large * 2
+                Layout.preferredHeight: root.controlHeight
+                Layout.preferredWidth: Math.max(searchButtonLabel.implicitWidth + Tokens.padding.large * 2, root.controlHeight)
                 radius: Tokens.rounding.full
                 color: searchButtonMouse.containsMouse ? root.primary : root.primaryContainer
+                border.width: searchButton.activeFocus ? 2 : 0
+                border.color: root.onPrimary
                 opacity: root.searching ? 0.7 : 1
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: root.searching ? Tr.tr("Searching…") : Tr.tr("Search")
+
+                Keys.onReturnPressed: root.performSearch()
+                Keys.onSpacePressed: root.performSearch()
 
                 Text {
                     id: searchButtonLabel
@@ -254,7 +268,10 @@ Item {
                     hoverEnabled: true
                     enabled: !root.searching
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.performSearch()
+                    onClicked: {
+                        searchButton.forceActiveFocus();
+                        root.performSearch();
+                    }
                 }
             }
         }
@@ -448,14 +465,24 @@ Item {
                         font: Tokens.font.label.small
                     }
 
+                    activeFocusOnTab: true
+                    border.width: attribution.activeFocus ? 1 : 0
+                    border.color: root.primary
+
                     MouseArea {
                         id: attributionMouse
 
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: Qt.openUrlExternally("https://www.openstreetmap.org/copyright")
+                        onClicked: {
+                            attribution.forceActiveFocus();
+                            Qt.openUrlExternally("https://www.openstreetmap.org/copyright");
+                        }
                     }
+
+                    Keys.onReturnPressed: Qt.openUrlExternally("https://www.openstreetmap.org/copyright")
+                    Keys.onSpacePressed: Qt.openUrlExternally("https://www.openstreetmap.org/copyright")
                 }
 
                 Column {
@@ -465,13 +492,22 @@ Item {
                     spacing: Tokens.spacing.small
 
                     Rectangle {
-                        width: 38
-                        height: 38
+                        id: zoomInButton
+
+                        width: root.controlHeight
+                        height: root.controlHeight
                         radius: Tokens.rounding.full
                         color: Qt.alpha(root.surfaceContainerHigh, 0.94)
-                        border.width: 1
-                        border.color: root.outlineVariant
+                        border.width: zoomInButton.activeFocus ? 2 : 1
+                        border.color: zoomInButton.activeFocus ? root.primary : root.outlineVariant
                         opacity: root.zoom < root.maxZoom ? 1 : 0.4
+                        activeFocusOnTab: true
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: Tr.tr("Zoom in")
+
+                        Keys.onReturnPressed: root.setZoom(root.zoom + 1)
+                        Keys.onSpacePressed: root.setZoom(root.zoom + 1)
 
                         Text {
                             anchors.centerIn: parent
@@ -481,21 +517,35 @@ Item {
                         }
 
                         MouseArea {
+                            id: zoomInMouse
+
                             anchors.fill: parent
                             enabled: root.zoom < root.maxZoom
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.setZoom(root.zoom + 1)
+                            onClicked: {
+                                zoomInButton.forceActiveFocus();
+                                root.setZoom(root.zoom + 1);
+                            }
                         }
                     }
 
                     Rectangle {
-                        width: 38
-                        height: 38
+                        id: zoomOutButton
+
+                        width: root.controlHeight
+                        height: root.controlHeight
                         radius: Tokens.rounding.full
                         color: Qt.alpha(root.surfaceContainerHigh, 0.94)
-                        border.width: 1
-                        border.color: root.outlineVariant
+                        border.width: zoomOutButton.activeFocus ? 2 : 1
+                        border.color: zoomOutButton.activeFocus ? root.primary : root.outlineVariant
                         opacity: root.zoom > root.minZoom ? 1 : 0.4
+                        activeFocusOnTab: true
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: Tr.tr("Zoom out")
+
+                        Keys.onReturnPressed: root.setZoom(root.zoom - 1)
+                        Keys.onSpacePressed: root.setZoom(root.zoom - 1)
 
                         Text {
                             anchors.centerIn: parent
@@ -505,10 +555,15 @@ Item {
                         }
 
                         MouseArea {
+                            id: zoomOutMouse
+
                             anchors.fill: parent
                             enabled: root.zoom > root.minZoom
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.setZoom(root.zoom - 1)
+                            onClicked: {
+                                zoomOutButton.forceActiveFocus();
+                                root.setZoom(root.zoom - 1);
+                            }
                         }
                     }
                 }
@@ -523,7 +578,7 @@ Item {
                     anchors.left: parent.left
                     anchors.right: parent.right
                     anchors.margins: Tokens.padding.medium
-                    height: resultsColumn.implicitHeight + Tokens.padding.small * 2
+                    height: Math.min(resultsColumn.implicitHeight + Tokens.padding.small * 2, parent.height - Tokens.padding.medium * 2)
                     radius: Tokens.rounding.large
                     color: Qt.alpha(root.surfaceContainerHigh, 0.97)
                     border.width: 1

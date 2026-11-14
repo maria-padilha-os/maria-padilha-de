@@ -1,4 +1,5 @@
 import QtQuick
+import Caelestia.Config
 import qs.services
 
 // Hosts an extension's dashboard tab. The extension decides its own size;
@@ -13,8 +14,14 @@ Item {
 
     property alias loader: loader
 
-    implicitWidth: panelWidth > 0 ? panelWidth : loader.item?.implicitWidth ?? 420
-    implicitHeight: panelHeight > 0 ? panelHeight : loader.item?.implicitHeight ?? 240
+    // An extension may shrink to whatever the dashboard gives it, but never
+    // below the minimum its own Tab.qml declares. The tokens are only a first
+    // frame fallback so switching tabs does not flash an empty size.
+    readonly property real minimumWidth: Math.max(loader.item?.minimumWidth ?? 0, Tokens.sizes.dashboard.userWidth)
+    readonly property real minimumHeight: Math.max(loader.item?.minimumHeight ?? 0, Tokens.sizes.dashboard.perfNetworkCardHeight)
+
+    implicitWidth: Math.max(panelWidth, minimumWidth, loader.item?.implicitWidth ?? 0)
+    implicitHeight: Math.max(panelHeight, minimumHeight, loader.item?.implicitHeight ?? 0)
 
     function load(): void {
         const url = root.extension?.tabUrl ?? "";

@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(sys.argv[1] if len(sys.argv) > 1 else ".").resolve()
 CATALOG_ROOTS = (ROOT / "extensions", ROOT / "share" / "extensions")
 NEW_EXTENSIONS = {"system-monitor", "pomodoro", "disk-usage"}
+POLISHED_EXTENSIONS = {"calculator", "filemanager", "maps", "stopwatch", "translator", "tuner"}
 REQUIRED_KEYS = ("name", "description", "version", "icon", "tab")
 FORBIDDEN_COMMANDS = (
     "sudo",
@@ -217,6 +218,38 @@ def main() -> int:
                 bad(f"disk-usage does not scan the home directory ({marker})")
             else:
                 ok(f"disk-usage does not scan the home directory ({marker})")
+
+    # The dashboard's polished tabs declare a minimum size so the panel can
+    # clamp them before the widget exists, and use design tokens instead of
+    # literal type sizes.
+    for extension_id in sorted(POLISHED_EXTENSIONS):
+        entry = by_id.get(extension_id)
+        if entry is None:
+            bad(f"{extension_id} is present")
+            continue
+        extension_dir, data = entry
+        tab_name = data.get("tab")
+        tab_source = ""
+        if isinstance(tab_name, str) and tab_name:
+            tab_path = extension_dir / tab_name
+            if tab_path.is_file():
+                tab_source = tab_path.read_text(encoding="utf-8")
+        for marker in ("minimumWidth", "minimumHeight", "implicitWidth: Math.max", "implicitHeight: Math.max"):
+            if marker in tab_source:
+                ok(f"{extension_id} declares {marker}")
+            else:
+                bad(f"{extension_id} declares {marker}")
+
+        widget_source = (extension_dir / "Widget.qml").read_text(encoding="utf-8")
+        for marker in ("Tokens.padding", "Tokens.spacing", "Tokens.rounding", "Tokens.font"):
+            if marker in widget_source:
+                ok(f"{extension_id} uses {marker}")
+            else:
+                bad(f"{extension_id} uses {marker}")
+        if "font.pixelSize" in widget_source or 'font.family: "monospace"' in widget_source:
+            bad(f"{extension_id} uses typography tokens instead of literal type sizes")
+        else:
+            ok(f"{extension_id} uses typography tokens instead of literal type sizes")
 
     for extension_id in sorted(NEW_EXTENSIONS):
         entry = by_id.get(extension_id)

@@ -28,12 +28,43 @@ QtObject {
         onTriggered: harness.finish()
     }
 
+    function checkMinimumSize(item, path): bool {
+        const minimumWidth = Number(item.minimumWidth ?? 0);
+        const minimumHeight = Number(item.minimumHeight ?? 0);
+        if (minimumWidth <= 0 || minimumHeight <= 0)
+            return true;
+
+        // The dashboard sizes the tab from its implicit size. A minimum larger
+        // than that would be clipped before the widget ever gets a chance to
+        // lay itself out, so the two must agree.
+        if (Number(item.implicitWidth) < minimumWidth || Number(item.implicitHeight) < minimumHeight) {
+            console.error(`${path}: implicit size ${item.implicitWidth}x${item.implicitHeight} is smaller than minimum ${minimumWidth}x${minimumHeight}`);
+            return false;
+        }
+
+        item.width = minimumWidth;
+        item.height = minimumHeight;
+        const widget = item.children.length > 0 ? item.children[0] : null;
+        if (widget && (Math.round(widget.width) < minimumWidth || Math.round(widget.height) < minimumHeight)) {
+            console.error(`${path}: content ${widget.width}x${widget.height} is clipped at minimum ${minimumWidth}x${minimumHeight}`);
+            return false;
+        }
+
+        return true;
+    }
+
     function finish(): void {
         if (harness.finished)
             return;
         harness.finished = true;
-        for (const item of harness.loaded)
-            item.destroy();
+
+        for (const entry of harness.loaded) {
+            if (!harness.checkMinimumSize(entry.item, entry.path))
+                harness.failures++;
+        }
+
+        for (const entry of harness.loaded)
+            entry.item.destroy();
         harness.loaded = [];
         console.log(`loaded ${harness.paths.length - harness.failures} of ${harness.paths.length} extension tabs`);
         Qt.exit(harness.failures === 0 ? 0 : 1);
@@ -78,7 +109,10 @@ QtObject {
             }
 
             item.active = false;
-            harness.loaded = harness.loaded.concat([item]);
+            harness.loaded = harness.loaded.concat([{
+                item: item,
+                path: path
+            }]);
             console.log(`loaded ${path}`);
         }
 

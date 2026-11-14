@@ -8,8 +8,11 @@ Item {
     property var api
     property bool active: true
 
-    implicitWidth: 480
-    implicitHeight: 280
+    readonly property int minimumWidth: 360
+    readonly property int minimumHeight: 260
+
+    implicitWidth: Math.max(480, minimumWidth)
+    implicitHeight: Math.max(280, minimumHeight)
 
     Widget {
         anchors.fill: parent

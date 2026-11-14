@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell.Io
 import Caelestia.Config
+import Caelestia.I18n
 
 // Guitar tuner. The shell hands us `api` (colours, paths, extension, ...) and
 // api.extension.dirPath tells us where pitch.py lives.
@@ -24,8 +25,16 @@ Item {
     readonly property color cSurfaceHighest: root.theme ? root.theme.m3surfaceContainerHighest : "transparent"
     readonly property color cOnSurface: root.theme ? root.theme.m3onSurface : "transparent"
     readonly property color cOnSurfaceVariant: root.theme ? root.theme.m3onSurfaceVariant : "transparent"
+    readonly property color cOutline: root.theme ? root.theme.m3outlineVariant : "transparent"
     readonly property color cError: root.theme ? root.theme.m3error : "transparent"
     readonly property color cOnError: root.theme ? root.theme.m3onError : "transparent"
+
+    readonly property int minimumWidth: 360
+    readonly property int minimumHeight: 240
+    readonly property bool compact: root.height < Tokens.sizes.dashboard.mediaTabHeight
+    readonly property int cardPadding: root.compact ? Tokens.padding.small : Tokens.padding.medium
+    readonly property int controlHeight: Math.max(Tokens.font.label.medium.pointSize + Tokens.padding.small * 2, Tokens.padding.extraLarge + Tokens.padding.small)
+    readonly property int gaugeTrackY: Tokens.spacing.extraLarge
 
     readonly property var strings: [
         {
@@ -82,16 +91,16 @@ Item {
     readonly property string frequencyText: root.detected ? root.frequency.toFixed(2) + " Hz" : "— Hz"
     readonly property string statusText: {
         if (!root.running)
-            return "Stopped";
+            return Tr.tr("Stopped");
         if (root.lastError.length > 0)
             return root.lastError;
         if (!root.hasData)
-            return "Listening…";
+            return Tr.tr("Listening…");
         if (!root.detected)
-            return "Silence — play a string";
+            return Tr.tr("Silence — play a string");
         if (root.inTune)
-            return "In tune";
-        return root.cents < 0 ? "Tune up" : "Tune down";
+            return Tr.tr("In tune");
+        return root.cents < 0 ? Tr.tr("Tune up") : Tr.tr("Tune down");
     }
     readonly property color statusColour: {
         if (!root.running)
@@ -168,17 +177,17 @@ Item {
         id: card
 
         anchors.centerIn: parent
-        width: Math.min(parent.width - Tokens.padding.small * 2, 640)
-        height: Math.min(parent.height - Tokens.padding.small * 2, 480)
+        width: Math.min(Math.max(root.minimumWidth, parent.width - cardPadding * 2), 640)
+        height: Math.min(Math.max(root.minimumHeight, parent.height - cardPadding * 2), 480)
         radius: Tokens.rounding.extraLarge
         color: root.cSurfaceHigh
         border.width: 1
-        border.color: Qt.alpha(root.cOnSurfaceVariant, 0.18)
+        border.color: Qt.alpha(root.cOutline, 0.6)
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: Tokens.padding.medium
-            spacing: Tokens.spacing.small
+            anchors.margins: root.cardPadding
+            spacing: root.compact ? Tokens.spacing.extraSmall : Tokens.spacing.small
 
             RowLayout {
                 Layout.fillWidth: true
@@ -186,7 +195,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "Guitar tuner"
+                    text: Tr.tr("Guitar tuner")
                     color: root.cOnSurface
                     font: Tokens.font.title.small
                     elide: Text.ElideRight
@@ -196,21 +205,32 @@ Item {
                     id: startButton
 
                     Layout.alignment: Qt.AlignVCenter
-                    implicitWidth: 86
-                    implicitHeight: 32
-                    radius: height / 2
+                    implicitWidth: Math.max(startLabel.implicitWidth + Tokens.padding.large * 2, Tokens.padding.extraExtraLarge + Tokens.padding.small)
+                    implicitHeight: root.controlHeight
+                    radius: Tokens.rounding.full
                     color: root.running ? root.cError : root.cPrimary
                     opacity: root.pitchScript.length > 0 ? (startArea.containsMouse ? 0.9 : 1) : 0.45
+                    border.width: startButton.activeFocus ? 2 : 0
+                    border.color: root.cOnSurface
+                    activeFocusOnTab: true
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: root.running ? Tr.tr("Stop listening") : Tr.tr("Start listening")
+
+                    Keys.onReturnPressed: root.running ? root.stop() : root.start()
+                    Keys.onSpacePressed: root.running ? root.stop() : root.start()
 
                     Behavior on color {
                         ColorAnimation {
-                            duration: 150
+                            duration: Tokens.anim.durations.expressiveFastEffects
                         }
                     }
 
                     Text {
+                        id: startLabel
+
                         anchors.centerIn: parent
-                        text: root.running ? "Stop" : "Start"
+                        text: root.running ? Tr.tr("Stop") : Tr.tr("Start")
                         color: root.running ? root.cOnError : root.cOnPrimary
                         font: Tokens.font.label.medium
                     }
@@ -222,24 +242,28 @@ Item {
                         hoverEnabled: true
                         enabled: root.pitchScript.length > 0
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.running ? root.stop() : root.start()
+                        onClicked: {
+                            startButton.forceActiveFocus();
+                            root.running ? root.stop() : root.start();
+                        }
                     }
                 }
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 66
+                Layout.preferredHeight: root.compact ? Tokens.padding.extraExtraLarge + Tokens.padding.medium : Tokens.padding.extraExtraLarge * 1.5
                 spacing: Tokens.spacing.medium
 
                 Text {
-                    Layout.preferredWidth: 104
+                    Layout.preferredWidth: Tokens.padding.extraExtraLarge * 2
                     Layout.fillHeight: true
                     text: root.detected ? root.note : "—"
                     color: root.detected ? (root.inTune ? root.cPrimary : root.cOnSurface) : root.cOnSurfaceVariant
-                    font: Tokens.font.headline.builders.large.size(42).weight(Font.DemiBold).build()
+                    font: root.compact ? Tokens.font.headline.medium : Tokens.font.headline.builders.large.scale(1.3).build()
                     horizontalAlignment: Text.AlignLeft
                     verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
                 }
 
                 ColumnLayout {
@@ -251,12 +275,14 @@ Item {
                         text: root.centsText
                         color: root.detected ? (root.inTune ? root.cPrimary : root.cOnSurface) : root.cOnSurfaceVariant
                         font: Tokens.font.title.small
+                        elide: Text.ElideRight
                     }
 
                     Text {
                         text: root.frequencyText
                         color: root.cOnSurfaceVariant
                         font: Tokens.font.body.small
+                        elide: Text.ElideRight
                     }
                 }
 
@@ -264,18 +290,30 @@ Item {
                     id: referenceButton
 
                     Layout.alignment: Qt.AlignVCenter
-                    implicitWidth: 108
-                    implicitHeight: 30
-                    radius: height / 2
+                    implicitWidth: Math.max(referenceLabel.implicitWidth + Tokens.padding.large * 2, Tokens.padding.extraExtraLarge * 2)
+                    implicitHeight: root.controlHeight
+                    radius: Tokens.rounding.full
                     color: refArea.containsMouse ? Qt.alpha(root.cPrimary, 0.28) : root.cSurfaceHighest
-                    border.width: 1
-                    border.color: Qt.alpha(root.cPrimary, 0.5)
+                    border.width: referenceButton.activeFocus ? 2 : 1
+                    border.color: referenceButton.activeFocus ? root.cPrimary : Qt.alpha(root.cPrimary, 0.5)
+                    activeFocusOnTab: true
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: Tr.tr("Play %1 reference").arg(root.selectedName)
+
+                    Keys.onReturnPressed: root.playReference()
+                    Keys.onSpacePressed: root.playReference()
 
                     Text {
+                        id: referenceLabel
+
                         anchors.centerIn: parent
-                        text: root.referencePlaying ? "Playing…" : "Play " + root.selectedName
+                        width: Math.max(0, parent.width - Tokens.padding.small * 2)
+                        text: root.referencePlaying ? Tr.tr("Playing…") : Tr.tr("Play %1").arg(root.selectedName)
                         color: root.cPrimary
                         font: Tokens.font.label.small
+                        elide: Text.ElideRight
+                        horizontalAlignment: Text.AlignHCenter
                     }
 
                     MouseArea {
@@ -284,7 +322,10 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.playReference()
+                        onClicked: {
+                            referenceButton.forceActiveFocus();
+                            root.playReference();
+                        }
                     }
                 }
             }
@@ -293,7 +334,7 @@ Item {
                 id: gauge
 
                 Layout.fillWidth: true
-                Layout.preferredHeight: 48
+                Layout.preferredHeight: root.compact ? Tokens.padding.extraLargeIncreased + Tokens.padding.small : Tokens.padding.extraExtraLarge
 
                 Text {
                     anchors.left: parent.left
@@ -324,18 +365,18 @@ Item {
 
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    y: 27
-                    height: 4
-                    radius: 2
+                    y: root.gaugeTrackY
+                    height: Tokens.padding.extraSmall
+                    radius: height / 2
                     color: root.cSurfaceHighest
                 }
 
                 Rectangle {
                     x: track.x + track.width * 0.45
-                    y: track.y - 2
+                    y: track.y - Tokens.padding.extraSmall / 2
                     width: track.width * 0.1
-                    height: track.height + 4
-                    radius: 2
+                    height: track.height + Tokens.padding.extraSmall
+                    radius: height / 2
                     color: Qt.alpha(root.cPrimary, 0.28)
                 }
 
@@ -346,9 +387,9 @@ Item {
                         required property int index
 
                         x: track.x + track.width * index / 10
-                        y: index === 5 ? 22 : 24
+                        y: index === 5 ? root.gaugeTrackY - Tokens.padding.small : root.gaugeTrackY - Tokens.padding.extraSmall
                         width: index === 5 ? 2 : 1
-                        height: index === 5 ? 14 : 9
+                        height: index === 5 ? Tokens.padding.large : Tokens.padding.small + 1
                         color: index === 5 ? root.cOnSurfaceVariant : Qt.alpha(root.cOnSurfaceVariant, 0.45)
                     }
                 }
@@ -357,16 +398,16 @@ Item {
                     id: needle
 
                     visible: root.detected
-                    y: 17
-                    width: 4
-                    height: 24
-                    radius: 2
+                    y: root.gaugeTrackY - Tokens.padding.small
+                    width: Tokens.padding.extraSmall
+                    height: Tokens.padding.extraExtraLarge
+                    radius: width / 2
                     x: track.x + track.width * (root.gaugeCents + 50) / 100 - width / 2
                     color: root.inTune ? root.cPrimary : root.cError
 
                     Behavior on x {
                         NumberAnimation {
-                            duration: 140
+                            duration: Tokens.anim.durations.expressiveFastEffects
                             easing.type: Easing.OutCubic
                         }
                     }
@@ -375,7 +416,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 30
+                Layout.preferredHeight: root.controlHeight
                 spacing: Tokens.spacing.extraSmall
 
                 Repeater {
@@ -391,23 +432,37 @@ Item {
                         readonly property bool isMatch: root.detected && root.note === modelData.name
 
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 30
+                        Layout.preferredHeight: root.controlHeight
                         radius: Tokens.rounding.small
                         color: isMatch ? root.cPrimary : isSelected ? root.cPrimaryContainer : root.cSurfaceHighest
-                        border.width: isSelected ? 1 : 0
+                        border.width: stringButton.activeFocus ? 2 : isSelected ? 1 : 0
                         border.color: root.cPrimary
+                        activeFocusOnTab: true
+
+                        Accessible.role: Accessible.RadioButton
+                        Accessible.name: modelData.name
+                        Accessible.checked: stringButton.isSelected
+
+                        Keys.onReturnPressed: root.selectedString = stringButton.index
+                        Keys.onSpacePressed: root.selectedString = stringButton.index
 
                         Text {
                             anchors.centerIn: parent
+                            width: Math.max(0, parent.width - Tokens.padding.extraSmall * 2)
                             text: stringButton.modelData.name
                             color: stringButton.isMatch ? root.cOnPrimary : stringButton.isSelected ? root.cOnPrimaryContainer : root.cOnSurfaceVariant
                             font: Tokens.font.label.medium
+                            elide: Text.ElideRight
+                            horizontalAlignment: Text.AlignHCenter
                         }
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.selectedString = stringButton.index
+                            onClicked: {
+                                stringButton.forceActiveFocus();
+                                root.selectedString = stringButton.index;
+                            }
                         }
                     }
                 }
@@ -420,9 +475,9 @@ Item {
 
                 Rectangle {
                     Layout.alignment: Qt.AlignVCenter
-                    implicitWidth: 7
-                    implicitHeight: 7
-                    radius: 3.5
+                    implicitWidth: Tokens.spacing.small
+                    implicitHeight: Tokens.spacing.small
+                    radius: Tokens.rounding.full
                     color: root.statusColour
                 }
 
@@ -470,7 +525,7 @@ Item {
             if (!root.sampleParsed) {
                 root.failures += 1;
                 if (root.failures >= 2)
-                    root.lastError = "Microphone unavailable";
+                    root.lastError = Tr.tr("Microphone unavailable");
             }
         }
     }

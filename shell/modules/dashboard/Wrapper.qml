@@ -34,7 +34,7 @@ Item {
     visible: offsetScale < 1
     anchors.topMargin: (-implicitHeight - 5) * offsetScale
     implicitHeight: content.implicitHeight
-    implicitWidth: content.implicitWidth || 854 // Hard coded fallback for first open
+    implicitWidth: content.implicitWidth || Tokens.sizes.dashboard.mediaTabWidth
     opacity: 1 - offsetScale
 
     Behavior on offsetScale {

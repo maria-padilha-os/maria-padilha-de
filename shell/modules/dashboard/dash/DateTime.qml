@@ -10,6 +10,9 @@ import qs.services
 Item {
     id: root
 
+    readonly property int clockSize: Tokens.font.headline.medium.pointSize
+    readonly property int meridiemSize: Tokens.font.title.medium.pointSize
+
     anchors.top: parent.top
     anchors.bottom: parent.bottom
     implicitWidth: Tokens.sizes.dashboard.dateTimeWidth
@@ -25,14 +28,14 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             text: Time.hourStr
             color: Colours.palette.m3secondary
-            font: Tokens.font.clock.size(28).weight(Font.DemiBold).build()
+            font: Tokens.font.clock.size(root.clockSize).weight(Font.DemiBold).build()
         }
 
         StyledText {
             Layout.alignment: Qt.AlignHCenter
             text: "•••"
             color: Colours.palette.m3primary
-            font: Tokens.font.clock.size(28 * 0.9).build()
+            font: Tokens.font.clock.size(Math.round(root.clockSize * 0.9)).build()
         }
 
         StyledText {
@@ -40,7 +43,7 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             text: Time.minuteStr
             color: Colours.palette.m3secondary
-            font: Tokens.font.clock.size(28).weight(Font.DemiBold).build()
+            font: Tokens.font.clock.size(root.clockSize).weight(Font.DemiBold).build()
         }
 
         Loader {
@@ -53,7 +56,7 @@ Item {
             sourceComponent: StyledText {
                 text: "•••"
                 color: Colours.palette.m3primary
-                font: Tokens.font.clock.size(28 * 0.9).build()
+                font: Tokens.font.clock.size(Math.round(root.clockSize * 0.9)).build()
             }
         }
         Loader {
@@ -66,7 +69,7 @@ Item {
             sourceComponent: StyledText {
                 text: Time.format("ss")
                 color: Colours.palette.m3secondary
-                font: Tokens.font.clock.size(28).weight(Font.DemiBold).build()
+                font: Tokens.font.clock.size(root.clockSize).weight(Font.DemiBold).build()
             }
         }
 
@@ -80,7 +83,7 @@ Item {
             sourceComponent: StyledText {
                 text: Time.amPmStr
                 color: Colours.palette.m3primary
-                font: Tokens.font.clock.size(18).weight(Font.DemiBold).build()
+                font: Tokens.font.clock.size(root.meridiemSize).weight(Font.DemiBold).build()
             }
         }
     }

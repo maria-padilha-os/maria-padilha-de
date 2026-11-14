@@ -18,6 +18,7 @@ Item {
     required property var tabs
 
     readonly property alias count: bar.count
+    readonly property real minimumWidth: Math.max(Tokens.sizes.bar.innerWidth, 0) * count
 
     implicitHeight: bar.implicitHeight + bar.anchors.topMargin + indicator.implicitHeight + indicator.anchors.topMargin + separator.implicitHeight
 
@@ -64,22 +65,21 @@ Item {
         id: indicator
 
         anchors.top: bar.bottom
-        anchors.topMargin: 5
+        anchors.topMargin: Tokens.sizes.dashboard.tabIndicatorSpacing
 
-        implicitWidth: {
-            const tab = bar.currentItem;
-            if (tab)
-                return tab.implicitWidth;
-            const width = (root.nonAnimWidth - bar.spacing * (bar.count - 1)) / bar.count;
-            return width;
-        }
-        implicitHeight: 3
+        // Track the real tab width instead of assuming every tab is an equal
+        // fraction of the strip. The two only differ when a label is elided.
+        readonly property Item currentTab: bar.currentItem
+        readonly property real fallbackWidth: bar.count > 0 ? root.nonAnimWidth / bar.count : root.nonAnimWidth
+
+        implicitWidth: currentTab?.width ?? fallbackWidth
+        implicitHeight: Tokens.sizes.dashboard.tabIndicatorHeight
 
         x: {
-            const tab = bar.currentItem;
-            const width = (root.nonAnimWidth - bar.spacing * (bar.count - 1)) / bar.count;
-            const tabWidth = tab?.implicitWidth ?? width;
-            return width * bar.currentIndex + (width - tabWidth) / 2;
+            if (!currentTab)
+                return fallbackWidth * bar.currentIndex;
+            const origin = currentTab.mapToItem(root, 0, 0);
+            return origin.x + (currentTab.width - implicitWidth) / 2;
         }
 
         clip: true
@@ -110,7 +110,7 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
 
-        implicitHeight: 1
+        implicitHeight: Math.max(1, Config.border.thickness)
         color: Colours.palette.m3outlineVariant
     }
 
@@ -122,6 +122,7 @@ Item {
 
         Layout.fillWidth: true
         Layout.preferredWidth: 1 // Uniform width across all tabs
+        Layout.minimumWidth: Tokens.sizes.bar.innerWidth
         implicitWidth: implicitContentWidth
         implicitHeight: implicitContentHeight
         background: null
@@ -136,8 +137,8 @@ Item {
                     root.screenState.dashboardTab = Math.max(root.screenState.dashboardTab - 1, 0);
             }
 
-            implicitWidth: Math.max(icon.width, label.width)
-            implicitHeight: icon.height + label.height
+            implicitWidth: Math.max(icon.implicitWidth, label.implicitWidth) + Tokens.padding.extraSmall * 2
+            implicitHeight: icon.implicitHeight + label.implicitHeight + Tokens.spacing.extraSmall
 
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
@@ -167,6 +168,7 @@ Item {
 
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: label.top
+                anchors.bottomMargin: Tokens.spacing.extraSmall
 
                 text: tab.iconName
                 color: tab.current ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
@@ -183,11 +185,17 @@ Item {
             StyledText {
                 id: label
 
+                readonly property real availableWidth: Math.max(0, tab.width - Tokens.padding.small * 2)
+
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.bottom: parent.bottom
 
+                width: Math.min(implicitWidth, availableWidth)
                 text: tab.text
                 color: tab.current ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
         }
     }

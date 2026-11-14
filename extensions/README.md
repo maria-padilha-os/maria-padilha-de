@@ -18,6 +18,12 @@ top panel.
 | `calendar` | local month view and events | 680×460 |
 | `unit-converter` | offline length, mass, temperature, data and time conversion | 560×340 |
 
+Each tab declares its preferred size and its `minimumWidth`/`minimumHeight`.
+The dashboard clamps extension panels to those minimums, so a tab can shrink
+without clipping its labels or actions. The bundled calculator, files, maps,
+stopwatch, translator and tuner follow the
+[widget design checklist](../docs/design-checklist.md).
+
 `notes`, `calendar` and `unit-converter` live in `share/extensions/` because
 they keep their user data next to the other Padilha state:
 
