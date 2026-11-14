@@ -36,7 +36,7 @@ GridLayout {
         Layout.preferredWidth: Tokens.sizes.dashboard.weatherWidth
         Layout.preferredHeight: weather.implicitHeight
 
-        radius: Tokens.rounding.extraLarge * 1.5
+        radius: Tokens.rounding.extraLargeIncreased
 
         SmallWeather {
             id: weather
@@ -91,7 +91,7 @@ GridLayout {
         Layout.preferredWidth: media.implicitWidth
         Layout.fillHeight: true
 
-        radius: Tokens.rounding.extraLarge * 2
+        radius: Tokens.rounding.extraExtraLarge
 
         Media {
             id: media

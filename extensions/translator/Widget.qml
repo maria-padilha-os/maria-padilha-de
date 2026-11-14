@@ -16,6 +16,14 @@ Item {
     property bool compact: false
     property bool active: true
 
+    // Kept in sync with Tab.qml so the dashboard never gives this panel less
+    // room than its two text areas and the language row can share.
+    readonly property int minimumWidth: 360
+    readonly property int minimumHeight: 260
+    readonly property int edgePadding: root.compact ? Tokens.padding.medium : Tokens.padding.extraLarge
+    readonly property int controlHeight: Math.max(Tokens.font.label.medium.pointSize + Tokens.padding.medium * 2, Tokens.sizes.bar.innerWidth - Tokens.padding.extraSmall)
+    readonly property int menuHeight: root.compact ? Tokens.sizes.dashboard.perfBattHeight : Tokens.sizes.dashboard.perfNetworkCardHeight
+
     readonly property var themePalette: root.api && root.api.colours ? root.api.colours.palette : null
 
     // Keep transparent fallbacks so bindings survive the moment before the host
@@ -230,8 +238,8 @@ Item {
 
     ColumnLayout {
         anchors.centerIn: parent
-        width: Math.min(parent.width - (root.compact ? Tokens.padding.medium : Tokens.padding.extraLarge) * 2, 760)
-        height: Math.min(parent.height - (root.compact ? Tokens.padding.medium : Tokens.padding.extraLarge) * 2, 620)
+        width: Math.min(Math.max(root.minimumWidth, parent.width - root.edgePadding * 2), 760)
+        height: Math.min(Math.max(root.minimumHeight, parent.height - root.edgePadding * 2), 620)
         spacing: root.compact ? Tokens.spacing.extraSmall : Tokens.spacing.small
 
         RowLayout {
@@ -247,7 +255,7 @@ Item {
                 Layout.minimumWidth: 0
                 enabled: !root.busy
                 options: root.languages
-                menuMaxHeight: root.compact ? 180 : 280
+                menuMaxHeight: root.menuHeight
                 foreground: root.foreground
                 mutedColour: root.muted
                 fieldColour: root.surface
@@ -264,13 +272,20 @@ Item {
                 id: swapButton
 
                 Layout.alignment: Qt.AlignVCenter
-                Layout.preferredWidth: 34
-                Layout.preferredHeight: 34
+                Layout.preferredWidth: root.controlHeight
+                Layout.preferredHeight: root.controlHeight
                 radius: Tokens.rounding.full
                 color: swapMouse.containsMouse ? root.surface : "transparent"
-                border.width: 1
-                border.color: root.outline
+                border.width: swapButton.activeFocus ? 2 : 1
+                border.color: swapButton.activeFocus ? root.accent : root.outline
                 opacity: root.busy ? 0.4 : 1
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Swap languages")
+
+                Keys.onReturnPressed: root.swap()
+                Keys.onSpacePressed: root.swap()
 
                 Text {
                     anchors.centerIn: parent
@@ -286,7 +301,10 @@ Item {
                     enabled: !root.busy
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.swap()
+                    onClicked: {
+                        swapButton.forceActiveFocus();
+                        root.swap();
+                    }
                 }
             }
 
@@ -298,7 +316,7 @@ Item {
                 enabled: !root.busy
                 options: root.languages
                 selectedIndex: 1
-                menuMaxHeight: root.compact ? 180 : 280
+                menuMaxHeight: root.menuHeight
                 foreground: root.foreground
                 mutedColour: root.muted
                 fieldColour: root.surface
@@ -372,12 +390,19 @@ Item {
                 id: copyButton
 
                 visible: root.resultText.length > 0
-                Layout.preferredHeight: 34
-                implicitWidth: copyLabel.implicitWidth + Tokens.padding.large
+                Layout.preferredHeight: root.controlHeight
+                implicitWidth: copyLabel.implicitWidth + Tokens.padding.large * 2
                 radius: Tokens.rounding.full
                 color: copyMouse.containsMouse ? root.surface : "transparent"
-                border.width: 1
-                border.color: root.outline
+                border.width: copyButton.activeFocus ? 2 : 1
+                border.color: copyButton.activeFocus ? root.accent : root.outline
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Copy translation")
+
+                Keys.onReturnPressed: root.copyResult()
+                Keys.onSpacePressed: root.copyResult()
 
                 Text {
                     id: copyLabel
@@ -386,6 +411,9 @@ Item {
                     text: Tr.tr("Copy")
                     color: root.foreground
                     font: Tokens.font.label.medium
+                    elide: Text.ElideRight
+                    width: Math.max(0, parent.width - Tokens.padding.small * 2)
+                    horizontalAlignment: Text.AlignHCenter
                 }
 
                 MouseArea {
@@ -394,18 +422,30 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.copyResult()
+                    onClicked: {
+                        copyButton.forceActiveFocus();
+                        root.copyResult();
+                    }
                 }
             }
 
             Rectangle {
                 id: translateButton
 
-                Layout.preferredHeight: 34
+                Layout.preferredHeight: root.controlHeight
                 implicitWidth: translateLabel.implicitWidth + Tokens.padding.large * 2
                 radius: Tokens.rounding.full
-                color: !root.busy && translateMouse.containsMouse ? Qt.lighter(root.accent, 1.08) : root.accent
+                color: !root.busy && translateMouse.containsMouse ? Qt.alpha(root.accent, 0.9) : root.accent
+                border.width: translateButton.activeFocus ? 2 : 0
+                border.color: root.onAccent
                 opacity: root.busy ? 0.55 : 1
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Translate")
+
+                Keys.onReturnPressed: root.translate()
+                Keys.onSpacePressed: root.translate()
 
                 Text {
                     id: translateLabel
@@ -414,6 +454,9 @@ Item {
                     text: root.busy ? Tr.tr("Translating…") : Tr.tr("Translate")
                     color: root.onAccent
                     font: Tokens.font.label.medium
+                    elide: Text.ElideRight
+                    width: Math.max(0, parent.width - Tokens.padding.small * 2)
+                    horizontalAlignment: Text.AlignHCenter
                 }
 
                 MouseArea {
@@ -423,7 +466,10 @@ Item {
                     enabled: !root.busy
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.translate()
+                    onClicked: {
+                        translateButton.forceActiveFocus();
+                        root.translate();
+                    }
                 }
             }
         }
@@ -498,9 +544,9 @@ Item {
 
         signal submit()
 
-        radius: Tokens.rounding.small
+        radius: Tokens.rounding.medium
         color: panel.surfaceColour
-        border.width: 1
+        border.width: area.activeFocus ? 2 : 1
         border.color: area.activeFocus ? panel.accentColour : panel.outlineColour
 
         function focusEditor() {
@@ -522,14 +568,14 @@ Item {
                 id: verticalBar
 
                 policy: ScrollBar.AsNeeded
-                width: 8
+                width: Tokens.padding.small
                 background: Rectangle {
                     color: "transparent"
                 }
                 contentItem: Rectangle {
-                    implicitWidth: 4
-                    implicitHeight: 24
-                    radius: 2
+                    implicitWidth: Tokens.padding.extraSmall
+                    implicitHeight: Tokens.padding.extraExtraLarge / 2
+                    radius: width / 2
                     color: verticalBar.pressed ? panel.accentColour : panel.outlineColour
                 }
             }
@@ -580,12 +626,20 @@ Item {
         property color borderColour: "transparent"
         property color accentColour: "transparent"
 
-        implicitHeight: 34
+        implicitHeight: Tokens.font.body.small.pointSize + Tokens.padding.medium * 2
         radius: Tokens.rounding.small
         color: picker.fieldColour
-        border.width: 1
-        border.color: picker.expanded || pickerMouse.containsMouse ? picker.accentColour : picker.borderColour
+        border.width: picker.activeFocus ? 2 : 1
+        border.color: picker.activeFocus || picker.expanded || pickerMouse.containsMouse ? picker.accentColour : picker.borderColour
         opacity: picker.enabled ? 1 : 0.5
+        activeFocusOnTab: true
+
+        Accessible.role: Accessible.ComboBox
+        Accessible.name: picker.selectedIndex >= 0 && picker.selectedIndex < picker.options.length ? picker.options[picker.selectedIndex].name : ""
+
+        Keys.onReturnPressed: picker.expanded = !picker.expanded
+        Keys.onSpacePressed: picker.expanded = !picker.expanded
+        Keys.onEscapePressed: picker.expanded = false
 
         function collapse() {
             picker.expanded = false;
@@ -621,7 +675,10 @@ Item {
             enabled: picker.enabled
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: picker.expanded = !picker.expanded
+            onClicked: {
+                picker.forceActiveFocus();
+                picker.expanded = !picker.expanded;
+            }
         }
 
         Rectangle {
@@ -650,14 +707,14 @@ Item {
                     id: menuBar
 
                     policy: ScrollBar.AsNeeded
-                    width: 6
+                    width: Tokens.padding.extraSmall + Tokens.padding.extraSmall / 2
                     background: Rectangle {
                         color: "transparent"
                     }
                     contentItem: Rectangle {
-                        implicitWidth: 3
-                        implicitHeight: 20
-                        radius: 1.5
+                        implicitWidth: Tokens.padding.extraSmall - 1
+                        implicitHeight: Tokens.padding.largeIncreased
+                        radius: width / 2
                         color: menuBar.pressed ? picker.accentColour : picker.borderColour
                     }
                 }
@@ -669,12 +726,12 @@ Item {
                     required property int index
 
                     width: menuList.width
-                    height: 28
+                    height: Tokens.font.body.small.pointSize + Tokens.padding.small * 2
 
                     Rectangle {
                         anchors.fill: parent
                         radius: Tokens.rounding.extraSmall
-                        color: rowMouse.containsMouse || picker.selectedIndex === row.index ? Qt.rgba(picker.accentColour.r, picker.accentColour.g, picker.accentColour.b, 0.16) : "transparent"
+                        color: rowMouse.containsMouse || picker.selectedIndex === row.index ? Qt.alpha(picker.accentColour, 0.16) : "transparent"
                     }
 
                     Text {

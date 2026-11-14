@@ -88,6 +88,10 @@ The dashboard tabs are part of the shell and share the same palette. See the
 | --- | --- | --- | --- |
 | ![Maps tab](docs/assets/screenshots/tabs/maps.webp) | ![Stopwatch tab](docs/assets/screenshots/tabs/stopwatch.webp) | ![Translator tab](docs/assets/screenshots/tabs/translator.webp) | ![Tuner tab](docs/assets/screenshots/tabs/tuner.webp) |
 
+The widget spacing, typography, focus and minimum-size rules are in the
+[design checklist](docs/design-checklist.md), together with before/after
+captures from the offscreen renderer.
+
 ### Panels
 
 ![Desktop, launcher, dashboard, and settings panels](docs/assets/demo/panels.gif)

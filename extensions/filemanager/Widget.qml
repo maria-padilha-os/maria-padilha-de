@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
 import Qt.labs.folderlistmodel
-import Quickshell
 import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
@@ -21,20 +20,26 @@ Item {
     // The dashboard can stretch the tab far wider than a comfortable reading
     // width, so the panel is centered and capped instead of filling the screen.
     readonly property int maxContentWidth: 900
+    readonly property int minimumWidth: 520
+    readonly property int minimumHeight: 360
+    readonly property int iconSize: Tokens.font.body.large.pointSize
+    readonly property int rowHeight: Tokens.sizes.bar.innerWidth
+    readonly property int controlHeight: Tokens.sizes.bar.innerWidth
+    readonly property bool showDetails: root.width >= Tokens.sizes.dashboard.userWidth * 2
 
     // Tolerate the first frame(s), before the host assigns `api`.
-    readonly property var palette: root.api && root.api.colours ? root.api.colours.palette : null
+    readonly property var themePalette: root.api && root.api.colours ? root.api.colours.palette : null
 
-    readonly property color onSurface: palette ? palette.m3onSurface : "transparent"
-    readonly property color muted: palette ? palette.m3onSurfaceVariant : "transparent"
-    readonly property color surfaceLow: palette ? palette.m3surfaceContainerLow : "transparent"
-    readonly property color surfaceHigh: palette ? palette.m3surfaceContainerHigh : "transparent"
-    readonly property color outlineVariant: palette ? palette.m3outlineVariant : "transparent"
-    readonly property color accent: palette ? palette.m3primary : "transparent"
-    readonly property color primaryContainer: palette ? palette.m3primaryContainer : "transparent"
-    readonly property color onPrimaryContainer: palette ? palette.m3onPrimaryContainer : "transparent"
-    readonly property color onErrorContainer: palette ? palette.m3onErrorContainer : "transparent"
-    readonly property color errorContainer: palette ? palette.m3errorContainer : "transparent"
+    readonly property color onSurface: themePalette ? themePalette.m3onSurface : "transparent"
+    readonly property color muted: themePalette ? themePalette.m3onSurfaceVariant : "transparent"
+    readonly property color surfaceLow: themePalette ? themePalette.m3surfaceContainerLow : "transparent"
+    readonly property color surfaceHigh: themePalette ? themePalette.m3surfaceContainerHigh : "transparent"
+    readonly property color outlineVariant: themePalette ? themePalette.m3outlineVariant : "transparent"
+    readonly property color accent: themePalette ? themePalette.m3primary : "transparent"
+    readonly property color primaryContainer: themePalette ? themePalette.m3primaryContainer : "transparent"
+    readonly property color onPrimaryContainer: themePalette ? themePalette.m3onPrimaryContainer : "transparent"
+    readonly property color onErrorContainer: themePalette ? themePalette.m3onErrorContainer : "transparent"
+    readonly property color errorContainer: themePalette ? themePalette.m3errorContainer : "transparent"
 
     readonly property string homePath: root.normalisePath(root.api && root.api.paths ? root.api.paths.home : "")
 
@@ -55,6 +60,7 @@ Item {
     readonly property bool atHome: root.homePath.length > 0 && root.currentPath === root.homePath
 
     readonly property bool emptyState: root.started && folderModel.status === FolderListModel.Ready && folderModel.count === 0 && !root.readError && !accessProc.running
+    readonly property bool loadingState: root.started && !root.readError && (accessProc.running || folderModel.status === FolderListModel.Loading)
 
     readonly property string displayPath: {
         if (root.currentPath.length === 0)
@@ -240,7 +246,7 @@ Item {
         return dot > 0 ? value.slice(dot + 1).toLowerCase() : "";
     }
 
-    function fileIcon(name) {
+    function fileSymbol(name) {
         const suffix = root.suffixOf(name);
 
         switch (suffix) {
@@ -256,7 +262,7 @@ Item {
         case "ico":
         case "avif":
         case "heic":
-            return Quickshell.iconPath("image-x-generic", "application-x-zerosize");
+            return "image";
         case "mp3":
         case "flac":
         case "ogg":
@@ -265,7 +271,7 @@ Item {
         case "opus":
         case "aac":
         case "wma":
-            return Quickshell.iconPath("audio-x-generic", "application-x-zerosize");
+            return "audio_file";
         case "mp4":
         case "mkv":
         case "avi":
@@ -274,9 +280,9 @@ Item {
         case "m4v":
         case "flv":
         case "wmv":
-            return Quickshell.iconPath("video-x-generic", "application-x-zerosize");
+            return "video_file";
         case "pdf":
-            return Quickshell.iconPath("application-pdf", "application-x-zerosize");
+            return "picture_as_pdf";
         case "zip":
         case "tar":
         case "gz":
@@ -286,28 +292,28 @@ Item {
         case "7z":
         case "rar":
         case "tgz":
-            return Quickshell.iconPath("package-x-generic", "application-x-zerosize");
+            return "folder_zip";
         case "doc":
         case "docx":
         case "odt":
         case "rtf":
-            return Quickshell.iconPath("x-office-document", "application-x-zerosize");
+            return "description";
         case "xls":
         case "xlsx":
         case "ods":
         case "csv":
-            return Quickshell.iconPath("x-office-spreadsheet", "application-x-zerosize");
+            return "table_chart";
         case "ppt":
         case "pptx":
         case "odp":
-            return Quickshell.iconPath("x-office-presentation", "application-x-zerosize");
+            return "slideshow";
         case "ttf":
         case "otf":
         case "woff":
         case "woff2":
-            return Quickshell.iconPath("font-x-generic", "application-x-zerosize");
+            return "font_download";
         default:
-            return Quickshell.iconPath("text-x-generic", "application-x-zerosize");
+            return "draft";
         }
     }
 
@@ -381,8 +387,8 @@ Item {
                 spacing: Tokens.spacing.extraSmall
 
                 IconButton {
-                    iconName: "go-up"
-                    fallbackName: "go-up"
+                    symbol: "arrow_upward"
+                    accessibleName: Tr.tr("Go up")
                     enabled: root.canGoUp
                     hoverColour: root.surfaceHigh
                     checkedColour: root.primaryContainer
@@ -390,8 +396,8 @@ Item {
                 }
 
                 IconButton {
-                    iconName: "go-home"
-                    fallbackName: "go-home"
+                    symbol: "home"
+                    accessibleName: Tr.tr("Home")
                     enabled: root.homePath.length > 0 && !root.atHome
                     hoverColour: root.surfaceHigh
                     checkedColour: root.primaryContainer
@@ -399,8 +405,8 @@ Item {
                 }
 
                 IconButton {
-                    iconName: "go-previous"
-                    fallbackName: "go-previous"
+                    symbol: "chevron_left"
+                    accessibleName: Tr.tr("Back")
                     enabled: root.canGoBack
                     hoverColour: root.surfaceHigh
                     checkedColour: root.primaryContainer
@@ -408,8 +414,8 @@ Item {
                 }
 
                 IconButton {
-                    iconName: "go-next"
-                    fallbackName: "go-next"
+                    symbol: "chevron_right"
+                    accessibleName: Tr.tr("Forward")
                     enabled: root.canGoForward
                     hoverColour: root.surfaceHigh
                     checkedColour: root.primaryContainer
@@ -418,7 +424,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    Layout.minimumWidth: 40
+                    Layout.minimumWidth: Tokens.padding.extraExtraLarge
                     Layout.alignment: Qt.AlignVCenter
                     text: root.displayPath
                     color: root.onSurface
@@ -431,7 +437,7 @@ Item {
                     id: hiddenButton
 
                     Layout.preferredWidth: hiddenRow.implicitWidth + Tokens.padding.medium * 2
-                    Layout.preferredHeight: 34
+                    Layout.preferredHeight: root.controlHeight
                     radius: Tokens.rounding.full
                     color: root.showHidden ? root.primaryContainer : hiddenMouse.containsMouse ? root.surfaceHigh : "transparent"
 
@@ -441,12 +447,11 @@ Item {
                         anchors.centerIn: parent
                         spacing: Tokens.spacing.extraSmall
 
-                        Image {
-                            source: Quickshell.iconPath(root.showHidden ? "view-visible" : "view-hidden", "view-hidden")
-                            sourceSize.width: 16
-                            sourceSize.height: 16
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
+                        Text {
+                            text: root.showHidden ? "visibility" : "visibility_off"
+                            color: root.showHidden ? root.onPrimaryContainer : root.muted
+                            font: Tokens.font.icon.small
+                            verticalAlignment: Text.AlignVCenter
                         }
 
                         Text {
@@ -457,6 +462,23 @@ Item {
                         }
                     }
 
+                    activeFocusOnTab: true
+                    border.width: hiddenButton.activeFocus ? 2 : 0
+                    border.color: root.accent
+
+                    Accessible.role: Accessible.CheckBox
+                    Accessible.name: Tr.tr("Show hidden files")
+                    Accessible.checked: root.showHidden
+
+                    Keys.onReturnPressed: {
+                        root.showHidden = !root.showHidden;
+                        fileList.currentIndex = 0;
+                    }
+                    Keys.onSpacePressed: {
+                        root.showHidden = !root.showHidden;
+                        fileList.currentIndex = 0;
+                    }
+
                     MouseArea {
                         id: hiddenMouse
 
@@ -464,6 +486,7 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
+                            hiddenButton.forceActiveFocus();
                             root.showHidden = !root.showHidden;
                             fileList.currentIndex = 0;
                         }
@@ -471,8 +494,8 @@ Item {
                 }
 
                 IconButton {
-                    iconName: "view-refresh"
-                    fallbackName: "view-refresh"
+                    symbol: "refresh"
+                    accessibleName: Tr.tr("Refresh")
                     enabled: root.started
                     hoverColour: root.surfaceHigh
                     checkedColour: root.primaryContainer
@@ -489,25 +512,27 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 40
+                implicitHeight: errorRow.implicitHeight + Tokens.padding.small * 2
                 visible: root.readError
                 radius: Tokens.rounding.small
                 color: root.errorContainer
 
                 RowLayout {
+                    id: errorRow
+
                     anchors.fill: parent
                     anchors.leftMargin: Tokens.padding.medium
                     anchors.rightMargin: Tokens.padding.medium
                     spacing: Tokens.spacing.small
 
-                    Image {
-                        Layout.preferredWidth: 18
-                        Layout.preferredHeight: 18
-                        source: Quickshell.iconPath("dialog-error", "dialog-warning")
-                        sourceSize.width: 18
-                        sourceSize.height: 18
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
+                    Text {
+                        Layout.preferredWidth: root.iconSize
+                        Layout.preferredHeight: root.iconSize
+                        text: "error"
+                        color: root.onErrorContainer
+                        font: Tokens.font.icon.small
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
                     }
 
                     Text {
@@ -564,12 +589,12 @@ Item {
                         id: verticalBar
 
                         policy: ScrollBar.AsNeeded
-                        width: 8
+                        width: Tokens.padding.small
 
                         contentItem: Rectangle {
-                            implicitWidth: 4
-                            implicitHeight: 20
-                            radius: 2
+                            implicitWidth: Tokens.padding.extraSmall
+                            implicitHeight: Tokens.padding.largeIncreased
+                            radius: width / 2
                             color: root.muted
                             opacity: verticalBar.pressed ? 1 : 0.5
                         }
@@ -590,24 +615,24 @@ Item {
                         readonly property bool isCurrent: fileList.currentIndex === row.index
 
                         width: fileList.width
-                        height: 38
+                        height: root.rowHeight
                         radius: Tokens.rounding.small
                         color: row.isCurrent ? Qt.alpha(root.accent, 0.16) : rowMouse.containsMouse ? root.surfaceHigh : "transparent"
 
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: Tokens.padding.small
-                            anchors.rightMargin: Tokens.padding.medium + 8
+                            anchors.rightMargin: Tokens.padding.medium + Tokens.padding.small
                             spacing: Tokens.spacing.small
 
-                            Image {
-                                Layout.preferredWidth: 18
-                                Layout.preferredHeight: 18
-                                source: row.isDir ? Quickshell.iconPath("folder", "inode-directory") : root.fileIcon(row.fileName)
-                                sourceSize.width: 18
-                                sourceSize.height: 18
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
+                            Text {
+                                Layout.preferredWidth: root.iconSize
+                                Layout.preferredHeight: root.iconSize
+                                text: row.isDir ? "folder" : root.fileSymbol(row.fileName)
+                                color: row.isDir ? root.accent : root.muted
+                                font: Tokens.font.icon.small
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
                             }
 
                             Text {
@@ -621,7 +646,7 @@ Item {
                             }
 
                             Text {
-                                visible: !row.isDir
+                                visible: !row.isDir && root.showDetails
                                 Layout.preferredWidth: 70
                                 horizontalAlignment: Text.AlignRight
                                 text: row.isDir ? "" : root.formatSize(row.fileSize)
@@ -632,7 +657,7 @@ Item {
                             }
 
                             Text {
-                                visible: !row.isDir
+                                visible: !row.isDir && root.showDetails
                                 Layout.preferredWidth: 116
                                 horizontalAlignment: Text.AlignRight
                                 text: row.isDir ? "" : root.formatDate(row.fileModified)
@@ -659,33 +684,30 @@ Item {
                     }
                 }
 
-                Item {
+                ColumnLayout {
                     anchors.centerIn: parent
-                    width: Math.max(emptyIcon.width, emptyLabel.implicitWidth)
-                    height: emptyIcon.height + Tokens.spacing.small + emptyLabel.implicitHeight
-                    visible: root.emptyState
+                    width: Math.min(parent.width - Tokens.padding.extraLarge * 2, Tokens.sizes.dashboard.userWidth)
+                    spacing: Tokens.spacing.small
+                    visible: root.emptyState || root.loadingState
 
-                    Image {
+                    Text {
                         id: emptyIcon
 
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        source: Quickshell.iconPath("folder-open", "folder")
-                        sourceSize.width: 48
-                        sourceSize.height: 48
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
-                        opacity: 0.7
+                        Layout.alignment: Qt.AlignHCenter
+                        text: root.loadingState ? "hourglass_top" : "folder_open"
+                        color: root.muted
+                        font: Tokens.font.icon.builders.extraLarge.scale(1.4).build()
                     }
 
                     Text {
                         id: emptyLabel
 
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.top: emptyIcon.bottom
-                        anchors.topMargin: Tokens.spacing.small
-                        text: Tr.tr("This folder is empty")
+                        Layout.fillWidth: true
+                        text: root.loadingState ? Tr.tr("Loading…") : Tr.tr("This folder is empty")
                         color: root.muted
                         font: Tokens.font.body.medium
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
                     }
                 }
             }
@@ -735,27 +757,36 @@ Item {
     component IconButton: Rectangle {
         id: button
 
-        property string iconName: ""
-        property string fallbackName: "image-missing"
+        property string symbol: "help"
+        property string accessibleName: symbol
         property bool checked: false
         property color hoverColour: "transparent"
         property color checkedColour: "transparent"
 
         signal activated()
 
-        implicitWidth: 34
-        implicitHeight: 34
+        implicitWidth: root.controlHeight
+        implicitHeight: root.controlHeight
         radius: Tokens.rounding.full
         color: !button.enabled ? "transparent" : button.checked ? button.checkedColour : buttonMouse.containsMouse ? button.hoverColour : "transparent"
+        border.width: button.activeFocus ? 2 : 0
+        border.color: root.accent
         opacity: button.enabled ? 1 : 0.35
+        activeFocusOnTab: true
 
-        Image {
+        Accessible.role: Accessible.Button
+        Accessible.name: button.accessibleName
+
+        Keys.onReturnPressed: button.activated()
+        Keys.onSpacePressed: button.activated()
+
+        Text {
             anchors.centerIn: parent
-            source: Quickshell.iconPath(button.iconName, button.fallbackName)
-            sourceSize.width: 18
-            sourceSize.height: 18
-            fillMode: Image.PreserveAspectFit
-            smooth: true
+            text: button.symbol
+            color: button.enabled ? button.checked ? root.onPrimaryContainer : root.onSurface : root.muted
+            font: Tokens.font.icon.medium
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
         }
 
         MouseArea {
@@ -765,7 +796,10 @@ Item {
             hoverEnabled: true
             enabled: button.enabled
             cursorShape: button.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: button.activated()
+            onClicked: {
+                button.forceActiveFocus();
+                button.activated();
+            }
         }
     }
 }

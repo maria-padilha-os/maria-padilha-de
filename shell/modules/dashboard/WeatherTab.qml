@@ -10,8 +10,9 @@ Item {
     id: root
 
     readonly property var today: Weather.forecast && Weather.forecast.length > 0 ? Weather.forecast[0] : null
+    readonly property int minimumWidth: Tokens.sizes.dashboard.perfPlaceholderWidth + Tokens.padding.extraLarge * 2
 
-    implicitWidth: layout.implicitWidth > 800 ? layout.implicitWidth : 840
+    implicitWidth: Math.max(layout.implicitWidth, minimumWidth)
     implicitHeight: layout.implicitHeight
     Component.onCompleted: Weather.reload()
 
@@ -31,7 +32,7 @@ Item {
 
                 StyledText {
                     text: Weather.city || Tr.tr("Loading...")
-                    font: Tokens.font.body.builders.large.size(28).weight(Font.DemiBold).build()
+                    font: Tokens.font.headline.medium
                     color: Colours.palette.m3onSurface
                 }
 
@@ -69,7 +70,7 @@ Item {
             Layout.fillWidth: true
             implicitHeight: bigInfoRow.implicitHeight + Tokens.padding.small
 
-            radius: Tokens.rounding.extraLarge * 2
+            radius: Tokens.rounding.extraLarge
             color: Colours.tPalette.m3surfaceContainer
 
             RowLayout {
@@ -92,7 +93,7 @@ Item {
 
                     StyledText {
                         text: Weather.temp
-                        font: Tokens.font.body.builders.large.size(28 * 2).weight(Font.Medium).build()
+                        font: Tokens.font.headline.builders.large.scale(1.75).build()
                         color: Colours.palette.m3primary
                     }
 
@@ -214,11 +215,13 @@ Item {
         property color colour
 
         Layout.fillWidth: true
-        Layout.preferredHeight: 60
+        Layout.preferredHeight: detailRow.implicitHeight + Tokens.padding.medium * 2
         radius: Tokens.rounding.medium
         color: Colours.tPalette.m3surfaceContainer
 
         Row {
+            id: detailRow
+
             anchors.centerIn: parent
             spacing: Tokens.spacing.medium
 

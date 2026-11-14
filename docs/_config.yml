@@ -9,5 +9,6 @@ header_pages:
   - assistant.md
   - dotfiles.md
   - screenshots.md
+  - design-checklist.md
   - support.md
 show_excerpts: true

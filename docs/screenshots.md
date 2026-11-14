@@ -53,6 +53,10 @@ Network names are blurred in the published capture.
 
 ![Switching dashboard tabs](assets/demo/tabs.gif)
 
+The [widget design checklist](design-checklist.html) records the spacing,
+typography, focus-state and minimum-size rules used for these tabs, with
+before/after captures from the offscreen renderer.
+
 <video controls loop muted playsinline poster="assets/screenshots/tabs/dashboard.webp">
   <source src="assets/demo/tabs.mp4" type="video/mp4">
   Your browser does not support the video element.

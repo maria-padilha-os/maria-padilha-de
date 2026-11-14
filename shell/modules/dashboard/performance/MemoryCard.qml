@@ -14,7 +14,7 @@ StyledRect {
     readonly property color accent: Colours.palette.m3tertiary
 
     color: Colours.tPalette.m3surfaceContainer
-    radius: Tokens.rounding.medium
+    radius: Tokens.rounding.extraLarge
 
     implicitWidth: layout.implicitWidth + Tokens.padding.extraLargeIncreased * 2
     implicitHeight: layout.implicitHeight + Tokens.padding.large * 2
