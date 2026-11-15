@@ -137,8 +137,9 @@ theme, so the explicit choice is not overwritten at the next boundary.
   with the palette reapplied when the period changes.
 - **Calculator** — type `>calc 2+2` in the launcher; the native `Qalculator`
   binding uses libqalculate for units, currency, variables, and exact results.
-  `XF86Calculator` opens galculator, and `qalc -i` in a terminal gives the full
-  REPL.
+  The dashboard Calculator tab adds a graphical display, keypad and history
+  over the same qalc parser. `XF86Calculator` opens galculator, and `qalc -i`
+  in a terminal gives the full REPL.
 - **Configuration** — `init.lua` is compiled into the shell's JSON and
   validated against the shell's own schema. A generated `ui.lua` carries
   changes made from the settings UI.

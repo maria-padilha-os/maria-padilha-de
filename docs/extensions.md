@@ -90,6 +90,11 @@ package put them in `/usr/lib/maria-padilha/share/extensions`. The dashboard
 scanner also reads the checkout directories while developing. See
 `extensions/README.md`.
 
+The calculator tab shows a display, a four-column keypad and a scrollable
+history. It stacks those sections at 360×460 and puts history beside the keypad
+on a full dashboard. The keypad inserts qalc syntax and the same qalc command
+still owns parsing and error messages.
+
 The translator tab fills the dashboard surface and switches to a compact layout
 below 640×420. Its [layout checklist](translator-layout-checklist.html) records
 the visual, sizing and interaction checks.

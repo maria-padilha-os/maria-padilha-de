@@ -8,7 +8,7 @@ top panel.
 
 | id | what it does | tab size |
 | --- | --- | --- |
-| `calculator` | qalc front-end with history | 360×220 |
+| `calculator` | graphical qalc keypad, display and history | 420×560 (min 360×460) |
 | `maps` | CARTO light/dark tiles, pan/zoom and Nominatim search | 560×360 |
 | `stopwatch` | start/stop, laps, reset | 340×230 |
 | `colour-picker` | sample a screen colour and copy HEX/RGB/HSL | 360×430 |
