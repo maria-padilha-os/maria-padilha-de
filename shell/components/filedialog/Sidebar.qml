@@ -11,12 +11,30 @@ import qs.services
 StyledRect {
     id: root
 
+    objectName: "fileDialogSidebar"
+
     required property var dialog
 
     implicitWidth: Sizes.sidebarWidth
     implicitHeight: inner.implicitHeight + Tokens.padding.medium * 2
 
     color: Colours.tPalette.m3surfaceContainer
+
+    function focusFirstPlace(): void {
+        if (placeRepeater.count > 0)
+            placeRepeater.itemAt(0).forceActiveFocus();
+    }
+
+    function focusSelectedPlace(): void {
+        for (let i = 0; i < placeRepeater.count; i++) {
+            const item = placeRepeater.itemAt(i);
+            if (item && item.selected) {
+                item.forceActiveFocus();
+                return;
+            }
+        }
+        root.focusFirstPlace();
+    }
 
     ColumnLayout {
         id: inner
@@ -37,10 +55,14 @@ StyledRect {
         }
 
         Repeater {
+            id: placeRepeater
+
             model: ["Home", "Downloads", "Desktop", "Documents", "Music", "Pictures", "Videos"]
 
             StyledRect {
                 id: place
+
+                objectName: "fileDialogSidebar" + modelData
 
                 required property string modelData
                 readonly property bool selected: modelData === root.dialog.cwd[root.dialog.cwd.length - 1]
@@ -50,14 +72,25 @@ StyledRect {
 
                 radius: Tokens.rounding.full
                 color: Qt.alpha(Colours.palette.m3secondaryContainer, selected ? 1 : 0)
+                border.width: place.activeFocus ? 2 : 0
+                border.color: Colours.palette.m3primary
+                activeFocusOnTab: true
+
+                function activate(): void {
+                    if (place.modelData === "Home")
+                        root.dialog.cwd = ["Home"];
+                    else
+                        root.dialog.cwd = ["Home", place.modelData];
+                }
+
+                Keys.onReturnPressed: place.activate()
+                Keys.onSpacePressed: place.activate()
 
                 StateLayer {
                     color: place.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                     onClicked: {
-                        if (place.modelData === "Home")
-                            root.dialog.cwd = ["Home"];
-                        else
-                            root.dialog.cwd = ["Home", place.modelData];
+                        place.forceActiveFocus();
+                        place.activate();
                     }
                 }
 

@@ -17,8 +17,14 @@ import qs.utils
 Item {
     id: root
 
+    objectName: "fileDialogFolderContents"
+
     required property var dialog
     readonly property FileEntry currentItem: view.currentItem as FileEntry
+
+    function focusView(): void {
+        view.forceActiveFocus();
+    }
 
     StyledRect {
         anchors.fill: parent
@@ -76,6 +82,8 @@ Item {
 
     GridView {
         id: view
+
+        objectName: "fileDialogGrid"
 
         anchors.fill: parent
         anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
@@ -144,6 +152,21 @@ Item {
                 properties: "x,y"
             }
         }
+    }
+
+    Rectangle {
+        id: gridFocusRing
+
+        objectName: "fileDialogFocusRing"
+
+        anchors.fill: parent
+        anchors.margins: Tokens.padding.extraSmall + Tokens.padding.medium
+        radius: Tokens.rounding.medium
+        color: "transparent"
+        border.width: view.activeFocus ? 2 : 0
+        border.color: Colours.palette.m3primary
+        visible: border.width > 0
+        z: 2
     }
 
     CurrentItem {

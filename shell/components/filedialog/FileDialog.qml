@@ -32,6 +32,8 @@ LazyLoader {
     FloatingWindow {
         id: root
 
+        objectName: "fileDialogWindow"
+
         property list<string> cwd: loader.cwd
         property string filterLabel: loader.filterLabel
         property list<string> filters: loader.filters
@@ -49,6 +51,23 @@ LazyLoader {
             loader.rejected();
         }
 
+        function focusSidebar(): void {
+            sidebar.focusSelectedPlace();
+        }
+
+        function focusAddressBar(): void {
+            header.focusAddressBar();
+        }
+
+        function focusContents(): void {
+            folderContents.focusView();
+        }
+
+        function goUp(): void {
+            header.goUp();
+            folderContents.focusView();
+        }
+
         implicitWidth: 1000
         implicitHeight: 600
         minimumSize.width: 400
@@ -62,12 +81,41 @@ LazyLoader {
                 rejected();
         }
 
+        // Keyboard routes to the two surfaces that a mouse otherwise owns.
+        // The text fields keep normal typing because these are window-level
+        // chords, not single letters.
+        Shortcut {
+            sequence: "Ctrl+L"
+            context: Qt.WindowShortcut
+            onActivated: root.focusAddressBar()
+        }
+
+        Shortcut {
+            sequence: "Ctrl+B"
+            context: Qt.WindowShortcut
+            onActivated: root.focusSidebar()
+        }
+
+        Shortcut {
+            sequence: "F6"
+            context: Qt.WindowShortcut
+            onActivated: root.focusContents()
+        }
+
+        Shortcut {
+            sequence: "Alt+Up"
+            context: Qt.WindowShortcut
+            onActivated: root.goUp()
+        }
+
         RowLayout {
             anchors.fill: parent
 
             spacing: 0
 
             Sidebar {
+                id: sidebar
+
                 Layout.fillHeight: true
                 dialog: root
             }
@@ -79,6 +127,8 @@ LazyLoader {
                 spacing: 0
 
                 HeaderBar {
+                    id: header
+
                     Layout.fillWidth: true
                     dialog: root
                 }

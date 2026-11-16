@@ -99,6 +99,12 @@ The translator tab fills the dashboard surface and switches to a compact layout
 below 640×420. Its [layout checklist](translator-layout-checklist.html) records
 the visual, sizing and interaction checks.
 
+The Files tab keeps arrow/Enter/Backspace navigation, adds `Ctrl + L` for its
+address bar and `Ctrl + F` for search, and has an opt-in Vim toggle (`j`/`k`,
+`h`/`l`, `gg`/`G`, `Ctrl + d`/`Ctrl + u`, `/`, `Esc`). Its
+[keyboard checklist](files-keyboard-checklist.html) covers the Files tab and the
+file dialog sidebar/address bar, including the no-destructive-key rule.
+
 `notes` stores plain-text files and `calendar` stores `events.json` under
 `~/.local/share/padilha/` (honouring `XDG_DATA_HOME`); neither has network
 access. `unit-converter` works entirely from a local factor table.

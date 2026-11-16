@@ -9,12 +9,26 @@ import qs.services
 StyledRect {
     id: root
 
+    objectName: "fileDialogHeaderBar"
+
     required property var dialog
 
     implicitWidth: inner.implicitWidth + Tokens.padding.medium * 2
     implicitHeight: inner.implicitHeight + Tokens.padding.medium * 2
 
     color: Colours.tPalette.m3surfaceContainer
+
+    function focusAddressBar(): void {
+        if (folderRepeater.count > 0)
+            folderRepeater.itemAt(folderRepeater.count - 1).forceActiveFocus();
+        else
+            addressBar.forceActiveFocus();
+    }
+
+    function goUp(): void {
+        if (root.dialog.cwd.length > 1)
+            root.dialog.cwd.pop();
+    }
 
     RowLayout {
         id: inner
@@ -23,14 +37,28 @@ StyledRect {
         anchors.margins: Tokens.padding.medium
         spacing: Tokens.spacing.small
 
-        Item {
+        StyledRect {
+            objectName: "fileDialogUp"
+
             implicitWidth: implicitHeight
             implicitHeight: upIcon.implicitHeight + Tokens.padding.small
+            radius: Tokens.rounding.medium
+            color: "transparent"
+            border.width: activeFocus ? 2 : 0
+            border.color: Colours.palette.m3primary
+            activeFocusOnTab: true
+            enabled: root.dialog.cwd.length > 1
+
+            Keys.onReturnPressed: root.goUp()
+            Keys.onSpacePressed: root.goUp()
 
             StateLayer {
                 radius: Tokens.rounding.medium
                 disabled: root.dialog.cwd.length === 1
-                onClicked: root.dialog.cwd.pop()
+                onClicked: {
+                    parent.forceActiveFocus();
+                    root.goUp();
+                }
             }
 
             MaterialIcon {
@@ -44,12 +72,22 @@ StyledRect {
         }
 
         StyledRect {
+            id: addressBar
+
+            objectName: "fileDialogAddressBar"
+
             Layout.fillWidth: true
 
             radius: Tokens.rounding.medium
             color: Colours.tPalette.m3surfaceContainerHigh
+            border.width: addressBar.activeFocus ? 2 : 0
+            border.color: Colours.palette.m3primary
+            activeFocusOnTab: true
 
             implicitHeight: pathComponents.implicitHeight + pathComponents.anchors.margins * 2
+
+            Keys.onReturnPressed: root.focusAddressBar()
+            Keys.onSpacePressed: root.focusAddressBar()
 
             RowLayout {
                 id: pathComponents
@@ -61,6 +99,8 @@ StyledRect {
                 spacing: Tokens.spacing.small
 
                 Repeater {
+                    id: folderRepeater
+
                     model: root.dialog.cwd
 
                     RowLayout {
@@ -82,9 +122,35 @@ StyledRect {
                             }
                         }
 
-                        Item {
+                        StyledRect {
+                            id: crumb
+
+                            objectName: "fileDialogCrumb" + folder.index
+
                             implicitWidth: homeIcon.implicitWidth + (homeIcon.active ? Tokens.padding.extraSmall : 0) + folderName.implicitWidth + Tokens.padding.medium * 2
                             implicitHeight: folderName.implicitHeight + Tokens.padding.small
+                            radius: Tokens.rounding.medium
+                            color: "transparent"
+                            border.width: crumb.activeFocus ? 2 : 0
+                            border.color: Colours.palette.m3primary
+                            activeFocusOnTab: true
+
+                            function activate(): void {
+                                root.dialog.cwd = root.dialog.cwd.slice(0, folder.index + 1);
+                            }
+
+                            Keys.onReturnPressed: activate()
+                            Keys.onSpacePressed: activate()
+                            Keys.onLeftPressed: (event) => {
+                                if (folder.index > 0)
+                                    folderRepeater.itemAt(folder.index - 1).forceActiveFocus();
+                                event.accepted = true;
+                            }
+                            Keys.onRightPressed: (event) => {
+                                if (folder.index < folderRepeater.count - 1)
+                                    folderRepeater.itemAt(folder.index + 1).forceActiveFocus();
+                                event.accepted = true;
+                            }
 
                             Loader {
                                 asynchronous: true
@@ -92,7 +158,8 @@ StyledRect {
                                 active: folder.index < root.dialog.cwd.length - 1
                                 sourceComponent: StateLayer {
                                     onClicked: {
-                                        root.dialog.cwd = root.dialog.cwd.slice(0, folder.index + 1);
+                                        crumb.forceActiveFocus();
+                                        crumb.activate();
                                     }
 
                                     radius: Tokens.rounding.medium

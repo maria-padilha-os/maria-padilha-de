@@ -5,6 +5,8 @@ import QtQuick
 Item {
     id: root
 
+    objectName: "fileManagerTab"
+
     property var api
     property bool active: true
 

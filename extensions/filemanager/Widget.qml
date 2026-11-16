@@ -5,6 +5,7 @@ import Qt.labs.folderlistmodel
 import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
+import "Keybindings.js" as Keybindings
 
 // A small, keyboard-friendly file browser for the dashboard.
 //
@@ -13,6 +14,8 @@ import Caelestia.I18n
 // file contents — names and metadata only.
 Item {
     id: root
+
+    objectName: "fileManagerWidget"
 
     property var api
     property bool active: true
@@ -49,6 +52,18 @@ Item {
     property bool showHidden: false
     property bool readError: false
     property bool started: false
+
+    // Keyboard state. Vim mode is opt-in per tab from the header toggle; it is
+    // deliberately not persisted so a mouse user never gets modal keys by
+    // accident after an update.
+    property bool vimEnabled: false
+    property bool searchActive: false
+    property string searchQuery: ""
+    property bool editingPath: false
+    property string pendingKeys: ""
+    readonly property bool textEditing: searchField.activeFocus || addressField.activeFocus
+    readonly property string modeLabel: root.searchActive ? Keybindings.modeLabels.search : root.vimEnabled ? Keybindings.modeLabels.normal : ""
+    readonly property int focusRingWidth: 2
 
     // Exposed for the runtime probe (and useful for tests).
     readonly property int count: folderModel.count
@@ -120,6 +135,7 @@ Item {
         if (!root.started || target.length === 0 || target === root.currentPath)
             return;
 
+        root.resetSearch();
         const nextHistory = root.history.slice(0, root.historyIndex + 1);
         nextHistory.push(target);
         root.history = nextHistory;
@@ -131,6 +147,7 @@ Item {
     function goBack() {
         if (!root.canGoBack)
             return;
+        root.resetSearch();
         root.historyIndex -= 1;
         root.currentPath = root.history[root.historyIndex];
         root.checkAccess();
@@ -139,6 +156,7 @@ Item {
     function goForward() {
         if (!root.canGoForward)
             return;
+        root.resetSearch();
         root.historyIndex += 1;
         root.currentPath = root.history[root.historyIndex];
         root.checkAccess();
@@ -209,6 +227,185 @@ Item {
         index = Math.max(0, Math.min(total - 1, index + delta));
         fileList.currentIndex = index;
         fileList.positionViewAtIndex(index, ListView.Contain);
+    }
+
+    // --- Keyboard, search and address bar -----------------------------------
+
+    function selectIndex(index) {
+        const total = folderModel.count;
+        if (total <= 0) {
+            fileList.currentIndex = -1;
+            return;
+        }
+        const clamped = Math.max(0, Math.min(total - 1, index));
+        fileList.currentIndex = clamped;
+        fileList.positionViewAtIndex(clamped, ListView.Contain);
+    }
+
+    function moveToFirst() {
+        root.selectIndex(0);
+    }
+
+    function moveToLast() {
+        root.selectIndex(folderModel.count - 1);
+    }
+
+    function movePage(direction) {
+        const visibleRows = Math.max(1, Math.floor(fileList.height / Math.max(1, root.rowHeight)));
+        root.moveSelection(direction * Math.max(1, visibleRows - 1));
+    }
+
+    function resetSearch() {
+        root.searchActive = false;
+        root.searchQuery = "";
+        if (searchField.text.length > 0)
+            searchField.text = "";
+        root.pendingKeys = "";
+        root.editingPath = false;
+    }
+
+    function openSearch() {
+        root.editingPath = false;
+        root.searchActive = true;
+        root.pendingKeys = "";
+        searchField.forceActiveFocus();
+        searchField.selectAll();
+    }
+
+    function clearSearch() {
+        root.resetSearch();
+        if (root.active)
+            fileList.forceActiveFocus();
+    }
+
+    function focusAddressBar() {
+        root.searchActive = false;
+        root.pendingKeys = "";
+        root.editingPath = true;
+        addressField.text = root.currentPath;
+        addressField.forceActiveFocus();
+        addressField.selectAll();
+    }
+
+    function commitAddressBar() {
+        const target = root.normalisePath(addressField.text.trim());
+        root.editingPath = false;
+        if (target.length > 0)
+            root.navigate(target);
+        if (root.active)
+            fileList.forceActiveFocus();
+    }
+
+    function cancelAddressBar() {
+        root.editingPath = false;
+        root.pendingKeys = "";
+        if (root.active)
+            fileList.forceActiveFocus();
+    }
+
+    function keyToken(event) {
+        switch (event.key) {
+        case Qt.Key_Escape:
+            return "Escape";
+        case Qt.Key_Return:
+        case Qt.Key_Enter:
+            return "Enter";
+        case Qt.Key_Backspace:
+            return "Backspace";
+        case Qt.Key_Up:
+            return "ArrowUp";
+        case Qt.Key_Down:
+            return "ArrowDown";
+        case Qt.Key_Left:
+            return "ArrowLeft";
+        case Qt.Key_Right:
+            return "ArrowRight";
+        case Qt.Key_Home:
+            return "Home";
+        case Qt.Key_End:
+            return "End";
+        case Qt.Key_PageUp:
+            return "PageUp";
+        case Qt.Key_PageDown:
+            return "PageDown";
+        default:
+            break;
+        }
+
+        // Ctrl chords arrive with key text sometimes cleared, so fall back to
+        // the key code for A–Z. Plain text keeps the case of `G` intact.
+        if ((event.modifiers & (Qt.ControlModifier | Qt.AltModifier)) !== 0 && event.key >= Qt.Key_A && event.key <= Qt.Key_Z)
+            return String.fromCharCode(event.key).toLowerCase();
+        if (event.text && event.text.length > 0)
+            return event.text;
+        return "";
+    }
+
+    // Runs the Vim table. It returns false when the key is not a binding, and
+    // the caller leaves the event alone so other controls still work. The
+    // textEditing guard is intentional: no binding can fire while the search
+    // box or path editor owns focus.
+    function dispatchVim(token, ctrl, shift) {
+        if (!root.vimEnabled || root.textEditing || String(token ?? "").length === 0)
+            return false;
+
+        const result = Keybindings.resolve(token, ctrl, shift, root.pendingKeys);
+        root.pendingKeys = result.pending;
+        if (!result.consume)
+            return false;
+        // The first `g` only arms the `gg` prefix; it is still consumed.
+        if (result.action.length === 0)
+            return true;
+
+        switch (result.action) {
+        case "moveDown":
+            root.moveSelection(1);
+            break;
+        case "moveUp":
+            root.moveSelection(-1);
+            break;
+        case "goUp":
+            root.goUp();
+            break;
+        case "open":
+            root.activateIndex(fileList.currentIndex);
+            break;
+        case "first":
+            root.moveToFirst();
+            break;
+        case "last":
+            root.moveToLast();
+            break;
+        case "pageDown":
+            root.movePage(1);
+            break;
+        case "pageUp":
+            root.movePage(-1);
+            break;
+        case "search":
+            root.openSearch();
+            break;
+        case "escape":
+            root.clearSearch();
+            break;
+        default:
+            return false;
+        }
+        return true;
+    }
+
+    function handleKeyEvent(event) {
+        if (!root.vimEnabled || root.textEditing)
+            return false;
+        const token = root.keyToken(event);
+        if (token.length === 0)
+            return false;
+        const ctrl = (event.modifiers & Qt.ControlModifier) !== 0;
+        const shift = (event.modifiers & Qt.ShiftModifier) !== 0;
+        const handled = root.dispatchVim(token, ctrl, shift);
+        if (handled)
+            event.accepted = true;
+        return handled;
     }
 
     // --- Metadata formatting ------------------------------------------------
@@ -331,6 +528,19 @@ Item {
         sortField: FolderListModel.Name
         sortReversed: false
         sortCaseSensitive: false
+        nameFilters: ["*"]
+    }
+
+    onSearchQueryChanged: {
+        const query = root.searchQuery.trim();
+        folderModel.nameFilters = query.length > 0 ? ["*" + query + "*"] : ["*"];
+        if (query.length > 0)
+            fileList.currentIndex = folderModel.count > 0 ? 0 : -1;
+    }
+
+    onVimEnabledChanged: {
+        if (!root.vimEnabled)
+            root.pendingKeys = "";
     }
 
     onCurrentPathChanged: {
@@ -338,14 +548,17 @@ Item {
             return;
         root.readError = false;
         folderModel.folder = root.toFileUrl(root.currentPath);
+        folderModel.nameFilters = root.searchQuery.length > 0 ? ["*" + root.searchQuery + "*"] : ["*"];
         fileList.currentIndex = 0;
     }
 
     Component.onCompleted: root.init()
     onApiChanged: root.init()
     onActiveChanged: {
-        if (root.active)
+        if (root.active) {
+            root.pendingKeys = "";
             fileList.forceActiveFocus();
+        }
     }
 
     Connections {
@@ -354,7 +567,7 @@ Item {
         function onCountChanged() {
             if (folderModel.count === 0)
                 fileList.currentIndex = -1;
-            else if (fileList.currentIndex < 0)
+            else if (fileList.currentIndex < 0 || fileList.currentIndex >= folderModel.count)
                 fileList.currentIndex = 0;
         }
     }
@@ -422,15 +635,148 @@ Item {
                     onActivated: root.goForward()
                 }
 
-                Text {
+                Item {
+                    id: addressBar
+
+                    objectName: "fileManagerAddress"
+
                     Layout.fillWidth: true
-                    Layout.minimumWidth: Tokens.padding.extraExtraLarge
-                    Layout.alignment: Qt.AlignVCenter
-                    text: root.displayPath
-                    color: root.onSurface
-                    font: Tokens.font.body.medium
-                    elide: Text.ElideMiddle
-                    verticalAlignment: Text.AlignVCenter
+                    Layout.minimumWidth: 0
+                    Layout.preferredHeight: root.controlHeight
+
+                    Text {
+                        id: pathLabel
+
+                        anchors.fill: parent
+                        visible: !root.editingPath
+                        text: root.displayPath
+                        color: root.onSurface
+                        font: Tokens.font.body.medium
+                        elide: Text.ElideMiddle
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    TextField {
+                        id: addressField
+
+                        objectName: "fileManagerAddressField"
+
+                        anchors.fill: parent
+                        visible: root.editingPath
+                        leftPadding: Tokens.padding.small
+                        rightPadding: Tokens.padding.small
+                        topPadding: 0
+                        bottomPadding: 0
+                        text: root.currentPath
+                        color: root.onSurface
+                        selectionColor: Qt.alpha(root.accent, 0.4)
+                        selectedTextColor: root.onSurface
+                        font: Tokens.font.body.medium
+                        verticalAlignment: TextInput.AlignVCenter
+                        selectByMouse: true
+                        Accessible.role: Accessible.EditableText
+                        Accessible.name: Tr.tr("Path")
+
+                        onAccepted: root.commitAddressBar()
+                        Keys.onEscapePressed: (event) => {
+                            root.cancelAddressBar();
+                            event.accepted = true;
+                        }
+
+                        background: Rectangle {
+                            radius: Tokens.rounding.small
+                            color: root.surfaceHigh
+                            border.width: addressField.activeFocus ? root.focusRingWidth : 1
+                            border.color: addressField.activeFocus ? root.accent : root.outlineVariant
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: vimToggle
+
+                    objectName: "fileManagerVimToggle"
+
+                    Layout.preferredWidth: vimRow.implicitWidth + Tokens.padding.medium * 2
+                    Layout.preferredHeight: root.controlHeight
+                    radius: Tokens.rounding.full
+                    color: root.vimEnabled ? root.primaryContainer : vimMouse.containsMouse ? root.surfaceHigh : "transparent"
+                    border.width: vimToggle.activeFocus ? root.focusRingWidth : 0
+                    border.color: root.accent
+                    activeFocusOnTab: true
+
+                    Accessible.role: Accessible.CheckBox
+                    Accessible.name: Tr.tr("Vim mode")
+                    Accessible.checked: root.vimEnabled
+
+                    function toggle() {
+                        root.vimEnabled = !root.vimEnabled;
+                        root.pendingKeys = "";
+                        if (root.vimEnabled && root.active)
+                            fileList.forceActiveFocus();
+                    }
+
+                    Keys.onReturnPressed: vimToggle.toggle()
+                    Keys.onSpacePressed: vimToggle.toggle()
+
+                    RowLayout {
+                        id: vimRow
+
+                        anchors.centerIn: parent
+                        spacing: Tokens.spacing.extraSmall
+
+                        Text {
+                            text: "keyboard"
+                            color: root.vimEnabled ? root.onPrimaryContainer : root.muted
+                            font: Tokens.font.icon.small
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        Text {
+                            text: Tr.tr("Vim")
+                            color: root.vimEnabled ? root.onPrimaryContainer : root.muted
+                            font: Tokens.font.label.medium
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+
+                    MouseArea {
+                        id: vimMouse
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            vimToggle.forceActiveFocus();
+                            vimToggle.toggle();
+                        }
+                    }
+                }
+
+                Rectangle {
+                    id: modeIndicator
+
+                    objectName: "fileManagerMode"
+
+                    Layout.preferredWidth: modeText.implicitWidth + Tokens.padding.medium * 2
+                    Layout.preferredHeight: root.controlHeight
+                    visible: root.vimEnabled || root.searchActive
+                    radius: Tokens.rounding.full
+                    color: root.searchActive ? root.primaryContainer : root.surfaceHigh
+                    border.width: root.searchActive ? 1 : 0
+                    border.color: root.accent
+
+                    Text {
+                        id: modeText
+
+                        objectName: "fileManagerModeLabel"
+
+                        anchors.centerIn: parent
+                        text: root.modeLabel
+                        color: root.searchActive ? root.onPrimaryContainer : root.muted
+                        font: Tokens.font.label.medium
+                        verticalAlignment: Text.AlignVCenter
+                    }
                 }
 
                 Rectangle {
@@ -503,6 +849,56 @@ Item {
                 }
             }
 
+            RowLayout {
+                Layout.fillWidth: true
+                visible: root.searchActive
+                spacing: Tokens.spacing.small
+
+                TextField {
+                    id: searchField
+
+                    objectName: "fileManagerSearch"
+
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: root.controlHeight
+                    leftPadding: Tokens.padding.large
+                    rightPadding: Tokens.padding.large
+                    topPadding: 0
+                    bottomPadding: 0
+                    placeholderText: Tr.tr("Search this folder")
+                    placeholderTextColor: root.muted
+                    color: root.onSurface
+                    selectionColor: Qt.alpha(root.accent, 0.4)
+                    selectedTextColor: root.onSurface
+                    font: Tokens.font.body.medium
+                    verticalAlignment: TextInput.AlignVCenter
+                    selectByMouse: true
+                    Accessible.role: Accessible.EditableText
+                    Accessible.name: Tr.tr("Search this folder")
+
+                    onTextChanged: root.searchQuery = text
+                    onAccepted: root.activateIndex(fileList.currentIndex)
+                    Keys.onEscapePressed: (event) => {
+                        root.clearSearch();
+                        event.accepted = true;
+                    }
+
+                    background: Rectangle {
+                        radius: Tokens.rounding.full
+                        color: root.surfaceHigh
+                        border.width: searchField.activeFocus ? root.focusRingWidth : 1
+                        border.color: searchField.activeFocus ? root.accent : root.outlineVariant
+                    }
+                }
+
+                Text {
+                    text: Tr.tr("Esc clears")
+                    color: root.muted
+                    font: Tokens.font.label.small
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 1
@@ -554,6 +950,8 @@ Item {
                 ListView {
                     id: fileList
 
+                    objectName: "fileManagerList"
+
                     anchors.fill: parent
                     visible: !root.readError
                     clip: true
@@ -579,6 +977,29 @@ Item {
                         event.accepted = true;
                     }
                     Keys.onPressed: (event) => {
+                        const ctrl = (event.modifiers & Qt.ControlModifier) !== 0;
+
+                        // Address bar and search are reachable even outside Vim
+                        // mode so mouse users still get the keyboard shortcuts.
+                        if (ctrl && event.key === Qt.Key_L) {
+                            root.focusAddressBar();
+                            event.accepted = true;
+                            return;
+                        }
+                        if (ctrl && event.key === Qt.Key_F) {
+                            root.openSearch();
+                            event.accepted = true;
+                            return;
+                        }
+                        if (event.key === Qt.Key_Escape) {
+                            root.clearSearch();
+                            event.accepted = true;
+                            return;
+                        }
+                        if (root.handleKeyEvent(event))
+                            return;
+
+                        // Existing behaviour: Backspace always goes up.
                         if (event.key === Qt.Key_Backspace) {
                             root.goUp();
                             event.accepted = true;
@@ -682,6 +1103,20 @@ Item {
                             onDoubleClicked: root.activateIndex(row.index)
                         }
                     }
+                }
+
+                Rectangle {
+                    id: listFocusRing
+
+                    objectName: "fileManagerFocusRing"
+
+                    anchors.fill: parent
+                    radius: Tokens.rounding.small
+                    color: "transparent"
+                    border.width: fileList.activeFocus ? root.focusRingWidth : 0
+                    border.color: root.accent
+                    visible: border.width > 0
+                    z: 2
                 }
 
                 ColumnLayout {
