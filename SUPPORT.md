@@ -5,15 +5,15 @@ feature is paywalled, no build is held back, and there are no ads or trackers.
 
 ## GitHub Sponsors
 
-The repository's `.github/FUNDING.yml` is wired to
-[`@Mateus-M-Reis`](https://github.com/Mateus-M-Reis), but GitHub Sponsors
-enrollment is still pending. Until GitHub approves the listing:
+The GitHub Sponsors listing is approved and live:
 
-- the repository's Sponsor button is not active;
-- there is no working payment page yet.
+<a href="https://github.com/sponsors/Mateus-M-Reis"><img src="https://img.shields.io/badge/Sponsor%20on-GitHub-ea4aaa?logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
 
-No code or documentation change will be needed once the listing is approved; the
-button will pick up the handle from `FUNDING.yml`.
+**[Sponsor @Mateus-M-Reis on GitHub](https://github.com/sponsors/Mateus-M-Reis)**
+
+The repository's `.github/FUNDING.yml` points at the same account, so the
+repository's Sponsor button is active too. Sponsorships are optional: no
+feature is paywalled, no build is held back, and there are no ads or trackers.
 
 ## Other ways to help
 

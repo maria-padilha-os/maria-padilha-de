@@ -7,12 +7,23 @@ and a Lua configuration layer.
 
 [![tests](https://github.com/maria-padilha-os/maria-padilha-de/actions/workflows/tests.yml/badge.svg)](https://github.com/maria-padilha-os/maria-padilha-de/actions/workflows/tests.yml)
 [![release](https://img.shields.io/github/v/release/maria-padilha-os/maria-padilha-de)](https://github.com/maria-padilha-os/maria-padilha-de/releases/latest)
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Mateus-M-Reis)
 
 The name comes from Maria Padilha, a figure in Brazilian folk religion.
 
 > **Status:** early development (0.2.x). The shell, session, theme engine, and
 > package are usable; the settings application and greeter integration are
 > still in progress.
+
+## Support
+
+Maria Padilha is free software under GPL-3.0-only. Donations are optional and
+never unlock features or hold back builds.
+
+<a href="https://github.com/sponsors/Mateus-M-Reis"><img src="https://img.shields.io/badge/Sponsor%20on-GitHub-ea4aaa?logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
+
+You can also star the repositories, report bugs with logs, or read
+[SUPPORT.md](SUPPORT.md) for other ways to help.
 
 ## Install
 
