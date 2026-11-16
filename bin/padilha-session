@@ -16,6 +16,9 @@ config="$bin_dir/padilha-config"
 export PADILHA_CONFIG="$config"
 # The installed settings module still reads the old name during the transition.
 export LILITH_CONFIG="$config"
+# The clipboard widget launches this exact helper, so it also works from a
+# checkout without installing the command first.
+export PADILHA_CLIPBOARD="$bin_dir/padilha-clipboard"
 
 # First login on a fresh machine: there is no init.lua yet. The old
 # ~/.config/lilith tree still counts as configured during the migration.

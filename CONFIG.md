@@ -34,6 +34,10 @@ During the transition, `~/.config/lilith` is still read as a fallback when
   `padilha-theme` and `padilha-dots`.
 - `PADILHA_BACKLIGHT_DIR` — override the sysfs backlight directory for
   `padilha-brightness` (mainly for tests).
+- `PADILHA_CLIPBOARD` — the absolute path to the `padilha-clipboard` helper,
+  exported by `padilha-session` for the clipboard widget.
+- `PADILHA_CLIPBOARD_DIR` — override the clipboard state directory (mainly for
+  tests). The default is `$XDG_STATE_HOME/padilha/clipboard`.
 
 ## Theme settings
 
@@ -54,6 +58,53 @@ The switches are `enableHypr`, `enableHyprlock`, `enableFuzzel`, `enableBtop`,
 `enableCava`, `enableGtk`, `enableQt`, `enableMicro`, `enableSpicetify`,
 `enableDiscord`, `enableMc`, and `enableFirefox`. A missing file, or an omitted
 key, means enabled. `postHook` runs only with `padilha-theme apply --hooks`.
+
+## Clipboard history
+
+Clipboard history is opt-in and off by default. Enable the palette in
+`~/.config/padilha/init.lua`:
+
+```lua
+return {
+    clipboard = {
+        enabled = true,
+        maxEntries = 100,
+        privateWindowDelay = 5,
+        maxEntryBytes = 1048576,
+        showIndicator = true,
+        denyClasses = padilha.array {},
+        denyTitles = padilha.array {},
+    },
+}
+```
+
+History is stored under `~/.local/state/padilha/clipboard` (or
+`$XDG_STATE_HOME/padilha/clipboard`) and is trimmed to `maxEntries`. Nothing is
+recorded while the history is paused, while a password-manager window or
+password/title fragment is focused, or when the clipboard advertises a
+password-manager MIME type. `privateWindowDelay` is the number of seconds to
+wait after leaving a private window or password manager before recording again.
+`denyClasses` and `denyTitles` extend the built-in deny lists; both are
+case-insensitive substring matches.
+
+The palette is opened by the `clipboard` shell shortcut or
+`qs ipc call clipboard toggle`. It supports search, arrow-key selection,
+Enter to copy back, Delete to remove an entry, the pause/resume action, and a
+two-step Clear all. The same store is available without the shell:
+
+```sh
+padilha-clipboard --list          # id and preview, newest first
+padilha-clipboard --copy ID       # put an entry back on the clipboard
+padilha-clipboard --pause         # stop recording, keep the history
+padilha-clipboard --clear         # delete every entry
+padilha-clipboard --search        # fuzzel picker over the local history
+```
+
+The original `cliphist`/fuzzel picker remains the default when
+`padilha-clipboard` is run with no arguments. The daemon needs `wl-paste` from
+`wl-clipboard`; `padilha-clipboard --search` needs `fuzzel` and `wl-copy`, and
+the legacy picker also needs `cliphist`. If one is missing the command says so
+and exits with status 3 instead of failing silently.
 
 ## Precedence
 

@@ -127,6 +127,7 @@ class BarConfig : public settings::ObjectNode {
             LIST_ENTRY(bluetooth, true),
             LIST_ENTRY(brightness, true),
             LIST_ENTRY(battery, true),
+            LIST_ENTRY(clipboard, true),
         }))
     CONFIG_LIST(EntryList, entries,
         DEFAULT_ARG({

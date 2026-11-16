@@ -1,37 +1,644 @@
 #!/bin/sh
-# Clipboard history in fuzzel: pick an entry to put back on the clipboard, or
-# delete it. A cancelled picker (Escape) is a no-op, not an error.
+# Clipboard history: an opt-in local store with a picker that works without a
+# mouse, plus the original fuzzel/cliphist picker kept for compatibility.
+#
+#   padilha-clipboard                 pick from cliphist in fuzzel
+#   padilha-clipboard --search        pick from the local history in fuzzel
+#   padilha-clipboard --daemon        record clipboard changes (opt-in)
+#   padilha-clipboard --record        internal: record stdin (wl-paste --watch)
+#   padilha-clipboard --list          print "<id><tab><preview>" newest first
+#   padilha-clipboard --copy ID       put a stored entry back on the clipboard
+#   padilha-clipboard --remove ID     delete one stored entry
+#   padilha-clipboard --pause         stop recording, keep the history
+#   padilha-clipboard --resume        start recording again
+#   padilha-clipboard --clear         delete every stored entry
+#   padilha-clipboard --status        print recording state and entry count
+#
+# The store lives in $XDG_STATE_HOME/padilha/clipboard (default
+# ~/.local/state/padilha/clipboard). Entries are line-oriented and contain no
+# raw clipboard text: <id><tab><epoch><tab><base64>. The daemon asks Hyprland
+# for the focused window before every write, skips password-manager MIME hints,
+# and honours a cooldown after a private window. A denied entry is never
+# written, not even temporarily.
 set -u
+umask 077
+
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+prog=${0##*/}
+
+MAX=${PADILHA_CLIPBOARD_MAX:-100}
+DELAY=${PADILHA_CLIPBOARD_DELAY:-5}
+MAX_BYTES=${PADILHA_CLIPBOARD_MAX_BYTES:-1048576}
+DENY_CLASSES=${PADILHA_CLIPBOARD_DENY_CLASSES:-}
+DENY_TITLES=${PADILHA_CLIPBOARD_DENY_TITLES:-}
+
+# Password managers set their class, but some also name the window. These are
+# substring matches on lower-cased values, so org.keepassxc.KeePassXC matches
+# keepassxc. Users can extend both lists through the config.
+DEFAULT_DENY_CLASSES='keepassxc,keepass,bitwarden,1password,onepassword,lastpass,dashlane,protonpass,keeper,enpass,buttercup,seahorse,kwallet,gnome-keyring,password-manager,passwordmanager,authenticator,2fas,authy'
+DEFAULT_DENY_TITLES='password,passwd,passphrase,secret,vault,unlock,keychain,sign in,sign-in,log in,login,authentication,one-time passcode,2fa,private,incognito,inprivate'
 
 usage() {
-    printf 'usage: %s [-d]\n' "${0##*/}"
+    cat <<EOF
+usage: $prog [-d|--delete]          pick from cliphist in fuzzel
+       $prog --search              pick from the local history in fuzzel
+       $prog --daemon [options]    record clipboard changes (opt-in)
+       $prog --record              internal: record stdin (wl-paste --watch)
+       $prog --list                list stored entries, newest first
+       $prog --copy ID             put an entry back on the clipboard
+       $prog --remove ID           delete one stored entry
+       $prog --pause | --resume    stop or restart recording
+       $prog --clear               delete the whole history
+       $prog --status              print recording state and entry count
+
+options for --daemon/--record:
+       --max N                     keep at most N entries (default $MAX)
+       --delay N                   seconds to wait after a private window (default $DELAY)
+       --max-bytes N               largest entry to store (default $MAX_BYTES)
+       --deny-classes LIST         extra comma-separated window classes
+       --deny-titles LIST          extra comma-separated window-title fragments
+       --path DIR                  use DIR instead of the user state directory
+
+A denied password-manager or private-window copy is discarded before it is
+stored, and --pause wins over everything else.
+EOF
 }
 
-delete=
+die() {
+    printf '%s: %s\n' "$prog" "$*" >&2
+    exit 1
+}
+
+missing() {
+    printf '%s: %s is not installed; clipboard history needs it\n' "$prog" "$1" >&2
+    exit 3
+}
+
+require() {
+    command -v "$1" >/dev/null 2>&1 || missing "$1"
+}
+
+state_path() {
+    printf '%s' "${PADILHA_CLIPBOARD_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/padilha/clipboard}"
+}
+
+now() {
+    if [ -n "${PADILHA_CLIPBOARD_NOW:-}" ]; then
+        printf '%s' "$PADILHA_CLIPBOARD_NOW"
+    else
+        date +%s
+    fi
+}
+
+lower() {
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
+}
+
+# match_any VALUE COMMA_SEPARATED_LIST — substring match, case-insensitive.
+match_any() {
+    value=$(lower "$1")
+    list=$2
+    [ -n "$value" ] || return 1
+
+    old_ifs=$IFS
+    IFS=','
+    for pattern in $list; do
+        pattern=$(printf '%s' "$pattern" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+        [ -n "$pattern" ] || continue
+        case "$value" in
+            *"$(lower "$pattern")"*)
+                IFS=$old_ifs
+                return 0
+                ;;
+        esac
+    done
+    IFS=$old_ifs
+    return 1
+}
+
+is_paused() {
+    [ -e "$STATE/paused" ]
+}
+
+mark_private() {
+    mkdir -p "$STATE" 2>/dev/null || return 0
+    printf '%s\n' "$(now)" > "$STATE/last-private.tmp" 2>/dev/null &&
+        mv -f "$STATE/last-private.tmp" "$STATE/last-private" 2>/dev/null
+}
+
+# Read the active window without executing anything from its title or class.
+# Tests and non-Hyprland callers can provide the values through the environment.
+active_window() {
+    if [ "${PADILHA_CLIPBOARD_ACTIVE_CLASS+x}" = x ] || [ "${PADILHA_CLIPBOARD_ACTIVE_TITLE+x}" = x ]; then
+        ACTIVE_CLASS=${PADILHA_CLIPBOARD_ACTIVE_CLASS:-}
+        ACTIVE_TITLE=${PADILHA_CLIPBOARD_ACTIVE_TITLE:-}
+        return 0
+    fi
+
+    ACTIVE_CLASS=
+    ACTIVE_TITLE=
+    command -v hyprctl >/dev/null 2>&1 || return 0
+
+    info=$(hyprctl activewindow 2>/dev/null) || return 0
+    ACTIVE_CLASS=$(printf '%s\n' "$info" | sed -n 's/^[[:space:]]*class:[[:space:]]*//p' | head -n 1)
+    ACTIVE_TITLE=$(printf '%s\n' "$info" | sed -n 's/^[[:space:]]*title:[[:space:]]*//p' | head -n 1)
+}
+
+is_sensitive() {
+    match_any "$1" "$DEFAULT_DENY_CLASSES,$DENY_CLASSES" && return 0
+    match_any "$2" "$DEFAULT_DENY_TITLES,$DENY_TITLES" && return 0
+    return 1
+}
+
+mime_types() {
+    if [ "${PADILHA_CLIPBOARD_MIME_TYPES+x}" = x ]; then
+        printf '%s' "$PADILHA_CLIPBOARD_MIME_TYPES"
+        return 0
+    fi
+    command -v wl-paste >/dev/null 2>&1 || return 0
+    if command -v timeout >/dev/null 2>&1; then
+        timeout 1 wl-paste --list-types 2>/dev/null || true
+    else
+        wl-paste --list-types 2>/dev/null || true
+    fi
+}
+
+in_private_cooldown() {
+    [ "$DELAY" -gt 0 ] 2>/dev/null || return 1
+    [ -r "$STATE/last-private" ] || return 1
+
+    last=$(cat "$STATE/last-private" 2>/dev/null || printf '0')
+    case "$last" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+    current=$(now)
+    case "$current" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+
+    [ "$current" -ge "$last" ] || return 0
+    [ $((current - last)) -lt "$DELAY" ]
+}
+
+lock_acquire() {
+    if command -v flock >/dev/null 2>&1; then
+        exec 9>"$STATE/lock" || die "cannot open the history lock"
+        flock -x 9
+    fi
+}
+
+lock_release() {
+    if command -v flock >/dev/null 2>&1; then
+        flock -u 9 2>/dev/null || true
+    fi
+}
+
+trim_history() {
+    [ -s "$STATE/history" ] || return 0
+    count=$(wc -l < "$STATE/history" | tr -d ' ')
+    [ "$count" -gt "$MAX" ] || return 0
+
+    tmp=$(mktemp "$STATE/.trim.XXXXXX") || return 1
+    if tail -n "$MAX" "$STATE/history" > "$tmp"; then
+        mv -f "$tmp" "$STATE/history"
+    else
+        rm -f "$tmp"
+        return 1
+    fi
+}
+
+next_id() {
+    next=$(cat "$STATE/next" 2>/dev/null || printf '0')
+    case "$next" in
+        ''|*[!0-9]*) next=0 ;;
+    esac
+    if [ "$next" -le 0 ]; then
+        next=$(awk -F '\t' '{ if ($1 + 0 > max) max = $1 + 0 } END { print max + 1 }' "$STATE/history" 2>/dev/null || printf '1')
+        case "$next" in
+            ''|*[!0-9]*) next=1 ;;
+        esac
+    fi
+    printf '%s' "$next"
+}
+
+expected_copy() {
+    [ -r "$STATE/expect" ] || return 1
+    expected=$(cat "$STATE/expect" 2>/dev/null || true)
+    [ -n "$expected" ] || return 1
+    printf '%s' "$expected"
+}
+
+discard_stdin() {
+    # wl-paste writes the selection to our stdin. Drain it even when the entry
+    # is denied, otherwise that write can hit SIGPIPE and end the watcher.
+    if [ ! -t 0 ]; then
+        cat > /dev/null 2>&1 || true
+    fi
+}
+
+record_stdin() {
+    if is_paused; then
+        discard_stdin
+        return 0
+    fi
+
+    active_window
+    if is_sensitive "$ACTIVE_CLASS" "$ACTIVE_TITLE"; then
+        mark_private
+        discard_stdin
+        return 0
+    fi
+    if in_private_cooldown; then
+        discard_stdin
+        return 0
+    fi
+
+    types=$(lower "$(mime_types)")
+    case "$types" in
+        *password*|*secret*)
+            discard_stdin
+            return 0
+            ;;
+    esac
+
+    tmp=$(mktemp "$STATE/.entry.XXXXXX") || die "cannot create a temporary file"
+    trap 'rm -f "$tmp"' EXIT INT TERM
+    cat > "$tmp" || return 1
+
+    size=$(wc -c < "$tmp" | tr -d ' ')
+    [ "$size" -gt 0 ] || return 0
+    [ "$size" -le "$MAX_BYTES" ] || return 0
+
+    encoded=$(base64 < "$tmp" | tr -d '\n')
+    [ -n "$encoded" ] || return 0
+
+    expected=$(expected_copy || true)
+    if [ -n "$expected" ] && [ "$encoded" = "$expected" ]; then
+        rm -f "$STATE/expect"
+        return 0
+    fi
+
+    lock_acquire
+    if [ -s "$STATE/history" ]; then
+        last=$(tail -n 1 "$STATE/history" | cut -f 3)
+        if [ "$last" = "$encoded" ]; then
+            lock_release
+            return 0
+        fi
+    fi
+
+    id=$(next_id)
+    printf '%s\t%s\t%s\n' "$id" "$(now)" "$encoded" >> "$STATE/history" ||
+        {
+            lock_release
+            die "cannot write the clipboard history"
+        }
+    printf '%s\n' "$((id + 1))" > "$STATE/next"
+    trim_history
+    lock_release
+}
+
+cmd_list() {
+    [ -s "$STATE/history" ] || return 0
+
+    tab=$(printf '\t')
+    if command -v tac >/dev/null 2>&1; then
+        reverse() { tac "$1"; }
+    else
+        reverse() { sed '1!G;h;$!d' "$1"; }
+    fi
+
+    reverse "$STATE/history" | while IFS="$tab" read -r id _time encoded; do
+        [ -n "$id" ] || continue
+        text=$(printf '%s' "$encoded" | base64 -d 2>/dev/null || true)
+        preview=$(printf '%s' "$text" | tr '\n\r\t' '   ' | cut -c 1-160)
+        printf '%s\t%s\n' "$id" "$preview"
+    done
+}
+
+find_entry() {
+    id=$1
+    [ -s "$STATE/history" ] || return 1
+    awk -F '\t' -v id="$id" '$1 == id { print; exit }' "$STATE/history"
+}
+
+cmd_get() {
+    line=$(find_entry "$1") || die "no clipboard entry $1"
+    [ -n "$line" ] || die "no clipboard entry $1"
+    encoded=$(printf '%s\n' "$line" | cut -f 3)
+    printf '%s' "$encoded" | base64 -d
+}
+
+cmd_copy() {
+    line=$(find_entry "$1") || die "no clipboard entry $1"
+    [ -n "$line" ] || die "no clipboard entry $1"
+    encoded=$(printf '%s\n' "$line" | cut -f 3)
+
+    require wl-copy
+    # Remember this exact value so the watcher does not add the copy-back as a
+    # brand-new entry, and so old copies with the same text do not reappear.
+    lock_acquire
+    printf '%s\n' "$encoded" > "$STATE/expect"
+    lock_release
+
+    if ! printf '%s' "$encoded" | base64 -d | wl-copy; then
+        rm -f "$STATE/expect"
+        die "wl-copy could not set the clipboard"
+    fi
+}
+
+cmd_remove() {
+    line=$(find_entry "$1") || die "no clipboard entry $1"
+    [ -n "$line" ] || die "no clipboard entry $1"
+
+    lock_acquire
+    tmp=$(mktemp "$STATE/.remove.XXXXXX") || die "cannot create a temporary file"
+    awk -F '\t' -v id="$1" '$1 != id' "$STATE/history" > "$tmp" ||
+        {
+            rm -f "$tmp"
+            lock_release
+            die "cannot update the clipboard history"
+        }
+    mv -f "$tmp" "$STATE/history"
+    lock_release
+}
+
+cmd_clear() {
+    mkdir -p "$STATE" || die "cannot create $STATE"
+    lock_acquire
+    : > "$STATE/history"
+    rm -f "$STATE/next" "$STATE/expect"
+    lock_release
+}
+
+cmd_pause() {
+    mkdir -p "$STATE" || die "cannot create $STATE"
+    printf '%s\n' "$(now)" > "$STATE/paused"
+}
+
+cmd_resume() {
+    rm -f "$STATE/paused"
+}
+
+cmd_status() {
+    if is_paused; then
+        printf 'paused\n'
+    else
+        printf 'recording\n'
+    fi
+    count=$(wc -l < "$STATE/history" 2>/dev/null | tr -d ' ' || printf '0')
+    [ -n "$count" ] || count=0
+    printf 'path=%s\n' "$STATE"
+    printf 'entries=%s\n' "$count"
+}
+
+cmd_search() {
+    require fuzzel
+    chosen=$(cmd_list | fuzzel --dmenu --prompt='clip > ' --placeholder='Type to search clipboard') || exit 0
+    [ -n "$chosen" ] || exit 0
+    id=${chosen%%"$(printf '\t')"*}
+    cmd_copy "$id"
+}
+
+cmd_picker() {
+    require cliphist
+    require fuzzel
+
+    # fuzzel exits non-zero when the user backs out; keep that out of the
+    # caller's exit status and leave the clipboard alone.
+    if [ "$DELETE" = 1 ]; then
+        chosen=$(cliphist list | fuzzel --dmenu --prompt='del > ' --placeholder='Delete from clipboard') || exit 0
+    else
+        chosen=$(cliphist list | fuzzel --dmenu --placeholder='Type to search clipboard') || exit 0
+    fi
+    [ -n "$chosen" ] || exit 0
+
+    if [ "$DELETE" = 1 ]; then
+        printf '%s\n' "$chosen" | cliphist delete
+    else
+        require wl-copy
+        printf '%s\n' "$chosen" | cliphist decode | wl-copy
+    fi
+}
+
+cmd_daemon() {
+    require wl-paste
+    command -v hyprctl >/dev/null 2>&1 ||
+        printf '%s: hyprctl is not installed; private-window detection is off\n' "$prog" >&2
+
+    mkdir -p "$STATE" || die "cannot create $STATE"
+
+    if [ -s "$STATE/daemon.pid" ]; then
+        old=$(cat "$STATE/daemon.pid" 2>/dev/null || true)
+        case "$old" in
+            ''|*[!0-9]*) ;;
+            *)
+                if kill -0 "$old" 2>/dev/null; then
+                    # A reload can start the new watcher just before the old
+                    # process finishes exiting. Give it a moment, then keep the
+                    # existing daemon if it really is still there.
+                    tries=0
+                    while [ "$tries" -lt 20 ] && kill -0 "$old" 2>/dev/null; do
+                        sleep 0.1
+                        tries=$((tries + 1))
+                    done
+                    if kill -0 "$old" 2>/dev/null; then
+                        # A daemon already owns the watcher; two would duplicate
+                        # every entry.
+                        exit 0
+                    fi
+                fi
+                ;;
+        esac
+    fi
+    printf '%s\n' "$$" > "$STATE/daemon.pid"
+
+    focus_pid=
+    cleanup_daemon() {
+        rm -f "$STATE/daemon.pid"
+        if [ -n "$focus_pid" ]; then
+            kill "$focus_pid" 2>/dev/null || true
+            wait "$focus_pid" 2>/dev/null || true
+        fi
+    }
+    trap cleanup_daemon EXIT INT TERM
+
+    focus_monitor() {
+        while :; do
+            active_window
+            if is_sensitive "$ACTIVE_CLASS" "$ACTIVE_TITLE"; then
+                mark_private
+            fi
+            sleep "${PADILHA_CLIPBOARD_FOCUS_INTERVAL:-1}"
+        done
+    }
+    focus_monitor &
+    focus_pid=$!
+
+    # wl-paste runs `record` for each new selection and hands it the data on
+    # stdin. The child inherits the options exported below.
+    wl-paste --watch "$self" --record
+}
+
+DELETE=0
+MODE=picker
+ID=
+
 while [ $# -gt 0 ]; do
-    case $1 in
-        -d|--delete) delete=1 ;;
-        -h|--help) usage; exit 0 ;;
+    case "$1" in
+        -d|--delete)
+            DELETE=1
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --daemon|daemon)
+            MODE=daemon
+            shift
+            ;;
+        --record|record)
+            MODE=record
+            shift
+            ;;
+        --list|list)
+            MODE=list
+            shift
+            ;;
+        --get|get)
+            MODE='get'
+            shift
+            ID=${1:-}
+            [ -n "$ID" ] || {
+                usage >&2
+                exit 2
+            }
+            shift
+            ;;
+        --copy|copy)
+            MODE=copy
+            shift
+            ID=${1:-}
+            [ -n "$ID" ] || {
+                usage >&2
+                exit 2
+            }
+            shift
+            ;;
+        --remove|remove)
+            MODE=remove
+            shift
+            ID=${1:-}
+            [ -n "$ID" ] || {
+                usage >&2
+                exit 2
+            }
+            shift
+            ;;
+        --pause|pause)
+            MODE=pause
+            shift
+            ;;
+        --resume|resume)
+            MODE=resume
+            shift
+            ;;
+        --toggle-pause|toggle-pause)
+            MODE=toggle-pause
+            shift
+            ;;
+        --clear|clear)
+            MODE=clear
+            shift
+            ;;
+        --status|status)
+            MODE=status
+            shift
+            ;;
+        --search|search)
+            MODE=search
+            shift
+            ;;
+        --max)
+            MAX=${2:-}
+            shift 2
+            ;;
+        --delay)
+            DELAY=${2:-}
+            shift 2
+            ;;
+        --max-bytes)
+            MAX_BYTES=${2:-}
+            shift 2
+            ;;
+        --deny-classes)
+            DENY_CLASSES=${2:-}
+            shift 2
+            ;;
+        --deny-titles)
+            DENY_TITLES=${2:-}
+            shift 2
+            ;;
+        --path)
+            PADILHA_CLIPBOARD_DIR=${2:-}
+            [ -n "$PADILHA_CLIPBOARD_DIR" ] || {
+                usage >&2
+                exit 2
+            }
+            shift 2
+            ;;
         *)
-            printf '%s: unknown option: %s\n' "${0##*/}" "$1" >&2
+            printf '%s: unknown option: %s\n' "$prog" "$1" >&2
             usage >&2
             exit 2
             ;;
     esac
-    shift
 done
 
-# fuzzel exits non-zero when the user backs out; keep that out of the caller's
-# exit status and leave the clipboard alone.
-if [ -n "$delete" ]; then
-    chosen=$(cliphist list | fuzzel --dmenu --prompt='del > ' --placeholder='Delete from clipboard') || exit 0
-else
-    chosen=$(cliphist list | fuzzel --dmenu --placeholder='Type to search clipboard') || exit 0
-fi
-[ -n "$chosen" ] || exit 0
+for value in "$MAX" "$DELAY" "$MAX_BYTES"; do
+    case "$value" in
+        ''|*[!0-9]*)
+            printf '%s: expected a non-negative number, got %s\n' "$prog" "$value" >&2
+            exit 2
+            ;;
+    esac
+done
+[ "$MAX" -gt 0 ] || MAX=1
+[ "$MAX_BYTES" -gt 0 ] || MAX_BYTES=1
 
-if [ -n "$delete" ]; then
-    printf '%s\n' "$chosen" | cliphist delete
-else
-    printf '%s\n' "$chosen" | cliphist decode | wl-copy
-fi
+STATE=$(state_path)
+export PADILHA_CLIPBOARD_DIR=$STATE
+export PADILHA_CLIPBOARD_MAX=$MAX
+export PADILHA_CLIPBOARD_DELAY=$DELAY
+export PADILHA_CLIPBOARD_MAX_BYTES=$MAX_BYTES
+export PADILHA_CLIPBOARD_DENY_CLASSES=$DENY_CLASSES
+export PADILHA_CLIPBOARD_DENY_TITLES=$DENY_TITLES
+
+case "$MODE" in
+    picker) cmd_picker ;;
+    search) cmd_search ;;
+    daemon)
+        mkdir -p "$STATE" || die "cannot create $STATE"
+        cmd_daemon
+        ;;
+    record)
+        mkdir -p "$STATE" || die "cannot create $STATE"
+        record_stdin
+        ;;
+    list) cmd_list ;;
+    get) cmd_get "$ID" ;;
+    copy) cmd_copy "$ID" ;;
+    remove) cmd_remove "$ID" ;;
+    pause) cmd_pause ;;
+    resume) cmd_resume ;;
+    toggle-pause)
+        if is_paused; then
+            cmd_resume
+        else
+            cmd_pause
+        fi
+        ;;
+    clear) cmd_clear ;;
+    status) cmd_status ;;
+esac
