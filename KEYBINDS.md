@@ -139,6 +139,11 @@ Monitor order follows Hyprland's monitor IDs.
 | `Ctrl + Shift + Alt + V` | paste the latest clipboard entry |
 | `Super + Period` | emoji and glyph picker |
 
+The in-shell clipboard palette is opt-in and uses the `clipboard` shortcut
+(`clipboardPause` pauses or resumes it). With the feature disabled, or with the
+shortcut bound to `padilha-clipboard` directly, the fuzzel/cliphist picker is
+still available. See [CONFIG.md](CONFIG.md#clipboard-history).
+
 ## Mouse
 
 | keys | action |

@@ -145,6 +145,10 @@ theme, so the explicit choice is not overwritten at the next boundary.
   changes made from the settings UI.
 - **Session** — a Wayland session entry, `padilha-session`, optional systemd
   user units, and opt-in window restore.
+- **Clipboard (opt-in)** — a searchable, keyboard-first clipboard palette with
+  pause and clear-all actions. History stays under
+  `~/.local/state/padilha/clipboard`, is bounded, and skips password managers
+  and private windows. Disabled until `clipboard.enabled = true` is set.
 - **Mail (optional)** — Thunderbird is in the Office/Mail app group, with a
   `Mail` launcher and a `mailto:` handler. It is not a base dependency, and the
   handler exits cleanly when it is absent.
@@ -263,7 +267,7 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha-reload` | restart the shell safely |
 | `padilha-shot` | screenshots |
 | `padilha-record` | screen recording |
-| `padilha-clipboard` | clipboard history picker |
+| `padilha-clipboard` | opt-in clipboard history store, daemon, and picker |
 | `padilha-emoji` | emoji and glyph picker |
 | `padilha-colour` | colour parsing, picking, and clipboard helper |
 | `padilha-mail` | open Thunderbird or a `mailto:` URI, with a clean fallback |

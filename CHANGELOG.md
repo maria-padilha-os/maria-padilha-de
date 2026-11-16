@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- New opt-in clipboard history palette, disabled by default. It keeps a
+  bounded store under `~/.local/state/padilha/clipboard`, supports search,
+  keyboard selection and copy-back, pause and clear-all, and gives
+  password-manager classes, password-like titles, private-window cooldowns and
+  password-manager MIME hints a hard no. A bar dot shows when recording, and
+  `padilha-clipboard` still keeps the original fuzzel/cliphist picker.
 - The Maps tab now follows the wallpaper palette with CARTO's light/dark raster
   styles, keeps OpenStreetMap as a clearly labelled offline/keyless fallback,
   and shows loading, failure and retry states. A CARTO key is read at runtime

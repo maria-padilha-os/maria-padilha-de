@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 import qs.utils
@@ -149,6 +150,23 @@ StyledRect {
                     delegate: EntryWrapper {
                         BatteryStatus {
                             colour: root.colour
+                        }
+                    }
+                }
+                DelegateChoice {
+                    roleValue: "clipboard"
+                    delegate: EntryWrapper {
+                        visible: ClipboardHistory.enabled && ClipboardHistory.showIndicator
+                        margin: Tokens.spacing.extraSmall / 2
+
+                        MaterialIcon {
+                            animate: true
+                            text: ClipboardHistory.error ? "error" : ClipboardHistory.paused ? "pause_circle" : "fiber_manual_record"
+                            color: ClipboardHistory.error || ClipboardHistory.recording ? Colours.palette.m3error : Colours.palette.m3outline
+                            fontStyle: Tokens.font.icon.builders.small.weight(Font.Bold).build()
+                            fill: 1
+
+                            Accessible.name: ClipboardHistory.error ? Tr.tr("Clipboard history unavailable") : ClipboardHistory.paused ? Tr.tr("Clipboard history paused") : Tr.tr("Clipboard history recording")
                         }
                     }
                 }
