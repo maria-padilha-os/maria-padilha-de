@@ -552,6 +552,10 @@ For example, to automatically hide the bar on the monitor named `DP-1`:
                 "enabled": true
             },
             {
+                "id": "media",
+                "enabled": true
+            },
+            {
                 "id": "clock",
                 "enabled": true
             },

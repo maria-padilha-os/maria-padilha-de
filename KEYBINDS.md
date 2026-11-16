@@ -130,6 +130,17 @@ Monitor order follows Hyprland's monitor IDs.
 | `XF86AudioMute` / `XF86AudioMicMute` | mute output / microphone |
 | `XF86MonBrightnessUp` / `Down` | brightness |
 
+While the media popout is open:
+
+| keys | action |
+| --- | --- |
+| `Space` / `K` | play / pause the active player |
+| `J` / `L` or `Left` / `Right` | seek ten seconds back / forward |
+| `Shift + Left` / `Right` | previous / next track |
+| `Up` / `Down` | player volume |
+| `Home` / `End` | seek to the start / end |
+| `M` | mute the player (volume zero, or back to 50%) |
+
 ## Clipboard and emoji
 
 | keys | action |

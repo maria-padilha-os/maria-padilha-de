@@ -118,6 +118,41 @@ ColumnLayout {
         }
     }
 
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.topMargin: Tokens.spacing.medium
+        spacing: Tokens.spacing.small
+        visible: Players.active?.volumeSupported ?? false
+
+        MaterialIcon {
+            text: {
+                const volume = Players.getVolume(Players.active);
+                if (volume <= 0)
+                    return "volume_mute";
+                if (volume < 0.5)
+                    return "volume_down";
+                return "volume_up";
+            }
+            color: Colours.palette.m3onSurfaceVariant
+            fontStyle: Tokens.font.icon.small
+        }
+
+        StyledSlider {
+            Layout.fillWidth: true
+            value: Players.getVolume(Players.active)
+            enabled: Players.canSetVolume(Players.active)
+            onInteraction: value => Players.setVolume(Players.active, value)
+        }
+
+        StyledText {
+            Layout.preferredWidth: timeMetrics.width
+            text: `${Players.getVolumePercent(Players.active)}%`
+            color: Colours.palette.m3onSurfaceVariant
+            font: timeMetrics.font
+            horizontalAlignment: Text.AlignRight
+        }
+    }
+
     ButtonRow {
         Layout.topMargin: Tokens.spacing.largeIncreased
         Layout.fillWidth: true

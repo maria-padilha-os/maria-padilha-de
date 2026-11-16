@@ -8,6 +8,7 @@ import Caelestia
 import Caelestia.Config
 import Caelestia.I18n
 import qs.components.misc
+import "MediaInfo.js" as MediaInfo
 
 Singleton {
     id: root
@@ -27,18 +28,122 @@ Singleton {
     }
 
     function getArtUrl(player: MprisPlayer): string {
-        if (!player)
-            return "";
-        if (player.trackArtUrl)
-            return player.trackArtUrl;
+        return MediaInfo.artUrl(player);
+    }
 
-        const url = player.metadata["xesam:url"] ?? "";
-        if (url.startsWith("https://www.youtube.com/watch")) {
-            // Fallback for youtube
-            const id = url.match(/[?&]v=([\w-]{11})/)?.[1];
-            return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : "";
+    function getTrackTitle(player: MprisPlayer, fallback: string): string {
+        return MediaInfo.trackTitle(player, fallback);
+    }
+
+    function getTrackArtist(player: MprisPlayer, fallback: string): string {
+        return MediaInfo.trackArtist(player, fallback);
+    }
+
+    function getTrackAlbum(player: MprisPlayer, fallback: string): string {
+        return MediaInfo.trackAlbum(player, fallback);
+    }
+
+    function formatTime(value: real): string {
+        return MediaInfo.formatTime(value);
+    }
+
+    function isKnownLength(player: MprisPlayer): bool {
+        return MediaInfo.isKnownLength(player);
+    }
+
+    function canSeek(player: MprisPlayer): bool {
+        return MediaInfo.canSeek(player);
+    }
+
+    function progress(player: MprisPlayer): real {
+        return MediaInfo.progress(player);
+    }
+
+    function seekTarget(player: MprisPlayer, ratio: real): real {
+        return MediaInfo.seekTarget(player, ratio);
+    }
+
+    function seekTo(player: MprisPlayer, position: real): void {
+        MediaInfo.seekTo(player, position);
+    }
+
+    function seekBy(player: MprisPlayer, offset: real): void {
+        MediaInfo.seekBy(player, offset);
+    }
+
+    function getVolume(player: MprisPlayer): real {
+        return MediaInfo.volume(player);
+    }
+
+    function getVolumePercent(player: MprisPlayer): int {
+        return MediaInfo.volumePercent(player);
+    }
+
+    function canSetVolume(player: MprisPlayer): bool {
+        return MediaInfo.canSetVolume(player);
+    }
+
+    function setVolume(player: MprisPlayer, value: real): void {
+        MediaInfo.setVolume(player, value);
+    }
+
+    function changeVolume(player: MprisPlayer, delta: real): void {
+        MediaInfo.changeVolume(player, delta);
+    }
+
+    function actionForKey(key: int, shift: bool): string {
+        const player = root.active;
+        return MediaInfo.actionForKey(key, shift, canSeek(player), canSetVolume(player));
+    }
+
+    function perform(action: string): void {
+        const player = root.active;
+        if (!player)
+            return;
+
+        switch (action) {
+        case "toggle":
+            if (player.canTogglePlaying)
+                player.togglePlaying();
+            break;
+        case "play":
+            if (player.canPlay)
+                player.play();
+            break;
+        case "pause":
+            if (player.canPause)
+                player.pause();
+            break;
+        case "previous":
+            if (player.canGoPrevious)
+                player.previous();
+            break;
+        case "next":
+            if (player.canGoNext)
+                player.next();
+            break;
+        case "seekBackward":
+            seekBy(player, -MediaInfo.SEEK_STEP);
+            break;
+        case "seekForward":
+            seekBy(player, MediaInfo.SEEK_STEP);
+            break;
+        case "seekStart":
+            seekTo(player, 0);
+            break;
+        case "seekEnd":
+            seekTo(player, player.length);
+            break;
+        case "volumeUp":
+            changeVolume(player, GlobalConfig.services.audioIncrement);
+            break;
+        case "volumeDown":
+            changeVolume(player, -GlobalConfig.services.audioIncrement);
+            break;
+        case "mute":
+            setVolume(player, getVolume(player) > 0 ? 0 : 0.5);
+            break;
         }
-        return "";
     }
 
     // Quickshell only emits postTrackChanged when trackid/url/title change, so late
@@ -135,6 +240,38 @@ Singleton {
         onPressed: root.active?.stop()
     }
 
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "mediaSeekBackward"
+        description: "Seek media backward"
+        onPressed: root.perform("seekBackward")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "mediaSeekForward"
+        description: "Seek media forward"
+        onPressed: root.perform("seekForward")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "mediaVolumeUp"
+        description: "Raise the active player's volume"
+        onPressed: root.perform("volumeUp")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "mediaVolumeDown"
+        description: "Lower the active player's volume"
+        onPressed: root.perform("volumeDown")
+    }
+
     IpcHandler {
         function getActive(prop: string): string {
             const active = root.active;
@@ -177,6 +314,23 @@ Singleton {
 
         function stop(): void {
             root.active?.stop();
+        }
+
+        function seek(offset: real): void {
+            root.seekBy(root.active, offset);
+        }
+
+        function setPosition(position: real): void {
+            root.seekTo(root.active, position);
+        }
+
+        function volume(): string {
+            const player = root.active;
+            return player ? `${root.getVolumePercent(player)}%` : "No active player";
+        }
+
+        function setVolume(volume: real): void {
+            root.setVolume(root.active, volume);
         }
 
         target: "mpris"

@@ -135,6 +135,9 @@ theme, so the explicit choice is not overwritten at the next boundary.
   Neovim, Discord, and Midnight Commander.
 - **Daylight** — a light wallpaper for the day and a dark one for the night,
   with the palette reapplied when the period changes.
+- **Media** — a bar item and popout for the active MPRIS player, with artwork,
+  metadata, seek, transport, volume where supported, and keyboard controls.
+  It never autoplays or discovers media in the background.
 - **Calculator** — type `>calc 2+2` in the launcher; the native `Qalculator`
   binding uses libqalculate for units, currency, variables, and exact results.
   The dashboard Calculator tab adds a graphical display, keypad and history

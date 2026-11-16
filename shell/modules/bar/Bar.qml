@@ -184,6 +184,15 @@ ColumnLayout {
                 }
             }
             DelegateChoice {
+                roleValue: "media"
+                delegate: EntryWrapper {
+                    Media {
+                        objectName: "taskbarMedia"
+                        bar: root
+                    }
+                }
+            }
+            DelegateChoice {
                 roleValue: "clock"
                 delegate: EntryWrapper {
                     Clock {
