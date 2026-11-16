@@ -30,6 +30,22 @@ a check mark to confirm the write, and the whole panel follows the active
 light or dark palette. `padilha-colour` is the same parser used by the panel and
 can also be called directly (`padilha-colour pick`, `padilha-colour parse VALUE`).
 
+## Media player
+
+The media item in the bar shows the active MPRIS track's cover and a progress
+line. Click it to open the media popout: title, artist and album, artwork with
+a themed fallback, seek, play/pause, previous/next, and volume when the player
+exposes it. If several MPRIS players are open, the popout can pick which one
+the bar follows.
+
+Opening the widget never starts playback, and it never scans processes or
+media files; it only reads the players already exported on the session bus.
+With no player it shows a plain **Nothing playing** state. While the popout is
+open, **Space** or **K** toggles playback, **J**/**L** or **Left**/**Right**
+seeks ten seconds, **Shift + Left**/**Right** changes track, **Up**/**Down**
+changes the player volume, **Home**/**End** seeks to the start or end, and
+**Escape** closes it.
+
 ## Calculator
 
 The launcher has a native calculator mode. Tap `Super` to open the launcher and

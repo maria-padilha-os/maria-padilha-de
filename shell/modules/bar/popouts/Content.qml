@@ -123,6 +123,11 @@ Item {
         }
 
         Popout {
+            name: "media"
+            sourceComponent: Media {}
+        }
+
+        Popout {
             name: "kblayout"
             sourceComponent: KbLayout {}
         }

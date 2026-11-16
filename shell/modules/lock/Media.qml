@@ -35,7 +35,9 @@ StyledClippingRect {
         StyledRect {
             anchors.fill: parent
             color: Colours.palette.m3surface
-            opacity: 0.7
+            // The artwork is only a backdrop; keep the palette in front so
+            // bright covers cannot make the lock labels unreadable.
+            opacity: 0.82
         }
 
         Behavior on opacity {
@@ -69,6 +71,16 @@ StyledClippingRect {
             animate: true
             text: (Players.active?.trackArtist ?? Tr.tr("Try playing some music!")) || Tr.tr("Unknown artist")
             color: Colours.palette.m3onSurfaceVariant
+            horizontalAlignment: Text.AlignHCenter
+            font: Tokens.font.body.small
+            elide: Text.ElideRight
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            animate: true
+            text: (Players.active?.trackAlbum ?? "") || Tr.tr("Unknown album")
+            color: Colours.palette.m3outline
             horizontalAlignment: Text.AlignHCenter
             font: Tokens.font.body.small
             elide: Text.ElideRight
