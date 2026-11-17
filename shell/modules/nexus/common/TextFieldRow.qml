@@ -21,6 +21,11 @@ ConnectedRect {
     property alias validator: input.validator
     property bool smallField
     readonly property alias field: input
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.label
+    readonly property string settingsDescription: root.subtext
+    readonly property bool invalid: input.isError || (input.text.length > 0 && !input.valid) || (!input.emptyIsValid && input.text.length === 0)
 
     signal valueEdited(value: string)
     signal editingFinished(value: string)
@@ -29,12 +34,53 @@ ConnectedRect {
         input.clear();
     }
 
-    Component.onDestruction: {
+    function commit(): bool {
+        input.isError = !input.valid;
+        if (input.isError) {
+            input.forceActiveFocus();
+            return false;
+        }
         if (value !== input.text)
             editingFinished(input.text);
+        return true;
+    }
+
+    Component.onDestruction: {
+        // A page jump destroys the row. Flush a valid pending edit instead of
+        // dropping it with the component; an invalid edit stays visibly
+        // invalid if the page survives and must not mutate the config.
+        if (input.valid && value !== input.text)
+            editingInput(input.text);
+    }
+
+    function editingInput(text: string): void {
+        root.editingFinished(text);
     }
 
     Layout.fillWidth: true
+    activeFocusOnTab: true
+    Accessible.role: Accessible.EditableText
+    Accessible.name: root.label
+    Accessible.description: root.invalid && root.errorText ? root.errorText : root.subtext
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: input.forceActiveFocus()
+
+    Keys.onReturnPressed: {
+        input.forceActiveFocus();
+        input.selectAll();
+    }
+    Keys.onEnterPressed: {
+        input.forceActiveFocus();
+        input.selectAll();
+    }
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
     implicitHeight: rowLayout.implicitHeight + Tokens.padding.medium + Math.max(0, Tokens.padding.large - input.verticalPadding) * 2
 
     RowLayout {
@@ -61,10 +107,12 @@ ConnectedRect {
 
             StyledText {
                 Layout.fillWidth: true
-                visible: root.subtext
-                text: input.isError && root.errorText ? root.errorText : root.subtext
-                color: input.isError && root.errorText ? Colours.palette.m3error : Colours.palette.m3outline
+                visible: root.invalid && root.errorText ? root.errorText.length > 0 : root.subtext.length > 0
+                text: root.invalid && root.errorText ? root.errorText : root.subtext
+                color: root.invalid && root.errorText ? Colours.palette.m3error : Colours.palette.m3outline
                 font: Tokens.font.label.small
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
                 elide: Text.ElideRight
                 animate: root.errorText
             }
@@ -77,6 +125,7 @@ ConnectedRect {
             Layout.maximumWidth: root.width / 2
             Layout.alignment: Qt.AlignVCenter
             verticalPadding: Tokens.padding.small
+            activeFocusOnTab: true
 
             text: root.value
 

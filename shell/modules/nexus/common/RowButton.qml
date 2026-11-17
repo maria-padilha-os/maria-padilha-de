@@ -18,16 +18,42 @@ ConnectedRect {
     readonly property alias iconLabel: iconLabel
     readonly property alias label: label
     readonly property alias subLabel: subLabel
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.text
+    readonly property string settingsDescription: root.subtext
 
     signal clicked(event: MouseEvent)
 
     Layout.fillWidth: true
     implicitHeight: row.implicitHeight + Tokens.padding.medium * 2
+    activeFocusOnTab: true
+    enabled: !root.disabled
+    Accessible.role: Accessible.Button
+    Accessible.name: root.text
+    Accessible.description: root.subtext
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: root.clicked(null)
+
+    Keys.onReturnPressed: root.clicked(null)
+    Keys.onEnterPressed: root.clicked(null)
+    Keys.onSpacePressed: root.clicked(null)
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
 
     StateLayer {
         id: stateLayer
 
-        onClicked: e => root.clicked(e)
+        onClicked: e => {
+            root.forceActiveFocus();
+            root.clicked(e);
+        }
     }
 
     RowLayout {

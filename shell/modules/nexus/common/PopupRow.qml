@@ -15,16 +15,45 @@ ConnectedRect {
     property alias status: status.text
     property bool keepPopupAsChild
     readonly property alias popup: popup
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.label
+    readonly property string settingsDescription: root.status
     default required property Item content
 
     Layout.fillWidth: true
     implicitHeight: navLayout.implicitHeight + navLayout.anchors.margins * 2
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.label
+    Accessible.description: root.status
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: root.openPopup()
+
+    function openPopup(): void {
+        popup.open = true;
+    }
+
+    Keys.onReturnPressed: root.openPopup()
+    Keys.onEnterPressed: root.openPopup()
+    Keys.onSpacePressed: root.openPopup()
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
 
     StateLayer {
         id: stateLayer
 
         manualHoverOverride: popup.hovered && !popup.open
-        onClicked: popup.open = true
+        onClicked: {
+            root.forceActiveFocus();
+            root.openPopup();
+        }
     }
 
     RowLayout {

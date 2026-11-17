@@ -41,12 +41,16 @@ TextFieldBase {
         id: placeholder
 
         anchors.left: parent.left
+        anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.leftMargin: root.leftPadding
+        anchors.rightMargin: root.rightPadding
 
         text: root.placeholderText
         color: root.placeholderTextColor
         font: root.font
+        elide: Text.ElideRight
+        maximumLineCount: 1
 
         opacity: root.text ? 0 : 1
 

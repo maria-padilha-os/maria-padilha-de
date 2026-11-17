@@ -16,9 +16,16 @@ ConnectedRect {
     property string icon
     property color iconColour: Colours.palette.m3onSurfaceVariant
     property Component leadingComponent: icon ? iconComp : null
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: false
+    readonly property string settingsLabel: root.label
+    readonly property string settingsDescription: root.subtext
 
     Layout.fillWidth: true
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins * 2
+    Accessible.role: Accessible.StaticText
+    Accessible.name: root.label
+    Accessible.description: root.subtext
 
     Component {
         id: iconComp

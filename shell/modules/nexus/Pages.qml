@@ -45,6 +45,11 @@ Item {
     }
 
     Connections {
+        function onPageResetRequested(): void {
+            switchAnim.complete();
+            root.loadPage(root.nState.currentPageIdx);
+        }
+
         function onCurrentPageIdxChanged(): void {
             switchAnim.complete();
             root.animOff = root.Tokens.padding.extraLarge * (root.nState.currentPageIdx > root.lastPageIdx ? 1 : -1);
