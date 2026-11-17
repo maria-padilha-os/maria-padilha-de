@@ -30,8 +30,50 @@ MouseArea {
     property list<MenuItem> items
     property MenuItem active: items[0] ?? null
     property bool expanded
+    property string accessibleName
 
     signal itemSelected(item: MenuItem)
+
+    activeFocusOnTab: expanded
+    focus: expanded
+
+    Accessible.role: Accessible.Menu
+    Accessible.name: accessibleName
+    Accessible.focusable: expanded
+    Accessible.focused: activeFocus
+
+    function moveActive(delta: int): void {
+        if (!items || items.length === 0)
+            return;
+        const current = Math.max(0, items.indexOf(root.active));
+        const next = (current + delta + items.length) % items.length;
+        root.active = items[next];
+    }
+
+    function chooseActive(): void {
+        if (!root.active)
+            return;
+        root.itemSelected(root.active);
+        root.active.clicked();
+        root.expanded = false;
+    }
+
+    onExpandedChanged: {
+        if (expanded) {
+            if (!active && items.length > 0)
+                active = items[0];
+            forceActiveFocus();
+        }
+    }
+
+    Keys.onUpPressed: root.moveActive(-1)
+    Keys.onDownPressed: root.moveActive(1)
+    Keys.onHomePressed: root.active = items[0] ?? null
+    Keys.onEndPressed: root.active = items[items.length - 1] ?? null
+    Keys.onReturnPressed: root.chooseActive()
+    Keys.onEnterPressed: root.chooseActive()
+    Keys.onSpacePressed: root.chooseActive()
+    Keys.onEscapePressed: root.expanded = false
 
     parent: {
         const win = QsWindow.window;
@@ -137,6 +179,25 @@ MouseArea {
                         bottomRightRadius: index === repeater?.count - 1 ? Tokens.rounding.medium : radius
 
                         color: Qt.alpha(Colours.palette.m3tertiaryContainer, active ? 1 : 0)
+
+                        Accessible.role: Accessible.MenuItem
+                        Accessible.name: item.modelData?.text ?? ""
+                        Accessible.selectable: true
+                        Accessible.selected: item.active
+                        Accessible.focusable: root.expanded
+                        Accessible.onPressAction: {
+                            root.itemSelected(item.modelData);
+                            root.active = item.modelData;
+                            item.modelData.clicked();
+                            root.expanded = false;
+                        }
+
+                        FocusRing {
+                            target: item
+                            visible: item.active && root.activeFocus
+                            margin: -1
+                            radius: item.radius
+                        }
 
                         Behavior on radius {
                             Anim {}

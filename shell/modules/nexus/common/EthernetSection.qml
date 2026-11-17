@@ -210,6 +210,7 @@ ColumnLayout {
                     type: IconButton.Tonal
                     isToggle: true
                     isRound: true
+                    accessibleName: ethRow.isConnected ? Tr.tr("Disconnect %1").arg(ethRow.modelData.iface) : Tr.tr("Connect %1").arg(ethRow.modelData.iface)
                     checked: ethRow.isConnected
                     icon: ethRow.isConnected ? "link_off" : "link"
                     onClicked: {

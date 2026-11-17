@@ -144,6 +144,7 @@ Item {
         id: button
 
         property string label
+        property string accessibleName
         property bool primary: false
         signal clicked
 
@@ -151,9 +152,20 @@ Item {
         implicitHeight: 34
         radius: Tokens.rounding.full
         color: !button.enabled ? "transparent" : button.primary ? root.accent : buttonMouse.pressed ? Qt.alpha(root.accent, 0.18) : "transparent"
-        border.width: button.primary ? 0 : 1
-        border.color: root.outline
+        border.width: button.primary ? (button.activeFocus ? 2 : 0) : button.activeFocus ? 2 : 1
+        border.color: button.activeFocus ? root.accent : root.outline
         opacity: button.enabled ? 1 : 0.45
+        activeFocusOnTab: button.enabled
+
+        Accessible.role: Accessible.Button
+        Accessible.name: button.accessibleName.length > 0 ? button.accessibleName : button.label
+        Accessible.focusable: button.enabled
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: button.clicked()
+
+        Keys.onReturnPressed: button.clicked()
+        Keys.onEnterPressed: button.clicked()
+        Keys.onSpacePressed: button.clicked()
 
         Text {
             anchors.centerIn: parent
@@ -169,7 +181,10 @@ Item {
             anchors.fill: parent
             enabled: button.enabled
             cursorShape: Qt.PointingHandCursor
-            onClicked: button.clicked()
+            onClicked: {
+                button.forceActiveFocus();
+                button.clicked();
+            }
         }
     }
 
@@ -196,6 +211,7 @@ Item {
 
         ActionButton {
             label: "−"
+            accessibleName: Tr.tr("Decrease %1").arg(control.label)
             implicitWidth: 30
             implicitHeight: 26
             enabled: !root.running && control.value > control.minimum
@@ -213,6 +229,7 @@ Item {
 
         ActionButton {
             label: "+"
+            accessibleName: Tr.tr("Increase %1").arg(control.label)
             implicitWidth: 30
             implicitHeight: 26
             enabled: !root.running && control.value < control.maximum
@@ -267,6 +284,9 @@ Item {
                 font.pixelSize: root.compact ? 44 : 56
                 font.family: "monospace"
                 font.weight: Font.DemiBold
+
+                Accessible.role: Accessible.Clock
+                Accessible.name: Tr.tr("%1, %2 remaining").arg(root.phaseText).arg(root.timeText)
             }
 
             Item {

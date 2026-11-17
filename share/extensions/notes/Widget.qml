@@ -262,9 +262,20 @@ Item {
         implicitHeight: 30
         radius: Tokens.rounding.small
         color: button.primary ? (buttonMouse.containsMouse ? Qt.lighter(root.accent, 1.1) : root.accent) : (buttonMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.08) : "transparent")
-        border.width: button.primary ? 0 : 1
-        border.color: root.outline
+        border.width: button.activeFocus ? 2 : button.primary ? 0 : 1
+        border.color: button.activeFocus ? root.onAccent : root.outline
         opacity: button.enabled ? 1 : 0.45
+        activeFocusOnTab: button.enabled
+
+        Accessible.role: Accessible.Button
+        Accessible.name: button.label
+        Accessible.focusable: button.enabled
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: button.clicked()
+
+        Keys.onReturnPressed: button.clicked()
+        Keys.onEnterPressed: button.clicked()
+        Keys.onSpacePressed: button.clicked()
 
         Text {
             id: labelText
@@ -283,7 +294,10 @@ Item {
             enabled: button.enabled
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: button.clicked()
+            onClicked: {
+                button.forceActiveFocus();
+                button.clicked();
+            }
         }
     }
 
@@ -351,6 +365,21 @@ Item {
                         height: 42
                         radius: Tokens.rounding.small
                         color: root.selectedFile === noteRow.modelData.file ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18) : (noteMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.06) : "transparent")
+                        border.width: noteRow.activeFocus ? 2 : 0
+                        border.color: root.accent
+                        activeFocusOnTab: true
+
+                        Accessible.role: Accessible.ListItem
+                        Accessible.name: root.formatTitle(noteRow.modelData.title)
+                        Accessible.selectable: true
+                        Accessible.selected: root.selectedFile === noteRow.modelData.file
+                        Accessible.focusable: true
+                        Accessible.focused: activeFocus
+                        Accessible.onPressAction: root.selectNote(noteRow.modelData.file)
+
+                        Keys.onReturnPressed: root.selectNote(noteRow.modelData.file)
+                        Keys.onEnterPressed: root.selectNote(noteRow.modelData.file)
+                        Keys.onSpacePressed: root.selectNote(noteRow.modelData.file)
 
                         Column {
                             anchors.left: parent.left
@@ -383,7 +412,10 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.selectNote(noteRow.modelData.file)
+                            onClicked: {
+                                noteRow.forceActiveFocus();
+                                root.selectNote(noteRow.modelData.file);
+                            }
                         }
                     }
                 }
@@ -443,6 +475,8 @@ Item {
                         selectionColor: root.accent
                         selectedTextColor: root.onAccent
                         placeholderText: Tr.tr("Write a plain-text note…")
+                        Accessible.name: Tr.tr("Note editor")
+                        Accessible.description: Tr.tr("Ctrl+S saves, Ctrl+N creates a note")
                         placeholderTextColor: root.muted
                         font: Tokens.font.body.medium
                         background: null

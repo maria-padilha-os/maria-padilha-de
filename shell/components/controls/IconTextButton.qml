@@ -10,6 +10,7 @@ ButtonBase {
     property alias icon: iconLabel.text
     property alias text: label.text
     property alias spacing: row.spacing
+    accessibleName: text
 
     readonly property alias iconLabel: iconLabel
     readonly property alias label: label

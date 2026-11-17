@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.containers
 import qs.services
@@ -16,6 +17,12 @@ VerticalFadeFlickable {
     topMargin: Tokens.padding.large
     bottomMargin: Tokens.padding.large
     contentHeight: content.implicitHeight
+
+    function focusIndex(index: int): void {
+        const item = list.itemAt(index);
+        if (item)
+            item.forceActiveFocus();
+    }
 
     TapHandler {
         onTapped: root.focus = true
@@ -45,6 +52,29 @@ VerticalFadeFlickable {
 
                 Layout.fillWidth: true
                 Layout.topMargin: index !== 0 && isCategoryStart ? Tokens.spacing.medium : 0
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.PageTab
+                Accessible.name: modelData.label
+                Accessible.description: modelData.description
+                Accessible.selectable: true
+                Accessible.selected: isCurrentPage
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+                Accessible.onPressAction: root.nState.currentPageIdx = index
+
+                Keys.onReturnPressed: root.nState.currentPageIdx = index
+                Keys.onEnterPressed: root.nState.currentPageIdx = index
+                Keys.onSpacePressed: root.nState.currentPageIdx = index
+                Keys.onUpPressed: root.focusIndex(index - 1)
+                Keys.onDownPressed: root.focusIndex(index + 1)
+
+                FocusRing {
+                    target: item
+                    radius: item.radius
+                    margin: -1
+                }
+
                 implicitHeight: {
                     const h = layout.implicitHeight + layout.anchors.margins * 2;
                     return h % 2 === 0 ? h : h + 1;
@@ -71,7 +101,10 @@ VerticalFadeFlickable {
                     bottomLeftRadius: parent.bottomLeftRadius
                     bottomRightRadius: parent.bottomRightRadius
 
-                    onClicked: root.nState.currentPageIdx = item.index
+                    onClicked: {
+                        item.forceActiveFocus();
+                        root.nState.currentPageIdx = item.index;
+                    }
                 }
 
                 RowLayout {

@@ -84,7 +84,7 @@ MouseArea {
         property: "circleRadius"
         to: root.endRadius
         easing: Tokens.anim.standard
-        duration: Tokens.anim.durations.expressiveSlowEffects * 2
+        duration: Accessibility.motion(Tokens.anim.durations.expressiveSlowEffects) * 2
     }
 
     Anim {

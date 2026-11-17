@@ -1,5 +1,6 @@
 import QtQuick
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 import qs.modules.nexus
@@ -10,6 +11,26 @@ Item {
     implicitWidth: icon.implicitHeight + Tokens.padding.small
     implicitHeight: icon.implicitHeight
 
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: Tr.tr("Open settings")
+    Accessible.description: Tr.tr("Open the settings window")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.openSettings()
+
+    function openSettings(): void {
+        WindowFactory.create();
+    }
+
+    Keys.onReturnPressed: root.openSettings()
+    Keys.onEnterPressed: root.openSettings()
+    Keys.onSpacePressed: root.openSettings()
+
+    FocusRing {
+        target: root
+    }
+
     StateLayer {
         // Same sizing trick as Power: taller than the parent for a round target.
         anchors.fill: undefined
@@ -17,7 +38,10 @@ Item {
         implicitWidth: implicitHeight
         implicitHeight: icon.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
-        onClicked: WindowFactory.create()
+        onClicked: {
+            root.forceActiveFocus();
+            root.openSettings();
+        }
     }
 
     MaterialIcon {

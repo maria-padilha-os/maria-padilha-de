@@ -152,6 +152,7 @@ PageBase {
                                 IconButton {
                                     icon: "settings"
                                     type: IconButton.Text
+                                    accessibleName: Tr.tr("Bluetooth device settings")
                                     padding: Tokens.padding.small
                                     inactiveOnColour: device.connected ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                                     label.fill: 0

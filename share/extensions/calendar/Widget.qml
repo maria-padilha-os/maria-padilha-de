@@ -241,6 +241,7 @@ Item {
         id: button
 
         property string label
+        property string accessibleName
         property bool primary: false
         signal clicked()
 
@@ -248,9 +249,20 @@ Item {
         implicitHeight: 28
         radius: Tokens.rounding.small
         color: button.primary ? (buttonMouse.containsMouse ? Qt.lighter(root.accent, 1.1) : root.accent) : (buttonMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.08) : "transparent")
-        border.width: button.primary ? 0 : 1
-        border.color: root.outline
+        border.width: button.activeFocus ? 2 : button.primary ? 0 : 1
+        border.color: button.activeFocus ? root.onAccent : root.outline
         opacity: button.enabled ? 1 : 0.45
+        activeFocusOnTab: button.enabled
+
+        Accessible.role: Accessible.Button
+        Accessible.name: button.accessibleName.length > 0 ? button.accessibleName : button.label
+        Accessible.focusable: button.enabled
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: button.clicked()
+
+        Keys.onReturnPressed: button.clicked()
+        Keys.onEnterPressed: button.clicked()
+        Keys.onSpacePressed: button.clicked()
 
         Text {
             id: buttonLabel
@@ -268,7 +280,10 @@ Item {
             enabled: button.enabled
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: button.clicked()
+            onClicked: {
+                button.forceActiveFocus();
+                button.clicked();
+            }
         }
     }
 
@@ -283,6 +298,7 @@ Item {
 
             PillButton {
                 label: "‹"
+                accessibleName: Tr.tr("Previous month")
                 onClicked: root.shiftMonth(-1)
             }
 
@@ -297,11 +313,13 @@ Item {
 
             PillButton {
                 label: "›"
+                accessibleName: Tr.tr("Next month")
                 onClicked: root.shiftMonth(1)
             }
 
             PillButton {
                 label: Tr.tr("Today")
+                accessibleName: Tr.tr("Go to today")
                 onClicked: root.goToday()
             }
         }
@@ -348,9 +366,21 @@ Item {
                             Layout.preferredHeight: 34
                             radius: Tokens.rounding.small
                             color: dayCell.modelData.selected ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.22) : (dayMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.07) : "transparent")
-                            border.width: dayCell.modelData.today ? 1 : 0
+                            border.width: dayCell.activeFocus ? 2 : dayCell.modelData.today ? 1 : 0
                             border.color: root.accent
                             opacity: dayCell.modelData.inMonth ? 1 : 0.45
+                            activeFocusOnTab: dayCell.modelData.inMonth
+
+                            Accessible.role: Accessible.Button
+                            Accessible.name: Tr.tr("Day %1").arg(dayCell.modelData.day)
+                            Accessible.description: dayCell.modelData.selected ? Tr.tr("Selected") : ""
+                            Accessible.focusable: dayCell.modelData.inMonth
+                            Accessible.focused: activeFocus
+                            Accessible.onPressAction: root.chooseDay(dayCell.modelData)
+
+                            Keys.onReturnPressed: root.chooseDay(dayCell.modelData)
+                            Keys.onEnterPressed: root.chooseDay(dayCell.modelData)
+                            Keys.onSpacePressed: root.chooseDay(dayCell.modelData)
 
                             Text {
                                 anchors.centerIn: parent
@@ -375,7 +405,10 @@ Item {
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: root.chooseDay(dayCell.modelData)
+                                onClicked: {
+                                    dayCell.forceActiveFocus();
+                                    root.chooseDay(dayCell.modelData);
+                                }
                             }
                         }
                     }
@@ -451,17 +484,10 @@ Item {
                                     elide: Text.ElideRight
                                 }
 
-                                Text {
-                                    text: "×"
-                                    color: root.muted
-                                    font: Tokens.font.body.medium
-                                    padding: Tokens.padding.small
-
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: root.deleteEvent(eventRow.modelData.id)
-                                    }
+                                PillButton {
+                                    label: "×"
+                                    accessibleName: Tr.tr("Delete event %1").arg(eventRow.modelData.title)
+                                    onClicked: root.deleteEvent(eventRow.modelData.id)
                                 }
                             }
                         }
@@ -476,6 +502,7 @@ Item {
 
                             Layout.fillWidth: true
                             placeholderText: Tr.tr("Event title")
+                            Accessible.name: Tr.tr("Event title")
                             color: root.foreground
                             placeholderTextColor: root.muted
                             font: Tokens.font.label.medium
@@ -494,6 +521,7 @@ Item {
 
                             Layout.preferredWidth: 64
                             placeholderText: "HH:MM"
+                            Accessible.name: Tr.tr("Event time")
                             color: root.foreground
                             placeholderTextColor: root.muted
                             font: Tokens.font.label.medium
@@ -509,6 +537,7 @@ Item {
 
                         PillButton {
                             label: "+"
+                            accessibleName: Tr.tr("Add event")
                             primary: true
                             onClicked: root.addEvent()
                         }

@@ -10,8 +10,31 @@ Switch {
 
     property int cLayer: 1
     property bool disabled
+    property string accessibleName
+    property string accessibleDescription
 
     enabled: !disabled
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.CheckBox
+    Accessible.name: accessibleName.length > 0 ? accessibleName : text
+    Accessible.description: accessibleDescription
+    Accessible.checkable: true
+    Accessible.checked: checked
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+    function toggleFromKeyboard(): void {
+        if (!root.enabled)
+            return;
+        root.checked = !root.checked;
+        root.toggled();
+    }
+
+    Accessible.onPressAction: root.toggleFromKeyboard()
+
+    Keys.onReturnPressed: root.toggleFromKeyboard()
+    Keys.onEnterPressed: root.toggleFromKeyboard()
+    Keys.onSpacePressed: root.toggleFromKeyboard()
 
     implicitWidth: implicitIndicatorWidth
     implicitHeight: implicitIndicatorHeight
@@ -166,7 +189,12 @@ Switch {
     }
 
     component PropAnim: PropertyAnimation {
-        duration: Tokens.anim.durations.expressiveFastSpatial
+        duration: Accessibility.motion(Tokens.anim.durations.expressiveFastSpatial)
         easing: Tokens.anim.expressiveFastSpatial
+    }
+
+    FocusRing {
+        target: root
+        margin: 3
     }
 }

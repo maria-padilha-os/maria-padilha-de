@@ -13,7 +13,13 @@ Item {
     required property DesktopEntry modelData
     required property ScreenState screenState
 
-    implicitHeight: Tokens.sizes.launcher.itemHeight
+    implicitHeight: Math.max(Tokens.sizes.launcher.itemHeight, Math.ceil(Tokens.font.body.medium.pointSize * 2.8 + Tokens.padding.medium * 2))
+
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.modelData?.name ?? ""
+    Accessible.description: root.modelData?.comment || root.modelData?.genericName || ""
+    Accessible.selectable: true
+    Accessible.selected: ListView.isCurrentItem
 
     anchors.left: parent?.left
     anchors.right: parent?.right

@@ -55,7 +55,7 @@ ConnectedRect {
                 StyledText {
                     id: valueLabel
 
-                    color: Colours.palette.m3outline
+                    color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                 }
             }
@@ -77,6 +77,9 @@ ConnectedRect {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
                     implicitHeight: parent.implicitHeight
+
+                    accessibleName: root.label
+                    accessibleDescription: root.valueLabel
 
                     radius: Tokens.rounding.small
                     value: root.value

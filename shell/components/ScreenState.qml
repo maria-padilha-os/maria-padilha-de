@@ -5,6 +5,8 @@ PersistentProperties {
 
     // Drawer visibilities
     property bool bar
+    // Keyboard focus is on the taskbar rather than a panel.
+    property bool barFocus
     property bool osd
     property bool session
     property bool launcher

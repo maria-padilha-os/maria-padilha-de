@@ -10,7 +10,12 @@ Item {
     required property Schemes.Scheme modelData
     required property var list
 
-    implicitHeight: Tokens.sizes.launcher.itemHeight
+    implicitHeight: Math.max(Tokens.sizes.launcher.itemHeight, Math.ceil(Tokens.font.body.medium.pointSize * 2.8 + Tokens.padding.medium * 2))
+
+    Accessible.role: Accessible.ListItem
+    Accessible.name: [root.modelData?.flavour ?? "", root.modelData?.name ?? ""].filter(s => s.length > 0).join(": ")
+    Accessible.selectable: true
+    Accessible.selected: ListView.isCurrentItem
 
     anchors.left: parent?.left
     anchors.right: parent?.right

@@ -5,8 +5,10 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Bluetooth
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.utils
+import qs.services
 
 Item {
     id: root
@@ -38,6 +40,9 @@ Item {
                 return "bluetooth";
             }
             color: root.colour
+
+            Accessible.name: !Bluetooth.defaultAdapter?.enabled ? Tr.tr("Bluetooth disabled") : Bluetooth.devices.values.some(d => d.connected) ? Tr.tr("Bluetooth connected") : Tr.tr("Bluetooth enabled")
+            Accessible.role: Accessible.StaticText
         }
 
         // Connected bluetooth devices
@@ -56,6 +61,9 @@ Item {
                 color: root.colour
                 fill: 1
 
+                Accessible.name: modelData?.name ?? Tr.tr("Bluetooth device")
+                Accessible.role: Accessible.StaticText
+
                 SequentialAnimation on opacity {
                     running: device.modelData?.state !== BluetoothDeviceState.Connected // qmllint disable unresolved-type
                     alwaysRunToEnd: true
@@ -64,13 +72,13 @@ Item {
                     Anim {
                         from: 1
                         to: 0
-                        duration: Tokens.anim.durations.large
+                        duration: Accessibility.motion(Tokens.anim.durations.large)
                         easing: Tokens.anim.standardAccel
                     }
                     Anim {
                         from: 0
                         to: 1
-                        duration: Tokens.anim.durations.large
+                        duration: Accessibility.motion(Tokens.anim.durations.large)
                         easing: Tokens.anim.standardDecel
                     }
                 }

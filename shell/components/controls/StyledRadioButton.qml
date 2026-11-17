@@ -8,6 +8,30 @@ RadioButton {
     id: root
 
     font: Tokens.font.body.small
+    property string accessibleName
+    property string accessibleDescription
+
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.RadioButton
+    Accessible.name: accessibleName.length > 0 ? accessibleName : text
+    Accessible.description: accessibleDescription
+    Accessible.checkable: true
+    Accessible.checked: checked
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+    function activateFromKeyboard(): void {
+        if (!root.enabled)
+            return;
+        root.checked = true;
+        root.toggled();
+    }
+
+    Accessible.onPressAction: root.activateFromKeyboard()
+
+    Keys.onReturnPressed: root.activateFromKeyboard()
+    Keys.onEnterPressed: root.activateFromKeyboard()
+    Keys.onSpacePressed: root.activateFromKeyboard()
 
     implicitWidth: implicitIndicatorWidth + implicitContentWidth + contentItem.anchors.leftMargin
     implicitHeight: Math.max(implicitIndicatorHeight, implicitContentHeight)
@@ -42,6 +66,11 @@ RadioButton {
         Behavior on border.color {
             CAnim {}
         }
+    }
+
+    FocusRing {
+        target: root
+        margin: 3
     }
 
     contentItem: StyledText {

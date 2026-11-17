@@ -136,7 +136,7 @@ PageBase {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: Tr.tr("Location picker coming soon")
-                    color: Colours.palette.m3outlineVariant
+                    color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.title.small
                 }
 
@@ -145,7 +145,7 @@ PageBase {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.WordWrap
                     text: Tr.tr("Choose your weather location on a map in a future update")
-                    color: Colours.palette.m3outlineVariant
+                    color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                 }
             }

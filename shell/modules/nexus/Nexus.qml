@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Caelestia.Blobs
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.services
@@ -22,6 +23,24 @@ Item {
 
     implicitWidth: Math.round(implicitHeight * Tokens.sizes.nexus.ratio)
     implicitHeight: Math.round(nState.screen.height * Tokens.sizes.nexus.heightMult)
+
+    focus: true
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.Pane
+    Accessible.name: Tr.tr("Settings")
+    Accessible.description: Tr.tr("Use Tab to move, Escape to close")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+
+    Keys.onEscapePressed: {
+        if (nState.subPageIdxStack.length > 0)
+            nState.closeSubPage();
+        else
+            root.close();
+    }
+
+    Component.onCompleted: Qt.callLater(() => root.forceActiveFocus())
 
     Behavior on blobColour {
         CAnim {}
@@ -70,6 +89,7 @@ Item {
 
         anchors.centerIn: windowBtnRect
         icon: nState.isWindow ? "close" : "pip"
+        accessibleName: nState.isWindow ? Tr.tr("Close settings") : Tr.tr("Open settings in a window")
         type: IconButton.Text
         label.fill: 0
         inactiveOnColour: hovered ? nState.isWindow ? Colours.palette.m3error : Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant

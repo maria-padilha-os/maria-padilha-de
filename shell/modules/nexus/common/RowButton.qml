@@ -24,10 +24,32 @@ ConnectedRect {
     Layout.fillWidth: true
     implicitHeight: row.implicitHeight + Tokens.padding.medium * 2
 
+    activeFocusOnTab: true
+    enabled: !disabled
+
+    Accessible.role: Accessible.Button
+    Accessible.name: [label.text, subLabel.text].filter(s => s.length > 0).join(": ")
+    Accessible.description: subLabel.text
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.clicked(null)
+
+    Keys.onReturnPressed: root.clicked(null)
+    Keys.onEnterPressed: root.clicked(null)
+    Keys.onSpacePressed: root.clicked(null)
+
+    FocusRing {
+        target: root
+        radius: root.radius
+    }
+
     StateLayer {
         id: stateLayer
 
-        onClicked: e => root.clicked(e)
+        onClicked: e => {
+            root.forceActiveFocus();
+            root.clicked(e);
+        }
     }
 
     RowLayout {

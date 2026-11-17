@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.services
@@ -58,11 +59,13 @@ Item {
 
                 IconButton {
                     icon: "add_comment"
+                    accessibleName: Tr.tr("New assistant chat")
                     onClicked: Assistant.newChat()
                 }
 
                 IconButton {
                     icon: "close"
+                    accessibleName: Tr.tr("Close assistant")
                     onClicked: root.screenState.assistant = false
                 }
             }

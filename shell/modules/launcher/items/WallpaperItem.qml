@@ -25,6 +25,11 @@ Item {
     implicitWidth: image.width + Tokens.padding.medium * 2
     implicitHeight: image.height + label.height + Tokens.spacing.extraSmall + Tokens.padding.large + Tokens.padding.medium
 
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.modelData?.relativePath ?? ""
+    Accessible.selectable: true
+    Accessible.selected: PathView.isCurrentItem
+
     StateLayer {
         radius: Tokens.rounding.large
         onClicked: {

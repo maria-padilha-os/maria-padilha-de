@@ -319,8 +319,21 @@ Item {
         implicitHeight: 30
         radius: Tokens.rounding.small
         color: button.selected ? root.accent : (buttonMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.08) : "transparent")
-        border.width: button.selected ? 0 : 1
-        border.color: root.outline
+        border.width: button.activeFocus ? 2 : button.selected ? 0 : 1
+        border.color: button.activeFocus ? root.onAccent : root.outline
+        activeFocusOnTab: true
+
+        Accessible.role: Accessible.RadioButton
+        Accessible.name: button.label
+        Accessible.checkable: true
+        Accessible.checked: button.selected
+        Accessible.focusable: true
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: button.clicked()
+
+        Keys.onReturnPressed: button.clicked()
+        Keys.onEnterPressed: button.clicked()
+        Keys.onSpacePressed: button.clicked()
 
         Text {
             anchors.centerIn: parent
@@ -335,7 +348,10 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: button.clicked()
+            onClicked: {
+                button.forceActiveFocus();
+                button.clicked();
+            }
         }
     }
 
@@ -345,6 +361,7 @@ Item {
         property var options: []
         property int selectedIndex: 0
         property bool expanded: false
+        property string accessibleName
         signal picked(int index)
 
         implicitHeight: 36
@@ -355,8 +372,33 @@ Item {
             anchors.fill: parent
             radius: Tokens.rounding.small
             color: root.fieldColour
-            border.width: 1
-            border.color: picker.expanded ? root.accent : root.outline
+            border.width: pickerField.activeFocus ? 2 : 1
+            border.color: pickerField.activeFocus || picker.expanded ? root.accent : root.outline
+            activeFocusOnTab: true
+
+            Accessible.role: Accessible.ComboBox
+            Accessible.name: picker.accessibleName + ": " + (picker.options[picker.selectedIndex]?.name ?? "")
+            Accessible.description: picker.expanded ? Tr.tr("List expanded. Use Up and Down, Enter to choose, Escape to close.") : ""
+            Accessible.focusable: true
+            Accessible.focused: activeFocus
+            Accessible.onPressAction: picker.expanded = !picker.expanded
+
+            Keys.onReturnPressed: picker.expanded = !picker.expanded
+            Keys.onEnterPressed: picker.expanded = !picker.expanded
+            Keys.onSpacePressed: picker.expanded = !picker.expanded
+            Keys.onEscapePressed: picker.expanded = false
+            Keys.onUpPressed: {
+                if (picker.expanded && picker.options.length > 0) {
+                    picker.selectedIndex = Math.max(0, picker.selectedIndex - 1);
+                    picker.picked(picker.selectedIndex);
+                }
+            }
+            Keys.onDownPressed: {
+                if (picker.expanded && picker.options.length > 0) {
+                    picker.selectedIndex = Math.min(picker.options.length - 1, picker.selectedIndex + 1);
+                    picker.picked(picker.selectedIndex);
+                }
+            }
 
             Text {
                 anchors.left: parent.left
@@ -384,7 +426,10 @@ Item {
             MouseArea {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
-                onClicked: picker.expanded = !picker.expanded
+                onClicked: {
+                    pickerField.forceActiveFocus();
+                    picker.expanded = !picker.expanded;
+                }
             }
         }
 
@@ -481,6 +526,8 @@ Item {
                 Layout.preferredWidth: 140
                 Layout.minimumWidth: 80
                 placeholderText: "1"
+                Accessible.name: Tr.tr("Amount")
+                Accessible.description: Tr.tr("Value to convert")
                 color: root.foreground
                 placeholderTextColor: root.muted
                 font: Tokens.font.body.large
@@ -500,18 +547,32 @@ Item {
 
             UnitPicker {
                 Layout.fillWidth: true
+                accessibleName: Tr.tr("From unit")
                 options: root.units
                 selectedIndex: root.fromIndex
                 onPicked: index => root.fromIndex = index
             }
 
             Rectangle {
+                id: swapButton
+
                 implicitWidth: 32
                 implicitHeight: 32
                 radius: Tokens.rounding.full
                 color: swapMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.08) : "transparent"
-                border.width: 1
-                border.color: root.outline
+                border.width: swapButton.activeFocus ? 2 : 1
+                border.color: swapButton.activeFocus ? root.accent : root.outline
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Swap units")
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+                Accessible.onPressAction: root.swap()
+
+                Keys.onReturnPressed: root.swap()
+                Keys.onEnterPressed: root.swap()
+                Keys.onSpacePressed: root.swap()
 
                 Text {
                     anchors.centerIn: parent
@@ -526,12 +587,16 @@ Item {
                     anchors.fill: parent
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: root.swap()
+                    onClicked: {
+                        swapButton.forceActiveFocus();
+                        root.swap();
+                    }
                 }
             }
 
             UnitPicker {
                 Layout.fillWidth: true
+                accessibleName: Tr.tr("To unit")
                 options: root.units
                 selectedIndex: root.toIndex
                 onPicked: index => root.toIndex = index

@@ -84,6 +84,7 @@ PageBase {
                 icon: "refresh"
                 type: IconButton.Tonal
                 isRound: true
+                accessibleName: Tr.tr("Refresh keybinds")
                 enabled: !root.loading
                 onClicked: root.refresh()
             }

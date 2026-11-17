@@ -245,6 +245,10 @@ Column {
         StateLayer {
             radius: Tokens.rounding.full
             color: profiles.current === parent.icon ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
+            Accessible.role: Accessible.RadioButton
+            Accessible.name: root.powerProfileToString(parent.profile)
+            Accessible.checkable: true
+            Accessible.checked: profiles.current === parent.icon
             onClicked: PowerProfiles.profile = parent.profile
         }
 

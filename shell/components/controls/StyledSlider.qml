@@ -22,6 +22,39 @@ Slider {
     property color fgColour: enabled ? Colours.palette.m3primary : Qt.alpha(Colours.palette.m3onSurface, 0.38)
     property color bgColour: enabled ? Colours.palette.m3secondaryContainer : Qt.alpha(Colours.palette.m3onSurface, 0.1)
 
+    property string accessibleName
+    property string accessibleDescription
+    readonly property string accessibleValue: Math.round(visualPosition * 100) + "%"
+
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Slider
+    Accessible.name: accessibleName
+    Accessible.description: accessibleDescription.length > 0 ? `${accessibleDescription} ${accessibleValue}` : accessibleValue
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+
+    function step(delta: real): void {
+        const next = CUtils.clamp(root.value + delta, root.from, root.to);
+        root.value = next;
+        root.interaction(next);
+    }
+
+    Keys.onLeftPressed: root.step(-root.stepSize)
+    Keys.onRightPressed: root.step(root.stepSize)
+    Keys.onDownPressed: root.step(-root.stepSize)
+    Keys.onUpPressed: root.step(root.stepSize)
+    Keys.onHomePressed: root.step(root.from - root.value)
+    Keys.onEndPressed: root.step(root.to - root.value)
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_PageDown) {
+            root.step(-root.stepSize * 10);
+            event.accepted = true;
+        } else if (event.key === Qt.Key_PageUp) {
+            root.step(root.stepSize * 10);
+            event.accepted = true;
+        }
+    }
+
     property real pos: visualPosition
     property real filledWidth
 
@@ -189,5 +222,11 @@ Slider {
         id: widthBehavior
 
         Anim {}
+    }
+
+    FocusRing {
+        target: root
+        margin: 2
+        radius: Tokens.rounding.medium
     }
 }

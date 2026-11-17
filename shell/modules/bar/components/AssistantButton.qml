@@ -1,5 +1,6 @@
 import QtQuick
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 
@@ -9,6 +10,36 @@ Item {
     implicitWidth: icon.implicitHeight + Tokens.padding.small
     implicitHeight: icon.implicitHeight
 
+    readonly property string stateDescription: Assistant.error.length > 0 ? Tr.tr("Assistant has an error") : Assistant.streaming ? Tr.tr("Assistant is responding") : Tr.tr("Open the assistant")
+
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: Tr.tr("Assistant")
+    Accessible.description: root.stateDescription
+    Accessible.focusable: AssistantSettings.enabled
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.toggleAssistant()
+
+    function toggleAssistant(): void {
+        if (!AssistantSettings.enabled)
+            return;
+        Assistant.start();
+        const screenState = ShellState.forActive();
+        if (!screenState)
+            return;
+        if (!screenState.assistant)
+            screenState.sidebar = false;
+        screenState.assistant = !screenState.assistant;
+    }
+
+    Keys.onReturnPressed: root.toggleAssistant()
+    Keys.onEnterPressed: root.toggleAssistant()
+    Keys.onSpacePressed: root.toggleAssistant()
+
+    FocusRing {
+        target: root
+    }
+
     StateLayer {
         anchors.fill: undefined
         anchors.centerIn: parent
@@ -16,13 +47,8 @@ Item {
         implicitHeight: icon.implicitHeight + Tokens.padding.small
         radius: Tokens.rounding.full
         onClicked: {
-            if (!AssistantSettings.enabled)
-                return;
-            Assistant.start();
-            const screenState = ShellState.forActive();
-            if (!screenState.assistant)
-                screenState.sidebar = false;
-            screenState.assistant = !screenState.assistant;
+            root.forceActiveFocus();
+            root.toggleAssistant();
         }
     }
 

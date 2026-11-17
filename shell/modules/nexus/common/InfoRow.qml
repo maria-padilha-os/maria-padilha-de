@@ -20,6 +20,10 @@ ConnectedRect {
     Layout.fillWidth: true
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins * 2
 
+    Accessible.role: Accessible.StaticText
+    Accessible.name: [label.text, value.text].filter(s => s.length > 0).join(": ")
+    Accessible.description: subtext
+
     Component {
         id: iconComp
 
@@ -61,7 +65,7 @@ ConnectedRect {
                 Layout.fillWidth: true
                 visible: root.subtext
                 text: root.subtext
-                color: Colours.palette.m3outline
+                color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.label.small
                 elide: Text.ElideRight
             }

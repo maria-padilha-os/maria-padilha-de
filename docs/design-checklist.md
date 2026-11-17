@@ -37,7 +37,8 @@ slow, and when the user is on a light or dark wallpaper.
 - Derive hover, focus and disabled states from the palette instead of
   `Qt.lighter` or a second hard-coded colour.
 - Give text fields and custom buttons a visible keyboard focus ring, and make
-  Space/Return activate the focused control.
+  Space/Return activate the focused control. Icon-only controls need an
+  `Accessible.name` that names the action, not the Material glyph.
 - Always design the empty, loading and error states. Do not leave a blank
   rectangle where a service is still loading.
 - Keep network, audio and timer work behind `active`, and stop it when the tab
@@ -52,7 +53,9 @@ slow, and when the user is on a light or dark wallpaper.
       minimum size.
 - [ ] Empty, loading and error states have been looked at, not just the happy
       path.
-- [ ] `bash tests/all.sh` and `make lint` pass.
+- [ ] `bash tests/accessibility/run.sh`, `bash tests/all.sh` and `make lint`
+      pass. The manual screen-reader and reduced-motion passes are in the
+      [accessibility checklist](accessibility.html).
 - [ ] Screenshots are captured on an empty workspace, never with a terminal,
       browser, private window, or live notification visible.
 

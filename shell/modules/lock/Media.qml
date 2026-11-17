@@ -95,6 +95,7 @@ StyledClippingRect {
             IconButton {
                 type: IconButton.Tonal
                 icon: "skip_previous"
+                accessibleName: Tr.tr("Previous track")
                 isRound: true
                 shapeMorph: true
                 disabled: !Players.active?.canGoPrevious
@@ -103,6 +104,7 @@ StyledClippingRect {
 
             IconButton {
                 icon: Players.active?.isPlaying ? "pause" : "play_arrow"
+                accessibleName: Players.active?.isPlaying ? Tr.tr("Pause") : Tr.tr("Play")
                 isRound: true
                 shapeMorph: true
                 checked: Players.active?.isPlaying ?? false
@@ -114,6 +116,7 @@ StyledClippingRect {
             IconButton {
                 type: IconButton.Tonal
                 icon: "skip_next"
+                accessibleName: Tr.tr("Next track")
                 isRound: true
                 shapeMorph: true
                 disabled: !Players.active?.canGoNext

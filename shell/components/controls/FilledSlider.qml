@@ -11,8 +11,27 @@ Slider {
     required property string icon
     property real oldValue
     property bool initialized
+    property string accessibleName
 
     orientation: Qt.Vertical
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.Slider
+    Accessible.name: accessibleName
+    Accessible.description: Math.round(value * 100) + "%"
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+
+    function step(delta: real): void {
+        value = Math.max(from, Math.min(to, value + delta));
+    }
+
+    Keys.onLeftPressed: root.step(-root.stepSize)
+    Keys.onRightPressed: root.step(root.stepSize)
+    Keys.onDownPressed: root.step(-root.stepSize)
+    Keys.onUpPressed: root.step(root.stepSize)
+    Keys.onHomePressed: root.value = root.from
+    Keys.onEndPressed: root.value = root.to
 
     background: StyledRect {
         color: Colours.layer(Colours.palette.m3surfaceContainer, 2)
@@ -79,7 +98,7 @@ Slider {
                             target: icon
                             property: "scale"
                             to: 0.3
-                            duration: Tokens.anim.durations.small / 2
+                            duration: Accessibility.motion(Tokens.anim.durations.small / 2)
                             easing: Tokens.anim.standardAccel
                         }
                         PropertyAction {}
@@ -87,7 +106,7 @@ Slider {
                             target: icon
                             property: "scale"
                             to: 1
-                            duration: Tokens.anim.durations.normal / 2
+                            duration: Accessibility.motion(Tokens.anim.durations.normal / 2)
                             easing: Tokens.anim.standardDecel
                         }
                     }
@@ -124,5 +143,11 @@ Slider {
         Anim {
             type: Anim.StandardLarge
         }
+    }
+
+    FocusRing {
+        target: root
+        margin: 2
+        radius: Tokens.rounding.full
     }
 }

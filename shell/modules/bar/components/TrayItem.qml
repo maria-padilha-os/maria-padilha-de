@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Services.SystemTray
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components.effects
 import qs.services
 import qs.utils
@@ -16,7 +17,25 @@ MouseArea {
     implicitWidth: Tokens.font.body.small.pointSize * 2
     implicitHeight: Tokens.font.body.small.pointSize * 2
 
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.modelData.title || root.modelData.tooltipTitle || root.modelData.id
+    Accessible.description: root.modelData.tooltipDescription || Tr.tr("System tray item")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.modelData.activate()
+
+    Keys.onReturnPressed: root.modelData.activate()
+    Keys.onEnterPressed: root.modelData.activate()
+    Keys.onSpacePressed: root.modelData.activate()
+
+    FocusRing {
+        target: root
+        radius: Tokens.rounding.small
+    }
+
     onClicked: event => {
+        root.forceActiveFocus();
         if (event.button === Qt.LeftButton)
             modelData.activate();
         else

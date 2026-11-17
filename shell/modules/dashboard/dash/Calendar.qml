@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import M3Shapes
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.components.effects
@@ -102,6 +103,7 @@ CustomMouseArea {
             IconButton {
                 isRound: true
                 icon: "chevron_left"
+                accessibleName: Tr.tr("Previous month")
                 type: IconButton.Text
                 font: Tokens.font.icon.builders.small.weight(Font.Bold).build()
                 padding: Tokens.padding.small
@@ -118,6 +120,8 @@ CustomMouseArea {
                 StateLayer {
                     color: Colours.palette.m3primary
                     radius: pressed ? Tokens.rounding.small : height / 2
+                    Accessible.role: Accessible.Button
+                    Accessible.name: Tr.tr("Go to today")
                     disabled: {
                         const now = new Date();
                         return root.nonAnimCurrMonth === now.getMonth() && root.nonAnimCurrYear === now.getFullYear();
@@ -149,6 +153,7 @@ CustomMouseArea {
             IconButton {
                 isRound: true
                 icon: "chevron_right"
+                accessibleName: Tr.tr("Next month")
                 type: IconButton.Text
                 font: Tokens.font.icon.builders.small.weight(Font.Bold).build()
                 padding: Tokens.padding.small

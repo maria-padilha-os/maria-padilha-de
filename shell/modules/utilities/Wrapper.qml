@@ -7,6 +7,7 @@ import Caelestia.Config
 import qs.components
 import qs.modules.sidebar as Sidebar
 import qs.modules.bar.popouts as BarPopouts
+import qs.services
 
 Item {
     id: root
@@ -51,7 +52,7 @@ Item {
 
             Anim {
                 property: "sidebarLerp"
-                duration: Tokens.anim.durations.expressiveDefaultSpatial / 2
+                duration: Accessibility.motion(Tokens.anim.durations.expressiveDefaultSpatial / 2)
                 easing: Tokens.anim.standardAccel
             }
         },
@@ -60,7 +61,7 @@ Item {
 
             Anim {
                 property: "sidebarLerp"
-                duration: Tokens.anim.durations.expressiveDefaultSpatial / 2
+                duration: Accessibility.motion(Tokens.anim.durations.expressiveDefaultSpatial / 2)
                 easing: Tokens.anim.standardDecel
             }
         }

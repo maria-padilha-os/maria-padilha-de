@@ -117,6 +117,18 @@ ColumnLayout {
 
     spacing: Tokens.spacing.medium
 
+    focus: root.screenState.barFocus
+    activeFocusOnTab: root.screenState.barFocus
+
+    Keys.onEscapePressed: {
+        if (root.popouts.hasCurrent) {
+            root.popouts.hasCurrent = false;
+            root.closeTray();
+        } else {
+            root.screenState.barFocus = false;
+        }
+    }
+
     Repeater {
         id: repeater
 
@@ -197,6 +209,7 @@ ColumnLayout {
                 delegate: EntryWrapper {
                     Clock {
                         objectName: "taskbarClock"
+                        screenState: root.screenState
                     }
                 }
             }

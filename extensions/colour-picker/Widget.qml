@@ -142,6 +142,20 @@ Item {
             radius: Tokens.rounding.medium
             color: root.picking ? root.surface : root.accent
             opacity: root.picking ? 0.65 : 1
+            border.width: pickButton.activeFocus ? 2 : 0
+            border.color: root.accent
+            activeFocusOnTab: !root.picking
+
+            Accessible.role: Accessible.Button
+            Accessible.name: root.picking ? Tr.tr("Picking a colour") : Tr.tr("Pick colour")
+            Accessible.description: Tr.tr("Sample a colour from the screen")
+            Accessible.focusable: !root.picking
+            Accessible.focused: activeFocus
+            Accessible.onPressAction: root.pick()
+
+            Keys.onReturnPressed: root.pick()
+            Keys.onEnterPressed: root.pick()
+            Keys.onSpacePressed: root.pick()
 
             Text {
                 anchors.centerIn: parent
@@ -155,6 +169,7 @@ Item {
                 anchors.fill: parent
                 enabled: !root.picking
                 cursorShape: Qt.PointingHandCursor
+                onPressed: pickButton.forceActiveFocus()
                 onClicked: root.pick()
             }
         }
@@ -196,13 +211,27 @@ Item {
         }
 
         Rectangle {
+            id: copyButton
+
             Layout.fillWidth: true
             Layout.preferredHeight: 38
             radius: Tokens.rounding.medium
             color: root.hasColour ? root.surface : "transparent"
-            border.width: 1
-            border.color: root.outline
+            border.width: copyButton.activeFocus ? 2 : 1
+            border.color: copyButton.activeFocus ? root.accent : root.outline
             opacity: root.hasColour ? 1 : 0.55
+            activeFocusOnTab: root.hasColour && !copyProc.running
+
+            Accessible.role: Accessible.Button
+            Accessible.name: root.copied ? Tr.tr("Copied") : Tr.tr("Copy HEX colour")
+            Accessible.description: root.hex
+            Accessible.focusable: root.hasColour && !copyProc.running
+            Accessible.focused: activeFocus
+            Accessible.onPressAction: root.copy(root.hex)
+
+            Keys.onReturnPressed: root.copy(root.hex)
+            Keys.onEnterPressed: root.copy(root.hex)
+            Keys.onSpacePressed: root.copy(root.hex)
 
             Text {
                 anchors.centerIn: parent
@@ -216,7 +245,10 @@ Item {
                 anchors.fill: parent
                 enabled: root.hasColour && !copyProc.running
                 cursorShape: Qt.PointingHandCursor
-                onClicked: root.copy(root.hex)
+                onClicked: {
+                    copyButton.forceActiveFocus();
+                    root.copy(root.hex);
+                }
             }
         }
     }
@@ -272,8 +304,20 @@ Item {
         implicitHeight: 38
         radius: Tokens.rounding.medium
         color: root.surface
-        border.width: 1
-        border.color: root.outline
+        border.width: row.activeFocus ? 2 : 1
+        border.color: row.activeFocus ? root.accent : root.outline
+        activeFocusOnTab: row.value.length > 0
+
+        Accessible.role: Accessible.Button
+        Accessible.name: row.label + ": " + row.value
+        Accessible.description: Tr.tr("Copy this value")
+        Accessible.focusable: row.value.length > 0
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: root.copy(row.value)
+
+        Keys.onReturnPressed: root.copy(row.value)
+        Keys.onEnterPressed: root.copy(row.value)
+        Keys.onSpacePressed: root.copy(row.value)
 
         RowLayout {
             anchors.fill: parent
@@ -302,7 +346,10 @@ Item {
             anchors.fill: parent
             enabled: row.value.length > 0
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.copy(row.value)
+            onClicked: {
+                row.forceActiveFocus();
+                root.copy(row.value);
+            }
         }
     }
 }

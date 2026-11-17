@@ -137,6 +137,7 @@ Item {
             icon: "skip_previous"
             isRound: true
             shapeMorph: true
+            accessibleName: Tr.tr("Previous track")
             disabled: !Players.active?.canGoPrevious
             onClicked: Players.active?.previous()
         }
@@ -144,6 +145,7 @@ Item {
         IconButton {
             fillWidth: true
             icon: Players.active?.isPlaying ? "pause" : "play_arrow"
+            accessibleName: Players.active?.isPlaying ? Tr.tr("Pause") : Tr.tr("Play")
             isRound: true
             shapeMorph: true
             checked: Players.active?.isPlaying ?? false
@@ -156,6 +158,7 @@ Item {
             icon: "skip_next"
             isRound: true
             shapeMorph: true
+            accessibleName: Tr.tr("Next track")
             disabled: !Players.active?.canGoNext
             onClicked: Players.active?.next()
         }

@@ -83,6 +83,7 @@ StyledRect {
                     roleValue: "wifi"
                     delegate: Toggle {
                         icon: "wifi"
+                        accessibleName: Tr.tr("Wi-Fi")
                         checked: Nmcli.wifiEnabled
                         onClicked: Nmcli.toggleWifi()
                     }
@@ -91,6 +92,7 @@ StyledRect {
                     roleValue: "bluetooth"
                     delegate: Toggle {
                         icon: "bluetooth"
+                        accessibleName: Tr.tr("Bluetooth")
                         checked: Bluetooth.defaultAdapter?.enabled ?? false // qmllint disable unresolved-type
                         onClicked: {
                             const adapter = Bluetooth.defaultAdapter; // qmllint disable unresolved-type
@@ -103,6 +105,7 @@ StyledRect {
                     roleValue: "mic"
                     delegate: Toggle {
                         icon: "mic"
+                        accessibleName: Tr.tr("Microphone")
                         checked: !Audio.sourceMuted
                         onClicked: {
                             const audio = Audio.source?.audio;
@@ -115,6 +118,7 @@ StyledRect {
                     roleValue: "settings"
                     delegate: Toggle {
                         icon: "settings"
+                        accessibleName: Tr.tr("Open settings")
                         inactiveOnColour: Colours.palette.m3onSurfaceVariant
                         isToggle: false
                         onClicked: {
@@ -127,6 +131,7 @@ StyledRect {
                     roleValue: "gameMode"
                     delegate: Toggle {
                         icon: "gamepad"
+                        accessibleName: Tr.tr("Game mode")
                         checked: GameMode.enabled
                         onClicked: GameMode.enabled = !GameMode.enabled
                     }
@@ -135,6 +140,7 @@ StyledRect {
                     roleValue: "dnd"
                     delegate: Toggle {
                         icon: "notifications_off"
+                        accessibleName: Tr.tr("Do not disturb")
                         checked: Notifs.dnd
                         onClicked: Notifs.dnd = !Notifs.dnd
                     }
@@ -143,6 +149,7 @@ StyledRect {
                     roleValue: "vpn"
                     delegate: Toggle {
                         icon: "vpn_key"
+                        accessibleName: Tr.tr("VPN")
                         checked: VPN.connected && VPN.status.state !== "needs-auth" && VPN.status.state !== "error"
                         enabled: !VPN.connecting && !VPN.disconnecting
                         isToggle: VPN.status.state !== "needs-auth" && VPN.status.state !== "error"

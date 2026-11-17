@@ -200,6 +200,23 @@ Item {
         implicitHeight: icon.implicitHeight + Tokens.padding.extraSmall * 2
         cursorShape: Qt.PointingHandCursor
         hoverEnabled: true
+        activeFocusOnTab: true
+
+        Accessible.role: Accessible.Button
+        Accessible.name: root.open ? Tr.tr("Hide lyrics information") : Tr.tr("Show lyrics information")
+        Accessible.focusable: true
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: root.open = !root.open
+
+        Keys.onReturnPressed: root.open = !root.open
+        Keys.onEnterPressed: root.open = !root.open
+        Keys.onSpacePressed: root.open = !root.open
+
+        FocusRing {
+            target: btn
+            radius: Tokens.rounding.full
+        }
+
         onClicked: root.open = !root.open
 
         MaterialIcon {

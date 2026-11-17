@@ -63,7 +63,7 @@ ConnectedRect {
                 Layout.fillWidth: true
                 visible: root.subtext
                 text: input.isError && root.errorText ? root.errorText : root.subtext
-                color: input.isError && root.errorText ? Colours.palette.m3error : Colours.palette.m3outline
+                color: input.isError && root.errorText ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.label.small
                 elide: Text.ElideRight
                 animate: root.errorText
@@ -72,6 +72,9 @@ ConnectedRect {
 
         StyledTextField {
             id: input
+
+            accessibleName: root.label
+            accessibleDescription: input.isError && root.errorText ? root.errorText : root.subtext
 
             Layout.preferredWidth: root.smallField ? Tokens.sizes.nexus.smallTextFieldWidth : Tokens.sizes.nexus.textFieldWidth
             Layout.maximumWidth: root.width / 2

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Templates
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 
@@ -10,6 +11,16 @@ DoubleSpinBox {
     property int repeatRate: 400
     property int repeatDecay: 50
     property int cLayer: 1
+    property string accessibleName
+    property string accessibleDescription
+
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.SpinBox
+    Accessible.name: accessibleName
+    Accessible.description: accessibleDescription
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
 
     function increase(): void {
         let newValue = Math.min(to, value + stepSize);
@@ -65,6 +76,7 @@ DoubleSpinBox {
         bottomRightRadius: pressed ? Tokens.rounding.small : Tokens.rounding.extraSmall
 
         icon: "remove"
+        accessibleName: Tr.tr("Decrease")
         disabledColour: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 0.4)
         color: disabled ? disabledColour : Colours.layer(Colours.palette.m3surfaceContainerHighest, root.cLayer)
         type: IconButton.Text
@@ -101,6 +113,7 @@ DoubleSpinBox {
         bottomLeftRadius: pressed ? Tokens.rounding.small : Tokens.rounding.extraSmall
 
         icon: "add"
+        accessibleName: Tr.tr("Increase")
         disabledColour: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 0.4)
         color: disabled ? disabledColour : Colours.layer(Colours.palette.m3surfaceContainerHighest, root.cLayer)
         type: IconButton.Text
@@ -148,5 +161,11 @@ DoubleSpinBox {
             if (interval > root.repeatDecay)
                 interval -= root.repeatDecay;
         }
+    }
+
+    FocusRing {
+        target: root
+        radius: Tokens.rounding.extraSmall
+        margin: 2
     }
 }

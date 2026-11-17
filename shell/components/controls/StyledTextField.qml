@@ -40,6 +40,8 @@ TextFieldBase {
 
     readonly property int filledOffset: type === StyledTextField.Filled ? Tokens.spacing.small : 0
 
+    Accessible.description: effectiveSupportingText
+
     leftPadding: horizontalPadding + leadingOffset
     rightPadding: horizontalPadding + trailingOffset
     topPadding: verticalPadding + filledOffset
@@ -137,7 +139,7 @@ TextFieldBase {
                     type: Anim.DefaultEffects
                 }
                 AnchorAnim {
-                    duration: Tokens.anim.durations.expressiveDefaultEffects
+                    duration: Accessibility.motion(Tokens.anim.durations.expressiveDefaultEffects)
                     easing: Tokens.anim.expressiveDefaultEffects
                 }
             }

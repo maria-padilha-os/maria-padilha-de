@@ -68,7 +68,10 @@ StyledWindow {
     name: "drawers"
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: (fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top
-    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    // The launcher, session menu and dashboard are keyboard surfaces. Ask
+    // the compositor for keyboard focus only while one of them is open, so
+    // ordinary app windows keep focus the rest of the time.
+    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session || screenState.dashboard || screenState.sidebar || screenState.barFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     mask: hasFullscreen ? emptyRegion : regions
 

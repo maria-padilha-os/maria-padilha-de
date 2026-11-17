@@ -19,9 +19,12 @@ Item {
 
     readonly property int clampedWidth: Math.max(Config.border.minThickness, implicitWidth)
     readonly property int padding: Math.max(Tokens.padding.small, Config.border.thickness)
-    readonly property int contentWidth: Tokens.sizes.bar.innerWidth + padding * 2
-    readonly property int exclusiveZone: !disabled && (Config.bar.persistent || screenState.bar) ? contentWidth : Config.border.thickness
-    readonly property bool shouldBeVisible: !fullscreen && !disabled && (Config.bar.persistent || screenState.bar || isHovered)
+    // The bar is wider than the icon token when the user scales text, so a
+    // large icon or an uppercase label is not clipped by the 40 px default.
+    readonly property int innerWidth: Math.max(Tokens.sizes.bar.innerWidth, Math.ceil(Tokens.font.icon.medium.pointSize * 1.6))
+    readonly property int contentWidth: innerWidth + padding * 2
+    readonly property int exclusiveZone: !disabled && (Config.bar.persistent || screenState.bar || screenState.barFocus) ? contentWidth : Config.border.thickness
+    readonly property bool shouldBeVisible: !fullscreen && !disabled && (Config.bar.persistent || screenState.bar || screenState.barFocus || isHovered)
     property bool isHovered
 
     function closeTray(): void {
@@ -39,6 +42,8 @@ Item {
     function handleWheel(y: real, angleDelta: point): void {
         (content.item as Bar)?.handleWheel(y, angleDelta);
     }
+
+    Keys.onEscapePressed: screenState.barFocus = false
 
     clip: true
     visible: width > Config.border.thickness

@@ -94,6 +94,7 @@ Item {
         Accessible.name: button.label
 
         Keys.onReturnPressed: button.clicked()
+        Keys.onEnterPressed: button.clicked()
         Keys.onSpacePressed: button.clicked()
 
         Text {
