@@ -74,8 +74,15 @@ Item {
 
     Connections {
         function onBrightnessChanged(): void {
-            root.show();
-            root.brightness = root.monitor?.brightness ?? 0;
+            const next = root.monitor?.brightness ?? 0;
+            const delta = Math.abs(next - root.brightness);
+
+            // padilha-brightness follows a time-of-day curve in 1% steps. Those
+            // automatic writes must not flash the OSD; a brightness key or the
+            // bar/OSD slider changes by the configured 10% increment.
+            root.brightness = next;
+            if (delta >= 0.02)
+                root.show();
         }
 
         target: root.monitor
