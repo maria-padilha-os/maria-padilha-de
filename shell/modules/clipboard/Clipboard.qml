@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Caelestia.Config
 import qs.components.misc
 import qs.services
@@ -43,7 +44,7 @@ Scope {
 
         active: root.opened
 
-        sourceComponent: ClipboardWindow {
+        ClipboardWindow {
             modelData: ShellState.forActive()?.modelData ?? Quickshell.screens[0]
             onCloseRequested: root.close()
         }

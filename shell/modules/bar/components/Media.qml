@@ -48,8 +48,10 @@ Item {
     MaterialIcon {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        implicitWidth: root.artSize
-        implicitHeight: root.artSize
+        width: root.artSize
+        height: root.artSize
+        horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
         text: "music_off"
         color: Colours.palette.m3onSurfaceVariant
         fontStyle: Tokens.font.icon.builders.small.build()

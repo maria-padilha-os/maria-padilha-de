@@ -88,7 +88,6 @@ StyledWindow {
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-    focus: true
 
     Keys.onEscapePressed: closeRequested()
 
