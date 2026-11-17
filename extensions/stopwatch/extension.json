@@ -3,5 +3,6 @@
     "description": "Stopwatch with laps",
     "version": "1.0",
     "icon": "timer",
-    "tab": "Tab.qml"
+    "tab": "Tab.qml",
+    "permissions": []
 }

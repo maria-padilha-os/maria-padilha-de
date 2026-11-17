@@ -22,6 +22,17 @@ else
     bad "extension contract checker"
 fi
 
+echo "manifest validation, duplicates and persistence"
+
+node_bin=$(command -v node || true)
+if [ -z "$node_bin" ]; then
+    printf '  skip %s\n' "Node.js is not installed"
+elif "$node_bin" "$root/tests/extensions/manifest.test.js" > "$tmp/manifest.log" 2>&1; then
+    ok "manifest validation, duplicate ids/shortcuts and enable/disable persistence"
+else
+    bad "manifest validation, duplicate ids/shortcuts and enable/disable persistence" "$(tail -30 "$tmp/manifest.log")"
+fi
+
 echo "maps style, URLs and cache keys"
 
 # The Maps extension keeps its selection/URL/cache logic in a plain JS module
@@ -111,6 +122,29 @@ else
         ok "instantiated ${#tabs[@]} extension tabs"
     else
         bad "instantiated ${#tabs[@]} extension tabs" "$(tail -20 "$tmp/qmltest.log")"
+    fi
+fi
+
+echo "enable/disable persistence"
+
+qs_bin=$(command -v qs || true)
+if [ -z "$qs_bin" ] || [ ! -d /usr/lib/qt6/qml/Quickshell ] || [ ! -d /usr/lib/qt6/qml/Caelestia ]; then
+    printf '  skip %s\n' "Quickshell or the Caelestia plugin is not installed"
+else
+    persist="$tmp/persistence"
+    mkdir -p "$persist/home" "$persist/config" "$persist/data" "$persist/state" "$persist/cache" "$persist/runtime"
+    chmod 700 "$persist/runtime"
+    if HOME="$persist/home" \
+        XDG_CONFIG_HOME="$persist/config" \
+        XDG_DATA_HOME="$persist/data" \
+        XDG_STATE_HOME="$persist/state" \
+        XDG_CACHE_HOME="$persist/cache" \
+        XDG_RUNTIME_DIR="$persist/runtime" \
+        QT_QPA_PLATFORM=offscreen \
+        timeout 30 "$qs_bin" -p "$root/tests/extensions/persistence.qml" > "$persist/test.log" 2>&1; then
+        ok "enabling and disabling survive the config save/reload"
+    else
+        bad "enabling and disabling survive the config save/reload" "$(tail -20 "$persist/test.log")"
     fi
 fi
 

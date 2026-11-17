@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "hourglass_top",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + B"
+    "shortcut": "Super + Alt + B",
+    "permissions": ["notifications", "processes"]
 }

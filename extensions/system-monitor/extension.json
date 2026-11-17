@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "monitoring",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + I"
+    "shortcut": "Super + Alt + I",
+    "permissions": ["system"]
 }

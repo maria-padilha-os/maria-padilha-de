@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- The extension manager now shows each extension as a card with its
+  description, version, permissions, enabled state, tab/shortcut behaviour and
+  dependency state. It has search and All/Enabled/Disabled/Needs attention
+  filters, an explanatory empty state, and no install or network-fetch path.
+  Invalid manifests, missing tab files, duplicate ids and duplicate shortcuts
+  stay visible with actionable messages; broken manifests can no longer
+  disappear silently. Toggling still updates `dashboard.extensionTabs`
+  immediately and survives reloads. Manifest validation and duplicate rules
+  are covered by `tests/extensions/manifest.test.js`; the real config
+  save/reload path is covered by `tests/extensions/persistence.qml`.
 - New opt-in clipboard history palette, disabled by default. It keeps a
   bounded store under `~/.local/state/padilha/clipboard`, supports search,
   keyboard selection and copy-back, pause and clear-all, and gives

@@ -6,9 +6,11 @@ title: Extensions
 # Extensions
 
 An extension adds a **tab to the top panel** (the dashboard), in the same tab
-bar as Dashboard, Media, Performance and Weather. Settings → Extensions only enables
-and disables them; the tab itself lives in the top panel, never inside the
-settings window.
+bar as Dashboard, Media, Performance and Weather. Settings → Extensions shows
+each extension as a card with its description, version, permissions, state,
+tab and shortcut; it only enables and disables them. The tab itself lives in
+the top panel, never inside the settings window. Enabling or disabling takes
+effect immediately, without restarting the shell.
 
 ## Layout
 
@@ -29,20 +31,98 @@ settings window.
     "description": "Tune by ear with a microphone",
     "version": "1.0",
     "icon": "tune",
-    "tab": "Tab.qml"
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + G",
+    "permissions": ["microphone", "processes"]
 }
 ```
 
-- `tab` is the entry shown as a tab in the top panel.
+`name`, `description`, `version`, `icon` and `tab` are required and must be
+non-empty strings.
+
+- `tab` is the entry shown as a tab in the top panel. It must be a relative
+  `.qml` path inside the extension folder; `..`, absolute paths and missing
+  files are rejected.
 - `icon` is a Material symbol name used in the tab bar.
 - `name` becomes the tab title.
+- `shortcut` is optional. It is displayed as a reminder; the actual keybind is
+  still declared in the shell keybinds. When present it must be a string, and
+  two extensions claiming the same shortcut are both flagged (comparison
+  ignores case and spaces around `+`).
+- `permissions` (or its alias `capabilities`) is an optional list of
+  capability names. Known names are listed below. An unknown name is shown as
+  a custom capability with a warning; it does not make the manifest invalid.
+- `requires` (or `dependencies`) is an optional list of other extension ids
+  that must be installed. A missing dependency is shown as an actionable error
+  on the card and the extension cannot be enabled until it is present.
+- `commands` is an optional list of local executables the extension needs. The
+  manager checks whether each one is on `PATH` and reports the missing ones; it
+  never runs a package manager or fetches anything.
+
+### Permissions
+
+| name | what it means |
+| --- | --- |
+| `filesystem` | reads and writes files |
+| `network` | connects to remote servers |
+| `microphone` | captures audio from the microphone |
+| `screen` | reads pixels from the screen |
+| `notifications` | sends desktop notifications |
+| `processes` | runs local commands and processes |
+| `system` | reads system and filesystem information |
+| `clipboard` | reads or writes the clipboard |
+
+Permissions are metadata for the person choosing whether to enable an
+extension. They are not a sandbox: QML still runs with your user's privileges.
+
+## Managing
+
+Settings → Extensions provides:
+
+- a search box that matches names, ids, descriptions, shortcuts, permissions,
+  requirements and error text;
+- **All**, **Enabled**, **Disabled** and **Needs attention** filters;
+- an empty state that explains where to put an extension instead of offering
+  a download or install button;
+- a card per discovered folder, including folders whose manifest is broken or
+  whose id or shortcut collides with another extension.
+
+Nothing is installed, downloaded or fetched from the network by the manager.
+It scans the local folders, reads `extension.json`, and writes the enabled ids
+to `dashboard.extensionTabs`. A folder with a broken manifest stays visible
+with the exact problem and a suggested fix.
+
+## Validation and errors
+
+The manager never hides a discovered folder because its manifest is broken. It
+surfaces actionable messages on the card:
+
+- invalid JSON, an empty file, or a manifest that is not an object;
+- missing or empty required fields;
+- an unsafe or missing `tab` file;
+- a duplicate id (every copy is listed, with the other folder named);
+- a duplicate shortcut (both cards warn; the comparison ignores case and
+  spacing around `+`);
+- a missing extension dependency or local command.
+
+A card with an error cannot be enabled. If an already-enabled extension
+becomes invalid, its switch still lets you turn it off. Duplicate shortcuts
+are warnings because the tabs themselves still work, but the shortcut is
+ambiguous until one manifest changes.
+
+The scanner reads `~/.config/padilha/extensions` first and the bundled
+directories last, so a user extension still overrides a bundled extension with
+the same id. Two folders at the same priority are a real duplicate and neither
+can be enabled. The lower-priority bundled copy stays visible with a
+"shadowed by" warning instead of disappearing.
 
 ## Enabling
 
 Settings → Extensions lists the installed extensions with an on/off switch.
 Enabled tabs are appended after Weather, in the order the manifest names sort.
 The enabled ids live in `dashboard.extensionTabs` in the shell config, so they
-survive reloads.
+survive reloads. Disabling a tab removes it from the dashboard immediately;
+no shell restart is required.
 
 ## Tab contract
 

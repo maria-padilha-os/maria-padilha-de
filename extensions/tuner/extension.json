@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "graphic_eq",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + G"
+    "shortcut": "Super + Alt + G",
+    "permissions": ["microphone", "processes"]
 }

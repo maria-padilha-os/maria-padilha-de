@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "translate",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + T"
+    "shortcut": "Super + Alt + T",
+    "permissions": ["network", "clipboard", "processes"]
 }

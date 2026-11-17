@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "note_alt",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + N"
+    "shortcut": "Super + Alt + N",
+    "permissions": ["filesystem", "processes"]
 }

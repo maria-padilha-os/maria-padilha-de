@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "colorize",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + P"
+    "shortcut": "Super + Alt + P",
+    "permissions": ["screen", "clipboard", "processes"]
 }

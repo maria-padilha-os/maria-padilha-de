@@ -42,6 +42,13 @@ Scope {
                 extensionRetry.restart();
                 return;
             }
+            // A missing, broken or duplicate extension must not be enabled by a
+            // stale shortcut.
+            const extension = Extensions.list.find(ext => ext.id === extensionId && !ext.shadowed);
+            if (!extension || !extension.canEnable) {
+                root.pendingExtensionId = "";
+                return;
+            }
             Extensions.setTabEnabled(extensionId, true);
             index = Extensions.tabIndex(extensionId);
         }
