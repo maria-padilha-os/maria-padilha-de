@@ -10,7 +10,33 @@ import qs.services
 StyledRect {
     id: root
 
+    required property ScreenState screenState
+
     readonly property color colour: Colours.palette.m3primary
+    readonly property string accessibleTime: `${Time.format("dddd d MMMM")} ${Time.hourStr}:${Time.minuteStr}`
+
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: Tr.tr("Clock: %1").arg(root.accessibleTime)
+    Accessible.description: Tr.tr("Open or close the dashboard")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.toggleDashboard()
+
+    function toggleDashboard(): void {
+        if (!root.screenState.dashboard)
+            root.screenState.dashboardTab = 0;
+        root.screenState.dashboard = !root.screenState.dashboard;
+    }
+
+    Keys.onReturnPressed: root.toggleDashboard()
+    Keys.onEnterPressed: root.toggleDashboard()
+    Keys.onSpacePressed: root.toggleDashboard()
+
+    FocusRing {
+        target: root
+        radius: root.radius
+    }
     readonly property int padding: Config.bar.clock.background ? Tokens.padding.medium : Tokens.padding.extraSmall
     readonly property var font: Tokens.font.body.builders.small.scale(1.1)
 

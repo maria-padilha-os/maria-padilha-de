@@ -128,6 +128,8 @@ ColumnLayout {
                 StateLayer {
                     color: networkItem.modelData.active ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
                     disabled: networkItem.loading || !Nmcli.wifiEnabled
+                    Accessible.role: Accessible.Button
+                    Accessible.name: networkItem.modelData.active ? Tr.tr("Disconnect from %1").arg(networkItem.modelData.ssid) : Tr.tr("Connect to %1").arg(networkItem.modelData.ssid)
 
                     onClicked: {
                         if (networkItem.modelData.active) {
@@ -180,6 +182,8 @@ ColumnLayout {
         StateLayer {
             color: Colours.palette.m3onPrimaryContainer
             disabled: Nmcli.scanning || !Nmcli.wifiEnabled
+            Accessible.role: Accessible.Button
+            Accessible.name: Tr.tr("Rescan networks")
             onClicked: Nmcli.rescanWifi()
         }
 
@@ -392,6 +396,8 @@ ColumnLayout {
 
         StyledSwitch {
             id: toggle
+
+            accessibleName: parent.label
         }
     }
 }

@@ -163,6 +163,7 @@ ColumnLayout {
             icon: "shuffle"
             isRound: true
             shapeMorph: true
+            accessibleName: Tr.tr("Shuffle")
             checked: Players.active?.shuffle ?? false
             font: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
             disabled: !Players.active?.shuffleSupported
@@ -177,6 +178,7 @@ ColumnLayout {
             icon: "skip_previous"
             isRound: true
             shapeMorph: true
+            accessibleName: Tr.tr("Previous track")
             font: Tokens.font.icon.large
             disabled: !Players.active?.canGoPrevious
             onClicked: Players.active?.previous()
@@ -189,6 +191,7 @@ ColumnLayout {
             isRound: true
             shapeMorph: true
             fillWidth: true
+            accessibleName: Players.active?.isPlaying ? Tr.tr("Pause") : Tr.tr("Play")
             checked: Players.active?.isPlaying ?? false
             font: Tokens.font.icon.large
             disabled: !Players.active?.canTogglePlaying
@@ -202,6 +205,7 @@ ColumnLayout {
             icon: "skip_next"
             isRound: true
             shapeMorph: true
+            accessibleName: Tr.tr("Next track")
             font: Tokens.font.icon.large
             disabled: !Players.active?.canGoNext
             onClicked: Players.active?.next()
@@ -212,6 +216,7 @@ ColumnLayout {
             icon: Players.active?.loopState === MprisLoopState.Track ? "repeat_one" : "repeat"
             isRound: true
             shapeMorph: true
+            accessibleName: Tr.tr("Repeat")
             checked: Players.active?.loopState === MprisLoopState.Track || Players.active?.loopState === MprisLoopState.Playlist
             font: Tokens.font.icon.builders.medium.weight(Font.Medium).build()
             disabled: !Players.active?.loopSupported

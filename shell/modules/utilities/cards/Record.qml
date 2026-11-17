@@ -447,13 +447,13 @@ StyledRect {
                     Anim {
                         from: 1
                         to: 0
-                        duration: Tokens.anim.durations.large
+                        duration: Accessibility.motion(Tokens.anim.durations.large)
                         easing: Tokens.anim.emphasizedAccel
                     }
                     Anim {
                         from: 0
                         to: 1
-                        duration: Tokens.anim.durations.extraLarge
+                        duration: Accessibility.motion(Tokens.anim.durations.extraLarge)
                         easing: Tokens.anim.emphasizedDecel
                     }
                 }
@@ -479,6 +479,53 @@ StyledRect {
                 }
                 font: Tokens.font.body.medium
                 elide: Text.ElideMiddle
+            }
+
+            ButtonRow {
+                spacing: Tokens.spacing.extraSmall
+
+                IconButton {
+                    shapeMorph: true
+                    isRound: true
+                    label.animate: true
+                    icon: Recorder.paused ? "play_arrow" : "pause"
+                    accessibleName: Recorder.paused ? Tr.tr("Resume recording") : Tr.tr("Pause recording")
+                    isToggle: true
+                    checked: Recorder.paused
+                    type: IconButton.Tonal
+                    font: Tokens.font.icon.medium
+                    onClicked: {
+                        Recorder.togglePause();
+                        internalChecked = Recorder.paused;
+                    }
+
+                    implicitWidth: {
+                        // Ensure even size so icon is centered properly
+                        const h = label.implicitHeight + Tokens.padding.large * 2;
+                        if (h % 2 !== 0)
+                            return h + 1;
+                        return h;
+                    }
+                }
+
+                IconButton {
+                    shapeMorph: true
+                    isRound: true
+                    icon: "stop"
+                    accessibleName: Tr.tr("Stop recording")
+                    inactiveColour: Colours.palette.m3error
+                    inactiveOnColour: Colours.palette.m3onError
+                    font: Tokens.font.icon.medium
+                    onClicked: Recorder.stop()
+
+                    implicitWidth: {
+                        // Ensure even size so icon is centered properly
+                        const h = label.implicitHeight + Tokens.padding.large * 2;
+                        if (h % 2 !== 0)
+                            return h + 1;
+                        return h;
+                    }
+                }
             }
         }
     }

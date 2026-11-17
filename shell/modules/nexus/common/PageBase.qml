@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.containers
 import qs.components.controls
@@ -40,6 +41,8 @@ ColumnLayout {
                 asynchronous: true
                 sourceComponent: IconButton {
                     icon: "arrow_back"
+                    accessibleName: Tr.tr("Back")
+                    accessibleDescription: Tr.tr("Return to the previous settings page")
                     font: Tokens.font.icon.medium
                     type: IconButton.Tonal
                     isRound: true
@@ -54,6 +57,9 @@ ColumnLayout {
                 text: root.title
                 font: Tokens.font.title.large
                 elide: Text.ElideRight
+
+                Accessible.role: Accessible.StaticText
+                Accessible.name: root.title
             }
         }
     }

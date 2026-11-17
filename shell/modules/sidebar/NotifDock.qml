@@ -111,7 +111,7 @@ Item {
                 StyledText {
                     Layout.alignment: Qt.AlignHCenter
                     text: Tr.tr("All up to date!")
-                    color: Colours.palette.m3outlineVariant
+                    color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.headline.builders.small.width(90).build()
                 }
             }
@@ -186,6 +186,7 @@ Item {
             id: clearBtn
 
             icon: "clear_all"
+            accessibleName: Tr.tr("Clear all notifications")
             font: Tokens.font.icon.large
             onClicked: clearTimer.start()
 

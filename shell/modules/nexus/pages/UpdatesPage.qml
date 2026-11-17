@@ -45,6 +45,7 @@ PageBase {
                 icon: "refresh"
                 type: IconButton.Tonal
                 isRound: true
+                accessibleName: Tr.tr("Check for updates")
                 enabled: !root.checking
                 onClicked: root.refresh()
             }

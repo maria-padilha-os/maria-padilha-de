@@ -10,6 +10,7 @@ suites=(
     "$root/tests/theme/run.sh"
     "$root/tests/weather/run.sh"
     "$root/tests/dashboard/run.sh"
+    "$root/tests/accessibility/run.sh"
     "$root/tests/clipboard/run.sh"
     "$root/tests/media/run.sh"
     "$root/tests/calculator/run.sh"

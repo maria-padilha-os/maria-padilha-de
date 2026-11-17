@@ -1,5 +1,6 @@
 import QtQuick
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 
@@ -26,6 +27,8 @@ TextFieldBase {
         anchors.fill: parent
         color: Colours.tPalette.m3surfaceContainer
         radius: Tokens.rounding.full
+        border.width: root.activeFocus ? Accessibility.focusRingWidth : 0
+        border.color: Colours.palette.m3primary
 
         StateLayer {
             id: stateLayer
@@ -77,6 +80,7 @@ TextFieldBase {
         anchors.rightMargin: Tokens.padding.medium
 
         icon: "clear"
+        accessibleName: Tr.tr("Clear search")
         type: IconButton.Text
         radius: Tokens.rounding.full
         radiusMorph: false

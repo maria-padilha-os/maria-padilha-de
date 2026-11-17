@@ -48,7 +48,7 @@ ConnectedRect {
                 Layout.fillWidth: true
                 visible: root.subtext
                 text: root.subtext
-                color: Colours.palette.m3outline
+                color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.label.small
                 elide: Text.ElideRight
             }
@@ -60,6 +60,8 @@ ConnectedRect {
             stepSize: root.stepSize
             value: root.value
             cLayer: 2
+            accessibleName: root.label
+            accessibleDescription: root.subtext
             onValueModified: root.moved(value)
         }
     }

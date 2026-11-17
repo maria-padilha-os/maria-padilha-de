@@ -270,6 +270,12 @@ ColumnLayout {
                 focus: true
                 activeFocusOnTab: true
 
+                Accessible.role: Accessible.EditableText
+                Accessible.name: Tr.tr("Wi-Fi password")
+                Accessible.description: root.network ? Tr.tr("Password for %1").arg(root.network.ssid) : Tr.tr("Network password")
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+
                 Component.onCompleted: {
                     if (root.shouldBeVisible) {
                         // Use Timer for actual delay to ensure focus works correctly

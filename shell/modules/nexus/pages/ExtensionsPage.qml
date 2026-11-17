@@ -39,6 +39,7 @@ PageBase {
                 icon: "refresh"
                 type: IconButton.Tonal
                 isRound: true
+                accessibleName: Tr.tr("Refresh extensions")
                 enabled: !Extensions.loading
                 onClicked: Extensions.refresh()
             }

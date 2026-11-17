@@ -690,6 +690,8 @@ Item {
         property color borderColour: "transparent"
         property color accentColour: "transparent"
 
+        signal selectedChanged
+
         implicitHeight: root.controlHeight
         radius: Tokens.rounding.small
         color: picker.fieldColour
@@ -700,10 +702,25 @@ Item {
 
         Accessible.role: Accessible.ComboBox
         Accessible.name: picker.fieldLabel + (picker.fieldLabel.length > 0 ? ": " : "") + (picker.selectedIndex >= 0 && picker.selectedIndex < picker.options.length ? picker.options[picker.selectedIndex].name : "")
+        Accessible.description: picker.expanded ? Tr.tr("List expanded. Use Up and Down, Enter to choose, Escape to close.") : ""
+        Accessible.focused: activeFocus
 
         Keys.onReturnPressed: picker.expanded = !picker.expanded
+        Keys.onEnterPressed: picker.expanded = !picker.expanded
         Keys.onSpacePressed: picker.expanded = !picker.expanded
         Keys.onEscapePressed: picker.expanded = false
+        Keys.onUpPressed: {
+            if (picker.expanded && picker.options.length > 0) {
+                picker.selectedIndex = Math.max(0, picker.selectedIndex - 1);
+                picker.selectedChanged();
+            }
+        }
+        Keys.onDownPressed: {
+            if (picker.expanded && picker.options.length > 0) {
+                picker.selectedIndex = Math.min(picker.options.length - 1, picker.selectedIndex + 1);
+                picker.selectedChanged();
+            }
+        }
 
         function collapse() {
             picker.expanded = false;

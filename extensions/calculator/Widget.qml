@@ -409,7 +409,10 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: key.activate()
+            onClicked: {
+                key.forceActiveFocus();
+                key.activate();
+            }
         }
     }
 

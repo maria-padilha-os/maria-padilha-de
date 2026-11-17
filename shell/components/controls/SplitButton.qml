@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 
@@ -20,6 +21,7 @@ Row {
     property string fallbackIcon
     property string fallbackText
     property real minLeftWidth
+    property string accessibleName
 
     property alias menuItems: menu.items
     property alias active: menu.active
@@ -39,6 +41,8 @@ Row {
     spacing: Math.floor(Tokens.spacing.extraSmall / 2)
 
     StyledRect {
+        id: mainButton
+
         radius: implicitHeight / 2 * Math.min(1, Tokens.rounding.scale)
         topRightRadius: Tokens.rounding.medium / 2
         bottomRightRadius: Tokens.rounding.medium / 2
@@ -46,6 +50,23 @@ Row {
 
         implicitWidth: Math.max(root.minLeftWidth, textRow.implicitWidth + root.horizontalPadding * 2)
         implicitHeight: expandBtn.implicitHeight
+
+        activeFocusOnTab: !root.disabled
+
+        Accessible.role: Accessible.Button
+        Accessible.name: root.accessibleName.length > 0 ? root.accessibleName : (root.active?.activeText ?? root.fallbackText)
+        Accessible.focusable: !root.disabled
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: root.active?.clicked()
+
+        Keys.onReturnPressed: root.active?.clicked()
+        Keys.onEnterPressed: root.active?.clicked()
+        Keys.onSpacePressed: root.active?.clicked()
+
+        FocusRing {
+            target: mainButton
+            radius: mainButton.radius
+        }
 
         StateLayer {
             id: stateLayer
@@ -105,6 +126,24 @@ Row {
 
         implicitWidth: implicitHeight
         implicitHeight: expandIcon.implicitHeight + root.verticalPadding * 2
+
+        activeFocusOnTab: !root.disabled
+
+        Accessible.role: Accessible.Button
+        Accessible.name: root.accessibleName.length > 0 ? root.accessibleName + " " + Tr.tr("options") : root.fallbackText + " " + Tr.tr("options")
+        Accessible.focusable: !root.disabled
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: root.expanded = !root.expanded
+
+        Keys.onReturnPressed: root.expanded = !root.expanded
+        Keys.onEnterPressed: root.expanded = !root.expanded
+        Keys.onSpacePressed: root.expanded = !root.expanded
+        Keys.onEscapePressed: root.expanded = false
+
+        FocusRing {
+            target: expandBtn
+            radius: expandBtn.radius
+        }
 
         StateLayer {
             id: expandStateLayer

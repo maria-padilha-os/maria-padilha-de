@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.components.effects
@@ -306,6 +307,7 @@ ListView {
                 StyledSwitch {
                     id: enabledSwitch
 
+                    accessibleName: root.labelFor(item.modelData)
                     checked: root.toggledFor(item.modelData)
                     font: Tokens.font.icon.medium
                     onToggled: root.itemToggled(item.DelegateModel.itemsIndex, checked)
@@ -315,6 +317,7 @@ ListView {
                     type: IconButton.Text
                     isRound: true
                     icon: "delete"
+                    accessibleName: Tr.tr("Remove item")
                     inactiveOnColour: Colours.palette.m3error
                     font: Tokens.font.icon.medium
                     label.fill: 0

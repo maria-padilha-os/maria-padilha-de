@@ -21,6 +21,11 @@ StyledRect {
     property alias shapeMorph: stateLayer.shapeMorph
     property bool fillWidth // For ButtonRow
 
+    // Screen readers need a real label, not the Material icon ligature. The
+    // text buttons fill this in automatically; icon-only callers set it.
+    property string accessibleName
+    property string accessibleDescription
+
     property font font: Tokens.font.body.small
     property int type: ButtonBase.Filled
 
@@ -43,6 +48,29 @@ StyledRect {
     property bool internalChecked
     property real shapeMorphExpansion: shapeMorph && pressed ? 24 : 0 // Apparently it's always 24px no matter the width of the button
     readonly property color onColour: disabled ? disabledOnColour : internalChecked ? activeOnColour : inactiveOnColour
+
+    activeFocusOnTab: true
+    enabled: !disabled
+    Accessible.role: isToggle ? Accessible.CheckBox : Accessible.Button
+    Accessible.name: accessibleName
+    Accessible.description: accessibleDescription
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+    Accessible.checkable: isToggle
+    Accessible.checked: isToggle ? internalChecked : false
+    Accessible.onPressAction: root.activate()
+
+    function activate(): void {
+        if (disabled)
+            return;
+        if (isToggle)
+            internalChecked = !internalChecked;
+        clicked();
+    }
+
+    Keys.onReturnPressed: root.activate()
+    Keys.onEnterPressed: root.activate()
+    Keys.onSpacePressed: root.activate()
 
     property real pressedRadius: Tokens.rounding.small
     property real checkedRadius: Tokens.rounding.medium
@@ -73,9 +101,8 @@ StyledRect {
         color: root.internalChecked ? root.activeOnColour : root.inactiveOnColour
         disabled: root.disabled
         onClicked: {
-            if (root.isToggle)
-                root.internalChecked = !root.internalChecked;
-            root.clicked();
+            root.forceActiveFocus();
+            root.activate();
         }
     }
 
@@ -91,5 +118,9 @@ StyledRect {
         Anim {
             type: Anim.FastSpatial
         }
+    }
+
+    FocusRing {
+        target: root
     }
 }

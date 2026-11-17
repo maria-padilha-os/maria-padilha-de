@@ -22,6 +22,28 @@ Item {
             Extensions.refresh();
     }
 
+    focus: screenState.dashboard
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.Pane
+    Accessible.name: Tr.tr("Dashboard")
+    Accessible.description: Tr.tr("Use Left and Right to change tabs, Escape to close")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+
+    Keys.onEscapePressed: root.screenState.dashboard = false
+    Keys.onLeftPressed: root.screenState.dashboardTab = Math.max(0, root.screenState.dashboardTab - 1)
+    Keys.onRightPressed: root.screenState.dashboardTab = Math.min(root.dashboardTabs.length - 1, root.screenState.dashboardTab + 1)
+
+    Connections {
+        function onDashboardChanged(): void {
+            if (root.screenState.dashboard)
+                Qt.callLater(() => root.forceActiveFocus());
+        }
+
+        target: root.screenState
+    }
+
     readonly property var dashboardTabs: {
         const allTabs = [
             {

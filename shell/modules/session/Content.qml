@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Caelestia
 import Caelestia.Config
+import Caelestia.I18n
 import Caelestia.Services
 import qs.components
 import qs.components.controls
@@ -90,6 +91,7 @@ Column {
                 Quickshell.execDetached(command);
         }
 
+        accessibleName: Tr.tr("Session action: %1").arg(button.icon.replace(/_/g, " "))
         implicitWidth: Tokens.sizes.session.button
         implicitHeight: Tokens.sizes.session.button
 

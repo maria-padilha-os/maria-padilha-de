@@ -39,6 +39,33 @@ Item {
     implicitWidth: Math.max(icon.implicitWidth, current.implicitHeight)
     implicitHeight: icon.implicitHeight + current.implicitWidth + current.anchors.topMargin
 
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: root.windowTitle
+    Accessible.description: Tr.tr("Open window details")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.togglePopout()
+
+    function togglePopout(): void {
+        const popouts = root.bar.popouts;
+        if (popouts.hasCurrent) {
+            popouts.hasCurrent = false;
+            return;
+        }
+        popouts.currentName = "activewindow";
+        popouts.currentCenter = root.mapToItem(root.bar, 0, root.implicitHeight / 2).y;
+        popouts.hasCurrent = true;
+    }
+
+    Keys.onReturnPressed: root.togglePopout()
+    Keys.onEnterPressed: root.togglePopout()
+    Keys.onSpacePressed: root.togglePopout()
+
+    FocusRing {
+        target: root
+    }
+
     Loader {
         asynchronous: true
         anchors.fill: parent
@@ -53,14 +80,8 @@ Item {
                     popouts.hasCurrent = false;
             }
             onClicked: {
-                const popouts = root.bar.popouts;
-                if (popouts.hasCurrent) {
-                    popouts.hasCurrent = false;
-                } else {
-                    popouts.currentName = "activewindow";
-                    popouts.currentCenter = root.mapToItem(root.bar, 0, root.implicitHeight / 2).y;
-                    popouts.hasCurrent = true;
-                }
+                root.forceActiveFocus();
+                root.togglePopout();
             }
         }
     }

@@ -57,10 +57,29 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Change profile picture")
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+                Accessible.onPressAction: root.openFacePicker()
+
+                function openFacePicker(): void {
                     root.screenState.dashboard = false;
                     root.facePicker.open();
                 }
+
+                Keys.onReturnPressed: openFacePicker()
+                Keys.onEnterPressed: openFacePicker()
+                Keys.onSpacePressed: openFacePicker()
+
+                FocusRing {
+                    target: mouse
+                    radius: Tokens.rounding.full
+                }
+
+                onClicked: openFacePicker()
             }
         }
 

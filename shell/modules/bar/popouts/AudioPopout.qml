@@ -97,6 +97,7 @@ Item {
                 anchors.right: parent.right
                 implicitHeight: parent.implicitHeight
 
+                accessibleName: Tr.tr("Volume")
                 value: Audio.volume
                 onInteraction: value => Audio.setVolume(value)
             }

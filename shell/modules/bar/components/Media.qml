@@ -23,8 +23,33 @@ Item {
     implicitWidth: Tokens.sizes.bar.innerWidth
     implicitHeight: artSize + Tokens.spacing.extraSmall + Tokens.padding.extraSmall
 
+    activeFocusOnTab: true
     Accessible.name: `${Tr.tr("Media")}: ${title} — ${subtitle}`
+    Accessible.description: Tr.tr("Open or close the media controls")
     Accessible.role: Accessible.Button
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.togglePopout()
+
+    function togglePopout(): void {
+        const popouts = root.bar.popouts;
+        if (popouts.hasCurrent && popouts.currentName === "media") {
+            popouts.hasCurrent = false;
+            return;
+        }
+        popouts.currentName = "media";
+        popouts.currentCenter = root.mapToItem(root.bar, 0, root.implicitHeight / 2).y;
+        popouts.hasCurrent = true;
+    }
+
+    Keys.onReturnPressed: root.togglePopout()
+    Keys.onEnterPressed: root.togglePopout()
+    Keys.onSpacePressed: root.togglePopout()
+
+    FocusRing {
+        target: root
+        radius: Tokens.rounding.medium
+    }
 
     Timer {
         running: root.playing
@@ -88,14 +113,8 @@ Item {
         anchors.fill: parent
         radius: Tokens.rounding.medium
         onClicked: {
-            const popouts = root.bar.popouts;
-            if (popouts.hasCurrent && popouts.currentName === "media") {
-                popouts.hasCurrent = false;
-                return;
-            }
-            popouts.currentName = "media";
-            popouts.currentCenter = root.mapToItem(root.bar, 0, root.implicitHeight / 2).y;
-            popouts.hasCurrent = true;
+            root.forceActiveFocus();
+            root.togglePopout();
         }
     }
 }

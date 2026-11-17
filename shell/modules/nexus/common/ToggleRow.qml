@@ -23,6 +23,8 @@ StyledSwitch {
     implicitHeight: Math.max(implicitContentHeight, implicitIndicatorHeight) + verticalPadding * 2
     cLayer: 2
 
+    Accessible.description: root.subtext
+
     indicator.anchors.verticalCenter: verticalCenter
     indicator.anchors.right: right
     indicator.anchors.rightMargin: root.horizontalPadding

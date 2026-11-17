@@ -88,6 +88,9 @@ StyledRect {
                             color: root.colour
                             fontStyle: Tokens.font.icon.medium
                             fill: 1
+
+                            Accessible.name: Audio.muted ? Tr.tr("Audio muted") : Tr.tr("Volume %1%").arg(Math.round(Audio.volume * 100))
+                            Accessible.role: Accessible.StaticText
                         }
                     }
                 }
@@ -103,6 +106,9 @@ StyledRect {
                             color: root.colour
                             fontStyle: Tokens.font.icon.medium
                             fill: 1
+
+                            Accessible.name: Audio.sourceMuted ? Tr.tr("Microphone muted") : Tr.tr("Microphone input")
+                            Accessible.role: Accessible.StaticText
                         }
                     }
                 }
@@ -114,6 +120,9 @@ StyledRect {
                             text: Hypr.kbLayout
                             color: root.colour
                             font: Tokens.font.mono.medium
+
+                            Accessible.name: Tr.tr("Keyboard layout %1").arg(Hypr.kbLayout)
+                            Accessible.role: Accessible.StaticText
                         }
                     }
                 }
@@ -124,6 +133,9 @@ StyledRect {
                             animate: true
                             text: Nmcli.activeEthernet ? "cable" : Nmcli.active ? Icons.getNetworkIcon(Nmcli.active.strength ?? 0) : "wifi_off"
                             color: root.colour
+
+                            Accessible.name: Nmcli.activeEthernet ? Tr.tr("Ethernet connected") : Nmcli.active ? Tr.tr("Wi-Fi connected") : Tr.tr("Network disconnected")
+                            Accessible.role: Accessible.StaticText
                         }
                     }
                 }
@@ -142,6 +154,9 @@ StyledRect {
                             animate: true
                             text: "brightness_6"
                             color: root.colour
+
+                            Accessible.name: Tr.tr("Brightness")
+                            Accessible.role: Accessible.StaticText
                         }
                     }
                 }
@@ -203,6 +218,7 @@ StyledRect {
                             fill: 1
 
                             Accessible.name: ClipboardHistory.error ? Tr.tr("Clipboard history unavailable") : ClipboardHistory.paused ? Tr.tr("Clipboard history paused") : Tr.tr("Clipboard history recording")
+                            Accessible.role: Accessible.StaticText
                         }
                     }
                 }

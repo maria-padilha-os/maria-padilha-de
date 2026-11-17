@@ -6,6 +6,7 @@ import Quickshell
 import Quickshell.Services.Notifications
 import Caelestia.Components
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.controls
 import qs.components.effects
@@ -471,6 +472,7 @@ StyledRect {
                     inactiveColour: root.modelData.urgency === NotificationUrgency.Critical ? Colours.palette.m3secondary : Colours.layer(Colours.palette.m3surfaceContainerHighest, 2)
                     inactiveOnColour: root.modelData.urgency === NotificationUrgency.Critical ? Colours.palette.m3onSecondary : Colours.palette.m3onSurfaceVariant
                     icon: "close"
+                    accessibleName: Tr.tr("Close notification")
                     padding: Tokens.padding.extraSmall
                     onClicked: root.modelData.close()
                 }
@@ -506,6 +508,7 @@ StyledRect {
                     inactiveColour: root.modelData.urgency === NotificationUrgency.Critical ? Colours.palette.m3secondary : Colours.layer(Colours.palette.m3surfaceContainerHighest, 2)
                     inactiveOnColour: root.modelData.urgency === NotificationUrgency.Critical ? Colours.palette.m3onSecondary : Colours.palette.m3onSurfaceVariant
                     icon: copyTimer.running ? "inventory" : "content_copy"
+                    accessibleName: copyTimer.running ? Tr.tr("Copied") : Tr.tr("Copy notification text")
                     padding: Tokens.padding.extraSmall
                     onClicked: {
                         Quickshell.clipboardText = root.modelData.body;

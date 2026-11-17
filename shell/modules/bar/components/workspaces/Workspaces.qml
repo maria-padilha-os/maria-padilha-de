@@ -8,6 +8,7 @@ import Caelestia
 import Caelestia.Components
 import Caelestia.Config
 import qs.components
+import Caelestia.I18n
 import qs.services
 
 StyledClippingRect {
@@ -67,6 +68,42 @@ StyledClippingRect {
 
     implicitWidth: Tokens.sizes.bar.innerWidth
     implicitHeight: workspaces.layoutHeight + workspaces.anchors.margins * 2
+
+    activeFocusOnTab: true
+    Accessible.role: Accessible.PageTabList
+    Accessible.name: Tr.tr("Workspaces")
+    Accessible.description: Tr.tr("Use Up and Down to change workspace")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.activateWorkspace()
+
+    function focusRelative(delta: int): void {
+        const ids = root.wsIds;
+        const index = ids.indexOf(root.activeWsId);
+        if (index >= 0 && index + delta >= 0 && index + delta < ids.length) {
+            Hypr.focusWorkspace(ids[index + delta]);
+            return;
+        }
+        Hypr.dispatch(Hypr.usingLua ? `hl.dsp.focus({ workspace = "r${delta < 0 ? "-" : "+"}1" })` : `workspace r${delta < 0 ? "-" : "+"}1`);
+    }
+
+    function activateWorkspace(): void {
+        if (root.onSpecial)
+            Hypr.toggleSpecial("special");
+        else
+            Hypr.focusWorkspace(root.activeWsId);
+    }
+
+    Keys.onUpPressed: root.focusRelative(-1)
+    Keys.onDownPressed: root.focusRelative(1)
+    Keys.onReturnPressed: root.activateWorkspace()
+    Keys.onEnterPressed: root.activateWorkspace()
+    Keys.onSpacePressed: root.activateWorkspace()
+
+    FocusRing {
+        target: root
+        radius: root.radius
+    }
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Tokens.rounding.full
@@ -172,6 +209,7 @@ StyledClippingRect {
         MouseArea {
             anchors.fill: workspaces
             onClicked: event => {
+                root.forceActiveFocus();
                 const ws = (workspaces.itemAt(event.x, event.y) as Workspace)?.ws;
                 if (!ws)
                     return;

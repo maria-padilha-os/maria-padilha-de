@@ -98,7 +98,10 @@ local roles = {
         { "surfaceContainer", "n", 94 }, { "surfaceContainerHigh", "n", 92 },
         { "surfaceContainerHighest", "n", 90 },
         { "surfaceVariant", "nv", 90 }, { "onSurfaceVariant", "nv", 30 },
-        { "outline", "nv", 50 }, { "outlineVariant", "nv", 80 },
+        -- Tone 40 instead of Material's 50: the shell uses outline for small
+        -- secondary labels as well as borders, and 50 is only 4.27:1 on the
+        -- light surface. Tone 40 clears 4.5:1 without becoming body text.
+        { "outline", "nv", 40 }, { "outlineVariant", "nv", 80 },
         { "inverseSurface", "n", 20 }, { "inverseOnSurface", "n", 95 },
         { "shadow", "n", 0 }, { "scrim", "n", 0 },
         { "surfaceTint", "p", 40 },

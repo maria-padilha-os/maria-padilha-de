@@ -81,6 +81,7 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + N` | sidebar |
 | `Super + A` | assistant |
 | `Super + Shift + P` | show all panels |
+| `taskbar` (bind it) | move keyboard focus to the taskbar |
 | `Super + Alt + D` / `M` / `P` / `W` | dashboard: dash / media / performance / weather |
 | `Super + Alt + T` / `C` / `O` / `G` / `E` | dashboard: translator / calculator / maps / guitar tuner / files tabs |
 | `Super + Alt + N` / `A` / `U` | dashboard: notes / calendar / unit converter tabs |
@@ -91,6 +92,11 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + Escape` | lock (`hyprlock`) |
 | `Super + Shift + Escape` | sleep-disabled notice (suspend/hibernate are broken here) |
 | `Ctrl + Alt + V` | audio settings (`pwvucontrol`) |
+
+`taskbar` is a shell-side shortcut name. If it has no binding in your dotfiles,
+add one (for example `Super + Alt + B`); until then the taskbar is still
+reachable with `Tab` from an open panel. See the
+[accessibility checklist](docs/accessibility.md).
 
 ## Applications
 

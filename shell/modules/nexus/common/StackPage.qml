@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import Caelestia.Config
+import qs.services
 import qs.components
 import qs.modules.nexus
 
@@ -38,7 +39,7 @@ StackView {
                 value: 0
             }
             PauseAnimation {
-                duration: Tokens.anim.durations.expressiveDefaultEffects
+                duration: Accessibility.motion(Tokens.anim.durations.expressiveDefaultEffects)
             }
             ParallelAnimation {
                 Anim {
@@ -71,7 +72,7 @@ StackView {
                 value: 0
             }
             PauseAnimation {
-                duration: Tokens.anim.durations.expressiveDefaultEffects
+                duration: Accessibility.motion(Tokens.anim.durations.expressiveDefaultEffects)
             }
             ParallelAnimation {
                 Anim {

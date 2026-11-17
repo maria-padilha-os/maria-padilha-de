@@ -294,11 +294,31 @@ Item {
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 hoverEnabled: true
-                onClicked: {
+                activeFocusOnTab: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: Tr.tr("Seek to lyric")
+                Accessible.description: lyric.text
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+                Accessible.onPressAction: seek()
+
+                function seek(): void {
                     const p = Players.active;
                     if (p)
                         p.position = Lyrics.timeForIndex(lyric.index);
                 }
+
+                Keys.onReturnPressed: seek()
+                Keys.onEnterPressed: seek()
+                Keys.onSpacePressed: seek()
+
+                FocusRing {
+                    target: mouse
+                    radius: Tokens.rounding.small
+                }
+
+                onClicked: seek()
             }
         }
 

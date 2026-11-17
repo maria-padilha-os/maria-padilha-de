@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell.Services.UPower
 import qs.components
+import Caelestia.I18n
 import qs.services
 import qs.utils
 
@@ -20,4 +21,7 @@ MaterialIcon {
     }
     color: !UPower.onBattery || UPower.displayDevice.percentage > 0.2 ? colour : Colours.palette.m3error
     fill: 1
+
+    Accessible.name: UPower.displayDevice.isLaptopBattery ? Tr.tr("Battery %1%").arg(Math.round(UPower.displayDevice.percentage * 100)) : Tr.tr("Power profile")
+    Accessible.role: Accessible.StaticText
 }

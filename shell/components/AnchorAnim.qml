@@ -1,5 +1,6 @@
 import QtQuick
 import Caelestia.Config
+import qs.services
 
 AnchorAnimation {
     enum Type {
@@ -19,19 +20,21 @@ AnchorAnimation {
     property int type: AnchorAnim.DefaultSpatial
 
     duration: {
-        if (type < AnchorAnim.StandardSmall || type > AnchorAnim.SlowSpatial)
-            return Tokens.anim.durations.expressiveDefaultSpatial;
-
-        if (type == AnchorAnim.FastSpatial)
-            return Tokens.anim.durations.expressiveFastSpatial;
-        if (type == AnchorAnim.DefaultSpatial)
-            return Tokens.anim.durations.expressiveDefaultSpatial;
-        if (type == AnchorAnim.SlowSpatial)
-            return Tokens.anim.durations.expressiveSlowSpatial;
-
-        const types = ["small", "normal", "large", "extraLarge"];
-        const idx = type % 4; // 0-7 are the 4 standard types
-        return Tokens.anim.durations[types[idx]];
+        let ms = Tokens.anim.durations.expressiveDefaultSpatial;
+        if (type >= AnchorAnim.StandardSmall && type <= AnchorAnim.SlowSpatial) {
+            if (type == AnchorAnim.FastSpatial)
+                ms = Tokens.anim.durations.expressiveFastSpatial;
+            else if (type == AnchorAnim.DefaultSpatial)
+                ms = Tokens.anim.durations.expressiveDefaultSpatial;
+            else if (type == AnchorAnim.SlowSpatial)
+                ms = Tokens.anim.durations.expressiveSlowSpatial;
+            else {
+                const types = ["small", "normal", "large", "extraLarge"];
+                const idx = type % 4; // 0-7 are the 4 standard types
+                ms = Tokens.anim.durations[types[idx]];
+            }
+        }
+        return Accessibility.motion(ms);
     }
     easing: {
         if (type == AnchorAnim.FastSpatial)

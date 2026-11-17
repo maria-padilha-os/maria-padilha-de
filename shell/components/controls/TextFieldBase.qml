@@ -7,8 +7,22 @@ import qs.services
 TextField {
     id: root
 
+    property string accessibleName
+    property string accessibleDescription
+
     implicitWidth: contentWidth + leftPadding + rightPadding
     implicitHeight: contentHeight + topPadding + bottomPadding
+
+    activeFocusOnTab: true
+    Accessible.role: Accessible.EditableText
+    Accessible.name: accessibleName.length > 0 ? accessibleName : placeholderText
+    Accessible.description: accessibleDescription
+    Accessible.focusable: enabled
+    Accessible.focused: activeFocus
+    Accessible.editable: !readOnly
+    Accessible.readOnly: readOnly
+    Accessible.passwordEdit: echoMode === TextField.Password
+    Accessible.searchEdit: echoMode === TextInput.Normal && placeholderText.length > 0
 
     color: Colours.palette.m3onSurface
     placeholderTextColor: Colours.palette.m3onSurfaceVariant // No anim cause placeholder is custom
@@ -78,7 +92,7 @@ TextField {
         Behavior on x {
             Anim {
                 easing.bezierCurve: [0.2, 1, 0.21, 1, 1, 1] // Damped variant of fast spatial curve
-                duration: Tokens.anim.durations.expressiveFastEffects
+                duration: Accessibility.motion(Tokens.anim.durations.expressiveFastEffects)
             }
         }
 

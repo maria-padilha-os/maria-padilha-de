@@ -120,6 +120,26 @@ Item {
         required property string iconName
         readonly property bool current: TabBar.tabBar.currentItem === this
 
+        focusPolicy: Qt.StrongFocus
+        activeFocusOnTab: true
+
+        Accessible.role: Accessible.PageTab
+        Accessible.name: tab.text
+        Accessible.description: modelData.tooltip ?? ""
+        Accessible.selected: tab.current
+        Accessible.focusable: true
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: root.screenState.dashboardTab = tab.TabBar.index
+
+        Keys.onReturnPressed: root.screenState.dashboardTab = tab.TabBar.index
+        Keys.onEnterPressed: root.screenState.dashboardTab = tab.TabBar.index
+        Keys.onSpacePressed: root.screenState.dashboardTab = tab.TabBar.index
+
+        FocusRing {
+            target: tab
+            radius: Tokens.rounding.medium
+        }
+
         Layout.fillWidth: true
         Layout.preferredWidth: 1 // Uniform width across all tabs
         Layout.minimumWidth: Tokens.sizes.bar.innerWidth

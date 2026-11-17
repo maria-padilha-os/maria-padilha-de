@@ -1,0 +1,27 @@
+{
+  "comment": "WCAG 2.2 contrast contract for the shell palette. Pair names are scheme.json role names; 'focus' pairs are UI indicators and may use the 3:1 non-text threshold.",
+  "seeds": ["000000", "ffffff", "ff1a1a", "1a5cff", "00a86b", "ffd400", "8a2be2"],
+  "variants": ["tonalspot", "vibrant", "content", "monochrome"],
+  "textPairs": [
+    { "name": "body on surface", "fg": "onSurface", "bg": "surface", "minimum": 4.5 },
+    { "name": "body on raised surface", "fg": "onSurface", "bg": "surfaceContainer", "minimum": 4.5 },
+    { "name": "body on highest surface", "fg": "onSurface", "bg": "surfaceContainerHighest", "minimum": 4.5 },
+    { "name": "muted on surface", "fg": "onSurfaceVariant", "bg": "surface", "minimum": 4.5 },
+    { "name": "muted on raised surface", "fg": "onSurfaceVariant", "bg": "surfaceContainer", "minimum": 4.5 },
+    { "name": "muted on highest surface", "fg": "onSurfaceVariant", "bg": "surfaceContainerHighest", "minimum": 4.5 },
+    { "name": "outline used as small text", "fg": "outline", "bg": "surface", "minimum": 4.5 },
+    { "name": "text on primary", "fg": "onPrimary", "bg": "primary", "minimum": 4.5 },
+    { "name": "text on primary container", "fg": "onPrimaryContainer", "bg": "primaryContainer", "minimum": 4.5 },
+    { "name": "text on secondary container", "fg": "onSecondaryContainer", "bg": "secondaryContainer", "minimum": 4.5 },
+    { "name": "text on tertiary container", "fg": "onTertiaryContainer", "bg": "tertiaryContainer", "minimum": 4.5 },
+    { "name": "error on surface", "fg": "error", "bg": "surface", "minimum": 4.5 },
+    { "name": "error on raised surface", "fg": "error", "bg": "surfaceContainer", "minimum": 4.5 },
+    { "name": "text on error", "fg": "onError", "bg": "error", "minimum": 4.5 },
+    { "name": "text on error container", "fg": "onErrorContainer", "bg": "errorContainer", "minimum": 4.5 }
+  ],
+  "focusPairs": [
+    { "name": "focus ring on surface", "fg": "primary", "bg": "surface", "minimum": 3.0 },
+    { "name": "focus ring on raised surface", "fg": "primary", "bg": "surfaceContainer", "minimum": 3.0 },
+    { "name": "focus ring on highest surface", "fg": "primary", "bg": "surfaceContainerHighest", "minimum": 3.0 }
+  ]
+}

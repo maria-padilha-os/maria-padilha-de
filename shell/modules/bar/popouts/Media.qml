@@ -201,6 +201,7 @@ ColumnLayout {
                     id: seekSlider
 
                     Layout.fillWidth: true
+                    accessibleName: Tr.tr("Seek")
                     value: root.progress
                     enabled: root.canSeek
                     interactionOnMove: false
@@ -278,6 +279,7 @@ ColumnLayout {
 
                 StyledSlider {
                     Layout.fillWidth: true
+                    accessibleName: Tr.tr("Player volume")
                     value: Players.getVolume(root.player)
                     enabled: root.canVolume
                     onInteraction: value => Players.setVolume(root.player, value)

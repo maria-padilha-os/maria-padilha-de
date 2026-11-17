@@ -19,6 +19,17 @@ Item {
     readonly property int padding: Tokens.padding.large
     readonly property int rounding: Tokens.rounding.extraLarge
 
+    focus: screenState.launcher
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.Dialog
+    Accessible.name: Tr.tr("Launcher")
+    Accessible.description: Tr.tr("Type to search. Up and Down move the selection. Escape closes.")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+
+    Keys.onEscapePressed: root.screenState.launcher = false
+
     implicitWidth: listWrapper.width + padding * 2
     implicitHeight: search.height + listWrapper.height + padding + search.anchors.bottomMargin
 
@@ -60,6 +71,8 @@ Item {
         bottomPadding: Math.round((Tokens.padding.medium + Tokens.padding.large) / 2)
 
         placeholderText: Tr.tr("Type \"%1\" for commands").arg(GlobalConfig.launcher.actionPrefix)
+        accessibleName: Tr.tr("Search applications and actions")
+        accessibleDescription: Tr.tr("Type to search. Up and Down move the selection. Enter opens. Escape closes.")
 
         onAccepted: {
             const currentItem = list.currentList?.currentItem;
@@ -111,8 +124,11 @@ Item {
 
         Connections {
             function onLauncherChanged(): void {
-                if (!root.screenState.launcher)
+                if (root.screenState.launcher) {
+                    Qt.callLater(() => search.forceActiveFocus());
+                } else {
                     search.text = "";
+                }
             }
 
             function onSessionChanged(): void {

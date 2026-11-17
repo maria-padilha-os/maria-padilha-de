@@ -185,7 +185,7 @@ Item {
                 target: notif
                 property: "x"
                 to: (notif.x >= 0 ? root.implicitWidth : -root.implicitWidth) * 2
-                duration: Tokens.anim.durations.normal
+                duration: Accessibility.motion(Tokens.anim.durations.normal)
                 easing: Tokens.anim.emphasized
             }
             PropertyAction {
@@ -214,7 +214,7 @@ Item {
     }
 
     component Anim: NumberAnimation {
-        duration: Tokens.anim.durations.expressiveDefaultSpatial
+        duration: Accessibility.motion(Tokens.anim.durations.expressiveDefaultSpatial)
         easing: Tokens.anim.expressiveDefaultSpatial
     }
 }

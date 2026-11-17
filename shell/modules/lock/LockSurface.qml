@@ -68,7 +68,7 @@ WlSessionLockSurface {
             }
             SequentialAnimation {
                 PauseAnimation {
-                    duration: Tokens.anim.durations.small
+                    duration: Accessibility.motion(Tokens.anim.durations.small)
                 }
                 Anim {
                     type: Anim.Standard
@@ -108,7 +108,7 @@ WlSessionLockSurface {
                     target: lockContent
                     property: "rotation"
                     to: 360
-                    duration: Tokens.anim.durations.expressiveFastSpatial
+                    duration: Accessibility.motion(Tokens.anim.durations.expressiveFastSpatial)
                     easing: Tokens.anim.standardAccel
                 }
             }

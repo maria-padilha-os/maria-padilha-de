@@ -82,6 +82,7 @@ Item {
                 Layout.fillWidth: true
                 implicitHeight: Tokens.padding.medium * 3
                 enabled: root.monitor !== null
+                accessibleName: Tr.tr("Brightness")
                 value: root.monitor?.brightness ?? 0
                 onInteraction: value => root.monitor?.setBrightness(value)
             }
@@ -104,6 +105,7 @@ Item {
             }
 
             StyledSwitch {
+                accessibleName: Tr.tr("Night light")
                 checked: root.nightLightOn
                 disabled: root.nightLightBusy
                 onToggled: root.setNightLight(checked)

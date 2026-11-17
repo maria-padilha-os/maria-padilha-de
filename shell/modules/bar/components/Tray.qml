@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 
@@ -33,6 +34,28 @@ StyledRect {
 
     implicitWidth: Tokens.sizes.bar.innerWidth
     implicitHeight: nonAnimHeight
+
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Button
+    Accessible.name: Tr.tr("System tray")
+    Accessible.description: Tr.tr("Expand or collapse tray icons")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.onPressAction: root.activate()
+
+    function activate(): void {
+        if (Config.bar.tray.compact)
+            root.expanded = !root.expanded;
+    }
+
+    Keys.onReturnPressed: root.activate()
+    Keys.onEnterPressed: root.activate()
+    Keys.onSpacePressed: root.activate()
+
+    FocusRing {
+        target: root
+        radius: root.radius
+    }
 
     color: Qt.alpha(Colours.tPalette.m3surfaceContainer, (Config.bar.tray.background && items.count > 0) ? Colours.tPalette.m3surfaceContainer.a : 0)
     radius: Tokens.rounding.full

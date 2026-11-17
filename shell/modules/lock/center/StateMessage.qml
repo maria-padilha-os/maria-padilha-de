@@ -236,7 +236,7 @@ Item {
     component FlashAnim: NumberAnimation {
         target: message
         property: "opacity"
-        duration: Tokens.anim.durations.small
+        duration: Accessibility.motion(Tokens.anim.durations.small)
         easing.type: Easing.Linear
     }
 }

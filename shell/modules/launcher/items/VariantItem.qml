@@ -10,7 +10,13 @@ Item {
     required property M3Variants.Variant modelData
     required property var list
 
-    implicitHeight: Tokens.sizes.launcher.itemHeight
+    implicitHeight: Math.max(Tokens.sizes.launcher.itemHeight, Math.ceil(Tokens.font.body.medium.pointSize * 2.8 + Tokens.padding.medium * 2))
+
+    Accessible.role: Accessible.ListItem
+    Accessible.name: root.modelData?.name ?? ""
+    Accessible.description: root.modelData?.description ?? ""
+    Accessible.selectable: true
+    Accessible.selected: ListView.isCurrentItem
 
     anchors.left: parent?.left
     anchors.right: parent?.right

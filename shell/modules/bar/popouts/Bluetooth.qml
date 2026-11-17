@@ -129,6 +129,8 @@ ColumnLayout {
                 StateLayer {
                     color: device.modelData.state === BluetoothDeviceState.Connected ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface // qmllint disable unresolved-type
                     disabled: device.loading
+                    Accessible.role: Accessible.Button
+                    Accessible.name: device.modelData.connected ? Tr.tr("Disconnect %1").arg(device.modelData.name) : Tr.tr("Connect %1").arg(device.modelData.name)
                     onClicked: device.modelData.connected = !device.modelData.connected
                 }
 
@@ -160,6 +162,8 @@ ColumnLayout {
 
                     StateLayer {
                         radius: Tokens.rounding.full
+                        Accessible.role: Accessible.Button
+                        Accessible.name: Tr.tr("Forget %1").arg(device.modelData.name)
                         onClicked: device.modelData.forget()
                     }
 
@@ -200,6 +204,8 @@ ColumnLayout {
 
         StyledSwitch {
             id: toggle
+
+            accessibleName: parent.label
         }
     }
 }

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.components.containers
 import qs.components.controls
@@ -17,6 +18,14 @@ StyledListView {
     required property ScreenState screenState
 
     property string displayText
+
+    activeFocusOnTab: true
+
+    Accessible.role: Accessible.List
+    Accessible.name: Tr.tr("Launcher results")
+    Accessible.description: Tr.tr("Use Up and Down to move, Enter to open")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
 
     readonly property string requestedState: stateForText(search.text)
     readonly property string displayState: stateForText(displayText)
@@ -59,9 +68,11 @@ StyledListView {
         onValuesChanged: root.currentIndex = 0
     }
 
+    readonly property int delegateHeight: Math.max(Tokens.sizes.launcher.itemHeight, Math.ceil(Tokens.font.body.medium.pointSize * 2.8 + Tokens.padding.medium * 2))
+
     spacing: Tokens.spacing.small
     orientation: Qt.Vertical
-    implicitHeight: (Tokens.sizes.launcher.itemHeight + spacing) * Math.min(Config.launcher.maxShown, count) - spacing
+    implicitHeight: (delegateHeight + spacing) * Math.min(Config.launcher.maxShown, count) - spacing
 
     preferredHighlightBegin: 0
     preferredHighlightEnd: height
@@ -137,7 +148,7 @@ StyledListView {
                     property: "opacity"
                     from: 1
                     to: 0
-                    duration: Tokens.anim.durations.small
+                    duration: Accessibility.motion(Tokens.anim.durations.small)
                     easing: Tokens.anim.standardAccel
                 }
                 Anim {
@@ -145,7 +156,7 @@ StyledListView {
                     property: "scale"
                     from: 1
                     to: 0.9
-                    duration: Tokens.anim.durations.small
+                    duration: Accessibility.motion(Tokens.anim.durations.small)
                     easing: Tokens.anim.standardAccel
                 }
             }
@@ -167,7 +178,7 @@ StyledListView {
                     property: "opacity"
                     from: 0
                     to: 1
-                    duration: Tokens.anim.durations.small
+                    duration: Accessibility.motion(Tokens.anim.durations.small)
                     easing: Tokens.anim.standardDecel
                 }
                 Anim {
@@ -175,7 +186,7 @@ StyledListView {
                     property: "scale"
                     from: 0.9
                     to: 1
-                    duration: Tokens.anim.durations.small
+                    duration: Accessibility.motion(Tokens.anim.durations.small)
                     easing: Tokens.anim.standardDecel
                 }
             }

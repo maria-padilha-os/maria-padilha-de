@@ -10,7 +10,7 @@ Item {
     id: root
 
     property real blurAmount: skipIntroAnimation ? 0.0 : 1.0
-    property bool skipIntroAnimation: false
+    property bool skipIntroAnimation: Accessibility.reducedMotion
 
     property real star1Opacity: skipIntroAnimation ? 1.0 : 0.0
     property real star2Opacity: skipIntroAnimation ? 1.0 : 0.0
@@ -369,7 +369,7 @@ Item {
     }
 
     SequentialAnimation {
-        running: true
+        running: !Accessibility.reducedMotion
         loops: Animation.Infinite
 
         PauseAnimation {
