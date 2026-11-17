@@ -30,8 +30,15 @@ Slider {
     Keys.onRightPressed: root.step(root.stepSize)
     Keys.onDownPressed: root.step(-root.stepSize)
     Keys.onUpPressed: root.step(root.stepSize)
-    Keys.onHomePressed: root.value = root.from
-    Keys.onEndPressed: root.value = root.to
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Home) {
+            root.value = root.from;
+            event.accepted = true;
+        } else if (event.key === Qt.Key_End) {
+            root.value = root.to;
+            event.accepted = true;
+        }
+    }
 
     background: StyledRect {
         color: Colours.layer(Colours.palette.m3surfaceContainer, 2)

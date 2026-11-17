@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell.Services.SystemTray
 import Caelestia.Config
 import Caelestia.I18n
+import qs.components
 import qs.components.effects
 import qs.services
 import qs.utils

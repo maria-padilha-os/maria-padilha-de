@@ -68,8 +68,15 @@ MouseArea {
 
     Keys.onUpPressed: root.moveActive(-1)
     Keys.onDownPressed: root.moveActive(1)
-    Keys.onHomePressed: root.active = items[0] ?? null
-    Keys.onEndPressed: root.active = items[items.length - 1] ?? null
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Home) {
+            root.active = items[0] ?? null;
+            event.accepted = true;
+        } else if (event.key === Qt.Key_End) {
+            root.active = items[items.length - 1] ?? null;
+            event.accepted = true;
+        }
+    }
     Keys.onReturnPressed: root.chooseActive()
     Keys.onEnterPressed: root.chooseActive()
     Keys.onSpacePressed: root.chooseActive()

@@ -29,26 +29,6 @@ ConnectedRect {
     implicitHeight: row.implicitHeight + Tokens.padding.medium * 2
     activeFocusOnTab: true
     enabled: !root.disabled
-    Accessible.role: Accessible.Button
-    Accessible.name: root.text
-    Accessible.description: root.subtext
-    Accessible.focusable: root.enabled
-    Accessible.focused: root.activeFocus
-    Accessible.onPressAction: root.clicked(null)
-
-    Keys.onReturnPressed: root.clicked(null)
-    Keys.onEnterPressed: root.clicked(null)
-    Keys.onSpacePressed: root.clicked(null)
-
-    FocusRing {
-        target: root
-        colour: Colours.palette.m3primary
-        radius: Tokens.rounding.small
-        margin: 2
-    }
-
-    activeFocusOnTab: true
-    enabled: !disabled
 
     Accessible.role: Accessible.Button
     Accessible.name: [label.text, subLabel.text].filter(s => s.length > 0).join(": ")

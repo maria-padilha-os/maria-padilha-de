@@ -43,10 +43,14 @@ Slider {
     Keys.onRightPressed: root.step(root.stepSize)
     Keys.onDownPressed: root.step(-root.stepSize)
     Keys.onUpPressed: root.step(root.stepSize)
-    Keys.onHomePressed: root.step(root.from - root.value)
-    Keys.onEndPressed: root.step(root.to - root.value)
     Keys.onPressed: event => {
-        if (event.key === Qt.Key_PageDown) {
+        if (event.key === Qt.Key_Home) {
+            root.step(root.from - root.value);
+            event.accepted = true;
+        } else if (event.key === Qt.Key_End) {
+            root.step(root.to - root.value);
+            event.accepted = true;
+        } else if (event.key === Qt.Key_PageDown) {
             root.step(-root.stepSize * 10);
             event.accepted = true;
         } else if (event.key === Qt.Key_PageUp) {

@@ -24,10 +24,6 @@ ConnectedRect {
     Layout.fillWidth: true
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins * 2
     Accessible.role: Accessible.StaticText
-    Accessible.name: root.label
-    Accessible.description: root.subtext
-
-    Accessible.role: Accessible.StaticText
     Accessible.name: [label.text, value.text].filter(s => s.length > 0).join(": ")
     Accessible.description: subtext
 

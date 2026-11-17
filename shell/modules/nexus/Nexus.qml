@@ -40,7 +40,10 @@ Item {
         event.accepted = true;
     }
 
-    Component.onCompleted: Qt.callLater(root.focusSearch)
+    Component.onCompleted: Qt.callLater(() => {
+        root.forceActiveFocus();
+        root.focusSearch();
+    })
 
     function focusSearch(): void {
         navPane.focusSearch();
@@ -48,24 +51,6 @@ Item {
 
     implicitWidth: Math.round(implicitHeight * Tokens.sizes.nexus.ratio)
     implicitHeight: Math.round(nState.screen.height * Tokens.sizes.nexus.heightMult)
-
-    focus: true
-    activeFocusOnTab: true
-
-    Accessible.role: Accessible.Pane
-    Accessible.name: Tr.tr("Settings")
-    Accessible.description: Tr.tr("Use Tab to move, Escape to close")
-    Accessible.focusable: true
-    Accessible.focused: activeFocus
-
-    Keys.onEscapePressed: {
-        if (nState.subPageIdxStack.length > 0)
-            nState.closeSubPage();
-        else
-            root.close();
-    }
-
-    Component.onCompleted: Qt.callLater(() => root.forceActiveFocus())
 
     Behavior on blobColour {
         CAnim {}
