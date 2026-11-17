@@ -1,0 +1,20 @@
+{
+  "latitude": 12.34,
+  "longitude": 56.78,
+  "current": {
+    "temperature_2m": 30,
+    "apparent_temperature": 31,
+    "relative_humidity_2m": 40,
+    "wind_speed_10m": 3,
+    "is_day": 1,
+    "weather_code": 0
+  },
+  "daily": {
+    "time": ["2026-11-17"],
+    "weather_code": [0],
+    "temperature_2m_max": [33],
+    "temperature_2m_min": [24],
+    "sunrise": ["2026-11-17T05:45"],
+    "sunset": ["2026-11-17T18:15"]
+  }
+}

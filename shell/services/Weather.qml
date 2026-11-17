@@ -7,6 +7,7 @@ import Caelestia
 import Caelestia.Config
 import Caelestia.I18n
 import qs.utils
+import "WeatherData.js" as WeatherData
 
 Singleton {
     id: root
@@ -14,17 +15,100 @@ Singleton {
     property string city
     property string countryCode: ""
     property string loc
-    property var cc
-    property list<var> forecast
-    property list<var> hourlyForecast
+    property var cc: null
+    property list<var> forecast: []
+    property list<var> hourlyForecast: []
 
-    property bool ipApiRequestPending: false
-    property double ipApiBlockedUntil: 0
-    property bool citiesLoaded: false
-    property string pendingCoords
+    // "idle", "no-location", "loading", "ready", "stale" or "error".
+    property string status: "idle"
+    property string errorMessage: ""
+    property double lastUpdated: 0
+    property double now: Date.now()
+    property bool fromCache: false
 
-    readonly property string icon: cc ? Icons.getWeatherIcon(cc.weatherCode) : "cloud_alert"
-    readonly property string description: cc ? getWeatherCondition(cc.weatherCode) : Tr.tr("No weather")
+    property bool configLoaded: false
+    property bool cacheLoaded: false
+    property string cacheText: ""
+    property var fileConfig: ({})
+
+    property bool requestPending: false
+    property bool geocodePending: false
+    property int requestToken: 0
+
+    property bool searchPending: false
+    property string searchMessage: ""
+    property var searchResults: []
+    property double searchBlockedUntil: 0
+    property int searchToken: 0
+
+    readonly property string savedLocation: WeatherData.normaliseString(GlobalConfig.services.weatherLocation)
+    readonly property string savedCoordinates: WeatherData.normaliseString(GlobalConfig.services.weatherCoordinates)
+
+    readonly property string configPath: WeatherData.configPath(Quickshell.env("HOME") || "", Quickshell.env("XDG_CONFIG_HOME") || "")
+    readonly property string providerUrl: {
+        const env = WeatherData.normaliseString(Quickshell.env("PADILHA_WEATHER_PROVIDER_URL") || "");
+        if (env.length > 0)
+            return env;
+        const file = WeatherData.normaliseString(root.fileConfig.providerUrl);
+        if (file.length > 0)
+            return file;
+        return WeatherData.normaliseString(GlobalConfig.services.weatherProviderUrl) || WeatherData.DEFAULT_PROVIDER_URL;
+    }
+    readonly property string apiKey: {
+        const env = WeatherData.normaliseString(Quickshell.env("PADILHA_WEATHER_API_KEY") || "");
+        if (env.length > 0)
+            return env;
+        const file = WeatherData.normaliseString(root.fileConfig.apiKey);
+        if (file.length > 0)
+            return file;
+        return WeatherData.normaliseString(GlobalConfig.services.weatherApiKey);
+    }
+    readonly property string geocodingUrl: {
+        const env = WeatherData.normaliseString(Quickshell.env("PADILHA_WEATHER_GEOCODING_URL") || "");
+        if (env.length > 0)
+            return env;
+        const file = WeatherData.normaliseString(root.fileConfig.geocodingUrl);
+        if (file.length > 0)
+            return file;
+        return WeatherData.normaliseString(GlobalConfig.services.weatherGeocodingUrl) || WeatherData.DEFAULT_GEOCODING_URL;
+    }
+    readonly property string language: {
+        const env = WeatherData.normaliseString(Quickshell.env("PADILHA_WEATHER_LANGUAGE") || "");
+        if (env.length > 0)
+            return env;
+        const file = WeatherData.normaliseString(root.fileConfig.language);
+        if (file.length > 0)
+            return file;
+        const configured = WeatherData.normaliseString(GlobalConfig.services.weatherLanguage);
+        if (configured.length > 0)
+            return configured;
+        const locale = String(Qt.locale().name).split("_")[0] || "en";
+        return locale === "C" ? "en" : locale;
+    }
+    readonly property int refreshSeconds: WeatherData.refreshSeconds(
+        WeatherData.normaliseString(root.fileConfig.refreshInterval).length > 0
+            ? root.fileConfig.refreshInterval
+            : GlobalConfig.services.weatherRefreshInterval
+    )
+    readonly property int cacheTtlSeconds: WeatherData.cacheTtlSeconds(
+        WeatherData.normaliseString(root.fileConfig.cacheTtl).length > 0
+            ? root.fileConfig.cacheTtl
+            : GlobalConfig.services.weatherCacheTtl
+    )
+
+    readonly property bool hasData: cc !== null && cc !== undefined
+    readonly property bool isStale: hasData && lastUpdated > 0 && (now - lastUpdated) > cacheTtlSeconds * 1000
+
+    readonly property string icon: hasData ? Icons.getWeatherIcon(cc.weatherCode) : "cloud_alert"
+    readonly property string description: {
+        if (hasData)
+            return getWeatherCondition(cc.weatherCode);
+        if (status === "no-location")
+            return Tr.tr("No weather location");
+        if (status === "error")
+            return Tr.tr("Weather unavailable");
+        return Tr.tr("No weather");
+    }
     readonly property string temp: formatTemp(cc?.tempC)
     readonly property string feelsLike: formatTemp(cc?.feelsLikeC)
     readonly property int humidity: cc?.humidity ?? 0
@@ -32,7 +116,31 @@ Singleton {
     readonly property string sunrise: cc ? Qt.formatDateTime(new Date(cc.sunrise), Units.twelveHourClock ? "h:mm A" : "h:mm") : "--:--"
     readonly property string sunset: cc ? Qt.formatDateTime(new Date(cc.sunset), Units.twelveHourClock ? "h:mm A" : "h:mm") : "--:--"
 
-    readonly property var cachedCities: new Map()
+    readonly property string lastUpdatedLabel: {
+        if (!hasData || lastUpdated <= 0)
+            return "";
+        const date = new Date(lastUpdated);
+        const current = new Date(now);
+        const sameDay = date.toDateString() === current.toDateString();
+        const time = Qt.formatDateTime(date, Units.twelveHourClock ? "h:mm AP" : "HH:mm");
+        return sameDay
+            ? Tr.tr("Last updated %1").arg(time)
+            : Tr.tr("Last updated %1").arg(Qt.formatDateTime(date, "MMM d, " + (Units.twelveHourClock ? "h:mm AP" : "HH:mm")));
+    }
+    readonly property string statusText: {
+        if (status === "no-location")
+            return Tr.tr("No weather location set");
+        if (status === "loading" && !hasData)
+            return Tr.tr("Loading weather…");
+        if (status === "error")
+            return errorMessage || Tr.tr("Weather unavailable");
+        if (status === "stale")
+            return errorMessage
+                ? Tr.tr("%1 · showing the last saved weather").arg(errorMessage)
+                : Tr.tr("Showing the last saved weather");
+        return "";
+    }
+    readonly property bool canRetry: status === "error" || status === "stale" || isStale
 
     function formatTemp(temp: var, compact = false): string {
         let unit = GlobalConfig.services.weatherUnits;
@@ -40,263 +148,389 @@ Singleton {
         // English UI in Brazil would report Fahrenheit.
         if (Number(unit) === TemperatureUnit.Auto && root.countryCode.length > 0)
             unit = Units.temperatureUnitForCountry(root.countryCode);
-        const value = temp !== undefined ? Math.round(Units.toTemperature(temp, unit)) : "--";
+        const value = temp !== undefined && temp !== null ? Math.round(Units.toTemperature(temp, unit)) : "--";
         return Units.formatTemp(value, unit, compact);
     }
 
     function reload(): void {
-        const configLocation = GlobalConfig.services.weatherLocation;
+        if (!root.configLoaded || !root.cacheLoaded)
+            return;
 
-        if (configLocation) {
-            if (configLocation.indexOf(",") !== -1 && !isNaN(parseFloat(configLocation.split(",")[0]))) {
-                loc = configLocation;
-                fetchCityFromCoords(configLocation);
-            } else {
-                fetchCoordsFromCity(configLocation);
+        const location = root.savedLocation;
+        if (location.length === 0) {
+            root.resetWeather("no-location", "");
+            return;
+        }
+
+        const configuredCoords = WeatherData.coordinatesOf(root.savedCoordinates) || WeatherData.coordinatesOf(location);
+        const cached = WeatherData.readCache(root.cacheText);
+        const matches = cached && WeatherData.cacheMatches(cached, {
+            providerUrl: root.providerUrl,
+            location: location,
+            coordinates: configuredCoords
+        });
+        const cachedCoords = cached ? WeatherData.coordinatesOf(cached.coordinates) : null;
+
+        if (matches && root.applyCache(cached)) {
+            if (WeatherData.isCacheFresh(cached, root.cacheTtlSeconds, Date.now())) {
+                root.status = root.isStale ? "stale" : "ready";
+                root.errorMessage = "";
+                return;
             }
-        } else if ((!loc || timer.elapsed() > 900) && !ipApiRequestPending && Date.now() >= ipApiBlockedUntil) {
-            ipApiRequestPending = true;
-
-            Requests.get("http://ip-api.com/json?fields=status,message,city,lat,lon,countryCode", (text, metadata) => {
-                ipApiRequestPending = false;
-                recordIpApiRateLimit(metadata);
-
-                // Protect against stale responses overwriting the manually-set location,
-                // in case the config was updated while this request was in-flight.
-                if (GlobalConfig.services.weatherLocation)
-                    return;
-
-                let response;
-                try {
-                    response = JSON.parse(text);
-                } catch (error) {
-                    console.warn(lc, `Unable to parse response from ip-api: ${error}`);
-                    return;
-                }
-
-                const lat = Number(response.lat);
-                const lon = Number(response.lon);
-
-                if (response.status !== "success" || !Number.isFinite(lat) || !Number.isFinite(lon)) {
-                    console.warn(lc, `ip-api lookup failed: ${response.message ?? "invalid response"}`);
-                    return;
-                }
-
-                city = fixCityName(response.city ?? "");
-                root.countryCode = String(response.countryCode ?? "");
-                timer.restart();
-                loc = `${lat},${lon}`;
-            }, (error, metadata) => {
-                ipApiRequestPending = false;
-
-                if (!recordIpApiRateLimit(metadata))
-                    console.warn(lc, `ip-api request failed: ${error}`);
-            });
-        }
-    }
-
-    function recordIpApiRateLimit(metadata: var): bool {
-        const remainingHeader = metadata?.headers?.["x-rl"];
-        const exhausted = remainingHeader !== undefined && Number(remainingHeader) === 0;
-
-        if (metadata?.statusCode !== 429 && !exhausted)
-            return false;
-
-        const ttlHeader = metadata?.headers?.["x-ttl"];
-        const ttl = Number(ttlHeader);
-
-        const delaySeconds = Number.isFinite(ttl) ? Math.max(1, Math.ceil(ttl) + 1) : 61;
-
-        const delayMs = delaySeconds * 1000;
-        ipApiBlockedUntil = Date.now() + delayMs;
-        ipApiRetryTimer.interval = delayMs;
-        ipApiRetryTimer.restart();
-
-        return true;
-    }
-
-    function fixCityName(cityName: string): string {
-        if (!cityName)
-            return "";
-        const mapping = {
-            // Polish
-            "Poznan": "Poznań",
-            "Wroclaw": "Wrocław",
-            "Krakow": "Kraków",
-            "Gdansk": "Gdańsk",
-            "Lodz": "Łódź",
-            "Rzeszow": "Rzeszów",
-            "Torun": "Toruń",
-            "Bialystok": "Białystok",
-            "Czestochowa": "Częstochowa",
-            "Plock": "Płock",
-            "Ruda Slaska": "Ruda Śląska",
-            "Dabrowa Gornicza": "Dąbrowa Górnicza",
-            "Elblag": "Elbląg",
-            "Gorzow Wielkopolski": "Gorzów Wielkopolski",
-            "Zielona Gora": "Zielona Góra",
-            "Slupsk": "Słupsk",
-
-            // German
-            "Munchen": "München",
-            "Koln": "Köln",
-            "Dusseldorf": "Düsseldorf",
-            "Nurnberg": "Nürnberg",
-
-            // French & Spanish & Portuguese
-            "Sao Paulo": "São Paulo",
-            "Montreal": "Montréal",
-            "Quebec": "Québec",
-            "Bogota": "Bogotá",
-            "Medellin": "Medellín",
-            "Cordoba": "Córdoba",
-
-            // Turkish
-            "Istanbul": "İstanbul",
-            "Izmir": "İzmir",
-
-            // Scandinavian & others
-            "Malmo": "Malmö",
-            "Goteborg": "Göteborg",
-            "Zurich": "Zürich",
-            "Geneve": "Genève"
-        };
-        return mapping[cityName] || cityName;
-    }
-
-    function cacheCity(coords: string, cityName: string): void {
-        cachedCities.set(coords, cityName);
-        citiesSaveTimer.restart();
-    }
-
-    function fetchCityFromCoords(coords: string): void {
-        if (cachedCities.has(coords)) {
-            city = cachedCities.get(coords);
+            // Stale cache stays on screen while the refresh runs. The timer is
+            // bounded, so a failed provider is retried once per interval.
+            if (configuredCoords || cachedCoords)
+                root.fetchForecast(configuredCoords || cachedCoords, location, root.city, root.countryCode);
+            else
+                root.geocodeLocation(location);
             return;
         }
 
-        // Defer until cache is loaded
-        if (!citiesLoaded) {
-            pendingCoords = coords;
+        if (configuredCoords) {
+            root.clearWeatherData();
+            root.status = "loading";
+            root.city = location;
+            root.fetchForecast(configuredCoords, location, root.city, root.countryCode);
             return;
         }
 
-        const [lat, lon] = coords.split(",").map(s => s.trim());
-        const lang = Qt.locale().name.split("_")[0] || "en";
+        root.clearWeatherData();
+        root.status = "loading";
+        root.geocodeLocation(location);
+    }
 
-        const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=geocodejson&accept-language=${lang}`;
-        const nominatimHeaders = {
-            "User-Agent": `caelestia-shell/${CUtils.version} (+https://github.com/caelestia-dots/shell)`
-        };
+    // Forced refresh used by the refresh timer and the retry action. It never
+    // runs more often than refreshSeconds, because only one timer calls it.
+    function refresh(): void {
+        if (!root.configLoaded)
+            return;
 
-        Requests.get(nominatimUrl, text => {
-            let geo;
+        const location = root.savedLocation;
+        if (location.length === 0) {
+            root.resetWeather("no-location", "");
+            return;
+        }
+
+        const configuredCoords = WeatherData.coordinatesOf(root.savedCoordinates) || WeatherData.coordinatesOf(location);
+        if (configuredCoords) {
+            root.fetchForecast(configuredCoords, location, root.city || location, root.countryCode);
+            return;
+        }
+
+        const cached = WeatherData.readCache(root.cacheText);
+        if (cached && WeatherData.cacheMatches(cached, { providerUrl: root.providerUrl, location: location })) {
+            const cachedCoords = WeatherData.coordinatesOf(cached.coordinates);
+            if (cachedCoords) {
+                root.fetchForecast(cachedCoords, location, root.city || cached.city || location, root.countryCode || cached.countryCode);
+                return;
+            }
+        }
+
+        root.geocodeLocation(location);
+    }
+
+    function setLocation(value: string): void {
+        const text = WeatherData.normaliseString(value);
+        GlobalConfig.services.weatherCoordinates = "";
+        GlobalConfig.services.weatherLocation = text;
+        root.settingsChanged();
+    }
+
+    function saveLocation(result: var): void {
+        if (!result)
+            return;
+        root.city = WeatherData.normaliseString(result.name);
+        root.countryCode = WeatherData.normaliseString(result.countryCode);
+        GlobalConfig.services.weatherCoordinates = WeatherData.formatCoordinates(result);
+        GlobalConfig.services.weatherLocation = WeatherData.normaliseString(result.label) || WeatherData.normaliseString(result.displayName) || root.city;
+        root.searchResults = [];
+        root.searchMessage = "";
+        root.settingsChanged();
+    }
+
+    function clearLocation(): void {
+        root.invalidateRequests();
+        GlobalConfig.services.weatherCoordinates = "";
+        GlobalConfig.services.weatherLocation = "";
+        root.cacheText = "";
+        weatherCache.setText("{}");
+        root.searchResults = [];
+        root.searchMessage = "";
+        root.resetWeather("no-location", "");
+    }
+
+    function searchLocations(query: string): void {
+        const text = WeatherData.normaliseString(query);
+        root.searchResults = [];
+        root.searchMessage = "";
+
+        if (text.length === 0) {
+            root.searchMessage = Tr.tr("Enter a city or place");
+            return;
+        }
+        if (root.searchPending)
+            return;
+        if (Date.now() < root.searchBlockedUntil) {
+            root.searchMessage = Tr.tr("Please wait a moment before searching again");
+            return;
+        }
+
+        const url = WeatherData.buildGeocodingUrl({
+            geocodingUrl: root.geocodingUrl,
+            query: text,
+            language: root.language,
+            count: WeatherData.MAX_GEOCODING_RESULTS
+        });
+        if (url.length === 0) {
+            root.searchMessage = Tr.tr("Weather search URL is invalid");
+            return;
+        }
+
+        const token = ++root.searchToken;
+        root.searchPending = true;
+        Requests.get(url, (response, metadata) => {
+            if (token !== root.searchToken)
+                return;
+            root.searchPending = false;
+            root.searchBlockedUntil = Date.now() + 1100;
+
+            let results;
             try {
-                geo = JSON.parse(text).features?.[0]?.properties.geocoding;
+                results = WeatherData.parseGeocodingResponse(response);
             } catch (error) {
-                console.warn(lc, `Unable to parse response from nominatim: ${error}`);
-                city = Tr.trCtx("Unknown city", "weather location unavailable");
+                root.searchMessage = Tr.tr("Could not read the place search results");
                 return;
             }
 
-            if (geo) {
-                root.countryCode = String(geo.country_code ?? "");
-                const geoCity = geo.type === "city" ? geo.name : geo.city;
-                if (geoCity) {
-                    city = fixCityName(geoCity);
-                    cacheCity(coords, city);
-                    return;
-                }
+            if (results.length === 0) {
+                root.searchMessage = Tr.tr("No places found for “%1”").arg(text);
+                return;
             }
-
-            console.warn(lc, "No locality in nominatim response");
-            city = Tr.trCtx("Unknown city", "weather location unavailable");
-        }, error => {
-            console.warn(lc, `Nominatim request failed: ${error}`);
-            city = Tr.trCtx("Unknown city", "weather location unavailable");
-        }, nominatimHeaders);
-    }
-
-    function fetchCoordsFromCity(cityName: string): void {
-        const lang = Qt.locale().name.split("_")[0] || "en";
-        const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=${lang}&format=json`;
-
-        Requests.get(url, text => {
-            const json = JSON.parse(text);
-            if (json.results && json.results.length > 0) {
-                const result = json.results[0];
-                loc = result.latitude + "," + result.longitude;
-                city = fixCityName(result.name);
-                root.countryCode = String(result.country_code ?? "");
-            } else {
-                loc = "";
-                reload();
-            }
+            root.searchResults = results;
+        }, (error, metadata) => {
+            if (token !== root.searchToken)
+                return;
+            root.searchPending = false;
+            root.searchBlockedUntil = Date.now() + 1100;
+            root.searchMessage = root.describeError(error, metadata);
         });
     }
 
-    function fetchWeatherData(): void {
-        const url = getWeatherUrl();
-        if (url === "")
+    function applyCache(record: var): bool {
+        try {
+            const parsed = WeatherData.parseWeatherResponse(record.payload, { now: Date.now() });
+            root.cc = parsed.cc;
+            root.forecast = parsed.forecast;
+            root.hourlyForecast = parsed.hourlyForecast;
+            root.lastUpdated = Number(record.updatedAt);
+            root.city = WeatherData.normaliseString(record.city) || WeatherData.normaliseString(record.location);
+            root.countryCode = WeatherData.normaliseString(record.countryCode);
+            root.loc = WeatherData.normaliseString(record.coordinates);
+            root.fromCache = true;
+            root.now = Date.now();
+            return true;
+        } catch (error) {
+            console.warn(lc, `Unable to read the weather cache: ${error}`);
+            return false;
+        }
+    }
+
+    function applyParsed(parsed: var, updatedAt: double, cityName: string, country: string): void {
+        root.cc = parsed.cc;
+        root.forecast = parsed.forecast;
+        root.hourlyForecast = parsed.hourlyForecast;
+        root.lastUpdated = updatedAt;
+        root.city = WeatherData.normaliseString(cityName) || root.city;
+        root.countryCode = WeatherData.normaliseString(country) || root.countryCode;
+        root.fromCache = false;
+        root.now = Date.now();
+    }
+
+    function fetchForecast(coords: var, location: string, cityName: string, country: string): void {
+        if (root.requestPending)
             return;
 
-        Requests.get(url, text => {
-            const json = JSON.parse(text);
-            if (!json.current || !json.daily)
+        const pair = WeatherData.coordinatesOf(coords);
+        if (!pair) {
+            root.failWeather(Tr.tr("The saved weather location is invalid"));
+            return;
+        }
+
+        const url = WeatherData.buildWeatherUrl({
+            providerUrl: root.providerUrl,
+            apiKey: root.apiKey,
+            language: root.language,
+            latitude: pair.latitude,
+            longitude: pair.longitude
+        });
+        if (url.length === 0) {
+            root.failWeather(Tr.tr("The weather provider URL is invalid"));
+            return;
+        }
+
+        const token = ++root.requestToken;
+        root.requestPending = true;
+        root.errorMessage = "";
+        if (!root.hasData)
+            root.status = "loading";
+
+        const headers = {};
+        if (root.apiKey.length > 0)
+            headers["X-API-Key"] = root.apiKey;
+
+        Requests.get(url, (response, metadata) => {
+            if (token !== root.requestToken)
                 return;
+            root.requestPending = false;
 
-            cc = {
-                weatherCode: json.current.weather_code,
-                tempC: json.current.temperature_2m,
-                feelsLikeC: json.current.apparent_temperature,
-                humidity: json.current.relative_humidity_2m,
-                windSpeed: json.current.wind_speed_10m,
-                isDay: json.current.is_day,
-                sunrise: json.daily.sunrise[0].replace("T", " "),
-                sunset: json.daily.sunset[0].replace("T", " ")
-            };
-
-            const forecastList = [];
-            for (let i = 0; i < json.daily.time.length; i++)
-                forecastList.push({
-                    date: json.daily.time[i].replace(/-/g, "/"),
-                    maxTempC: json.daily.temperature_2m_max[i],
-                    minTempC: json.daily.temperature_2m_min[i],
-                    weatherCode: json.daily.weather_code[i],
-                    icon: Icons.getWeatherIcon(json.daily.weather_code[i])
-                });
-            forecast = forecastList;
-
-            const hourlyList = [];
-            const now = new Date();
-            for (let i = 0; i < json.hourly.time.length; i++) {
-                const time = new Date(json.hourly.time[i].replace("T", " "));
-
-                if (time < now)
-                    continue;
-
-                hourlyList.push({
-                    timestamp: json.hourly.time[i],
-                    hour: time.getHours(),
-                    tempC: Math.round(json.hourly.temperature_2m[i]),
-                    precipChance: json.hourly.precipitation_probability[i],
-                    weatherCode: json.hourly.weather_code[i],
-                    icon: Icons.getWeatherIcon(json.hourly.weather_code[i])
-                });
+            let payload;
+            try {
+                payload = JSON.parse(response);
+            } catch (error) {
+                root.failWeather(Tr.tr("The weather provider returned an unreadable response"));
+                return;
             }
-            hourlyForecast = hourlyList;
+
+            let parsed;
+            try {
+                parsed = WeatherData.parseWeatherResponse(payload);
+            } catch (error) {
+                console.warn(lc, `Unexpected weather response: ${error}`);
+                root.failWeather(Tr.tr("The weather provider returned an unexpected response"));
+                return;
+            }
+
+            const updatedAt = Date.now();
+            root.applyParsed(parsed, updatedAt, cityName, country);
+            root.loc = WeatherData.formatCoordinates(pair);
+            root.status = "ready";
+            root.errorMessage = "";
+            root.saveCache(payload, location, pair, root.city, root.countryCode, updatedAt);
+        }, (error, metadata) => {
+            if (token !== root.requestToken)
+                return;
+            root.requestPending = false;
+            root.failWeather(root.describeError(error, metadata));
+        }, headers);
+    }
+
+    function geocodeLocation(location: string): void {
+        if (root.geocodePending)
+            return;
+
+        const url = WeatherData.buildGeocodingUrl({
+            geocodingUrl: root.geocodingUrl,
+            query: location,
+            language: root.language,
+            count: 1
+        });
+        if (url.length === 0) {
+            root.failWeather(Tr.tr("The weather search URL is invalid"));
+            return;
+        }
+
+        const token = ++root.requestToken;
+        root.geocodePending = true;
+        root.errorMessage = "";
+        if (!root.hasData)
+            root.status = "loading";
+
+        Requests.get(url, (response, metadata) => {
+            if (token !== root.requestToken)
+                return;
+            root.geocodePending = false;
+
+            let results;
+            try {
+                results = WeatherData.parseGeocodingResponse(response, { count: 1 });
+            } catch (error) {
+                root.failWeather(Tr.tr("Could not read the place search result"));
+                return;
+            }
+
+            if (results.length === 0) {
+                root.failWeather(Tr.tr("No place found for “%1”. Try a more specific name.").arg(location));
+                return;
+            }
+
+            const result = results[0];
+            root.city = result.name;
+            root.countryCode = result.countryCode;
+            root.loc = WeatherData.formatCoordinates(result);
+            root.fetchForecast(result, location, result.name, result.countryCode);
+        }, (error, metadata) => {
+            if (token !== root.requestToken)
+                return;
+            root.geocodePending = false;
+            root.failWeather(root.describeError(error, metadata));
         });
     }
 
-    function getWeatherUrl(): string {
-        if (!loc || loc.indexOf(",") === -1)
-            return "";
+    function saveCache(payload: var, location: string, coords: var, cityName: string, country: string, updatedAt: double): void {
+        const record = WeatherData.makeCacheRecord(payload, {
+            location: location,
+            coordinates: coords,
+            city: cityName,
+            countryCode: country,
+            providerUrl: root.providerUrl,
+            updatedAt: updatedAt
+        });
+        const serialized = JSON.stringify(record);
+        root.cacheText = serialized;
+        weatherCache.setText(serialized);
+    }
 
-        const [lat, lon] = loc.split(",").map(s => s.trim());
-        const baseUrl = "https://api.open-meteo.com/v1/forecast";
-        const params = ["latitude=" + lat, "longitude=" + lon, "hourly=weather_code,temperature_2m,precipitation_probability", "daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset", "current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m", "timezone=auto", "forecast_days=7"];
+    function describeError(error: var, metadata: var): string {
+        const statusCode = Number(metadata?.statusCode);
+        if (statusCode === 401 || statusCode === 403)
+            return Tr.tr("The weather provider rejected the API key");
+        if (statusCode === 429)
+            return Tr.tr("The weather provider rate limit was reached");
+        if (statusCode > 0)
+            return Tr.tr("The weather request failed (HTTP %1)").arg(statusCode);
+        return Tr.tr("The weather request failed: %1").arg(error);
+    }
 
-        return baseUrl + "?" + params.join("&");
+    function failWeather(message: string): void {
+        root.errorMessage = message;
+        root.status = root.hasData ? "stale" : "error";
+        console.warn(lc, message);
+    }
+
+    function clearWeatherData(): void {
+        root.cc = null;
+        root.forecast = [];
+        root.hourlyForecast = [];
+        root.lastUpdated = 0;
+        root.city = "";
+        root.countryCode = "";
+        root.loc = "";
+        root.fromCache = false;
+        root.errorMessage = "";
+    }
+
+    function resetWeather(newStatus: string, message: string): void {
+        root.invalidateRequests();
+        root.clearWeatherData();
+        root.status = newStatus;
+        root.errorMessage = message;
+    }
+
+    function invalidateRequests(): void {
+        root.requestToken += 1;
+        root.requestPending = false;
+        root.geocodePending = false;
+        root.searchToken += 1;
+        root.searchPending = false;
+    }
+
+    function settingsChanged(): void {
+        root.invalidateRequests();
+        root.searchResults = [];
+        root.searchMessage = "";
+        // The settings store can emit several signals for one edit (location
+        // and coordinates, for example). Coalesce them into one refresh.
+        settingsReloadTimer.restart();
     }
 
     function getWeatherCondition(code: string): string {
@@ -333,18 +567,31 @@ Singleton {
         return conditions[code] || Tr.trCtx("Unknown", "weather condition");
     }
 
-    onLocChanged: fetchWeatherData()
-    onCitiesLoadedChanged: {
-        if (!citiesLoaded || !pendingCoords)
-            return;
-
-        const coords = pendingCoords;
-        pendingCoords = "";
-        fetchCityFromCoords(coords);
-    }
+    Component.onCompleted: root.reload()
 
     Connections {
         function onWeatherLocationChanged(): void {
+            root.settingsChanged();
+        }
+        function onWeatherCoordinatesChanged(): void {
+            root.settingsChanged();
+        }
+        function onWeatherProviderUrlChanged(): void {
+            root.settingsChanged();
+        }
+        function onWeatherApiKeyChanged(): void {
+            root.settingsChanged();
+        }
+        function onWeatherGeocodingUrlChanged(): void {
+            root.settingsChanged();
+        }
+        function onWeatherLanguageChanged(): void {
+            root.settingsChanged();
+        }
+        function onWeatherRefreshIntervalChanged(): void {
+            root.invalidateRequests();
+        }
+        function onWeatherCacheTtlChanged(): void {
             root.reload();
         }
 
@@ -352,70 +599,65 @@ Singleton {
     }
 
     Timer {
-        interval: 3600000 // 1 hour
+        interval: root.refreshSeconds * 1000
+        running: root.configLoaded && root.savedLocation.length > 0
+        repeat: true
+        onTriggered: root.refresh()
+    }
+
+    Timer {
+        id: settingsReloadTimer
+
+        interval: 50
+        repeat: false
+        onTriggered: root.reload()
+    }
+
+    Timer {
+        interval: 30000
         running: true
         repeat: true
-        onTriggered: fetchWeatherData()
-    }
-
-    Timer {
-        id: ipApiRetryTimer
-
-        repeat: false
-
-        onTriggered: {
-            const remaining = root.ipApiBlockedUntil - Date.now();
-
-            if (remaining > 0) {
-                interval = Math.ceil(remaining);
-                restart();
-            } else {
-                root.reload();
-            }
-        }
-    }
-
-    Timer {
-        id: citiesSaveTimer
-
-        interval: 1000
-        onTriggered: {
-            if (!root.citiesLoaded)
-                return;
-
-            const data = {};
-            root.cachedCities.forEach((cityName, coords) => data[coords] = cityName);
-            citiesStorage.setText(JSON.stringify(data));
-        }
-    }
-
-    ElapsedTimer {
-        id: timer
+        onTriggered: root.now = Date.now()
     }
 
     FileView {
-        id: citiesStorage
+        id: weatherConfig
 
         printErrors: false
-        path: `${Paths.cache}/cities.json`
+        path: root.configPath
+        watchChanges: true
+        onFileChanged: weatherConfig.reload()
         onLoaded: {
-            try {
-                const data = JSON.parse(text());
-                for (const [coords, cityName] of Object.entries(data))
-                    if (!root.cachedCities.has(coords))
-                        root.cachedCities.set(coords, cityName);
-            } catch (error) {
-                console.warn(lc, `Unable to parse cached cities: ${error}`);
-            }
-
-            root.citiesLoaded = true;
+            root.fileConfig = WeatherData.parseConfig(text());
+            root.configLoaded = true;
+            root.invalidateRequests();
+            root.reload();
         }
-        onLoadFailed: err => {
-            root.citiesLoaded = true;
-            if (err === FileViewError.FileNotFound)
-                Qt.callLater(() => setText("{}"));
-            else
-                console.warn(lc, `Unable to load cached cities: ${err}`);
+        onLoadFailed: error => {
+            root.fileConfig = ({});
+            root.configLoaded = true;
+            if (error !== FileViewError.FileNotFound)
+                console.warn(lc, `Unable to load the weather config: ${error}`);
+            root.reload();
+        }
+    }
+
+    FileView {
+        id: weatherCache
+
+        printErrors: false
+        path: `${Paths.cache}/weather.json`
+        onLoaded: {
+            root.cacheText = text();
+            root.cacheLoaded = true;
+            root.reload();
+        }
+        onLoadFailed: error => {
+            root.cacheText = "";
+            root.cacheLoaded = true;
+            if (error !== FileViewError.FileNotFound)
+                console.warn(lc, `Unable to load the weather cache: ${error}`);
+            root.reload();
         }
     }
 

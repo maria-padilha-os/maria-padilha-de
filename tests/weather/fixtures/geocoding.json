@@ -1,0 +1,31 @@
+{
+  "generationtime_ms": 0.42,
+  "results": [
+    {
+      "id": 3452925,
+      "name": "Porto Alegre",
+      "latitude": -30.0346,
+      "longitude": -51.2177,
+      "country_code": "BR",
+      "country": "Brazil",
+      "admin1": "Rio Grande do Sul"
+    },
+    {
+      "id": 3448439,
+      "name": "São Paulo",
+      "latitude": -23.5475,
+      "longitude": -46.6361,
+      "country_code": "br",
+      "country": "Brazil",
+      "admin1": "São Paulo"
+    },
+    {
+      "id": 9999999,
+      "name": "Broken Place",
+      "latitude": "not-a-number",
+      "longitude": -46.0,
+      "country_code": "BR",
+      "country": "Brazil"
+    }
+  ]
+}

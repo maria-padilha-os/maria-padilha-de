@@ -8,6 +8,7 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 suites=(
     "$root/tests/run.sh"
     "$root/tests/theme/run.sh"
+    "$root/tests/weather/run.sh"
     "$root/tests/dashboard/run.sh"
     "$root/tests/clipboard/run.sh"
     "$root/tests/media/run.sh"

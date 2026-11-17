@@ -19,14 +19,6 @@ StyledRect {
     radius: Tokens.rounding.extraExtraLarge
     color: Colours.tPalette.m3surfaceContainer
 
-    Timer {
-        running: true
-        triggeredOnStart: true
-        repeat: true
-        interval: 900000 // 15 minutes
-        onTriggered: Weather.reload()
-    }
-
     BriefInfo {
         id: brief
 

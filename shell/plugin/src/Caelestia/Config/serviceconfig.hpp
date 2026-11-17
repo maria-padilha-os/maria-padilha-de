@@ -24,6 +24,18 @@ class ServiceConfig : public settings::ObjectNode {
     CONFIG_NODE(ServiceConfig, settings::ObjectNode)
 
     CONFIG_GLOBAL_PROPERTY(QString, weatherLocation, {})
+    // Resolved coordinates for weatherLocation, filled by the location search.
+    CONFIG_GLOBAL_PROPERTY(QString, weatherCoordinates, {})
+    // Open-Meteo-compatible endpoints. A provider key belongs in
+    // ~/.config/padilha/weather.conf, never in this checkout.
+    CONFIG_GLOBAL_PROPERTY(QString, weatherProviderUrl, u"https://api.open-meteo.com/v1/forecast"_s)
+    CONFIG_GLOBAL_PROPERTY(QString, weatherApiKey, {})
+    CONFIG_GLOBAL_PROPERTY(QString, weatherGeocodingUrl, u"https://geocoding-api.open-meteo.com/v1/search"_s)
+    // Empty follows the shell locale.
+    CONFIG_GLOBAL_PROPERTY(QString, weatherLanguage, {})
+    // Seconds. The shell clamps these to 5 minutes..6 hours and 5 minutes..1 day.
+    CONFIG_GLOBAL_PROPERTY(int, weatherRefreshInterval, 1800)
+    CONFIG_GLOBAL_PROPERTY(int, weatherCacheTtl, 3600)
     // Auto guesses based on locale
     CONFIG_GLOBAL_ENUM_PROPERTY(TemperatureUnit, weatherUnits, TemperatureUnit::Auto)
     // Always Celsius by default cause apparently even imperial system users don't use Fahrenheit for perf temps?
