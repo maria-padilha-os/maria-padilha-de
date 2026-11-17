@@ -15,11 +15,38 @@ ConnectedRect {
     property alias label: label.text
     property alias valueLabel: valueLabel.text
     property real value
+    property string subtext
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.label
+    readonly property string settingsDescription: root.subtext
 
     signal moved(value: real)
 
     Layout.fillWidth: true
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins + rowLayout.anchors.topMargin
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Slider
+    Accessible.name: root.label
+    Accessible.description: root.subtext
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+
+    Keys.onLeftPressed: root.nudge(-1)
+    Keys.onRightPressed: root.nudge(1)
+
+    function nudge(direction: int): void {
+        if (!root.enabled)
+            return;
+        root.moved(Math.max(0, Math.min(1, root.value + direction * 0.01)));
+    }
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
 
     RowLayout {
         id: rowLayout
@@ -58,6 +85,16 @@ ConnectedRect {
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                 }
+            }
+
+            StyledText {
+                Layout.fillWidth: true
+                visible: root.subtext.length > 0
+                text: root.subtext
+                color: Colours.palette.m3outline
+                font: Tokens.font.label.small
+                elide: Text.ElideRight
+                maximumLineCount: 1
             }
 
             CustomMouseArea {

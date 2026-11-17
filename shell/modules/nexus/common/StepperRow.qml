@@ -17,11 +17,36 @@ ConnectedRect {
     property real from: 0
     property real to: 99
     property real stepSize: 1
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.label
+    readonly property string settingsDescription: root.subtext
 
     signal moved(value: real)
 
     Layout.fillWidth: true
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins * 2
+    activeFocusOnTab: true
+    Accessible.role: Accessible.SpinBox
+    Accessible.name: root.label
+    Accessible.description: root.subtext
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+
+    Keys.onReturnPressed: root.activate()
+    Keys.onEnterPressed: root.activate()
+
+    function activate(): void {
+        if (root.enabled)
+            spinBox.forceActiveFocus();
+    }
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
 
     RowLayout {
         id: rowLayout
@@ -55,6 +80,8 @@ ConnectedRect {
         }
 
         StyledSpinBox {
+            id: spinBox
+
             from: root.from
             to: root.to
             stepSize: root.stepSize

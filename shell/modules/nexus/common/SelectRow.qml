@@ -16,6 +16,10 @@ ConnectedRect {
     property alias fallbackText: splitButton.fallbackText
     property alias fallbackIcon: splitButton.fallbackIcon
     property alias menuOnTop: splitButton.menuOnTop
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.label
+    readonly property string settingsDescription: root.subtext
 
     signal selected(item: MenuItem)
 
@@ -23,6 +27,29 @@ ConnectedRect {
     implicitHeight: rowLayout.implicitHeight + rowLayout.anchors.margins * 2
     clip: false
     z: splitButton.expanded ? 1 : 0
+    activeFocusOnTab: true
+    Accessible.role: Accessible.ComboBox
+    Accessible.name: root.label
+    Accessible.description: root.subtext
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: root.openMenu()
+
+    function openMenu(): void {
+        splitButton.expanded = !splitButton.expanded;
+    }
+
+    Keys.onReturnPressed: root.openMenu()
+    Keys.onEnterPressed: root.openMenu()
+    Keys.onSpacePressed: root.openMenu()
+    Keys.onEscapePressed: splitButton.expanded = false
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
 
     RowLayout {
         id: rowLayout

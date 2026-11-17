@@ -21,6 +21,31 @@ Item {
 
     signal close
 
+    focus: true
+    activeFocusOnTab: true
+    Accessible.role: Accessible.Pane
+    Accessible.name: Tr.tr("Settings")
+    Accessible.description: Tr.tr("Search settings, use arrow keys to move and Escape to close")
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+
+    Keys.onEscapePressed: event => {
+        if (nState.searchQuery.length > 0 || nState.searchOpen) {
+            nState.clearSearch();
+        } else if (nState.subPageIdxStack.length > 0) {
+            nState.closeSubPage();
+        } else {
+            root.close();
+        }
+        event.accepted = true;
+    }
+
+    Component.onCompleted: Qt.callLater(root.focusSearch)
+
+    function focusSearch(): void {
+        navPane.focusSearch();
+    }
+
     implicitWidth: Math.round(implicitHeight * Tokens.sizes.nexus.ratio)
     implicitHeight: Math.round(nState.screen.height * Tokens.sizes.nexus.heightMult)
 

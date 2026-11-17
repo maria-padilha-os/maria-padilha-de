@@ -10,6 +10,10 @@ StyledSwitch {
 
     property string subtext
     property alias first: bg.first
+    readonly property bool settingsRow: true
+    readonly property bool settingsInteractive: true
+    readonly property string settingsLabel: root.text
+    readonly property string settingsDescription: root.subtext
     property alias last: bg.last
     readonly property alias bg: bg
 
@@ -22,6 +26,32 @@ StyledSwitch {
     implicitWidth: implicitContentWidth + implicitIndicatorWidth + horizontalPadding * 2
     implicitHeight: Math.max(implicitContentHeight, implicitIndicatorHeight) + verticalPadding * 2
     cLayer: 2
+    activeFocusOnTab: true
+    Accessible.role: Accessible.CheckBox
+    Accessible.name: root.text
+    Accessible.description: root.subtext
+    Accessible.checkable: true
+    Accessible.checked: root.checked
+    Accessible.focusable: root.enabled
+    Accessible.focused: root.activeFocus
+    Accessible.onPressAction: root.toggleFromKeyboard()
+
+    function toggleFromKeyboard(): void {
+        if (!root.enabled)
+            return;
+        root.checked = !root.checked;
+        root.toggled();
+    }
+
+    Keys.onReturnPressed: root.toggleFromKeyboard()
+    Keys.onEnterPressed: root.toggleFromKeyboard()
+
+    FocusRing {
+        target: root
+        colour: Colours.palette.m3primary
+        radius: Tokens.rounding.small
+        margin: 2
+    }
 
     Accessible.description: root.subtext
 
