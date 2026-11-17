@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "straighten",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + U"
+    "shortcut": "Super + Alt + U",
+    "permissions": []
 }

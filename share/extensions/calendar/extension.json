@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "calendar_month",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + A"
+    "shortcut": "Super + Alt + A",
+    "permissions": ["filesystem", "processes"]
 }

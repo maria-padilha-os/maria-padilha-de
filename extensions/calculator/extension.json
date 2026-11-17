@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "calculate",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + C"
+    "shortcut": "Super + Alt + C",
+    "permissions": ["processes"]
 }

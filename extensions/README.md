@@ -17,6 +17,15 @@ top panel.
 | `notes` | local plain-text notes (create, edit, delete) | 640×420 |
 | `calendar` | local month view and events | 680×460 |
 | `unit-converter` | offline length, mass, temperature, data and time conversion | 560×340 |
+| `system-monitor` | CPU, memory and load average | 520×360 |
+| `pomodoro` | focus/break timer with desktop notifications | 420×340 |
+| `disk-usage` | read-only mounted filesystem usage | 560×400 |
+
+Every manifest declares its permissions (for example `network`, `microphone`
+or `filesystem`). Settings → Extensions shows those capabilities on each card,
+along with the version, shortcut, enabled state and any manifest, dependency
+or duplicate-id/shortcut problem. A broken manifest stays visible with an
+actionable message; the manager never downloads or installs an extension.
 
 Each tab declares its preferred size and its `minimumWidth`/`minimumHeight`.
 The dashboard clamps extension panels to those minimums, so a tab can shrink
@@ -37,22 +46,16 @@ Both honour `XDG_DATA_HOME`. The dashboard scanner reads the checkout's
 `share/extensions/` while developing and the installed copies under
 `/usr/lib/maria-padilha/share/extensions` after installation.
 
-| `system-monitor` | CPU, memory and load average | 520×360 |
-| `pomodoro` | focus/break timer with desktop notifications | 420×340 |
-| `disk-usage` | read-only mounted filesystem usage | 560×400 |
-
 To try the checkout copies before installing:
 
 ```sh
 mkdir -p ~/.config/padilha/extensions
 cp -r extensions/calculator extensions/maps extensions/stopwatch \
       extensions/translator extensions/tuner extensions/colour-picker \
-      ~/.config/padilha/extensions/
+      extensions/filemanager extensions/system-monitor extensions/pomodoro \
+      extensions/disk-usage ~/.config/padilha/extensions/
 cp -r share/extensions/notes share/extensions/calendar \
       share/extensions/unit-converter ~/.config/padilha/extensions/
-
-      extensions/translator extensions/tuner extensions/system-monitor \
-      extensions/pomodoro extensions/disk-usage ~/.config/padilha/extensions/
 ```
 
 User extensions in `~/.config/padilha/extensions` override bundled ones with the

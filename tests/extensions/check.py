@@ -145,6 +145,12 @@ def main() -> int:
         elif shortcut not in ("", None):
             bad(f"{label} shortcut is a string")
 
+        permissions = data.get("permissions", [])
+        if isinstance(permissions, list) and all(isinstance(item, str) and item.strip() for item in permissions):
+            ok(f"{label} permissions are a list of capability names")
+        else:
+            bad(f"{label} permissions are a list of capability names")
+
     missing = sorted(NEW_EXTENSIONS - ids.keys())
     if missing:
         bad("system-monitor, pomodoro and disk-usage are present", ", ".join(missing))
@@ -162,16 +168,41 @@ def main() -> int:
                 bad(f"{extension_id} shortcut is wired into the shell", call)
 
     extensions_page = (ROOT / "shell" / "modules" / "nexus" / "pages" / "ExtensionsPage.qml").read_text(encoding="utf-8")
-    if "modelData.shortcut" in extensions_page and "modelData.description" in extensions_page:
-        ok("the settings page shows manifest descriptions and shortcuts")
+    card_path = ROOT / "shell" / "modules" / "nexus" / "common" / "ExtensionCard.qml"
+    card = card_path.read_text(encoding="utf-8")
+    page_markers = ("Extensions.filtered", "SearchBar", "filterMode", "No extensions installed", "nothing is installed")
+    card_markers = (
+        "root.ext.version",
+        "root.ext.description",
+        "root.ext.permissions",
+        "root.ext.missingDependencies",
+        "Extensions.describeTab",
+        "Extensions.describeShortcut",
+        "root.errors",
+        "root.warnings",
+    )
+    if all(marker in extensions_page for marker in page_markers) and all(marker in card for marker in card_markers):
+        ok("the settings page has searchable cards with version, permissions, state and errors")
     else:
-        bad("the settings page shows manifest descriptions and shortcuts")
+        bad("the settings page has searchable cards with version, permissions, state and errors")
 
     service = (ROOT / "shell" / "services" / "Extensions.qml").read_text(encoding="utf-8")
-    if "tabUrl" in service and "extension.json" in service and "manifest.tab" in service:
+    manifest_js = (ROOT / "shell" / "services" / "ExtensionManifest.js").read_text(encoding="utf-8")
+    if "catalogFromScan" in service and "extension.json" in service and "tabUrl" in manifest_js:
         ok("the extension service builds tab URLs from the manifest")
     else:
         bad("the extension service builds tab URLs from the manifest")
+
+    if "catalogFromScan" in service and "duplicateId" in manifest_js and "shortcutConflict" in manifest_js:
+        ok("the extension service keeps duplicates and reports them")
+    else:
+        bad("the extension service keeps duplicates and reports them")
+
+    network_markers = ("curl ", "wget ", "http://", "https://", "pacman -S")
+    if not any(marker in service for marker in network_markers):
+        ok("the extension manager does not install or fetch extensions")
+    else:
+        bad("the extension manager does not install or fetch extensions")
 
     by_id = {extension_id: (extension_dir, data) for extension_id, extension_dir, data in catalog}
 

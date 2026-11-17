@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "folder",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + E"
+    "shortcut": "Super + Alt + E",
+    "permissions": ["filesystem", "processes"]
 }

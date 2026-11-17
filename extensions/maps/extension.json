@@ -4,5 +4,6 @@
     "version": "1.0",
     "icon": "map",
     "tab": "Tab.qml",
-    "shortcut": "Super + Alt + O"
+    "shortcut": "Super + Alt + O",
+    "permissions": ["network"]
 }
