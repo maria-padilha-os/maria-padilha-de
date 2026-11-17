@@ -1,0 +1,882 @@
+#!/bin/sh
+# padilha-capture - explicit screenshots and screen recordings around grim
+# and wf-recorder.
+#
+# The command never captures by itself: padilha-shot saves one screenshot and
+# padilha-record starts only after an explicit start (or, for compatibility,
+# when it is invoked with no action while nothing is recording). Nothing is
+# copied to the clipboard unless --copy is given, and nothing is uploaded.
+#
+#   padilha-capture shot [full|window|region] [options]
+#   padilha-capture record [start|stop|status] [options]
+#
+# The padilha-shot and padilha-record wrappers call the matching command.
+set -u
+
+prog=padilha-capture
+kind=
+mode=full
+copy=0
+countdown=
+outdir=
+dry=0
+sound=0
+pause=0
+action=auto
+print_path=0
+quiet=0
+workspace=
+strict_workspace=0
+
+usage_capture() {
+    cat <<'EOF'
+usage: padilha-capture <shot|record> [options]
+
+  shot      take a screenshot with grim
+  record    start, stop, pause or query a wf-recorder recording
+
+Run `padilha-shot --help` or `padilha-record --help` for the options. Both
+commands save into a configured folder with a timestamped filename. A
+screenshot is only copied to the clipboard when --copy is passed, and a
+recording only starts when it is asked to.
+EOF
+}
+
+usage_shot() {
+    cat <<'EOF'
+usage: padilha-shot [full|window|region] [options]
+
+Take one screenshot with grim and save it with a timestamp. The focused
+monitor is captured by default. Nothing is copied unless --copy is given.
+
+modes:
+  -m, --mode full|window|region  full focused monitor, focused window, or slurp region
+  -f, --full                     same as --mode full
+  -w, --window                   same as --mode window
+  -r, --region                   same as --mode region
+
+options:
+  -c, --copy                     copy the saved PNG to the clipboard
+  -d, --countdown SECONDS        wait before capturing (0-60)
+  -o, --output DIR               save folder (default: Pictures/Screenshots)
+      --workspace NAME           dedicated capture workspace to expect
+      --strict-workspace         fail instead of only warning on another workspace
+      --print-path               print only the saved path
+      --dry-run                  print the commands, run no capture
+  -h, --help                     show this help
+EOF
+}
+
+usage_record() {
+    cat <<'EOF'
+usage: padilha-record [start|stop|status] [options]
+
+Record with wf-recorder into a timestamped file. `start` and `stop` are
+explicit and idempotent; with no action the command keeps the old toggle
+behaviour. Recording never starts by itself.
+
+modes:
+  -m, --mode full|window|region  full focused monitor, focused window, or slurp region
+  -f, --full                     same as --mode full
+  -w, --window                   same as --mode window
+  -r, --region                   same as --mode region
+
+actions:
+      --start                    start a new recording (refuse if one is running)
+      --stop                     stop the recording and finalise the file
+      --status                   print idle, recording, or paused
+  -p, --pause                    pause or resume the running recorder
+
+options:
+  -s, --sound                    include the default output monitor
+  -d, --countdown SECONDS        wait before recording (0-60)
+  -o, --output DIR               save folder (default: Videos/Recordings)
+      --workspace NAME           dedicated capture workspace to expect
+      --strict-workspace         fail instead of only warning on another workspace
+      --dry-run                  print the commands, run no capture
+  -h, --help                     show this help
+EOF
+}
+
+usage() {
+    if [ "$kind" = shot ]; then
+        usage_shot
+    elif [ "$kind" = record ]; then
+        usage_record
+    else
+        usage_capture
+    fi
+}
+
+die() {
+    printf '%s: %s\n' "$prog" "$*" >&2
+    exit 1
+}
+
+bad_usage() {
+    printf '%s: %s\n' "$prog" "$*" >&2
+    usage >&2
+    exit 2
+}
+
+notify() {
+    command -v notify-send >/dev/null 2>&1 || return 0
+    notify-send -a "$prog" "$@" >/dev/null 2>&1 || true
+}
+
+need_tool() {
+    command -v "$1" >/dev/null 2>&1 || die "$1 is not installed${2:+ ($2)}"
+}
+
+config_get() {
+    key=$1
+    home_dir=${XDG_CONFIG_HOME:-$HOME/.config}
+    for file in "${PADILHA_CONFIG_DIR:-}/shell.json" \
+        "$home_dir/padilha/shell.json" \
+        "$home_dir/lilith/shell.json"; do
+        [ -n "$file" ] && [ -r "$file" ] || continue
+        command -v jq >/dev/null 2>&1 || return 0
+        jq -r --arg key "$key" \
+            'getpath($key | split(".")) | if . == null then empty else tostring end' \
+            "$file" 2>/dev/null
+        return 0
+    done
+    return 0
+}
+
+normalise_dir() {
+    tilde='~'
+    case $1 in
+        "$tilde") printf '%s\n' "$HOME" ;;
+        "$tilde"/*) printf '%s/%s\n' "${HOME%/}" "${1#"$tilde"/}" ;;
+        /*) printf '%s\n' "$1" ;;
+        *) printf '%s/%s\n' "$PWD" "$1" ;;
+    esac
+}
+
+resolve_outdir() {
+    if [ -n "$outdir" ]; then
+        normalise_dir "$outdir"
+        return
+    fi
+
+    if [ "$kind" = shot ]; then
+        if [ -n "${PADILHA_SCREENSHOT_DIR:-}" ]; then
+            normalise_dir "$PADILHA_SCREENSHOT_DIR"
+            return
+        fi
+        if [ -n "${PADILHA_CAPTURE_DIR:-}" ]; then
+            normalise_dir "$PADILHA_CAPTURE_DIR/Screenshots"
+            return
+        fi
+        configured=$(config_get utilities.capture.screenshotDir)
+        if [ -n "$configured" ]; then
+            normalise_dir "$configured"
+            return
+        fi
+        normalise_dir "${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+        return
+    fi
+
+    if [ -n "${PADILHA_RECORDINGS_DIR:-}" ]; then
+        normalise_dir "$PADILHA_RECORDINGS_DIR"
+        return
+    fi
+    if [ -n "${PADILHA_RECORD_DIR:-}" ]; then
+        normalise_dir "$PADILHA_RECORD_DIR"
+        return
+    fi
+    if [ -n "${CAELESTIA_RECORDINGS_DIR:-}" ]; then
+        normalise_dir "$CAELESTIA_RECORDINGS_DIR"
+        return
+    fi
+    if [ -n "${PADILHA_CAPTURE_DIR:-}" ]; then
+        normalise_dir "$PADILHA_CAPTURE_DIR/Recordings"
+        return
+    fi
+    configured=$(config_get utilities.capture.recordingDir)
+    if [ -n "$configured" ]; then
+        normalise_dir "$configured"
+        return
+    fi
+    normalise_dir "${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings"
+}
+
+validate_stamp_override() {
+    [ -n "${PADILHA_CAPTURE_NOW:-}" ] || return 0
+    case $PADILHA_CAPTURE_NOW in
+        *[!0-9-]*) die "PADILHA_CAPTURE_NOW must contain only digits and hyphens" ;;
+    esac
+}
+
+capture_stamp() {
+    stamp=${PADILHA_CAPTURE_NOW:-}
+    if [ -z "$stamp" ]; then
+        stamp=$(date +%Y%m%d-%H%M%S)
+    fi
+    printf '%s\n' "$stamp"
+}
+
+unique_path() { # directory prefix extension
+    dir=$1
+    prefix=$2
+    ext=$3
+    stamp=$(capture_stamp)
+    base="$prefix-$stamp"
+    n=2
+    while [ -e "$dir/$base.$ext" ]; do
+        base="$prefix-$stamp-$n"
+        n=$((n + 1))
+    done
+    printf '%s/%s.%s\n' "$dir" "$base" "$ext"
+}
+
+shell_quote() {
+    printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+print_cmd() {
+    line=
+    for arg in "$@"; do
+        case $arg in
+            '' | *[!A-Za-z0-9_./:=+-]*) arg=$(shell_quote "$arg") ;;
+        esac
+        line=${line:+$line }$arg
+    done
+    printf '%s\n' "$line"
+}
+
+ensure_dir() {
+    mkdir -p -- "$1" || die "cannot create $1"
+    [ -d "$1" ] || die "$1 is not a directory"
+}
+
+ensure_state_dir() {
+    ensure_dir "$state_dir"
+}
+
+do_countdown() {
+    [ "$countdown" -gt 0 ] || return 0
+    if [ "$dry" = 1 ]; then
+        print_cmd sleep "$countdown"
+        return 0
+    fi
+    notify -i camera-timer-symbolic "Capture in ${countdown}s" \
+        "Saving to $resolved_outdir" >/dev/null 2>&1 || true
+    sleep "$countdown"
+}
+
+workspace_name() {
+    command -v hyprctl >/dev/null 2>&1 || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    hyprctl activeworkspace -j 2>/dev/null |
+        jq -r '.name // empty' 2>/dev/null | head -n 1
+}
+
+workspace_id() {
+    command -v hyprctl >/dev/null 2>&1 || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    hyprctl activeworkspace -j 2>/dev/null |
+        jq -r '.id // empty' 2>/dev/null | head -n 1
+}
+
+workspace_warning() {
+    [ "${PADILHA_CAPTURE_WARN_WORKSPACE:-1}" = 0 ] && return 0
+    name=$(workspace_name)
+    id=$(workspace_id)
+    [ -n "$name" ] || [ -n "$id" ] || return 0
+
+    wanted=$workspace
+    if [ -z "$wanted" ]; then
+        wanted=${PADILHA_CAPTURE_WORKSPACE:-}
+    fi
+    if [ -z "$wanted" ]; then
+        wanted=$(config_get utilities.capture.workspace)
+    fi
+    [ -n "$wanted" ] || wanted=capture
+
+    dedicated=0
+    [ "$name" = "$wanted" ] && dedicated=1
+    [ "$id" = "$wanted" ] && dedicated=1
+    case $name in
+        "$wanted" | "$wanted"-* | "$wanted"_*) dedicated=1 ;;
+    esac
+
+    # A deliberately named empty workspace counts even before it is configured.
+    lower=$(printf '%s' "$name" | tr '[:upper:]' '[:lower:]')
+    case $lower in
+        capture | capture-* | capture_* | screenshot* | recording* | record-* | record_*) dedicated=1 ;;
+    esac
+
+    [ "$dedicated" = 1 ] && return 0
+
+    message="workspace \"${name:-$id}\" is not the dedicated capture workspace \"$wanted\""
+    printf '%s: warning: %s; use an empty workspace before capturing\n' "$prog" "$message" >&2
+    if [ "$dry" = 0 ] && [ "$quiet" = 0 ]; then
+        notify -i dialog-warning-symbolic "Capture workspace" \
+            "$message. Save private content only from an empty workspace." >/dev/null 2>&1 || true
+    fi
+    if [ "$strict_workspace" = 1 ]; then
+        exit 3
+    fi
+}
+
+focused_monitor() {
+    command -v hyprctl >/dev/null 2>&1 || return 0
+    command -v jq >/dev/null 2>&1 || return 0
+    hyprctl monitors -j 2>/dev/null |
+        jq -r '.[] | select(.focused == true) | .name // empty' 2>/dev/null |
+        head -n 1
+}
+
+window_geometry() { # grim | wf
+    format=$1
+    command -v hyprctl >/dev/null 2>&1 || return 1
+    command -v jq >/dev/null 2>&1 || return 1
+    json=$(hyprctl activewindow -j 2>/dev/null) || return 1
+    case $format in
+        grim)
+            printf '%s' "$json" |
+                jq -r 'if (.at and .size) then "\(.size[0])x\(.size[1])+\(.at[0])+\(.at[1])" else empty end' 2>/dev/null
+            ;;
+        wf)
+            printf '%s' "$json" |
+                jq -r 'if (.at and .size) then "\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])" else empty end' 2>/dev/null
+            ;;
+        *) return 1 ;;
+    esac
+}
+
+shot_main() {
+    workspace_warning
+
+    resolved_outdir=$(resolve_outdir)
+    dest=$(unique_path "$resolved_outdir" screenshot png)
+
+    if [ "$dry" = 1 ]; then
+        print_cmd mkdir -p "$resolved_outdir"
+        do_countdown
+        case $mode in
+            full)
+                mon=$(focused_monitor)
+                if [ -n "$mon" ]; then
+                    print_cmd grim -o "$mon" "$dest"
+                else
+                    print_cmd grim "$dest"
+                fi
+                ;;
+            window)
+                geo=$(window_geometry grim 2>/dev/null || true)
+                print_cmd grim -g "${geo:-WINDOW_GEOMETRY}" "$dest"
+                ;;
+            region)
+                print_cmd slurp -f '%wx%h+%x+%y'
+                print_cmd grim -g REGION "$dest"
+                ;;
+        esac
+        if [ "$copy" = 1 ]; then
+            printf "wl-copy --type image/png < %s\n" "$(shell_quote "$dest")"
+        fi
+        printf 'save %s\n' "$dest"
+        return 0
+    fi
+
+    need_tool grim "package: grim"
+
+    case $mode in
+        full)
+            mon=$(focused_monitor)
+            set -- grim
+            if [ -n "$mon" ]; then
+                set -- "$@" -o "$mon"
+            fi
+            ;;
+        window)
+            need_tool hyprctl "package: hyprland"
+            need_tool jq "package: jq"
+            geo=$(window_geometry grim)
+            [ -n "$geo" ] || die "no focused window to capture"
+            set -- grim -g "$geo"
+            ;;
+        region)
+            need_tool slurp "package: slurp"
+            set -- grim
+            geo=$(slurp -f '%wx%h+%x+%y' 2>/dev/null) || exit 0
+            [ -n "$geo" ] || exit 0
+            set -- "$@" -g "$geo"
+            ;;
+    esac
+
+    ensure_dir "$resolved_outdir"
+    do_countdown
+
+    "$@" "$dest" || die "grim failed to capture the screen"
+
+    if [ "$copy" = 1 ]; then
+        if command -v wl-copy >/dev/null 2>&1 &&
+            wl-copy --type image/png <"$dest" 2>/dev/null; then
+            copied=1
+        else
+            copied=0
+        fi
+    else
+        copied=0
+    fi
+
+    if [ "$print_path" = 1 ]; then
+        printf '%s\n' "$dest"
+        return 0
+    fi
+
+    if [ "$copy" = 1 ] && [ "$copied" = 1 ]; then
+        notify -i image-x-generic-symbolic "Screenshot saved" "Copied to the clipboard: $dest"
+        printf 'Saved %s (copied)\n' "$dest"
+    elif [ "$copy" = 1 ]; then
+        notify -i image-x-generic-symbolic "Screenshot saved" "$dest (clipboard unavailable)"
+        printf 'Saved %s (clipboard unavailable)\n' "$dest"
+    else
+        notify -i image-x-generic-symbolic "Screenshot saved" "$dest"
+        printf 'Saved %s\n' "$dest"
+    fi
+}
+
+running_pid() {
+    pid=
+    if [ -r "$pidfile" ]; then
+        IFS= read -r pid <"$pidfile" || pid=
+        case $pid in
+            '' | *[!0-9]*) pid= ;;
+        esac
+        if [ -n "$pid" ] && [ -r "/proc/$pid/cmdline" ] &&
+            tr '\0' ' ' <"/proc/$pid/cmdline" | grep -q 'wf-recorder'; then
+            printf '%s\n' "$pid"
+            return 0
+        fi
+        rm -f "$pidfile" "$pathfile" "$pausedfile"
+    fi
+    if command -v pgrep >/dev/null 2>&1; then
+        pid=$(pgrep -x wf-recorder 2>/dev/null | head -n 1 || true)
+        if [ -n "$pid" ]; then
+            printf '%s\n' "$pid"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+record_status() {
+    pid=$(running_pid || true)
+    if [ -z "$pid" ]; then
+        printf 'idle\n'
+        return 0
+    fi
+    state=recording
+    [ -e "$pausedfile" ] && state=paused
+    saved=
+    [ -r "$pathfile" ] && IFS= read -r saved <"$pathfile" || true
+    printf '%s %s %s\n' "$state" "$pid" "$saved"
+}
+
+record_pause() {
+    pid=$(running_pid || true)
+    if [ -z "$pid" ]; then
+        if [ "$dry" = 1 ]; then
+            print_cmd kill -STOP wf-recorder
+            return 0
+        fi
+        die "not recording"
+    fi
+    if [ -e "$pausedfile" ]; then
+        if [ "$dry" = 1 ]; then
+            print_cmd kill -CONT "$pid"
+        else
+            kill -CONT "$pid" 2>/dev/null || die "cannot resume wf-recorder (pid $pid)"
+            rm -f "$pausedfile"
+            notify -i media-record-symbolic "Recording resumed" "Recording is running again"
+            printf 'Resumed\n'
+        fi
+    else
+        if [ "$dry" = 1 ]; then
+            print_cmd kill -STOP "$pid"
+        else
+            kill -STOP "$pid" 2>/dev/null || die "cannot pause wf-recorder (pid $pid)"
+            : >"$pausedfile"
+            notify -i media-record-symbolic "Recording paused" "Paused; run padilha-record -p to resume"
+            printf 'Paused\n'
+        fi
+    fi
+}
+
+record_stop() {
+    pid=$(running_pid || true)
+    if [ -z "$pid" ]; then
+        if [ "$dry" = 1 ]; then
+            print_cmd kill -INT wf-recorder
+        else
+            printf 'Not recording\n'
+        fi
+        return 0
+    fi
+
+    saved=
+    [ -r "$pathfile" ] && IFS= read -r saved <"$pathfile" || true
+
+    if [ "$dry" = 1 ]; then
+        print_cmd kill -INT "$pid"
+        [ -n "$saved" ] && printf 'save %s\n' "$saved"
+        return 0
+    fi
+
+    # A paused recorder is stopped with SIGSTOP; resume it first so SIGINT can
+    # be delivered and wf-recorder can finalise the file.
+    [ -e "$pausedfile" ] && kill -CONT "$pid" 2>/dev/null || true
+    kill -INT "$pid" 2>/dev/null || die "cannot stop wf-recorder (pid $pid)"
+
+    n=0
+    while [ -d "/proc/$pid" ] && [ "$n" -lt 100 ]; do
+        sleep 0.1
+        n=$((n + 1))
+    done
+    rm -f "$pidfile" "$pausedfile"
+
+    if [ -z "$saved" ]; then
+        printf 'Stopped recording\n'
+        return 0
+    fi
+    if [ -s "$saved" ]; then
+        notify -i media-record-symbolic "Recording saved" "$saved"
+        printf 'Saved %s\n' "$saved"
+    else
+        notify -i dialog-error-symbolic "Recording failed" "No file was written to $saved"
+        printf '%s: recording failed: no file was written to %s\n' "$prog" "$saved" >&2
+        rm -f "$pathfile"
+        return 1
+    fi
+}
+
+record_start() {
+    if running_pid >/dev/null 2>&1; then
+        die "already recording (pid $(running_pid))"
+    fi
+
+    workspace_warning
+    resolved_outdir=$(resolve_outdir)
+    dest=$(unique_path "$resolved_outdir" recording mp4)
+
+    if [ "$dry" = 1 ]; then
+        print_cmd mkdir -p "$resolved_outdir"
+        do_countdown
+        set -- wf-recorder
+        case $mode in
+            full)
+                mon=$(focused_monitor)
+                [ -n "$mon" ] && set -- "$@" -o "$mon"
+                ;;
+            window)
+                geo=$(window_geometry wf 2>/dev/null || true)
+                set -- "$@" -g "${geo:-WINDOW_GEOMETRY}"
+                ;;
+            region)
+                print_cmd slurp -f '%x,%y %wx%h'
+                set -- "$@" -g REGION
+                ;;
+        esac
+        [ "$sound" = 1 ] && set -- "$@" -a
+        extra=${PADILHA_RECORD_ARGS:-${LILITH_RECORD_ARGS:-}}
+        if [ -n "$extra" ]; then
+            # shellcheck disable=SC2086
+            set -- "$@" $extra
+        fi
+        set -- "$@" -f "$dest"
+        print_cmd "$@"
+        printf 'save %s\n' "$dest"
+        return 0
+    fi
+
+    need_tool wf-recorder "package: wf-recorder"
+    need_tool setsid "package: util-linux"
+
+    set -- wf-recorder
+    case $mode in
+        full)
+            mon=$(focused_monitor)
+            [ -n "$mon" ] && set -- "$@" -o "$mon"
+            ;;
+        window)
+            need_tool hyprctl "package: hyprland"
+            need_tool jq "package: jq"
+            geo=$(window_geometry wf)
+            [ -n "$geo" ] || die "no focused window to record"
+            set -- "$@" -g "$geo"
+            ;;
+        region)
+            need_tool slurp "package: slurp"
+            geo=$(slurp -f '%x,%y %wx%h' 2>/dev/null) || exit 0
+            [ -n "$geo" ] || exit 0
+            set -- "$@" -g "$geo"
+            ;;
+    esac
+
+    if [ "$sound" = 1 ]; then
+        device=${PADILHA_RECORD_AUDIO_DEVICE:-}
+        if [ -n "$device" ]; then
+            set -- "$@" --audio="$device"
+        else
+            set -- "$@" -a
+        fi
+    fi
+
+    extra=${PADILHA_RECORD_ARGS:-${LILITH_RECORD_ARGS:-}}
+    if [ -n "$extra" ]; then
+        # shellcheck disable=SC2086
+        set -- "$@" $extra
+    fi
+    set -- "$@" -f "$dest"
+
+    ensure_dir "$resolved_outdir"
+    ensure_state_dir
+    do_countdown
+
+    logfile=$state_dir/wf-recorder.log
+    : >"$logfile"
+    setsid "$@" >"$logfile" 2>&1 &
+    pid=$!
+    printf '%s\n' "$pid" >"$pidfile"
+    printf '%s\n' "$dest" >"$pathfile"
+    rm -f "$pausedfile"
+
+    sleep 1
+    if ! kill -0 "$pid" 2>/dev/null; then
+        rm -f "$pidfile" "$pathfile" "$pausedfile"
+        detail=
+        [ -r "$logfile" ] && detail=$(tail -n 1 "$logfile" 2>/dev/null || true)
+        notify -i dialog-error-symbolic "Recording failed" \
+            "${detail:-wf-recorder did not start}"
+        die "wf-recorder did not start${detail:+: $detail} (log: $logfile)"
+    fi
+
+    notify -i media-record-symbolic "Recording" \
+        "Recording to $dest; use the capture panel or padilha-record stop"
+    printf 'Recording %s (pid %s)\n' "$dest" "$pid"
+}
+
+# Work out which command this is. The wrappers pass the subcommand, but the
+# script also accepts being linked as padilha-shot or padilha-record.
+case ${0##*/} in
+    padilha-shot) kind=shot; prog=padilha-shot ;;
+    padilha-record) kind=record; prog=padilha-record ;;
+esac
+
+if [ -z "$kind" ]; then
+    [ $# -gt 0 ] || {
+        usage_capture >&2
+        exit 2
+    }
+    case $1 in
+        shot | screenshot) kind=shot; prog=padilha-shot; shift ;;
+        record) kind=record; prog=padilha-record; shift ;;
+        -h | --help) usage_capture; exit 0 ;;
+        *) usage_capture >&2; exit 2 ;;
+    esac
+fi
+
+# An explicit action may come before the options.
+if [ "$kind" = record ] && [ $# -gt 0 ]; then
+    case $1 in
+        start) action=start; shift ;;
+        stop) action=stop; shift ;;
+        status) action=status; shift ;;
+    esac
+elif [ "$kind" = shot ] && [ $# -gt 0 ]; then
+    case $1 in
+        full | fullscreen) mode=full; shift ;;
+        window | focused) mode=window; shift ;;
+        region) mode=region; shift ;;
+    esac
+fi
+
+while [ $# -gt 0 ]; do
+    case $1 in
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        -m | --mode)
+            [ $# -ge 2 ] || bad_usage "$1 needs a value"
+            mode=$2
+            shift 2
+            ;;
+        --mode=*)
+            mode=${1#*=}
+            shift
+            ;;
+        -f | --full | --fullscreen)
+            mode=full
+            shift
+            ;;
+        -w | --window | --focused-window | --focused)
+            mode=window
+            shift
+            ;;
+        -r | --region)
+            mode=region
+            shift
+            ;;
+        -sr | -rs)
+            [ "$kind" = record ] || bad_usage "$1 is only for recordings"
+            mode=region
+            sound=1
+            shift
+            ;;
+        -c | --copy)
+            [ "$kind" = shot ] || bad_usage "--copy is only for screenshots"
+            copy=1
+            shift
+            ;;
+        -d | --delay | --countdown)
+            [ $# -ge 2 ] || bad_usage "$1 needs a value"
+            countdown=$2
+            shift 2
+            ;;
+        --countdown=* | --delay=*)
+            countdown=${1#*=}
+            shift
+            ;;
+        -o | --output | --dir)
+            [ $# -ge 2 ] || bad_usage "$1 needs a value"
+            outdir=$2
+            shift 2
+            ;;
+        --output=* | --dir=*)
+            outdir=${1#*=}
+            shift
+            ;;
+        --workspace)
+            [ $# -ge 2 ] || bad_usage "$1 needs a value"
+            workspace=$2
+            shift 2
+            ;;
+        --workspace=*)
+            workspace=${1#*=}
+            shift
+            ;;
+        --strict-workspace)
+            strict_workspace=1
+            shift
+            ;;
+        --dry-run)
+            dry=1
+            shift
+            ;;
+        -s | --sound)
+            [ "$kind" = record ] || bad_usage "--sound is only for recordings"
+            sound=1
+            shift
+            ;;
+        -p | --pause)
+            [ "$kind" = record ] || bad_usage "--pause is only for recordings"
+            pause=1
+            shift
+            ;;
+        --start)
+            [ "$kind" = record ] || bad_usage "--start is only for recordings"
+            action=start
+            shift
+            ;;
+        --stop)
+            [ "$kind" = record ] || bad_usage "--stop is only for recordings"
+            action=stop
+            shift
+            ;;
+        --status)
+            [ "$kind" = record ] || bad_usage "--status is only for recordings"
+            action=status
+            shift
+            ;;
+        --print-path)
+            [ "$kind" = shot ] || bad_usage "--print-path is only for screenshots"
+            print_path=1
+            shift
+            ;;
+        -q | --quiet)
+            quiet=1
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*) bad_usage "unknown option: $1" ;;
+        *)
+            if [ "$kind" = record ]; then
+                bad_usage "unknown action: $1"
+            fi
+            case $1 in
+                full | fullscreen) mode=full ;;
+                window | focused) mode=window ;;
+                region) mode=region ;;
+                *) bad_usage "unknown mode: $1" ;;
+            esac
+            shift
+            ;;
+    esac
+done
+
+[ $# -eq 0 ] || bad_usage "unexpected argument: $1"
+
+case $mode in
+    full | fullscreen) mode=full ;;
+    window | focused | focused-window) mode=window ;;
+    region) mode=region ;;
+    *) bad_usage "unknown mode: $mode" ;;
+esac
+
+if [ -z "$countdown" ]; then
+    countdown=$(config_get utilities.capture.countdown)
+    [ -n "$countdown" ] || countdown=0
+fi
+case $countdown in
+    '' | *[!0-9]*) bad_usage "--countdown must be a whole number of seconds" ;;
+esac
+if [ "$countdown" -gt 60 ]; then
+    bad_usage "--countdown must be between 0 and 60 seconds"
+fi
+validate_stamp_override
+
+state_dir=${XDG_STATE_HOME:-$HOME/.local/state}/caelestia/record
+pidfile=$state_dir/wf-recorder.pid
+pathfile=$state_dir/recording.path
+pausedfile=$state_dir/paused
+
+if [ "$kind" = shot ]; then
+    shot_main
+    exit 0
+fi
+
+if [ "$action" = status ]; then
+    record_status
+    exit 0
+fi
+
+if [ "$pause" = 1 ]; then
+    record_pause
+    exit 0
+fi
+
+if [ "$action" = stop ]; then
+    record_stop
+    exit $?
+fi
+
+if [ "$action" = start ]; then
+    record_start
+    exit 0
+fi
+
+# Compatibility: no explicit action toggles, so an existing keybind that calls
+# `padilha-record` still works. The panel always uses start/stop.
+if running_pid >/dev/null 2>&1; then
+    record_stop
+else
+    record_start
+fi

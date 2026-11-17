@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Caelestia.I18n
 
 Singleton {
     id: root
@@ -10,15 +11,19 @@ Singleton {
     readonly property alias running: props.running
     readonly property alias paused: props.paused
     readonly property alias elapsed: props.elapsed
+    readonly property string helper: Quickshell.env("PADILHA_RECORD") || "padilha-record"
+
     property int refCount: 0
     property bool needsStart
     property list<string> startArgs
     property bool needsStop
     property bool needsPause
+    property string error: ""
 
     function start(extraArgs = []): void {
         needsStart = true;
         startArgs = extraArgs;
+        error = "";
         checkProc.running = true;
     }
 
@@ -30,6 +35,10 @@ Singleton {
     function togglePause(): void {
         needsPause = true;
         checkProc.running = true;
+    }
+
+    function clearError(): void {
+        error = "";
     }
 
     PersistentProperties {
@@ -46,19 +55,19 @@ Singleton {
         id: checkProc
 
         running: true
-        command: ["pidof", "gpu-screen-recorder"]
+        command: ["pidof", "wf-recorder"]
         onExited: code => { // qmllint disable signal-handler-parameters
             const running = code === 0;
 
             if (running && root.needsStop) {
-                commandProc.exec(["padilha-record"]);
+                commandProc.exec([root.helper, "--stop"]);
                 props.running = false;
                 props.paused = false;
             } else if (running && root.needsPause) {
-                commandProc.exec(["padilha-record", "-p"]);
+                commandProc.exec([root.helper, "--pause"]);
                 props.paused = !props.paused;
             } else if (!running && root.needsStart) {
-                commandProc.exec(["padilha-record", ...root.startArgs]);
+                commandProc.exec([root.helper, "--start", ...root.startArgs]);
                 props.running = true;
                 props.paused = false;
                 props.elapsed = 0;
@@ -79,10 +88,20 @@ Singleton {
     Process {
         id: commandProc
 
-        // The command owns the transition: `caelestia record` blocks on slurp for
-        // region captures, and waits for the recorder to finalise the file when
-        // stopping. Reconcile once it has actually finished.
-        onExited: checkProc.running = true // qmllint disable signal-handler-parameters
+        // The command owns the transition: `padilha-record` blocks on slurp for
+        // region captures, waits for wf-recorder to finalise the file when
+        // stopping, and prints a clear error when the tool is missing.
+        stderr: StdioCollector {
+            id: commandErr
+        }
+
+        onExited: code => { // qmllint disable signal-handler-parameters
+            if (code !== 0)
+                root.error = commandErr.text.trim() || Tr.tr("Recorder action failed");
+            else
+                root.error = "";
+            checkProc.running = true;
+        }
     }
 
     // Only poll while something is showing the state, i.e. the utilities drawer is open

@@ -15,7 +15,8 @@ PageBase {
             microphone: Tr.tr("Microphone"),
             network: Tr.tr("Network"),
             bluetooth: Tr.tr("Bluetooth"),
-            battery: Tr.tr("Battery")
+            battery: Tr.tr("Battery"),
+            recording: Tr.tr("Screen recording")
         })
 
     title: Tr.tr("Status icons")

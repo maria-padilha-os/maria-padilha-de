@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- New screenshots and recording panel in the utilities drawer. It captures the
+  focused monitor, focused window or a slurp region with `grim`, records with
+  `wf-recorder`, has explicit Start/Stop, a configurable countdown, an in-panel
+  REC badge and a pulsing bar indicator. Files are saved locally with
+  timestamps under configurable folders, screenshots are copied only on
+  request, and nothing is uploaded or recorded by opening the panel. It warns
+  when Hyprland's active workspace is not the dedicated capture workspace.
+  `padilha-record` now uses `wf-recorder` (the `gpu-screen-recorder` dependency
+  is gone), and `padilha-capture` is the shared command behind both wrappers.
 - New opt-in clipboard history palette, disabled by default. It keeps a
   bounded store under `~/.local/state/padilha/clipboard`, supports search,
   keyboard selection and copy-back, pause and clear-all, and gives

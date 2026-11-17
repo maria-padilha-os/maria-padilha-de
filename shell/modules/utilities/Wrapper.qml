@@ -21,6 +21,8 @@ Item {
         property bool recordingListExpanded: false
         property string recordingConfirmDelete
         property string recordingMode
+        property string captureMode: "full"
+        property bool recordingSound: false
 
         reloadableId: "utilities"
     }

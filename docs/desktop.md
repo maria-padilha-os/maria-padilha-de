@@ -30,6 +30,28 @@ a check mark to confirm the write, and the whole panel follows the active
 light or dark palette. `padilha-colour` is the same parser used by the panel and
 can also be called directly (`padilha-colour pick`, `padilha-colour parse VALUE`).
 
+## Screenshots and recording
+
+The utilities drawer has a screenshots and recording card. It can capture the
+focused monitor, the focused window, or a region selected with `slurp`, and it
+can record the monitor, a window, or a region with `wf-recorder`. Start is
+always explicit; a configurable countdown, a **Cancel** button, an in-panel
+**REC** badge, and a pulsing dot in the bar make an active capture obvious.
+**Stop** finalises the file and the recordings list opens it or shows its
+folder.
+
+Files are timestamped and stay local: the default screenshot folder is
+`~/Pictures/Screenshots` and recordings go to `~/Videos/Recordings`. Both can
+be changed in the settings card or under `utilities.capture` in
+`~/.config/padilha/init.lua`. A screenshot is copied to the clipboard only when
+the copy switch is on for that capture (or `--copy` is passed); nothing is
+uploaded. The panel never starts recording when it opens.
+
+Capture from an empty workspace. The command warns when Hyprland's active
+workspace is not the configured `capture` workspace, and `--strict-workspace`
+makes that a refusal. See [CONFIG.md](https://github.com/maria-padilha-os/maria-padilha-de/blob/main/CONFIG.md#screenshots-and-recording)
+for all commands and environment overrides.
+
 ## Media player
 
 The media item in the bar shows the active MPRIS track's cover and a progress

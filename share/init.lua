@@ -22,4 +22,14 @@ return {
             timeouts = padilha.array {}, -- no automatic lock/suspend on idle
         },
     },
+
+    utilities = {
+        capture = {
+            screenshotDir = "~/Pictures/Screenshots",
+            recordingDir = "~/Videos/Recordings",
+            workspace = "capture",
+            countdown = 3,
+            copyScreenshot = false, -- copy only when the panel asks
+        },
+    },
 }

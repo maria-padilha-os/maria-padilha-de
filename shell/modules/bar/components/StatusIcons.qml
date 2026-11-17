@@ -154,6 +154,42 @@ StyledRect {
                     }
                 }
                 DelegateChoice {
+                    roleValue: "recording"
+                    delegate: EntryWrapper {
+                        visible: Recorder.running
+                        margin: Tokens.spacing.extraSmall / 2
+
+                        MaterialIcon {
+                            animate: true
+                            text: "fiber_manual_record"
+                            color: Recorder.paused ? Colours.palette.m3tertiary : Colours.palette.m3error
+                            fontStyle: Tokens.font.icon.builders.small.weight(Font.Bold).build()
+                            fill: 1
+
+                            SequentialAnimation on opacity {
+                                running: Recorder.running && !Recorder.paused
+                                alwaysRunToEnd: true
+                                loops: Animation.Infinite
+
+                                Anim {
+                                    from: 1
+                                    to: 0.3
+                                    duration: Tokens.anim.durations.large
+                                    easing: Tokens.anim.emphasizedAccel
+                                }
+                                Anim {
+                                    from: 0.3
+                                    to: 1
+                                    duration: Tokens.anim.durations.extraLarge
+                                    easing: Tokens.anim.emphasizedDecel
+                                }
+                            }
+
+                            Accessible.name: Recorder.paused ? Tr.tr("Screen recording paused") : Tr.tr("Screen recording in progress")
+                        }
+                    }
+                }
+                DelegateChoice {
                     roleValue: "clipboard"
                     delegate: EntryWrapper {
                         visible: ClipboardHistory.enabled && ClipboardHistory.showIndicator

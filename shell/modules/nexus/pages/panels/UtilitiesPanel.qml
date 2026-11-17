@@ -66,8 +66,8 @@ PageBase {
         }
 
         ToggleRow {
-            text: Tr.tr("Screen recorder")
-            subtext: Tr.tr("Show the screen recorder card")
+            text: Tr.tr("Screenshots and recording")
+            subtext: Tr.tr("Show the screenshot and recording card")
             checked: Config.utilities.cards.recorder
             onToggled: GlobalConfig.utilities.cards.recorder = checked
         }
@@ -78,6 +78,53 @@ PageBase {
             subtext: Tr.tr("Show the quick toggles card")
             checked: Config.utilities.cards.quickToggles
             onToggled: GlobalConfig.utilities.cards.quickToggles = checked
+        }
+
+        // Capture
+        SectionHeader {
+            text: Tr.tr("Screenshots and recording")
+        }
+
+        TextFieldRow {
+            first: true
+            label: Tr.tr("Screenshot folder")
+            subtext: Tr.tr("Saved locally with a timestamp; never uploaded")
+            value: Config.utilities.capture.screenshotDir
+            placeholderText: "~/Pictures/Screenshots"
+            onEditingFinished: value => GlobalConfig.utilities.capture.screenshotDir = value
+        }
+
+        TextFieldRow {
+            label: Tr.tr("Recording folder")
+            subtext: Tr.tr("Saved locally with a timestamp; never uploaded")
+            value: Config.utilities.capture.recordingDir
+            placeholderText: "~/Videos/Recordings"
+            onEditingFinished: value => GlobalConfig.utilities.capture.recordingDir = value
+        }
+
+        TextFieldRow {
+            label: Tr.tr("Dedicated capture workspace")
+            subtext: Tr.tr("The panel warns when the active workspace has another name")
+            value: Config.utilities.capture.workspace
+            placeholderText: "capture"
+            onEditingFinished: value => GlobalConfig.utilities.capture.workspace = value
+        }
+
+        StepperRow {
+            label: Tr.tr("Countdown")
+            subtext: Tr.tr("Seconds to wait before a screenshot or recording")
+            value: Config.utilities.capture.countdown
+            from: 0
+            to: 60
+            onMoved: value => GlobalConfig.utilities.capture.countdown = Math.round(value)
+        }
+
+        ToggleRow {
+            last: true
+            text: Tr.tr("Copy screenshots")
+            subtext: Tr.tr("Off by default; copy only when the panel asks")
+            checked: Config.utilities.capture.copyScreenshot
+            onToggled: GlobalConfig.utilities.capture.copyScreenshot = checked
         }
 
         // Quick toggles

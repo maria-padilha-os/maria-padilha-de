@@ -1,5 +1,6 @@
 #pragma once
 
+#include <qstandardpaths.h>
 #include <qstring.h>
 #include <qvariantlist.h>
 
@@ -56,12 +57,27 @@ class UtilitiesCards : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, quickToggles, true)
 };
 
+class UtilitiesCapture : public settings::ObjectNode {
+    CONFIG_NODE(UtilitiesCapture, settings::ObjectNode)
+
+    // Screenshots and recordings are local files. The panel copies a
+    // screenshot only when the user asks and never uploads either.
+    CONFIG_GLOBAL_PROPERTY(
+        QString, screenshotDir, QStandardPaths::writableLocation(QStandardPaths::PicturesLocation) + u"/Screenshots"_s)
+    CONFIG_GLOBAL_PROPERTY(
+        QString, recordingDir, QStandardPaths::writableLocation(QStandardPaths::MoviesLocation) + u"/Recordings"_s)
+    CONFIG_GLOBAL_PROPERTY(QString, workspace, u"capture"_s)
+    CONFIG_PROPERTY(int, countdown, 3)
+    CONFIG_PROPERTY(bool, copyScreenshot, false)
+};
+
 class UtilitiesConfig : public settings::ObjectNode {
     CONFIG_NODE(UtilitiesConfig, settings::ObjectNode)
 
     CONFIG_PROPERTY(bool, enabled, true)
     CONFIG_PROPERTY(int, maxToasts, 4)
     CONFIG_SUBOBJECT(UtilitiesCards, cards)
+    CONFIG_SUBOBJECT(UtilitiesCapture, capture)
     CONFIG_GLOBAL_SUBOBJECT(UtilitiesToasts, toasts)
     CONFIG_GLOBAL_SUBOBJECT(UtilitiesVpn, vpn)
     CONFIG_LIST(EntryList, quickToggles,

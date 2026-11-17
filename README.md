@@ -279,8 +279,9 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha-mc-theme` | rewrite the Midnight Commander skin from the current scheme |
 | `padilha-daylight` | switch the wallpaper and palette by time of day |
 | `padilha-reload` | restart the shell safely |
-| `padilha-shot` | screenshots |
-| `padilha-record` | screen recording |
+| `padilha-capture` | the shared screenshot/recording front end |
+| `padilha-shot` | screenshots (full screen, focused window, region) |
+| `padilha-record` | screen recording with `wf-recorder` |
 | `padilha-clipboard` | opt-in clipboard history store, daemon, and picker |
 | `padilha-emoji` | emoji and glyph picker |
 | `padilha-colour` | colour parsing, picking, and clipboard helper |

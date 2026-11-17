@@ -13,6 +13,8 @@ Scope {
         Players;
         Brightness;
         ClipboardHistory;
+        Recorder;
+        Screenshot;
 
         if (GlobalConfig.utilities.vpn.enabled)
             VPN;

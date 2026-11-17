@@ -114,6 +114,12 @@ Monitor order follows Hyprland's monitor IDs.
 | `Super + Alt + R` | record with sound |
 | `Super + Shift + Alt + R` | record a region |
 | `Super + Shift + C` | colour picker |
+
+The capture panel is a shell shortcut (`capturePanel`) and can also be opened
+with `qs ipc call capture open`. It offers full-screen, focused-window and
+region screenshots, plus recording, with an explicit Start and Stop. The
+screenshot and recording keybinds above are unchanged; they never copy a
+screenshot unless the command is given `--copy`.
 | `Super + Shift + R` | reload Hyprland |
 | `Ctrl + Super + Shift + R` | stop the shell |
 | `Ctrl + Super + Alt + R` | restart the shell (`padilha-reload`) |

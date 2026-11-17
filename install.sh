@@ -223,6 +223,7 @@ commands=(
     padilha-mc-theme
     padilha-daylight
     padilha-reload
+    padilha-capture
     padilha-shot
     padilha-record
     padilha-clipboard

@@ -57,7 +57,7 @@ ColumnLayout {
 
         model: FileSystemModel {
             path: Paths.recsdir
-            nameFilters: ["recording_*.mp4"]
+            nameFilters: ["recording-*.mp4", "recording_*.mp4"]
             sortReverse: true
         }
 
@@ -88,7 +88,7 @@ ColumnLayout {
                 Layout.rightMargin: Tokens.spacing.extraSmall
                 text: {
                     const time = recording.baseName;
-                    const matches = time.match(/^recording_(\d{4})(\d{2})(\d{2})_(\d{2})-(\d{2})-(\d{2})/);
+                    const matches = time.match(/^recording[_-](\d{4})(\d{2})(\d{2})[_-](\d{2})-(\d{2})-(\d{2})/);
                     if (!matches)
                         return time;
                     const date = new Date(...matches.slice(1));

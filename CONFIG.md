@@ -38,6 +38,21 @@ During the transition, `~/.config/lilith` is still read as a fallback when
   exported by `padilha-session` for the clipboard widget.
 - `PADILHA_CLIPBOARD_DIR` — override the clipboard state directory (mainly for
   tests). The default is `$XDG_STATE_HOME/padilha/clipboard`.
+- `PADILHA_SCREENSHOT_DIR` — override the screenshot folder.
+- `PADILHA_RECORDINGS_DIR` (or the older `PADILHA_RECORD_DIR`) — override the
+  recording folder.
+- `PADILHA_CAPTURE_DIR` — one root for both folders; screenshots go in
+  `Screenshots/` and recordings in `Recordings/`.
+- `PADILHA_CAPTURE_WORKSPACE` — the workspace name that counts as dedicated to
+  capture. The default is `capture`.
+- `PADILHA_CAPTURE_WARN_WORKSPACE=0` — silence the non-capture-workspace
+  warning (the panel still shows the reminder).
+- `PADILHA_CAPTURE_NOW` — a tests-only timestamp in `YYYYmmdd-HHMMSS` form; it
+  is validated and can never contain a path separator.
+- `PADILHA_RECORD_AUDIO_DEVICE` — a PipeWire/PulseAudio source name when
+  recording with sound.
+- `PADILHA_RECORD_ARGS` — extra `wf-recorder` arguments, split as shell words.
+  The old `LILITH_RECORD_ARGS` name is still accepted.
 
 ## Theme settings
 
@@ -105,6 +120,60 @@ The original `cliphist`/fuzzel picker remains the default when
 `wl-clipboard`; `padilha-clipboard --search` needs `fuzzel` and `wl-copy`, and
 the legacy picker also needs `cliphist`. If one is missing the command says so
 and exits with status 3 instead of failing silently.
+
+## Screenshots and recording
+
+Screenshots use `grim`; recordings use `wf-recorder`. Both save locally with a
+timestamp and neither uploads anything. The panel in the utilities drawer is
+the normal interface: choose **full screen**, **focused window** or **region**
+for a screenshot, or one of the recording modes, then press **Start**. A
+countdown can be configured; **Cancel** stops it, and **Stop** ends a recording.
+While a recording is running, the panel shows **REC** and the bar shows a
+pulsing red dot.
+
+Settings live under `utilities.capture`:
+
+```lua
+return {
+    utilities = {
+        capture = {
+            screenshotDir = "~/Pictures/Screenshots",
+            recordingDir = "~/Videos/Recordings",
+            workspace = "capture",
+            countdown = 3,
+            copyScreenshot = false,
+        },
+    },
+}
+```
+
+Copies are opt-in twice over: `copyScreenshot` only sets the panel's default
+toggle, and the command copies only when `--copy` is passed. Open the panel
+from its shortcut or with `qs ipc call capture open`; the IPC can also take an
+explicit screenshot or start/stop a recording:
+
+```sh
+padilha-shot --mode full              # save, do not copy
+padilha-shot --mode window --copy     # save and copy this one
+padilha-shot --mode region --countdown 3
+padilha-record start --mode full      # explicit start
+padilha-record status                 # idle, recording or paused
+padilha-record stop                   # explicit stop
+qs ipc call capture screenshot window
+qs ipc call capture record region
+qs ipc call capture stop
+```
+
+`--dry-run` prints the exact `grim`/`wf-recorder` command without capturing, and
+the missing-tool errors name the package to install. Recordings are never
+started by opening the panel; `padilha-record` with no action keeps the old
+toggle behaviour only for existing keybinds.
+
+Capture on an empty, dedicated workspace. The command warns when the active
+Hyprland workspace is not named like the configured `workspace` (or
+`capture*`, `screenshot*`, `record*`); `--strict-workspace` turns that warning
+into a refusal. The panel never hides a browser, terminal or private window for
+you, so check the workspace before pressing Start.
 
 ## Precedence
 

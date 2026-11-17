@@ -28,6 +28,7 @@ contains "full installs the Mail launcher entry" "$out" \
     "/usr/share/applications/padilha-mail.desktop"
 contains "the shell is installed with the absolute config dir" "$out" \
     "PADILHA_QSCONFDIR=/etc/xdg/quickshell/caelestia"
+contains "the capture command is installed" "$out" "/usr/bin/padilha-capture"
 
 out=$(run_plan --rice)
 if printf '%s' "$out" | grep -q 'wayland-sessions'; then

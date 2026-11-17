@@ -9,21 +9,129 @@ import qs.components
 import qs.components.controls
 import qs.components.misc
 import qs.services
+import qs.utils
 
 StyledRect {
     id: root
 
     required property var props
     required property ScreenState screenState
-    readonly property real nonAnimHeight: btnLayout.implicitHeight + listOrControls.implicitHeight + layout.spacing + layout.anchors.margins * 2
+
+    readonly property bool recording: Recorder.running
+    readonly property bool recordingMode: String(root.props.captureMode ?? "full").startsWith("record")
+    readonly property bool countingDown: countdownLeft > 0
+    readonly property string screenshotMode: {
+        switch (root.props.captureMode) {
+        case "window":
+            return "window";
+        case "region":
+            return "region";
+        default:
+            return "full";
+        }
+    }
+    readonly property string recordMode: {
+        switch (root.props.captureMode) {
+        case "record-window":
+            return "window";
+        case "record-region":
+            return "region";
+        default:
+            return "full";
+        }
+    }
+    readonly property string folder: root.recordingMode ? Config.utilities.capture.recordingDir : Config.utilities.capture.screenshotDir
+    readonly property string statusText: {
+        if (root.countingDown)
+            // TRANSLATORS: %1 = seconds remaining
+            return Tr.tr("Capturing in %1...").arg(root.countdownLeft);
+        if (root.recording)
+            return Recorder.paused ? Tr.trCtx("Paused", "recorder state") : Tr.trCtx("Recording...", "recorder state");
+        if (Screenshot.busy)
+            return Tr.tr("Saving screenshot...");
+        if (Screenshot.error || Recorder.error)
+            return Tr.tr("Something went wrong");
+        return Tr.tr("Ready");
+    }
+    readonly property real nonAnimHeight: layout.implicitHeight + layout.anchors.margins * 2
 
     implicitHeight: layout.implicitHeight + layout.anchors.margins * 2
-
     radius: Tokens.rounding.large
     color: Colours.tPalette.m3surfaceContainer
 
+    property int countdownLeft: 0
+    property string pendingCapture: ""
+
+    function startCapture(): void {
+        if (root.recording || Screenshot.busy || root.countingDown)
+            return;
+
+        root.pendingCapture = root.recordingMode ? "record" : "screenshot";
+        const wait = Math.max(0, Math.min(60, Config.utilities.capture.countdown));
+        if (wait === 0) {
+            finishCountdown();
+            return;
+        }
+        root.countdownLeft = wait;
+        countdownTimer.restart();
+    }
+
+    function finishCountdown(): void {
+        const action = root.pendingCapture;
+        root.pendingCapture = "";
+        root.countdownLeft = 0;
+        countdownTimer.stop();
+        if (action === "record")
+            root.startRecording();
+        else if (action === "screenshot")
+            root.takeScreenshot();
+    }
+
+    function cancelCountdown(): void {
+        root.pendingCapture = "";
+        root.countdownLeft = 0;
+        countdownTimer.stop();
+    }
+
+    function takeScreenshot(): void {
+        Screenshot.capture(root.screenshotMode, Config.utilities.capture.copyScreenshot);
+    }
+
+    function startRecording(): void {
+        const args = ["--mode", root.recordMode];
+        if (root.props.recordingSound)
+            args.push("--sound");
+        Recorder.start(args);
+    }
+
+    function activate(): void {
+        if (root.countingDown)
+            root.cancelCountdown();
+        else if (root.recording)
+            Recorder.stop();
+        else
+            root.startCapture();
+    }
+
     Ref {
         service: Recorder
+    }
+
+    Ref {
+        service: Screenshot
+    }
+
+    Timer {
+        id: countdownTimer
+
+        interval: 1000
+        repeat: true
+
+        onTriggered: {
+            root.countdownLeft--;
+            if (root.countdownLeft <= 0)
+                root.finishCountdown();
+        }
     }
 
     ColumnLayout {
@@ -46,15 +154,21 @@ StyledRect {
                 }
 
                 radius: Tokens.rounding.full
-                color: Recorder.running ? Colours.palette.m3secondary : Colours.palette.m3secondaryContainer
+                color: {
+                    if (root.recording)
+                        return Recorder.paused ? Colours.palette.m3tertiary : Colours.palette.m3error;
+                    if (root.countingDown)
+                        return Colours.palette.m3tertiaryContainer;
+                    return Colours.palette.m3secondaryContainer;
+                }
 
                 MaterialIcon {
                     id: icon
 
                     anchors.centerIn: parent
                     anchors.verticalCenterOffset: 1
-                    text: "screen_record"
-                    color: Recorder.running ? Colours.palette.m3onSecondary : Colours.palette.m3onSecondaryContainer
+                    text: root.recording ? "screen_record" : root.recordingMode ? "videocam" : "screenshot_monitor"
+                    color: root.recording ? (Recorder.paused ? Colours.palette.m3onTertiary : Colours.palette.m3onError) : root.countingDown ? Colours.palette.m3onTertiaryContainer : Colours.palette.m3onSecondaryContainer
                     fontStyle: Tokens.font.icon.large
                 }
             }
@@ -65,53 +179,171 @@ StyledRect {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Tr.tr("Screen recorder")
+                    text: Tr.tr("Screenshots and recording")
                     font: Tokens.font.body.medium
                     elide: Text.ElideRight
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Recorder.paused ? Tr.trCtx("Paused", "recorder state") : Recorder.running ? Tr.trCtx("Running...", "recorder state") : Tr.trCtx("Ready", "recorder state")
-                    color: Colours.palette.m3onSurfaceVariant
+                    text: root.statusText
+                    color: Recorder.error || Screenshot.error ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.body.small
                     elide: Text.ElideRight
                     animate: true
                 }
             }
 
-            SplitButton {
-                disabled: Recorder.running
+            IconButton {
+                visible: root.recording
+                icon: Recorder.paused ? "play_arrow" : "pause"
+                isToggle: true
+                checked: Recorder.paused
+                type: IconButton.Tonal
+                onClicked: Recorder.togglePause()
 
-                active: menuItems.find(m => root.props.recordingMode === m.icon + m.text) ?? menuItems[0]
-                menu.onItemSelected: item => root.props.recordingMode = item.icon + item.text
+                implicitWidth: {
+                    const h = label.implicitHeight + Tokens.padding.large * 2;
+                    if (h % 2 !== 0)
+                        return h + 1;
+                    return h;
+                }
+            }
+
+            TextButton {
+                id: actionButton
+
+                type: TextButton.Filled
+                text: root.countingDown ? Tr.trCtx("Cancel", "capture action") : root.recording ? Tr.trCtx("Stop", "capture action") : Tr.trCtx("Start", "capture action")
+                onClicked: root.activate()
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Tokens.spacing.medium
+
+            SplitButton {
+                id: modeButton
+
+                type: SplitButton.Tonal
+                fallbackIcon: root.recordingMode ? "videocam" : "screenshot_monitor"
+                disabled: root.recording || Screenshot.busy || root.countingDown
+                active: modeButton.menuItems.find(item => item.value === (root.props.captureMode ?? "full")) ?? modeButton.menuItems[0]
+
+                menu.onItemSelected: item => root.props.captureMode = item.value
 
                 menuItems: [
                     MenuItem {
-                        icon: "fullscreen"
-                        text: Tr.tr("Record fullscreen")
-                        activeText: Tr.trCtx("Fullscreen", "recording mode")
-                        onClicked: Recorder.start()
+                        icon: "screenshot_monitor"
+                        text: Tr.tr("Screenshot full screen")
+                        activeText: Tr.tr("Full screen")
+                        value: "full"
+                    },
+                    MenuItem {
+                        icon: "select_window"
+                        text: Tr.tr("Screenshot focused window")
+                        activeText: Tr.tr("Focused window")
+                        value: "window"
                     },
                     MenuItem {
                         icon: "screenshot_region"
+                        text: Tr.tr("Screenshot region")
+                        activeText: Tr.tr("Region")
+                        value: "region"
+                    },
+                    MenuItem {
+                        icon: "screen_record"
+                        text: Tr.tr("Record full screen")
+                        activeText: Tr.tr("Record screen")
+                        value: "record"
+                    },
+                    MenuItem {
+                        icon: "screen_share"
+                        text: Tr.tr("Record focused window")
+                        activeText: Tr.tr("Record window")
+                        value: "record-window"
+                    },
+                    MenuItem {
+                        icon: "videocam"
                         text: Tr.tr("Record region")
-                        activeText: Tr.trCtx("Region", "recording mode")
-                        onClicked: Recorder.start(["-r"])
-                    },
-                    MenuItem {
-                        icon: "select_to_speak"
-                        text: Tr.tr("Record fullscreen with sound")
-                        activeText: Tr.trCtx("Fullscreen", "recording mode")
-                        onClicked: Recorder.start(["-s"])
-                    },
-                    MenuItem {
-                        icon: "volume_up"
-                        text: Tr.tr("Record region with sound")
-                        activeText: Tr.trCtx("Region", "recording mode")
-                        onClicked: Recorder.start(["-sr"])
+                        activeText: Tr.tr("Record region")
+                        value: "record-region"
                     }
                 ]
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            StyledText {
+                text: Tr.tr("Copy to clipboard")
+                color: Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.label.small
+                visible: !root.recordingMode
+            }
+
+            StyledSwitch {
+                visible: !root.recordingMode
+                checked: Config.utilities.capture.copyScreenshot
+                onToggled: GlobalConfig.utilities.capture.copyScreenshot = checked
+            }
+
+            StyledText {
+                text: Tr.tr("Include sound")
+                color: Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.label.small
+                visible: root.recordingMode
+            }
+
+            StyledSwitch {
+                visible: root.recordingMode
+                checked: root.props.recordingSound
+                onToggled: root.props.recordingSound = checked
+            }
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Paths.shortenHome(root.folder)
+            color: Colours.palette.m3outline
+            font: Tokens.font.label.small
+            elide: Text.ElideMiddle
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            visible: text.length > 0
+            text: Recorder.error || Screenshot.error
+            color: Colours.palette.m3error
+            font: Tokens.font.body.small
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        }
+
+        StyledText {
+            Layout.fillWidth: true
+            text: Tr.tr("Use an empty capture workspace. The command warns when the active workspace is not \"%1\".").arg(Config.utilities.capture.workspace)
+            color: Colours.palette.m3outline
+            font: Tokens.font.label.small
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        }
+
+        StyledRect {
+            Layout.fillWidth: true
+            visible: root.countingDown
+            implicitHeight: countdownText.implicitHeight + Tokens.padding.medium * 2
+            radius: Tokens.rounding.medium
+            color: Colours.palette.m3tertiaryContainer
+
+            StyledText {
+                id: countdownText
+
+                anchors.centerIn: parent
+                // TRANSLATORS: %1 = seconds remaining
+                text: Tr.tr("Capturing in %1s - press Cancel to stop").arg(root.countdownLeft)
+                color: Colours.palette.m3onTertiaryContainer
+                font: Tokens.font.body.medium
             }
         }
 
@@ -247,51 +479,6 @@ StyledRect {
                 }
                 font: Tokens.font.body.medium
                 elide: Text.ElideMiddle
-            }
-
-            ButtonRow {
-                spacing: Tokens.spacing.extraSmall
-
-                IconButton {
-                    shapeMorph: true
-                    isRound: true
-                    label.animate: true
-                    icon: Recorder.paused ? "play_arrow" : "pause"
-                    isToggle: true
-                    checked: Recorder.paused
-                    type: IconButton.Tonal
-                    font: Tokens.font.icon.medium
-                    onClicked: {
-                        Recorder.togglePause();
-                        internalChecked = Recorder.paused;
-                    }
-
-                    implicitWidth: {
-                        // Ensure even size so icon is centered properly
-                        const h = label.implicitHeight + Tokens.padding.large * 2;
-                        if (h % 2 !== 0)
-                            return h + 1;
-                        return h;
-                    }
-                }
-
-                IconButton {
-                    shapeMorph: true
-                    isRound: true
-                    icon: "stop"
-                    inactiveColour: Colours.palette.m3error
-                    inactiveOnColour: Colours.palette.m3onError
-                    font: Tokens.font.icon.medium
-                    onClicked: Recorder.stop()
-
-                    implicitWidth: {
-                        // Ensure even size so icon is centered properly
-                        const h = label.implicitHeight + Tokens.padding.large * 2;
-                        if (h % 2 !== 0)
-                            return h + 1;
-                        return h;
-                    }
-                }
             }
         }
     }
