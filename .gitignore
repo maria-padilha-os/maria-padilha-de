@@ -13,6 +13,9 @@ result-*
 /ai.lua
 /ai.roots.lua
 /ai.key
+# Weather provider credentials and cached responses stay outside the checkout.
+/weather.conf
+/weather.json
 
 # scratch trees from tests and hand runs
 .scratch/

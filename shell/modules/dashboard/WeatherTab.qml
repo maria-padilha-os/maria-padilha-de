@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Caelestia.Config
 import Caelestia.I18n
 import qs.components
+import qs.components.controls
 import qs.services
 import qs.utils
 
@@ -14,7 +15,6 @@ Item {
 
     implicitWidth: Math.max(layout.implicitWidth, minimumWidth)
     implicitHeight: layout.implicitHeight
-    Component.onCompleted: Weather.reload()
 
     ColumnLayout {
         id: layout
@@ -31,7 +31,7 @@ Item {
                 spacing: Tokens.spacing.extraSmall
 
                 StyledText {
-                    text: Weather.city || Tr.tr("Loading...")
+                    text: Weather.city || (Weather.status === "no-location" ? Tr.tr("Weather location not set") : Tr.tr("Loading..."))
                     font: Tokens.font.headline.medium
                     color: Colours.palette.m3onSurface
                 }
@@ -41,10 +41,31 @@ Item {
                     font: Tokens.font.body.small
                     color: Colours.palette.m3onSurfaceVariant
                 }
+
+                StyledText {
+                    visible: Weather.statusText.length > 0
+                    text: Weather.statusText
+                    color: Weather.status === "error" || Weather.status === "stale" ? Colours.palette.m3error : Colours.palette.m3outline
+                    font: Tokens.font.label.small
+                }
+
+                StyledText {
+                    visible: Weather.lastUpdatedLabel.length > 0
+                    text: Weather.lastUpdatedLabel
+                    color: Colours.palette.m3outline
+                    font: Tokens.font.label.small
+                }
             }
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            IconButton {
+                visible: Weather.canRetry
+                icon: "refresh"
+                type: IconButton.Text
+                onClicked: Weather.refresh()
             }
 
             Row {

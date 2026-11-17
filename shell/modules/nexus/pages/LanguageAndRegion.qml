@@ -59,6 +59,10 @@ PageBase {
         }
     ]
 
+    function searchWeather(): void {
+        Weather.searchLocations(weatherSearch.text);
+    }
+
     title: Tr.tr("Language & region")
 
     ColumnLayout {
@@ -112,43 +116,163 @@ PageBase {
             text: Tr.tr("Weather")
         }
 
-        // Placeholder until the map-based location picker lands
+        TextFieldRow {
+            first: true
+            label: Tr.tr("Saved location")
+            subtext: Tr.tr("Search below, or enter a city or latitude,longitude")
+            placeholderText: Tr.tr("No weather location saved")
+            value: Weather.savedLocation
+            onEditingFinished: value => Weather.setLocation(value)
+        }
+
         ConnectedRect {
             Layout.fillWidth: true
-            first: true
-            last: true
-            implicitHeight: comingSoon.implicitHeight + Tokens.padding.extraLarge * 2
+            implicitHeight: weatherLocationColumn.implicitHeight + Tokens.padding.largeIncreased * 2
 
             ColumnLayout {
-                id: comingSoon
+                id: weatherLocationColumn
 
-                anchors.centerIn: parent
-                width: parent.width - Tokens.padding.largeIncreased * 2
-                spacing: Tokens.padding.extraSmall
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.margins: Tokens.padding.largeIncreased
+                spacing: Tokens.spacing.small
 
-                MaterialIcon {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "map"
-                    color: Colours.palette.m3outlineVariant
-                    fontStyle: Tokens.font.icon.extraLarge
-                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.small
 
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: Tr.tr("Location picker coming soon")
-                    color: Colours.palette.m3outlineVariant
-                    font: Tokens.font.title.small
+                    SearchBar {
+                        id: weatherSearch
+
+                        Layout.fillWidth: true
+                        placeholderText: Tr.tr("Search for a city or place")
+                        onAccepted: root.searchWeather()
+                    }
+
+                    IconButton {
+                        icon: "search"
+                        type: IconButton.Filled
+                        enabled: weatherSearch.text.trim().length > 0 && !Weather.searchPending
+                        opacity: enabled ? 1 : 0.5
+                        onClicked: root.searchWeather()
+                    }
                 }
 
                 StyledText {
                     Layout.fillWidth: true
-                    horizontalAlignment: Text.AlignHCenter
+                    visible: Weather.searchMessage
+                    text: Weather.searchMessage
+                    color: Colours.palette.m3error
+                    font: Tokens.font.label.small
                     wrapMode: Text.WordWrap
-                    text: Tr.tr("Choose your weather location on a map in a future update")
-                    color: Colours.palette.m3outlineVariant
-                    font: Tokens.font.body.small
+                }
+
+                Repeater {
+                    model: Weather.searchResults
+
+                    RowButton {
+                        required property var modelData
+
+                        icon: "location_on"
+                        text: modelData.displayName
+                        subtext: modelData.countryCode
+                        onClicked: {
+                            Weather.saveLocation(modelData);
+                            weatherSearch.clear();
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.small
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Weather.savedLocation
+                            ? Tr.tr("Saved: %1").arg(Weather.savedLocation)
+                            : Tr.tr("Weather follows a location you choose; it never asks the network for your IP")
+                        color: Colours.palette.m3outline
+                        font: Tokens.font.label.small
+                        wrapMode: Text.WordWrap
+                    }
+
+                    TextButton {
+                        visible: Weather.savedLocation.length > 0
+                        text: Tr.tr("Clear")
+                        onClicked: {
+                            Weather.clearLocation();
+                            weatherSearch.clear();
+                        }
+                    }
                 }
             }
+        }
+
+        SelectRow {
+            last: true
+            label: Tr.tr("Weather language")
+            subtext: Tr.tr("Language for place searches and weather text")
+            active: menuItems.find(i => i.modelData === GlobalConfig.services.weatherLanguage) ?? weatherAutoLang
+            onSelected: item => {
+                GlobalConfig.services.weatherLanguage = item.modelData ?? "";
+            }
+
+            menuItems: [weatherAutoLang, ...weatherLangItems.instances]
+
+            MenuItem {
+                id: weatherAutoLang
+
+                text: Tr.tr("Auto")
+            }
+
+            Variants {
+                id: weatherLangItems
+
+                model: Tr.supportedLanguages
+
+                MenuItem {
+                    required property string modelData
+
+                    text: {
+                        const locale = Qt.locale(modelData);
+                        return locale.name === "C" ? modelData : locale.nativeLanguageName || locale.name;
+                    }
+                }
+            }
+        }
+
+        // Weather provider
+        SectionHeader {
+            text: Tr.tr("Weather provider")
+        }
+
+        TextFieldRow {
+            first: true
+            label: Tr.tr("Provider URL")
+            subtext: Tr.tr("Open-Meteo-compatible endpoint; weather.conf overrides this value")
+            placeholderText: "https://api.open-meteo.com/v1/forecast"
+            value: GlobalConfig.services.weatherProviderUrl
+            onEditingFinished: value => GlobalConfig.services.weatherProviderUrl = value.trim()
+        }
+
+        TextFieldRow {
+            label: Tr.tr("Geocoding URL")
+            subtext: Tr.tr("Endpoint used when searching for a place")
+            placeholderText: "https://geocoding-api.open-meteo.com/v1/search"
+            value: GlobalConfig.services.weatherGeocodingUrl
+            onEditingFinished: value => GlobalConfig.services.weatherGeocodingUrl = value.trim()
+        }
+
+        TextFieldRow {
+            last: true
+            label: Tr.tr("API key")
+            subtext: Tr.tr("Optional; prefer ~/.config/padilha/weather.conf, which is never committed")
+            placeholderText: Tr.tr("No key")
+            value: GlobalConfig.services.weatherApiKey
+            echoMode: TextInput.Password
+            onEditingFinished: value => GlobalConfig.services.weatherApiKey = value.trim()
         }
 
         // Units
@@ -180,6 +304,33 @@ PageBase {
             menuItems: root.dataItems
             active: root.dataItems.find(i => i.value === GlobalConfig.services.dataUnits)
             onSelected: item => GlobalConfig.services.dataUnits = item.value
+        }
+
+        // Weather updates
+        SectionHeader {
+            text: Tr.tr("Weather updates")
+        }
+
+        StepperRow {
+            first: true
+            label: Tr.tr("Refresh interval")
+            subtext: Tr.tr("How often weather is fetched (minutes, 5–360)")
+            value: Math.round(GlobalConfig.services.weatherRefreshInterval / 60)
+            from: 5
+            to: 360
+            stepSize: 5
+            onMoved: v => GlobalConfig.services.weatherRefreshInterval = Math.round(v * 60)
+        }
+
+        StepperRow {
+            last: true
+            label: Tr.tr("Cache lifetime")
+            subtext: Tr.tr("How long saved weather stays usable without a request (minutes)")
+            value: Math.round(GlobalConfig.services.weatherCacheTtl / 60)
+            from: 5
+            to: 1440
+            stepSize: 5
+            onMoved: v => GlobalConfig.services.weatherCacheTtl = Math.round(v * 60)
         }
 
         // Time & date

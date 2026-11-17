@@ -245,7 +245,7 @@ For example, to automatically hide the bar on the monitor named `DP-1`:
 > - `nexus`: `networkRescanInterval`
 > - `notifs`: `actionOnClick`, `defaultExpireTimeout`, `expire`, `fullscreen`, `fullscreenExpireTimeout`
 > - `paths`: `lyricsDir`, `wallpaperDir`
-> - `services`: `audioIncrement`, `brightnessIncrement`, `clockFormat`, `dataUnits`, `defaultPlayer`, `gpuType`, `lyricsBackend`, `maxVolume`, `playerAliases`, `sensorUnits`, `smartScheme`, `visualiserBars`, `weatherLocation`, `weatherUnits`
+> - `services`: `audioIncrement`, `brightnessIncrement`, `clockFormat`, `dataUnits`, `defaultPlayer`, `gpuType`, `lyricsBackend`, `maxVolume`, `playerAliases`, `sensorUnits`, `smartScheme`, `visualiserBars`, `weatherApiKey`, `weatherCacheTtl`, `weatherCoordinates`, `weatherGeocodingUrl`, `weatherLanguage`, `weatherLocation`, `weatherProviderUrl`, `weatherRefreshInterval`, `weatherUnits`
 > - `utilities`: `toasts.*`, `vpn.*`
 >
 > </details>
@@ -754,6 +754,13 @@ For example, to automatically hide the bar on the monitor named `DP-1`:
     },
     "services": {
         "weatherLocation": "",
+        "weatherCoordinates": "",
+        "weatherProviderUrl": "https://api.open-meteo.com/v1/forecast",
+        "weatherApiKey": "",
+        "weatherGeocodingUrl": "https://geocoding-api.open-meteo.com/v1/search",
+        "weatherLanguage": "",
+        "weatherRefreshInterval": 1800,
+        "weatherCacheTtl": 3600,
         "weatherUnits": "Auto",
         "sensorUnits": "Celsius",
         "dataUnits": "Binary",

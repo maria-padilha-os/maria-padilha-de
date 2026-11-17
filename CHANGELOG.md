@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Weather now uses an explicit saved location instead of an IP lookup. The
+  settings page has a user-triggered city/place search, the weather panel shows
+  the last update time, responses are cached with a bounded TTL and stale data
+  is labelled rather than silently replaced. Provider URL/key, geocoding URL,
+  language, units and refresh interval are configurable; the private key lives
+  in `~/.config/padilha/weather.conf` and is never committed or cached.
 - New opt-in clipboard history palette, disabled by default. It keeps a
   bounded store under `~/.local/state/padilha/clipboard`, supports search,
   keyboard selection and copy-back, pause and clear-all, and gives

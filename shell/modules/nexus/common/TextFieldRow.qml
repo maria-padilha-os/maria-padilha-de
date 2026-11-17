@@ -19,6 +19,7 @@ ConnectedRect {
     property alias maximumLength: input.maximumLength
     property alias validate: input.validate
     property alias validator: input.validator
+    property alias echoMode: input.echoMode
     property bool smallField
     readonly property alias field: input
 
