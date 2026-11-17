@@ -7,7 +7,7 @@ and a Lua configuration layer.
 
 [![tests](https://github.com/maria-padilha-os/maria-padilha-de/actions/workflows/tests.yml/badge.svg)](https://github.com/maria-padilha-os/maria-padilha-de/actions/workflows/tests.yml)
 [![release](https://img.shields.io/github/v/release/maria-padilha-os/maria-padilha-de)](https://github.com/maria-padilha-os/maria-padilha-de/releases/latest)
-[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Mateus-M-Reis)
+[![❤ Sponsor on GitHub](https://img.shields.io/badge/%E2%9D%A4%20Sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Mateus-M-Reis)
 
 The name comes from Maria Padilha, a figure in Brazilian folk religion.
 
