@@ -95,6 +95,12 @@ else
     mkdir -p "$tmp/load"
     cp "$root/tests/nexus/load.qml" "$tmp/load/load.qml"
     cp "$root/shell/modules/nexus/search/SearchRanking.js" "$root/shell/modules/nexus/search/FocusNavigation.js" "$tmp/load/"
+    # FocusRing uses qs.services for the accessibility focus-ring width. Expose
+    # just that singleton to this isolated harness without copying the tree.
+    mkdir -p "$tmp/load/qs/services"
+    cp "$root/shell/services/Accessibility.qml" "$tmp/load/qs/services/"
+    printf 'module qs.services\nsingleton Accessibility 1.0 Accessibility.qml\n' > "$tmp/load/qs/services/qmldir"
+    export QML2_IMPORT_PATH="$tmp/load${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
     if timeout 60 "$qs_bin" -p "$tmp/load/load.qml" > "$tmp/load.log" 2>&1; then
         ok "search modules and FocusRing load under Quickshell"
     else

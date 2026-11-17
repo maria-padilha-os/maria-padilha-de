@@ -122,7 +122,7 @@ def main() -> int:
     require(COMPONENTS / "FocusRing.qml", (
         'objectName: "settingsFocusRing"',
         "target.activeFocus",
-        "border.width: shown ? 2 : 0",
+        "border.width: shown ? ringWidth : 0",
     ))
     require(COMPONENTS / "controls" / "SearchBar.qml", (
         "elide: Text.ElideRight",
