@@ -13,7 +13,7 @@ StyledRect {
     required property ScreenState screenState
 
     readonly property color colour: Colours.palette.m3primary
-    readonly property string accessibleTime: `${Time.format("dddd d MMMM")} ${Time.hourStr}:${Time.minuteStr}`
+    readonly property string accessibleTime: `${Time.format(Tr.trCtx("dddd d MMMM", "clock accessible date format"))} ${Time.hourStr}:${Time.minuteStr}`
 
     activeFocusOnTab: true
     Accessible.role: Accessible.Button

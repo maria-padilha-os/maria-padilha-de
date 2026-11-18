@@ -96,6 +96,8 @@ StyledSwitch {
                 text: root.text
                 font: root.font
                 elide: Text.ElideRight
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
             }
 
             StyledText {
@@ -107,6 +109,8 @@ StyledSwitch {
                 color: Colours.palette.m3outline
                 font: Tokens.font.label.small
                 elide: Text.ElideRight
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
             }
         }
     }

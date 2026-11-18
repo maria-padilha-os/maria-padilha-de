@@ -67,6 +67,8 @@ ConnectedRect {
                 Layout.fillWidth: true
                 font: Tokens.font.body.small
                 elide: Text.ElideRight
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
             }
 
             StyledText {
@@ -76,6 +78,8 @@ ConnectedRect {
                 color: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.label.small
                 elide: Text.ElideRight
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
             }
         }
 

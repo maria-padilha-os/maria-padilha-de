@@ -36,7 +36,16 @@ PageBase {
     // The same rule is written to ~/.config/padilha/monitors.lua, which the
     // Hyprland config sources, so the choice survives that reload.
     function rotationLabel(transform: int): string {
-        const labels = ["Normal", "90°", "180°", "270°", "Flipped", "Flipped 90°", "Flipped 180°", "Flipped 270°"];
+        const labels = [
+            Tr.trCtx("Normal", "monitor rotation"),
+            "90°",
+            "180°",
+            "270°",
+            Tr.trCtx("Flipped", "monitor rotation"),
+            Tr.trCtx("Flipped 90°", "monitor rotation"),
+            Tr.trCtx("Flipped 180°", "monitor rotation"),
+            Tr.trCtx("Flipped 270°", "monitor rotation")
+        ];
         return labels[transform] ?? String(transform);
     }
 

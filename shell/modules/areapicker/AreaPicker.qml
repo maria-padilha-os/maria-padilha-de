@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import qs.components.containers
 import qs.components.misc
 import qs.services
+import Caelestia.I18n
 
 Scope {
     LazyLoader {
@@ -83,7 +84,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshot"
-        description: "Open screenshot tool"
+        description: Tr.tr("Open screenshot tool")
         onPressed: {
             root.freeze = false;
             root.closing = false;
@@ -96,7 +97,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotFreeze"
-        description: "Open screenshot tool (freeze mode)"
+        description: Tr.tr("Open screenshot tool (freeze mode)")
         onPressed: {
             root.freeze = true;
             root.closing = false;
@@ -109,7 +110,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotClip"
-        description: "Open screenshot tool (clipboard)"
+        description: Tr.tr("Open screenshot tool (clipboard)")
         onPressed: {
             root.freeze = false;
             root.closing = false;
@@ -122,7 +123,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "screenshotFreezeClip"
-        description: "Open screenshot tool (freeze mode, clipboard)"
+        description: Tr.tr("Open screenshot tool (freeze mode, clipboard)")
         onPressed: {
             root.freeze = true;
             root.closing = false;

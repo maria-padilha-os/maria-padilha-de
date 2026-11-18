@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
+import Caelestia.I18n
 import qs.utils
 import "ExtensionManifest.js" as ExtensionManifest
 
@@ -88,6 +89,16 @@ Singleton {
     }
 
     Component.onCompleted: refresh()
+
+    Connections {
+        function onLanguageChanged(): void {
+            // Manifest names, descriptions and validation messages are built
+            // during the scan, so re-scan with the new catalog.
+            root.refresh();
+        }
+
+        target: Tr
+    }
 
     Process {
         id: scanProc

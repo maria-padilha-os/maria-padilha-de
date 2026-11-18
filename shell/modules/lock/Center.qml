@@ -2,6 +2,7 @@ import "center"
 import QtQuick
 import QtQuick.Layouts
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
 
@@ -27,7 +28,7 @@ ColumnLayout {
     StyledText {
         Layout.alignment: Qt.AlignHCenter
 
-        text: Time.format("dddd • d MMM").toUpperCase()
+        text: Time.format(Tr.trCtx("dddd • d MMM", "lock screen date format")).toUpperCase()
         color: Colours.palette.m3onSurface
         font: Tokens.font.title.builders.medium.weight(Font.DemiBold).build()
     }

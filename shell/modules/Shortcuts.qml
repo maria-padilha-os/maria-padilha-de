@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Caelestia
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components.misc
 import qs.services
 import qs.modules.nexus
@@ -111,7 +112,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "nexus"
-        description: "Open nexus"
+        description: Tr.tr("Open nexus")
         onPressed: WindowFactory.create()
     }
 
@@ -119,7 +120,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "showall"
-        description: "Toggle launcher, dashboard and osd"
+        description: Tr.tr("Toggle launcher, dashboard and osd")
         onPressed: {
             if (root.hasFullscreen)
                 return;
@@ -132,7 +133,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "dashboard"
-        description: "Toggle dashboard"
+        description: Tr.tr("Toggle dashboard")
         onPressed: {
             if (root.hasFullscreen)
                 return;
@@ -145,7 +146,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "dashboardDash"
-        description: "Open dashboard on the dashboard tab"
+        description: Tr.tr("Open dashboard on the dashboard tab")
         onPressed: root.openDashboard("dash")
     }
 
@@ -153,7 +154,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "dashboardMedia"
-        description: "Open dashboard on the media tab"
+        description: Tr.tr("Open dashboard on the media tab")
         onPressed: root.openDashboard("media")
     }
 
@@ -161,7 +162,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "dashboardPerformance"
-        description: "Open dashboard on the performance tab"
+        description: Tr.tr("Open dashboard on the performance tab")
         onPressed: root.openDashboard("performance")
     }
 
@@ -169,7 +170,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "dashboardWeather"
-        description: "Open dashboard on the weather tab"
+        description: Tr.tr("Open dashboard on the weather tab")
         onPressed: root.openDashboard("weather")
     }
 
@@ -177,7 +178,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionTranslator"
-        description: "Open dashboard on the translator tab"
+        description: Tr.tr("Open dashboard on the translator tab")
         onPressed: root.openExtension("translator")
     }
 
@@ -185,7 +186,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionColourPicker"
-        description: "Open dashboard on the colour picker tab"
+        description: Tr.tr("Open dashboard on the colour picker tab")
         onPressed: root.openExtension("colour-picker")
     }
 
@@ -193,7 +194,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionCalculator"
-        description: "Open dashboard on the calculator tab"
+        description: Tr.tr("Open dashboard on the calculator tab")
         onPressed: root.openExtension("calculator")
     }
 
@@ -201,7 +202,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionMaps"
-        description: "Open dashboard on the maps tab"
+        description: Tr.tr("Open dashboard on the maps tab")
         onPressed: root.openExtension("maps")
     }
 
@@ -209,7 +210,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionTuner"
-        description: "Open dashboard on the guitar tuner tab"
+        description: Tr.tr("Open dashboard on the guitar tuner tab")
         onPressed: root.openExtension("tuner")
     }
 
@@ -217,7 +218,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionFiles"
-        description: "Open dashboard on the files tab"
+        description: Tr.tr("Open dashboard on the files tab")
         onPressed: root.openExtension("filemanager")
     }
 
@@ -225,7 +226,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionNotes"
-        description: "Open dashboard on the notes tab"
+        description: Tr.tr("Open dashboard on the notes tab")
         onPressed: root.openExtension("notes")
     }
 
@@ -233,7 +234,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionSystemMonitor"
-        description: "Open dashboard on the system monitor tab"
+        description: Tr.tr("Open dashboard on the system monitor tab")
         onPressed: root.openExtension("system-monitor")
     }
 
@@ -241,7 +242,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionCalendar"
-        description: "Open dashboard on the calendar tab"
+        description: Tr.tr("Open dashboard on the calendar tab")
         onPressed: root.openExtension("calendar")
     }
 
@@ -249,7 +250,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionPomodoro"
-        description: "Open dashboard on the pomodoro tab"
+        description: Tr.tr("Open dashboard on the pomodoro tab")
         onPressed: root.openExtension("pomodoro")
     }
 
@@ -257,7 +258,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionUnitConverter"
-        description: "Open dashboard on the unit converter tab"
+        description: Tr.tr("Open dashboard on the unit converter tab")
         onPressed: root.openExtension("unit-converter")
     }
 
@@ -265,7 +266,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "extensionDiskUsage"
-        description: "Open dashboard on the disk usage tab"
+        description: Tr.tr("Open dashboard on the disk usage tab")
         onPressed: root.openExtension("disk-usage")
     }
 
@@ -273,7 +274,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "session"
-        description: "Toggle session menu"
+        description: Tr.tr("Toggle session menu")
         onPressed: {
             if (root.hasFullscreen)
                 return;
@@ -286,7 +287,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "launcher"
-        description: "Toggle launcher"
+        description: Tr.tr("Toggle launcher")
         onPressed: root.launcherInterrupted = false
         onReleased: {
             if (!root.launcherInterrupted && !root.hasFullscreen) {
@@ -301,7 +302,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "launcherInterrupt"
-        description: "Interrupt launcher keybind"
+        description: Tr.tr("Interrupt launcher keybind")
         onPressed: root.launcherInterrupted = true
     }
 
@@ -309,7 +310,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "taskbar"
-        description: "Focus the taskbar"
+        description: Tr.tr("Focus the taskbar")
         onPressed: {
             if (root.hasFullscreen)
                 return;
@@ -323,7 +324,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "sidebar"
-        description: "Toggle sidebar"
+        description: Tr.tr("Toggle sidebar")
         onPressed: {
             if (root.hasFullscreen)
                 return;
@@ -338,7 +339,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "assistant"
-        description: "Toggle assistant"
+        description: Tr.tr("Toggle assistant")
         onPressed: {
             if (root.hasFullscreen || !AssistantSettings.enabled)
                 return;
@@ -353,7 +354,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "utilities"
-        description: "Toggle utilities"
+        description: Tr.tr("Toggle utilities")
         onPressed: {
             if (root.hasFullscreen)
                 return;

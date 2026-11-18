@@ -5,6 +5,23 @@
 // The QML service imports it as `ExtensionManifest`; Node requires it as a
 // CommonJS module (the guard at the bottom is ignored by QML).
 
+// Translation helpers. Node tests load this module without QML, so every
+// lookup falls back to the English source string there.
+function trText(text) {
+    return typeof Tr !== "undefined" && Tr && Tr.tr ? Tr.tr(text) : text;
+}
+
+function trArgs(text, args) {
+    var values = args || [];
+    if (typeof Tr === "undefined" || !Tr || !Tr.mark || !Tr.trMarked) {
+        var result = text;
+        for (var i = 0; i < values.length; ++i)
+            result = result.replace("%" + (i + 1), String(values[i]));
+        return result;
+    }
+    return Tr.trMarked(Tr.mark(text, values));
+}
+
 var REQUIRED_FIELDS = ["name", "description", "version", "icon", "tab"];
 
 // Canonical capability names. Extensions may use a name this list does not
@@ -144,17 +161,17 @@ function readStringList(value, field, entry) {
     if (value === undefined || value === null)
         return result;
     if (!Array.isArray(value)) {
-        addError(entry, `"${field}" must be a list of strings.`);
+        addError(entry, trArgs("\"%1\" must be a list of strings.", [field]));
         return result;
     }
     for (var i = 0; i < value.length; ++i) {
         var item = asString(value[i]);
         if (item.length === 0) {
-            addError(entry, `"${field}" entries must be non-empty strings.`);
+            addError(entry, trArgs("\"%1\" entries must be non-empty strings.", [field]));
             continue;
         }
         if (result.indexOf(item) !== -1) {
-            addWarning(entry, `"${field}" lists "${item}" more than once.`);
+            addWarning(entry, trArgs("\"%1\" lists \"%2\" more than once.", [field, item]));
             continue;
         }
         result.push(item);
@@ -176,18 +193,56 @@ function knownPermission(permission) {
 }
 
 function permissionLabel(permission) {
-    var known = knownPermission(permission);
-    return known ? known.label : permission;
+    // Keep the literals here so xgettext can see every label, and translate
+    // them on each call so a language switch needs no module reload.
+    switch (permission) {
+    case "filesystem":
+        return trText("Files");
+    case "network":
+        return trText("Network");
+    case "microphone":
+        return trText("Microphone");
+    case "screen":
+        return trText("Screen");
+    case "notifications":
+        return trText("Notifications");
+    case "processes":
+        return trText("Processes");
+    case "system":
+        return trText("System");
+    case "clipboard":
+        return trText("Clipboard");
+    default:
+        return permission;
+    }
 }
 
 function permissionDescription(permission) {
-    var known = knownPermission(permission);
-    return known ? known.description : "Custom capability; check the extension source before enabling it.";
+    switch (permission) {
+    case "filesystem":
+        return trText("Reads and writes files.");
+    case "network":
+        return trText("Connects to remote servers.");
+    case "microphone":
+        return trText("Captures audio from the microphone.");
+    case "screen":
+        return trText("Reads pixels from the screen.");
+    case "notifications":
+        return trText("Sends desktop notifications.");
+    case "processes":
+        return trText("Runs local commands and processes.");
+    case "system":
+        return trText("Reads system and filesystem information.");
+    case "clipboard":
+        return trText("Reads or writes the clipboard.");
+    default:
+        return trText("Custom capability; check the extension source before enabling it.");
+    }
 }
 
 function permissionSummary(permissions) {
     if (!permissions || permissions.length === 0)
-        return "No special permissions declared.";
+        return trText("No special permissions declared.");
     var labels = [];
     for (var i = 0; i < permissions.length; ++i)
         labels.push(permissionLabel(permissions[i]));
@@ -196,14 +251,14 @@ function permissionSummary(permissions) {
 
 function describeTab(extension) {
     if (!extension || !extension.tab)
-        return "No tab is declared; this extension cannot be enabled.";
-    return `Adds the ${extension.name} tab to the top panel, after Weather.`;
+        return trText("No tab is declared; this extension cannot be enabled.");
+    return trArgs("Adds the %1 tab to the top panel, after Weather.", [extension.name]);
 }
 
 function describeShortcut(extension) {
     if (!extension || !extension.shortcut)
-        return "No shortcut declared; open the tab from the top panel.";
-    return `Press ${extension.shortcut} to open or close the ${extension.name} tab; the shortcut enables it if necessary.`;
+        return trText("No shortcut declared; open the tab from the top panel.");
+    return trArgs("Press %1 to open or close the %2 tab; the shortcut enables it if necessary.", [extension.shortcut, extension.name]);
 }
 
 // Parse one manifest. `files` is the recursive file list of the extension
@@ -215,19 +270,19 @@ function parseEntry(dirPath, body, files) {
     var data = null;
 
     if (text.trim().length === 0) {
-        addError(entry, "extension.json is empty. Add a JSON object with name, description, version, icon and tab.");
+        addError(entry, trText("extension.json is empty. Add a JSON object with name, description, version, icon and tab."));
         return entry;
     }
 
     try {
         data = JSON.parse(text);
     } catch (error) {
-        addError(entry, `extension.json is not valid JSON: ${error.message}. Fix the syntax near the reported problem.`);
+        addError(entry, trArgs("extension.json is not valid JSON: %1. Fix the syntax near the reported problem.", [error.message]));
         return entry;
     }
 
     if (!isObject(data)) {
-        addError(entry, "extension.json must contain one JSON object, not an array or scalar value.");
+        addError(entry, trText("extension.json must contain one JSON object, not an array or scalar value."));
         return entry;
     }
 
@@ -237,22 +292,22 @@ function parseEntry(dirPath, body, files) {
         var key = REQUIRED_FIELDS[i];
         var value = asString(data[key]);
         if (value.length === 0)
-            addError(entry, `"${key}" is required and must be a non-empty string.`);
+            addError(entry, trArgs("\"%1\" is required and must be a non-empty string.", [key]));
         else
-            entry[key] = value;
+            entry[key] = key === "name" || key === "description" ? trText(value) : value;
     }
 
     if (entry.id.length === 0)
-        addError(entry, "The extension folder name is empty; the folder name is the extension id.");
+        addError(entry, trText("The extension folder name is empty; the folder name is the extension id."));
 
     if (has(data, "shortcut") && data.shortcut !== null) {
         if (typeof data.shortcut !== "string") {
-            addError(entry, `"shortcut" must be a string such as "Super + Alt + X".`);
+            addError(entry, trText("\"shortcut\" must be a string such as \"Super + Alt + X\"."));
         } else {
             entry.shortcut = data.shortcut.trim().replace(/\s+/g, " ");
             entry.shortcutKey = normaliseShortcut(entry.shortcut);
             if (entry.shortcut.length > 0 && entry.shortcutKey.length === 0)
-                addError(entry, `"shortcut" is blank; remove the key or give it a key combination.`);
+                addError(entry, trText("\"shortcut\" is blank; remove the key or give it a key combination."));
         }
     }
 
@@ -260,7 +315,7 @@ function parseEntry(dirPath, body, files) {
         readStringList(data.capabilities, "capabilities", entry));
     for (var p = 0; p < entry.permissions.length; ++p) {
         if (!has(PERMISSIONS, entry.permissions[p])) {
-            addWarning(entry, `Unknown permission "${entry.permissions[p]}". Known permissions are: ${Object.keys(PERMISSIONS).join(", ")}.`);
+            addWarning(entry, trArgs("Unknown permission \"%1\". Known permissions are: %2.", [entry.permissions[p], Object.keys(PERMISSIONS).join(", ")]));
         }
     }
 
@@ -268,23 +323,23 @@ function parseEntry(dirPath, body, files) {
         readStringList(data.dependencies, "dependencies", entry));
     for (var r = 0; r < entry.requires.length; ++r) {
         if (entry.requires[r] === entry.id)
-            addError(entry, `"requires" cannot name the extension itself ("${entry.id}").`);
+            addError(entry, trArgs("\"requires\" cannot name the extension itself (\"%1\").", [entry.id]));
     }
 
     entry.commands = readStringList(data.commands, "commands", entry);
 
     var tab = normaliseTabPath(entry.tab);
     if (entry.tab.length > 0 && tab.length === 0) {
-        addError(entry, `"tab" must be a relative .qml path inside the extension folder, without ".." or a leading slash.`);
+        addError(entry, trText("\"tab\" must be a relative .qml path inside the extension folder, without \"..\" or a leading slash."));
     } else if (tab.length > 0) {
         if (!/\.qml$/i.test(tab))
-            addError(entry, `"tab" must point to a .qml file, not "${entry.tab}".`);
+            addError(entry, trArgs("\"tab\" must point to a .qml file, not \"%1\".", [entry.tab]));
         entry.tabPath = tab;
         entry.tabUrl = `file://${entry.dirPath.replace(/\/+$/, "")}/${tab}`;
         if (Array.isArray(files)) {
             entry.tabExists = files.indexOf(tab) !== -1;
             if (!entry.tabExists)
-                addError(entry, `Tab file "${tab}" was not found in ${entry.dirPath}. Fix "tab" or add the file.`);
+                addError(entry, trArgs("Tab file \"%1\" was not found in %2. Fix \"tab\" or add the file.", [tab, entry.dirPath]));
         }
     }
 
@@ -354,11 +409,11 @@ function buildCatalog(entries, options) {
                 // only the higher-priority copy can be enabled.
                 entry.shadowed = true;
                 entry.shadowedBy = winnerPaths.join(", ");
-                addWarning(entry, `Shadowed by ${entry.shadowedBy}: another folder has the same id "${groupId}" at a higher priority. Only the higher-priority copy can be enabled.`);
+                addWarning(entry, trArgs("Shadowed by %1: another folder has the same id \"%2\" at a higher priority. Only the higher-priority copy can be enabled.", [entry.shadowedBy, groupId]));
             } else if (winners.length > 1) {
-                addError(entry, `Duplicate extension id "${groupId}": also found in ${others.join(", ")}. Rename or remove one folder so the id is unique.`);
+                addError(entry, trArgs("Duplicate extension id \"%1\": also found in %2. Rename or remove one folder so the id is unique.", [groupId, others.join(", ")]));
             } else {
-                addWarning(entry, `Overrides the same id "${groupId}" in ${others.join(", ")}. Only this copy is used.`);
+                addWarning(entry, trArgs("Overrides the same id \"%1\" in %2. Only this copy is used.", [groupId, others.join(", ")]));
             }
         }
     }
@@ -387,7 +442,7 @@ function buildCatalog(entries, options) {
                     names.push(`${shortcutGroup[k].name} (${shortcutGroup[k].id})`);
             }
             shortcutGroup[i].shortcutConflict = true;
-            addWarning(shortcutGroup[i], `Shortcut "${shortcutGroup[i].shortcut}" is also used by ${names.join(", ")}. Change one manifest so the shortcut is unambiguous.`);
+            addWarning(shortcutGroup[i], trArgs("Shortcut \"%1\" is also used by %2. Change one manifest so the shortcut is unambiguous.", [shortcutGroup[i].shortcut, names.join(", ")]));
         }
     }
 
@@ -411,11 +466,11 @@ function buildCatalog(entries, options) {
                         usable = true;
                 }
                 if (!usable)
-                    addWarning(entry, `Dependency "${dependency}" is installed but has no usable tab.`);
+                    addWarning(entry, trArgs("Dependency \"%1\" is installed but has no usable tab.", [dependency]));
             }
         }
         if (entry.missingDependencies.length > 0) {
-            addError(entry, `Missing extension dependency: ${entry.missingDependencies.join(", ")}. Install it in an extensions folder (nothing is downloaded automatically) or remove it from "requires".`);
+            addError(entry, trArgs("Missing extension dependency: %1. Install it in an extensions folder (nothing is downloaded automatically) or remove it from \"requires\".", [entry.missingDependencies.join(", ")]));
         }
 
         var entryCommands = entry.commandAvailability !== null ? entry.commandAvailability : availableCommands;
@@ -425,7 +480,7 @@ function buildCatalog(entries, options) {
                 var found = entryCommands[command] === true || (entryCommands[command] !== undefined && entryCommands[command] !== false && entryCommands[command] !== "");
                 if (!found) {
                     entry.missingCommands.push(command);
-                    addError(entry, `Missing command "${command}". Install it with your package manager or remove it from "commands".`);
+                    addError(entry, trArgs("Missing command \"%1\". Install it with your package manager or remove it from \"commands\".", [command]));
                 }
             }
         }

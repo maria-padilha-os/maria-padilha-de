@@ -44,7 +44,7 @@ Item {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: "Assistant"
+                    text: Tr.tr("Assistant")
                     font: Tokens.font.title.medium
                     color: Colours.palette.m3onSurface
                 }
@@ -104,7 +104,7 @@ Item {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: modelData.role === "user" ? "You" : (modelData.cancelled ? "Assistant · cancelled" : "Assistant")
+                        text: modelData.role === "user" ? Tr.trCtx("You", "chat message author") : (modelData.cancelled ? Tr.trCtx("Assistant · cancelled", "chat message author and state") : Tr.trCtx("Assistant", "chat message author"))
                         font: Tokens.font.label.small
                         color: Colours.palette.m3onSurfaceVariant
                     }
@@ -120,7 +120,7 @@ Item {
 
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.medium
-                            text: (modelData.text || (modelData.streaming ? "Thinking…" : "")) + (modelData.streaming ? " ▍" : "")
+                            text: (modelData.text || (modelData.streaming ? Tr.tr("Thinking…") : "")) + (modelData.streaming ? " ▍" : "")
                             wrapMode: Text.Wrap
                             textFormat: Text.PlainText
                             color: modelData.role === "user" ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
@@ -147,7 +147,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: "Ask the assistant"
+                        placeholderText: Tr.tr("Ask the assistant")
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.medium
                         background: null
@@ -170,7 +170,7 @@ Item {
 
                 IconTextButton {
                     icon: Assistant.streaming ? "stop" : "send"
-                    text: Assistant.streaming ? "Stop" : "Send"
+                    text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
                     enabled: Assistant.streaming || (Assistant.ready && composer.text.trim().length > 0)
                     onClicked: Assistant.streaming ? Assistant.cancel() : Assistant.send(composer.text)
                 }
@@ -178,7 +178,7 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: Assistant.configured ? "Read-only · grants are managed by padilha-ai" : "Configure a provider in ~/.config/padilha/ai.lua"
+                text: Assistant.configured ? Tr.tr("Read-only · grants are managed by padilha-ai") : Tr.tr("Configure a provider in ~/.config/padilha/ai.lua")
                 font: Tokens.font.label.small
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight

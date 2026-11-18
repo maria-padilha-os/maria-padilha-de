@@ -13,5 +13,6 @@ header_pages:
   - accessibility.md
   - multi-monitor.md
   - performance.md
+  - localization.md
   - support.md
 show_excerpts: true

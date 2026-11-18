@@ -334,7 +334,7 @@ StyledWindow {
 
                                 StyledText {
                                     Layout.fillWidth: true
-                                    text: Qt.formatDateTime(new Date((entryRow.modelData.time ?? 0) * 1000), "HH:mm")
+                                    text: Units.locale.toString(new Date((entryRow.modelData.time ?? 0) * 1000), "HH:mm")
                                     color: entryRow.current ? Qt.alpha(Colours.palette.m3onSecondaryContainer, 0.75) : Colours.palette.m3onSurfaceVariant
                                     font: Tokens.font.label.small
                                 }
@@ -420,7 +420,7 @@ StyledWindow {
                 }
 
                 StyledText {
-                    text: Tr.tr("%1 entries").arg(ClipboardHistory.count)
+                    text: Tr.trN("%n entry", "%n entries", ClipboardHistory.count)
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.label.small
                 }

@@ -42,9 +42,9 @@ Item {
     readonly property string eventsPath: `${root.stateDir}/events.json`
     readonly property var weekdays: [Tr.tr("Mon"), Tr.tr("Tue"), Tr.tr("Wed"), Tr.tr("Thu"), Tr.tr("Fri"), Tr.tr("Sat"), Tr.tr("Sun")]
     readonly property string todayKey: root.dateKey(new Date())
-    readonly property string monthLabel: Qt.formatDate(new Date(root.viewYear, root.viewMonth, 1), "MMMM yyyy")
+    readonly property string monthLabel: Units.locale.toString(new Date(root.viewYear, root.viewMonth, 1), Tr.trCtx("MMMM yyyy", "calendar month and year"))
     readonly property var selectedEvents: root.events.filter(event => event.date === root.selectedKey)
-    readonly property string selectedLabel: Qt.formatDate(root.keyDate(root.selectedKey), "dddd, d MMMM")
+    readonly property string selectedLabel: Units.locale.toString(root.keyDate(root.selectedKey), Tr.trCtx("dddd, d MMMM", "calendar selected date"))
 
     readonly property var cells: {
         const first = new Date(root.viewYear, root.viewMonth, 1);

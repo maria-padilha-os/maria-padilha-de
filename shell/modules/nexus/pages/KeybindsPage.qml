@@ -75,7 +75,7 @@ PageBase {
 
             StyledText {
                 Layout.fillWidth: true
-                text: root.loading ? Tr.tr("Reading keybinds…") : Tr.tr("%1 shortcuts").arg(root.rowCount)
+                text: root.loading ? Tr.tr("Reading keybinds…") : Tr.trN("%n shortcut", "%n shortcuts", root.rowCount)
                 font: Tokens.font.body.medium
                 elide: Text.ElideRight
             }

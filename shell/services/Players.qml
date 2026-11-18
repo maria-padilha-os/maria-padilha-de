@@ -211,7 +211,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaToggle"
-        description: "Toggle media playback"
+        description: Tr.tr("Toggle media playback")
         onPressed: {
             const active = root.active;
             if (active && active.canTogglePlaying)
@@ -223,7 +223,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaPrev"
-        description: "Previous track"
+        description: Tr.tr("Previous track")
         onPressed: {
             const active = root.active;
             if (active && active.canGoPrevious)
@@ -235,7 +235,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaNext"
-        description: "Next track"
+        description: Tr.tr("Next track")
         onPressed: {
             const active = root.active;
             if (active && active.canGoNext)
@@ -247,7 +247,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaStop"
-        description: "Stop media playback"
+        description: Tr.tr("Stop media playback")
         onPressed: root.active?.stop()
     }
 
@@ -255,7 +255,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaSeekBackward"
-        description: "Seek media backward"
+        description: Tr.tr("Seek media backward")
         onPressed: root.perform("seekBackward")
     }
 
@@ -263,7 +263,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaSeekForward"
-        description: "Seek media forward"
+        description: Tr.tr("Seek media forward")
         onPressed: root.perform("seekForward")
     }
 
@@ -271,7 +271,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaVolumeUp"
-        description: "Raise the active player's volume"
+        description: Tr.tr("Raise the active player's volume")
         onPressed: root.perform("volumeUp")
     }
 
@@ -279,7 +279,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "mediaVolumeDown"
-        description: "Lower the active player's volume"
+        description: Tr.tr("Lower the active player's volume")
         onPressed: root.perform("volumeDown")
     }
 

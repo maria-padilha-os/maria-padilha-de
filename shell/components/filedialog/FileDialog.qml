@@ -68,6 +68,28 @@ LazyLoader {
             folderContents.focusView();
         }
 
+        // XDG directory names stay English on disk; only their labels translate.
+        function placeLabel(place: string): string {
+            switch (place) {
+            case "Home":
+                return Tr.trCtx("Home", "file dialog place");
+            case "Downloads":
+                return Tr.trCtx("Downloads", "file dialog place");
+            case "Desktop":
+                return Tr.trCtx("Desktop", "file dialog place");
+            case "Documents":
+                return Tr.trCtx("Documents", "file dialog place");
+            case "Music":
+                return Tr.trCtx("Music", "file dialog place");
+            case "Pictures":
+                return Tr.trCtx("Pictures", "file dialog place");
+            case "Videos":
+                return Tr.trCtx("Videos", "file dialog place");
+            default:
+                return place;
+            }
+        }
+
         implicitWidth: 1000
         implicitHeight: 600
         minimumSize.width: 400

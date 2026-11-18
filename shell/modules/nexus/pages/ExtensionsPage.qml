@@ -62,9 +62,10 @@ PageBase {
                 text: {
                     if (Extensions.loading)
                         return Tr.tr("Looking for extensions…");
+                    const total = Tr.trN("%n extension", "%n extensions", Extensions.list.length);
                     if (root.query.length > 0 || root.filterMode !== "all")
-                        return Tr.tr("%1 of %2 extensions").arg(root.filteredExtensions.length).arg(Extensions.list.length);
-                    return Tr.tr("%1 extensions").arg(Extensions.list.length);
+                        return Tr.tr("%1 of %2").arg(root.filteredExtensions.length).arg(total);
+                    return total;
                 }
                 font: Tokens.font.body.medium
                 elide: Text.ElideRight
@@ -112,7 +113,7 @@ PageBase {
             Layout.fillWidth: true
             Layout.topMargin: Tokens.spacing.small
             visible: Extensions.problemCount > 0
-            text: Extensions.problemCount === 1 ? Tr.tr("1 extension needs attention. Problems are shown on its card and it stays listed.") : Tr.tr("%1 extensions need attention. Problems are shown on their cards and they stay listed.").arg(Extensions.problemCount)
+            text: Tr.trN("%n extension needs attention. Problems are shown on its card and it stays listed.", "%n extensions need attention. Problems are shown on their cards and they stay listed.", Extensions.problemCount)
             color: Colours.palette.m3error
             font: Tokens.font.body.small
             wrapMode: Text.WordWrap

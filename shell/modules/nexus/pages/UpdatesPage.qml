@@ -36,7 +36,7 @@ PageBase {
 
             StyledText {
                 Layout.fillWidth: true
-                text: root.checking ? Tr.tr("Checking for updates…") : root.updates.length === 0 ? Tr.tr("System is up to date") : Tr.tr("%1 updates available").arg(root.updates.length)
+                text: root.checking ? Tr.tr("Checking for updates…") : root.updates.length === 0 ? Tr.tr("System is up to date") : Tr.trN("%n update available", "%n updates available", root.updates.length)
                 font: Tokens.font.body.medium
                 elide: Text.ElideRight
             }

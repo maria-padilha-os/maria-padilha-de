@@ -113,8 +113,8 @@ Singleton {
     readonly property string feelsLike: formatTemp(cc?.feelsLikeC)
     readonly property int humidity: cc?.humidity ?? 0
     readonly property real windSpeed: cc?.windSpeed ?? 0
-    readonly property string sunrise: cc ? Qt.formatDateTime(new Date(cc.sunrise), Units.twelveHourClock ? "h:mm A" : "h:mm") : "--:--"
-    readonly property string sunset: cc ? Qt.formatDateTime(new Date(cc.sunset), Units.twelveHourClock ? "h:mm A" : "h:mm") : "--:--"
+    readonly property string sunrise: cc ? Units.locale.toString(new Date(cc.sunrise), Units.twelveHourClock ? "h:mm A" : "h:mm") : "--:--"
+    readonly property string sunset: cc ? Units.locale.toString(new Date(cc.sunset), Units.twelveHourClock ? "h:mm A" : "h:mm") : "--:--"
 
     readonly property string lastUpdatedLabel: {
         if (!hasData || lastUpdated <= 0)
@@ -122,10 +122,12 @@ Singleton {
         const date = new Date(lastUpdated);
         const current = new Date(now);
         const sameDay = date.toDateString() === current.toDateString();
-        const time = Qt.formatDateTime(date, Units.twelveHourClock ? "h:mm AP" : "HH:mm");
+        const time = Units.locale.toString(date, Units.twelveHourClock ? Tr.trCtx("h:mm AP", "weather update time") : Tr.trCtx("HH:mm", "weather update time"));
         return sameDay
             ? Tr.tr("Last updated %1").arg(time)
-            : Tr.tr("Last updated %1").arg(Qt.formatDateTime(date, "MMM d, " + (Units.twelveHourClock ? "h:mm AP" : "HH:mm")));
+            : Tr.tr("Last updated %1").arg(Units.locale.toString(date, Units.twelveHourClock
+                ? Tr.trCtx("MMM d, h:mm AP", "weather update date and time, 12-hour")
+                : Tr.trCtx("MMM d, HH:mm", "weather update date and time, 24-hour")));
     }
     readonly property string statusText: {
         if (status === "no-location")

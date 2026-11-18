@@ -618,7 +618,7 @@ Item {
                         Text {
                             id: osmAttribution
 
-                            text: MapStyle.OSM_ATTRIBUTION
+                            text: Tr.trCtx("© OpenStreetMap contributors", "map attribution")
                             color: root.onSurfaceVariant
                             font: Tokens.font.label.small
 
@@ -641,7 +641,7 @@ Item {
                             id: cartoAttribution
 
                             visible: root.hasCartoKey
-                            text: MapStyle.CARTO_ATTRIBUTION
+                            text: Tr.trCtx("© CARTO", "map attribution")
                             color: root.onSurfaceVariant
                             font: Tokens.font.label.small
 

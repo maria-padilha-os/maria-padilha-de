@@ -21,6 +21,10 @@ result-*
 .scratch/
 __pycache__/
 
+# generated translation template and temporary manifest bridge
+/shell/plugin/src/Caelestia/I18n/trs/raw.pot
+/shell/plugin/src/Caelestia/I18n/trs/manifest-strings.js
+
 # makepkg artefacts
 packaging/pkg/
 packaging/src/

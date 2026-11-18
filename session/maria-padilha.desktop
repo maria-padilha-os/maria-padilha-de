@@ -1,6 +1,8 @@
 [Desktop Entry]
 Name=Maria Padilha
+Name[pt_BR]=Maria Padilha
 Comment=Desktop Maria Padilha
+Comment[pt_BR]=Área de trabalho Maria Padilha
 Exec=hyprland
 Type=Application
 DesktopNames=Hyprland

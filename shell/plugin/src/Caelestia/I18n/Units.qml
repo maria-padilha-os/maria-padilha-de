@@ -5,11 +5,15 @@ import Caelestia.Config
 import Caelestia.I18n
 
 QtObject {
+    // The UI language controls dates, times and the Auto unit guesses. An
+    // empty language means the shell has no catalog for the system locale.
+    readonly property var locale: Qt.locale(Tr.language.length > 0 ? Tr.language : Qt.locale().name)
+
     // Whether to show a 12-hour clock, guessing from the locale when Auto
     readonly property bool twelveHourClock: {
         const format = GlobalConfig.services.clockFormat;
         if (format === ClockFormat.Auto)
-            return Qt.locale().timeFormat(Locale.ShortFormat).toLowerCase().includes("a");
+            return locale.timeFormat(Locale.ShortFormat).toLowerCase().includes("a");
         return format === ClockFormat.TwelveHour;
     }
 
@@ -24,7 +28,7 @@ QtObject {
     function resolveTempUnit(unit: int): int {
         if (Number(unit) !== TemperatureUnit.Auto)
             return unit;
-        const parts = String(Qt.locale().name).split("_");
+        const parts = String(locale.name).split("_");
         return temperatureUnitForCountry(parts.length > 1 ? parts[1] : "");
     }
 

@@ -44,42 +44,42 @@ Item {
     readonly property color outline: root.themePalette ? root.themePalette.m3outline : "transparent"
     readonly property color danger: root.themePalette ? root.themePalette.m3error : "transparent"
 
-    // MyMemory codes; labels stay in English like the manifest.
+    // MyMemory codes; labels follow the shell language like the rest of the tab.
     readonly property var languages: [
         {
-            "name": "English",
+            "name": Tr.tr("English"),
             "code": "en"
         },
         {
-            "name": "Portuguese",
+            "name": Tr.tr("Portuguese (Brazil)"),
             "code": "pt-BR"
         },
         {
-            "name": "Spanish",
+            "name": Tr.tr("Spanish"),
             "code": "es"
         },
         {
-            "name": "French",
+            "name": Tr.tr("French"),
             "code": "fr"
         },
         {
-            "name": "German",
+            "name": Tr.tr("German"),
             "code": "de"
         },
         {
-            "name": "Italian",
+            "name": Tr.tr("Italian"),
             "code": "it"
         },
         {
-            "name": "Japanese",
+            "name": Tr.tr("Japanese"),
             "code": "ja"
         },
         {
-            "name": "Russian",
+            "name": Tr.tr("Russian"),
             "code": "ru"
         },
         {
-            "name": "Chinese (Simplified)",
+            "name": Tr.tr("Chinese (Simplified)"),
             "code": "zh-CN"
         }
     ]

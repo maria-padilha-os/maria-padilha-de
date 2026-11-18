@@ -7,6 +7,9 @@ end
 
 cd (status dirname)/.. || exit 1
 set -l tr_dir plugin/src/Caelestia/I18n/trs
+if set -q PADILHA_TRS_DIR
+    set tr_dir $PADILHA_TRS_DIR
+end
 set -g pot_file $tr_dir/raw.pot
 mkdir -p $tr_dir
 
@@ -24,6 +27,8 @@ function gen -a lang
         -ktrN:1,2 -ktrCtxN:4c,1,2 \
         -kmark:1 -kmarkCtx:2c,1 \
         -kmarkN:1,2 -kmarkCtxN:4c,1,2 \
+        -ktrText:1 -ktrTextCtx:2c,1 \
+        -ktrArgs:1 \
         (string match -v 'build/*' $argv[2..])
 end
 
@@ -31,10 +36,25 @@ function compile -a po mo
     msgfmt --check-format -o $mo $po
 end
 
+function gen_manifests
+    # Extension manifests are data files, not translatable source. Turn the
+    # user-facing fields into ordinary Tr.tr calls so the same catalog covers
+    # the extension manager and the tabs.
+    set -l manifest_js (dirname $pot_file)/manifest-strings.js
+    python3 scripts/manifest-strings.py $manifest_js ../extensions/*/extension.json ../share/extensions/*/extension.json
+    gen JavaScript $manifest_js
+    # The bridge file is temporary; do not leak its absolute path into the
+    # translator template. Manifest strings are still ordinary msgids.
+    perl -pi -e 's/\s*\S*manifest-strings\.js//g; s/^#:\s*$//mg' $pot_file
+    rm -f $manifest_js
+end
+
 function gen_trs
     echo > $pot_file
-    gen JavaScript **.qml
+    gen JavaScript **.qml ../extensions/**/*.qml ../share/extensions/**/*.qml
+    gen JavaScript **.js
     gen C++ **.cpp **.hpp
+    gen_manifests
 
     # Strip js format then tag qt-format, with qt-plural-format for the %n count
     perl -00 -i -pe '

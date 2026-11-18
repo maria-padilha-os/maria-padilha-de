@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import qs.components.misc
 import qs.services
+import Caelestia.I18n
 
 Scope {
     id: root
@@ -40,7 +41,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "capturePanel"
-        description: "Open the screenshot and recording panel"
+        description: Tr.tr("Open the screenshot and recording panel")
         onPressed: root.openPanel()
     }
 
@@ -48,7 +49,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "captureFull"
-        description: "Screenshot the focused monitor"
+        description: Tr.tr("Screenshot the focused monitor")
         onPressed: root.takeScreenshot("full", false)
     }
 
@@ -56,7 +57,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "captureWindow"
-        description: "Screenshot the focused window"
+        description: Tr.tr("Screenshot the focused window")
         onPressed: root.takeScreenshot("window", false)
     }
 
@@ -64,7 +65,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "captureRegion"
-        description: "Screenshot a region"
+        description: Tr.tr("Screenshot a region")
         onPressed: root.takeScreenshot("region", false)
     }
 
@@ -72,7 +73,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "captureRecord"
-        description: "Start or stop a screen recording"
+        description: Tr.tr("Start or stop a screen recording")
         onPressed: {
             if (Recorder.running)
                 root.stopRecording();

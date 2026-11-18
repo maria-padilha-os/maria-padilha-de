@@ -62,7 +62,7 @@ Item {
     property bool editingPath: false
     property string pendingKeys: ""
     readonly property bool textEditing: searchField.activeFocus || addressField.activeFocus
-    readonly property string modeLabel: root.searchActive ? Keybindings.modeLabels.search : root.vimEnabled ? Keybindings.modeLabels.normal : ""
+    readonly property string modeLabel: root.searchActive ? Tr.trCtx("SEARCH", "file manager mode") : root.vimEnabled ? Tr.trCtx("NORMAL", "file manager mode") : ""
     readonly property int focusRingWidth: 2
 
     // Exposed for the runtime probe (and useful for tests).
@@ -434,7 +434,7 @@ Item {
         if (isNaN(date.getTime()))
             return "";
         const sameYear = date.getFullYear() === new Date().getFullYear();
-        return Qt.formatDateTime(date, sameYear ? "MMM d, HH:mm" : "MMM d, yyyy");
+        return Units.locale.toString(date, sameYear ? Tr.trCtx("MMM d, HH:mm", "file date and time") : Tr.trCtx("MMM d, yyyy", "file date"));
     }
 
     function suffixOf(name) {

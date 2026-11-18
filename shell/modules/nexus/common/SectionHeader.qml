@@ -15,4 +15,6 @@ StyledText {
     color: Colours.palette.m3onSurfaceVariant
     font: Tokens.font.label.medium
     elide: Text.ElideRight
+    wrapMode: Text.WordWrap
+    maximumLineCount: 2
 }
