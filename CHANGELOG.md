@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- The Updates page is now an explicit, safe package manager instead of a
+  read-only version list. It shows each pending pacman upgrade with both
+  versions and its download and installed size, requires a separate
+  confirmation before applying anything, and never updates or reboots on its
+  own. Failures stay on screen with the log tail and a copyable path under
+  `~/.local/state/padilha/updates`; low battery and large updates while on
+  battery get a warning. `padilha update check|apply|log` and
+  `padilha-update` expose the same flow from a terminal. pacman remains the
+  package manager and the existing policy agent (pkexec) performs the single
+  privileged step, so there is no second privileged helper.
 - New screenshots and recording panel in the utilities drawer. It captures the
   focused monitor, focused window or a slurp region with `grim`, records with
   `wf-recorder`, has explicit Start/Stop, a configurable countdown, an in-panel

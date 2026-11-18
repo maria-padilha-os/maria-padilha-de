@@ -214,6 +214,7 @@ run_sudo chmod 755 /usr/lib/maria-padilha/bin/*
 
 commands=(
     padilha
+    padilha-update
     padilha-brightness
     padilha-config
     padilha-session

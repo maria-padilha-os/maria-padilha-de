@@ -1,0 +1,9 @@
+#!/bin/sh
+# Small dedicated entry point for the update manager. The implementation lives
+# with the rest of the command state in bin/padilha and lib/updates.lua; this
+# wrapper is unprivileged and only forwards to it.
+set -eu
+
+self=$(readlink -f -- "$0")
+dir=$(dirname -- "$self")
+exec "$dir/padilha" update "$@"

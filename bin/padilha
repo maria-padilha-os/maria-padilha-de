@@ -32,6 +32,7 @@ local schememod = require("scheme")
 local desktop = require("desktop")
 local seedmod = require("seed")
 local themes = require("themes")
+local updatemod = require("updates")
 
 local function die(message)
     io.stderr:write("padilha: ", message, "\n")
@@ -58,6 +59,9 @@ usage: padilha <command>
   theme add --name NAME --day PATH --night PATH define a paired theme
   theme remove NAME                             delete a paired theme
   theme current                                 print the active theme id
+  update check [--json]                         list pending pacman upgrades
+  update apply [--yes] [--json]                 confirm, then apply with pacman
+  update log                                    print the newest update log path
   doctor                                       check the installed pieces
 ]])
     os.exit(2)
@@ -282,6 +286,95 @@ elseif command == "scheme" then
             out[name] = { colours = built.colours, mode = built.mode }
         end
         io.write(json.encode(out))
+    else
+        usage()
+    end
+elseif command == "update" then
+    local action = table.remove(args, 1) or "check"
+    local json_out = flag("--json")
+
+    if action == "check" or action == "list" then
+        local data, err = updatemod.check()
+        if not data then
+            die(err)
+        end
+        if json_out then
+            io.write(json.encode(data))
+        else
+            updatemod.print_check(data)
+        end
+    elseif action == "apply" or action == "install" or action == "upgrade" then
+        local yes = flag("--yes") or flag("--confirm")
+        if not yes then
+            local preview, err = updatemod.check()
+            if not preview then
+                die(err)
+            end
+            if preview.count == 0 then
+                if json_out then
+                    io.write(json.encode({
+                        ok = true,
+                        aborted = false,
+                        count = 0,
+                        message = "No updates are available.",
+                        logPath = "",
+                    }))
+                else
+                    io.write("System is up to date.\n")
+                end
+                os.exit(0)
+            end
+
+            if not json_out then
+                updatemod.print_check(preview)
+            end
+            io.stderr:write(("\nApply %d update(s)? [y/N] "):format(preview.count))
+            io.stderr:flush()
+            local answer = io.stdin:read("*l")
+            if not updatemod.is_yes(answer) then
+                local message = "Aborted; nothing was installed or changed."
+                if json_out then
+                    io.write(json.encode({
+                        ok = false,
+                        aborted = true,
+                        count = preview.count,
+                        message = message,
+                        logPath = "",
+                    }))
+                else
+                    io.write(message, "\n")
+                end
+                os.exit(3)
+            end
+            yes = true
+        end
+
+        local result, err = updatemod.apply({
+            confirmed = yes,
+        })
+        if not result then
+            die(err)
+        end
+        if json_out then
+            io.write(json.encode(result))
+        else
+            updatemod.print_apply(result)
+        end
+        if not result.ok then
+            os.exit(1)
+        end
+    elseif action == "log" or action == "status" then
+        local path = updatemod.latest_log()
+        if not path then
+            die("no update logs yet")
+        end
+        if json_out then
+            io.write(json.encode({
+                logPath = path,
+            }))
+        else
+            io.write(path, "\n")
+        end
     else
         usage()
     end
