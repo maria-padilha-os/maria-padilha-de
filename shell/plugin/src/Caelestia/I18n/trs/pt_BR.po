@@ -3683,12 +3683,147 @@ msgstr "Verificando atualizações…"
 msgid "System is up to date"
 msgstr "O sistema está atualizado"
 
+
 #: modules/nexus/pages/UpdatesPage.qml
-#, qt-plural-format
-msgid "%n update available"
-msgid_plural "%n updates available"
-msgstr[0] "%n atualização disponível"
-msgstr[1] "%n atualizações disponíveis"
+msgid "1 update available"
+msgstr "1 atualização disponível"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "%1 updates available"
+msgstr "%1 atualizações disponíveis"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "%1 · %2 download · %3 installed"
+msgstr "%1 · %2 de download · %3 instalado"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "%1 download · %2 installed"
+msgstr "%1 de download · %2 instalado"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "%1 → %2"
+msgstr "%1 → %2"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Apply 1 update?"
+msgstr "Aplicar 1 atualização?"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "Apply %1 updates?"
+msgstr "Aplicar %1 atualizações?"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "%1 download · %2 installed. Nothing is installed until you confirm."
+msgstr "%1 de download · %2 instalado. Nada é instalado até você confirmar."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Applying needs your confirmation. Maria Padilha never updates or reboots on its own."
+msgstr "A aplicação precisa da sua confirmação. A Maria Padilha nunca atualiza ou reinicia sozinha."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Applying updates… Do not power off the machine. A reboot is never started automatically."
+msgstr "Aplicando atualizações… Não desligue a máquina. Uma reinicialização nunca é iniciada automaticamente."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Battery is low"
+msgstr "Bateria fraca"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "Battery is low (%1%). Plug in the charger before applying this update."
+msgstr "Bateria fraca (%1%). Conecte o carregador antes de aplicar esta atualização."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Confirm update"
+msgstr "Confirmar atualização"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Copy log path"
+msgstr "Copiar caminho do log"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Copyable log path after an update"
+msgstr "Caminho copiável do log após uma atualização"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Could not check for updates"
+msgstr "Não foi possível verificar atualizações"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Could not read the update list."
+msgstr "Não foi possível ler a lista de atualizações."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Explicit confirmation before applying updates"
+msgstr "Confirmação explícita antes de aplicar atualizações"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Ignored by pacman"
+msgstr "Ignorado pelo pacman"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Large updates warn when the session is on battery"
+msgstr "Atualizações grandes avisam quando a sessão está na bateria"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "No update check has run yet"
+msgstr "Nenhuma verificação de atualizações foi executada ainda"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Nothing is downloaded or installed until you review the list and confirm."
+msgstr "Nada é baixado ou instalado até você revisar a lista e confirmar."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Refusing to apply updates without confirmation."
+msgstr "Recusando aplicar atualizações sem confirmação."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Review and apply"
+msgstr "Revisar e aplicar"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Review pending upgrades before installing anything"
+msgstr "Revise as atualizações pendentes antes de instalar qualquer coisa"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Some package sizes are unknown."
+msgstr "Alguns tamanhos de pacote são desconhecidos."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "The update check failed."
+msgstr "A verificação de atualizações falhou."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "The update command failed."
+msgstr "O comando de atualização falhou."
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "The update command returned no result (exit %1)."
+msgstr "O comando de atualização não retornou resultado (saída %1)."
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "This is a large update (%1 download) and the session is on battery. Plug in the charger before applying it."
+msgstr "Esta é uma atualização grande (%1 de download) e a sessão está na bateria. Conecte o carregador antes de aplicá-la."
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update check failed"
+msgstr "Falha na verificação de atualizações"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update failed"
+msgstr "Falha na atualização"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update finished"
+msgstr "Atualização concluída"
 
 #: modules/nexus/pages/UpdatesPage.qml
 msgid "Check for updates"

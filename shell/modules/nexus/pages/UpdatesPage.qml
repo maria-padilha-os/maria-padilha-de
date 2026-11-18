@@ -342,10 +342,14 @@ PageBase {
         }
     }
 
-    Timer {
-        id: copyTimer
+    Item {
+        id: copyTimerHost
 
-        interval: 1600
-        onTriggered: root.copiedLog = false
+        Timer {
+            id: copyTimer
+
+            interval: 1600
+            onTriggered: root.copiedLog = false
+        }
     }
 }
