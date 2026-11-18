@@ -1,0 +1,29 @@
+{
+  "comment": "WCAG 2.2 contrast contract for share/templates/thunar.css. Pair names are scheme.json role names. Text pairs use the 4.5:1 body-text threshold; focus and rubberband pairs are UI indicators and use 3:1.",
+  "seeds": ["000000", "ffffff", "ff1a1a", "1a5cff", "00a86b", "ffd400", "8a2be2"],
+  "variants": ["tonalspot", "vibrant", "content", "monochrome"],
+  "textPairs": [
+    { "name": "window text", "fg": "onSurface", "bg": "surface", "minimum": 4.5 },
+    { "name": "file view text", "fg": "onSurface", "bg": "surfaceContainerLow", "minimum": 4.5 },
+    { "name": "muted status text", "fg": "onSurfaceVariant", "bg": "surfaceContainerLow", "minimum": 4.5 },
+    { "name": "menu text", "fg": "onSurface", "bg": "surfaceContainer", "minimum": 4.5 },
+    { "name": "muted menu text", "fg": "onSurfaceVariant", "bg": "surfaceContainer", "minimum": 4.5 },
+    { "name": "selected row text", "fg": "onPrimaryContainer", "bg": "primaryContainer", "minimum": 4.5 },
+    { "name": "selected sidebar text", "fg": "onPrimaryContainer", "bg": "primaryContainer", "minimum": 4.5 },
+    { "name": "selected path text", "fg": "onPrimaryContainer", "bg": "primaryContainer", "minimum": 4.5 },
+    { "name": "entry text", "fg": "onSurface", "bg": "surfaceContainerLowest", "minimum": 4.5 },
+    { "name": "dialog text", "fg": "onSurface", "bg": "surface", "minimum": 4.5 },
+    { "name": "dialog muted text", "fg": "onSurfaceVariant", "bg": "surface", "minimum": 4.5 },
+    { "name": "close button hover text", "fg": "onErrorContainer", "bg": "errorContainer", "minimum": 4.5 },
+    { "name": "close button active text", "fg": "onError", "bg": "error", "minimum": 4.5 }
+  ],
+  "focusPairs": [
+    { "name": "focus ring on window", "fg": "primary", "bg": "surface", "minimum": 3.0 },
+    { "name": "focus ring on file view", "fg": "primary", "bg": "surfaceContainerLow", "minimum": 3.0 },
+    { "name": "focus ring on menu", "fg": "primary", "bg": "surfaceContainer", "minimum": 3.0 },
+    { "name": "focus ring on entry", "fg": "primary", "bg": "surfaceContainerLowest", "minimum": 3.0 },
+    { "name": "rubberband edge on file view", "fg": "primary", "bg": "surfaceContainerLow", "minimum": 3.0 },
+    { "name": "close button edge on window", "fg": "error", "bg": "surface", "minimum": 3.0 },
+    { "name": "focus ring inside selection", "fg": "onPrimaryContainer", "bg": "primaryContainer", "minimum": 3.0 }
+  ]
+}

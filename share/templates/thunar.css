@@ -1,201 +1,621 @@
-/* Thunar theme */
+/* Thunar theme
+ *
+ * Rendered twice by `padilha-theme apply`:
+ *   ~/.config/gtk-3.0/thunar.css   (GTK 3 / Thunar 4.18+)
+ *   ~/.config/gtk-4.0/thunar.css   (GTK 4 / the GTK 4 Thunar port)
+ *
+ * Keep selectors and properties inside the GTK 3.24 and GTK 4 CSS
+ * intersection. Colours come from the generated scheme only; the alpha()
+ * calls derive hover and focus tints from those same roles.
+ */
 
 /* =============================================================================
-   Global Resets
+   Window, titlebar and window controls
    ============================================================================= */
 
-.thunar * {
-    outline: none;
-    border: none;
-}
-
-/* =============================================================================
-   Window & Background
-   ============================================================================= */
-
+window.thunar,
 .thunar.background {
-    background: {{ $surface }};
+    background-color: {{ $surface }};
+    color: {{ $onSurface }};
 }
 
-.thunar .titlebar {
-    background: inherit;
+.thunar .titlebar,
+.thunar headerbar,
+.thunar header.top {
+    background-color: {{ $surface }};
+    color: {{ $onSurface }};
+    border: none;
+    box-shadow: none;
+    min-height: 36px;
+    padding: 6px 8px;
 }
 
-.thunar .titlebutton.close {
-    margin: 0 15px 0 0;
+.thunar .titlebar .title,
+.thunar headerbar .title {
+    color: {{ $onSurface }};
+    font-weight: bold;
+}
+
+.thunar .titlebutton,
+.thunar headerbar button.titlebutton {
+    min-width: 22px;
+    min-height: 22px;
+    margin: 0 2px;
+    padding: 3px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background-color: transparent;
+    color: {{ $onSurfaceVariant }};
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.thunar .titlebutton:hover,
+.thunar headerbar button.titlebutton:hover {
+    background-color: alpha({{ $onSurface }}, 0.10);
+    color: {{ $onSurface }};
+}
+
+.thunar .titlebutton:active,
+.thunar headerbar button.titlebutton:active {
+    background-color: alpha({{ $onSurface }}, 0.16);
+    color: {{ $onSurface }};
+}
+
+.thunar .titlebutton.close:hover,
+.thunar headerbar button.titlebutton.close:hover {
+    background-color: {{ $errorContainer }};
+    border-color: {{ $error }};
+    color: {{ $onErrorContainer }};
+}
+
+.thunar .titlebutton.close:active,
+.thunar headerbar button.titlebutton.close:active {
+    background-color: {{ $error }};
+    border-color: {{ $error }};
+    color: {{ $onError }};
 }
 
 /* =============================================================================
-   Layout Containers
+   Notebook tabs
    ============================================================================= */
 
-/* Paned separator between sidebar and main view */
+.thunar header.top tabs,
+.thunar notebook > header,
+.thunar notebook > header > tabs {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.thunar header.top tabs tab,
+.thunar .reorderable-page,
+.thunar notebook > header > tabs > tab {
+    min-height: 28px;
+    margin: 2px 2px 0 2px;
+    padding: 6px 12px;
+    border: 1px solid transparent;
+    border-radius: 10px 10px 0 0;
+    background-color: transparent;
+    color: {{ $onSurfaceVariant }};
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.thunar header.top tabs tab:hover,
+.thunar .reorderable-page:hover,
+.thunar notebook > header > tabs > tab:hover {
+    background-color: alpha({{ $primary }}, 0.08);
+    color: {{ $onSurface }};
+}
+
+.thunar header.top tabs tab:checked,
+.thunar .reorderable-page:checked,
+.thunar notebook > header > tabs > tab:checked {
+    background-color: {{ $primaryContainer }};
+    border-color: alpha({{ $primary }}, 0.30);
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar header.top tabs tab:checked:hover,
+.thunar .reorderable-page:checked:hover,
+.thunar notebook > header > tabs > tab:checked:hover {
+    background-color: {{ $primaryContainer }};
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar header.top tabs tab:checked label,
+.thunar .reorderable-page:checked label,
+.thunar notebook > header > tabs > tab:checked label,
+.thunar header.top tabs tab:checked button,
+.thunar .reorderable-page:checked button {
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar header.top tabs tab:disabled,
+.thunar .reorderable-page:disabled,
+.thunar notebook > header > tabs > tab:disabled {
+    color: {{ $onSurfaceVariant }};
+}
+
+/* =============================================================================
+   Path bar and location entry
+   ============================================================================= */
+
+.thunar .path-bar,
+.thunar .location-bar,
+.thunar .path-bar-box {
+    padding: 2px;
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.thunar .path-bar-button,
+.thunar .location-button {
+    min-width: 26px;
+    min-height: 26px;
+    margin: 0 2px;
+    padding: 4px 9px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: transparent;
+    color: {{ $onSurfaceVariant }};
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.thunar .location-button.path-bar-button:not(:checked),
+.thunar .path-bar-button:not(:checked) {
+    background-color: {{ $surfaceContainerLow }};
+    color: {{ $onSurfaceVariant }};
+}
+
+.thunar .location-button.path-bar-button:not(:checked):hover,
+.thunar .path-bar-button:not(:checked):hover {
+    background-color: {{ $surfaceContainerHigh }};
+    border-color: {{ $outlineVariant }};
+    color: {{ $onSurface }};
+}
+
+.thunar .location-button.toggle:checked,
+.thunar .location-button.path-bar-button:checked,
+.thunar .path-bar-button.toggle:checked {
+    padding: 4px 9px;
+    border-color: alpha({{ $primary }}, 0.30);
+    background-color: {{ $primaryContainer }};
+    color: {{ $onPrimaryContainer }};
+    box-shadow: none;
+}
+
+.thunar .location-button.toggle + .location-button.toggle {
+    margin-left: 0;
+}
+
+.thunar entry,
+.thunar .path-bar entry,
+.thunar .location-bar entry {
+    min-height: 28px;
+    padding: 4px 10px;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 8px;
+    background-color: {{ $surfaceContainerLowest }};
+    color: {{ $onSurface }};
+    caret-color: {{ $primary }};
+}
+
+.thunar entry:focus {
+    border-color: {{ $primary }};
+}
+
+.thunar entry selection,
+.thunar entry :selected,
+.thunar textview text selection {
+    background-color: {{ $primaryContainer }};
+    color: {{ $onPrimaryContainer }};
+}
+
+/* =============================================================================
+   Sidebar
+   ============================================================================= */
+
+.thunar .sidebar {
+    padding: 8px;
+    border: none;
+    border-right: 1px solid {{ $outlineVariant }};
+    background-color: {{ $surfaceContainerLow }};
+    color: {{ $onSurface }};
+}
+
+.thunar .sidebar scrolledwindow,
+.thunar .sidebar viewport,
+.thunar .sidebar .view,
+.thunar .sidebar treeview.view {
+    background-color: transparent;
+    color: {{ $onSurface }};
+}
+
+.thunar .sidebar .view,
+.thunar .sidebar row,
+.thunar .sidebar treeview.view {
+    min-height: 28px;
+    padding: 4px 6px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.thunar .sidebar .view:hover,
+.thunar .sidebar row:hover,
+.thunar .sidebar treeview.view:hover {
+    background-color: alpha({{ $onSurface }}, 0.08);
+    border-color: transparent;
+    color: {{ $onSurface }};
+}
+
+.thunar .sidebar .view:selected,
+.thunar .sidebar row:selected,
+.thunar .sidebar treeview.view:selected,
+.thunar .sidebar treeview.view:selected:hover,
+.thunar .sidebar row:selected:hover {
+    background-color: {{ $primaryContainer }};
+    border-color: alpha({{ $primary }}, 0.30);
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar .sidebar .view:selected label,
+.thunar .sidebar row:selected label,
+.thunar .sidebar treeview.view:selected cell,
+.thunar .sidebar .view:selected image,
+.thunar .sidebar row:selected image {
+    color: {{ $onPrimaryContainer }};
+}
+
+/* =============================================================================
+   Main file view: GTK 3 tree/icon views and GTK 4 list/grid/column views
+   ============================================================================= */
+
 .thunar paned > separator {
-    min-width: 4px;
-    margin-right: -7px;
-    margin-left: -7px;
-    background: none;
+    min-width: 1px;
+    min-height: 1px;
+    margin: 0 4px;
+    border: none;
+    background-color: {{ $outlineVariant }};
     background-image: none;
     box-shadow: none;
 }
 
-
-/* Main file view frame */
 .thunar .frame.standard-view {
-    padding: 10px;
-    margin: 10px 15px 0 0;
-    border-radius: 15px;
-    background-color: {{ $surfaceContainerLow }};
-    animation: fading 400ms ease forwards;
-    opacity: 0;
-    animation-delay: 250ms;
-}
-
-.thunar .frame.standard-view .view:not(.rubberband),
-.thunar .frame.standard-view .view *:not(.rubberband) {
-    background-color: transparent;
-}
-
-.thunar .frame.standard-view .view *:selected {
-    color: {{ $primary }};
-}
-
-.thunar .rubberband {
-    background-color: alpha({{ $primary }}, 0.15);
-    border: 1px solid alpha({{ $primary }}, 0.15);
-}
-
-
-/*  Tabs */
-.thunar header.top {
-    background: none;
-    padding: 0 10px 0 0;
-    margin: 3px 0 -3px -2px;
-}
-
-.thunar header.top tabs .reorderable-page {
-    margin: 0;
-    transition: all ease 300ms;
-}
-.thunar header.top tabs .reorderable-page + .reorderable-page {
-    margin: 0 0 0 10px;
-}
-
-.thunar header.top tabs .reorderable-page:hover {
-    background-color: alpha({{ $primary }}, 0.08);
-
-}
-.thunar header.top tabs .reorderable-page:checked {
-    color: {{ $primary }};
-    background-color: alpha({{ $primary }}, 0.15);
-
-}
-
-/* =============================================================================
-   Sidebar Navigation
-   ============================================================================= */
-
-.thunar .sidebar {
-    padding: 0 20px;
-    background: none;
-    animation: fading 600ms ease forwards;
-    animation-delay: 100ms;
-    opacity: 0;
-}
-
-.thunar .sidebar .view {
-    padding: 8px 4px;
-    border-radius: 10px;
-    background: none;
-    transition: all ease 300ms;
-}
-
-.thunar .sidebar .view:hover {
-    background: alpha({{ $onSurface }}, 0.1);
-}
-
-.thunar .sidebar .view:selected {
-    background: alpha({{ $primary }}, 0.15);
-    color: {{ $primary }};
-}
-
-/* =============================================================================
-   Path Bar & Location Buttons
-   ============================================================================= */
-
-.thunar .path-bar-button {
-    margin: 0;
-    padding: 8px 5px;
-    transition: all ease 0.4s;
-}
-
-.thunar .location-button.toggle:checked,
-.thunar .path-bar-button.toggle:checked {
-    padding: 8px 25px;
-    background: alpha({{ $primary }}, 0.15);
-    color: {{ $primary }};
-    box-shadow: none;
-}
-
-.thunar .location-button.path-bar-button:not(:checked) {
-    background-color: {{ $surfaceContainerLow }};
-}
-
-.thunar .location-button.path-bar-button:not(:checked):hover {
-    background: alpha({{ $primary }}, 0.08);
-    color: alpha({{ $primary }}, 0.8);
-}
-
-.thunar .location-button.toggle+.location-button.toggle:checked {
-    margin-left: 0px;
-    padding: 0 25px;
-}
-
-.thunar .titlebar {
-    padding: 15px 0 5px 0;
-}
-
-/* =============================================================================
-   Buttons
-   ============================================================================= */
-
-.thunar button.toggle:checked {
-    color: {{ $primary }};
-}
-
-.thunar .image-button {
+    margin: 8px 12px 8px 0;
     padding: 8px;
-    margin: 0 0 0 8px;
-    transition: all ease 0.4s;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 12px;
+    background-color: {{ $surfaceContainerLow }};
+    animation: thunar-fade 220ms ease-out forwards;
+    opacity: 0;
 }
 
-/* =============================================================================
-   Status Bar
-   ============================================================================= */
-
-.thunar statusbar {
-    background-color: {{ $surfaceContainerLow }};
-    border-radius: 15px;
-    padding: 10px 10px;
-    margin: 15px 5px 15px -10px;
+.thunar .frame.standard-view scrolledwindow,
+.thunar .frame.standard-view viewport,
+.thunar .frame.standard-view .view,
+.thunar .frame.standard-view treeview.view,
+.thunar .frame.standard-view iconview,
+.thunar .frame.standard-view listview,
+.thunar .frame.standard-view gridview,
+.thunar .frame.standard-view columnview {
+    background-color: transparent;
     color: {{ $onSurface }};
 }
 
+.thunar .frame.standard-view listview > row:hover,
+.thunar .frame.standard-view gridview > child:hover {
+    background-color: alpha({{ $primary }}, 0.07);
+}
+
+.thunar .frame.standard-view .view:selected,
+.thunar .frame.standard-view treeview.view:selected,
+.thunar .frame.standard-view iconview:selected,
+.thunar .frame.standard-view flowboxchild:selected,
+.thunar .frame.standard-view listview > row:selected,
+.thunar .frame.standard-view gridview > child:selected,
+.thunar .frame.standard-view columnview > row:selected {
+    border-radius: 6px;
+    background-color: {{ $primaryContainer }};
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar .frame.standard-view .view:selected label,
+.thunar .frame.standard-view .view:selected cell,
+.thunar .frame.standard-view treeview.view:selected cell,
+.thunar .frame.standard-view listview > row:selected label,
+.thunar .frame.standard-view gridview > child:selected label,
+.thunar .frame.standard-view columnview > row:selected label {
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar treeview.view header button,
+.thunar columnview > header > button {
+    min-height: 28px;
+    padding: 4px 8px;
+    border: none;
+    border-bottom: 1px solid {{ $outlineVariant }};
+    border-radius: 0;
+    background-color: {{ $surfaceContainer }};
+    color: {{ $onSurfaceVariant }};
+}
+
+.thunar treeview.view header button:hover,
+.thunar columnview > header > button:hover {
+    background-color: {{ $surfaceContainerHigh }};
+    color: {{ $onSurface }};
+}
+
+.thunar flowboxchild {
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.thunar flowboxchild:hover {
+    background-color: alpha({{ $primary }}, 0.07);
+}
+
+/* Rubberband selection: a visible accent edge, not just a translucent wash. */
+.thunar rubberband,
+.thunar .rubberband,
+.thunar treeview.view rubberband,
+.thunar iconview rubberband,
+.thunar flowbox rubberband {
+    border: 1px solid {{ $primary }};
+    border-radius: 4px;
+    background-color: alpha({{ $primary }}, 0.16);
+}
 
 /* =============================================================================
-   Image preview
+   Toolbars and buttons
+   ============================================================================= */
+
+.thunar toolbar,
+.thunar .toolbar,
+.thunar .inline-toolbar {
+    padding: 4px;
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.thunar toolbar button,
+.thunar .toolbar button,
+.thunar .inline-toolbar button {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background-color: transparent;
+    color: {{ $onSurfaceVariant }};
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.thunar toolbar button:hover,
+.thunar .toolbar button:hover,
+.thunar .inline-toolbar button:hover {
+    background-color: alpha({{ $onSurface }}, 0.08);
+    color: {{ $onSurface }};
+}
+
+.thunar toolbar button:active,
+.thunar .toolbar button:active,
+.thunar .inline-toolbar button:active,
+.thunar button.toggle:checked {
+    background-color: {{ $primaryContainer }};
+    border-color: alpha({{ $primary }}, 0.30);
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar toolbar button:disabled,
+.thunar .toolbar button:disabled,
+.thunar .inline-toolbar button:disabled {
+    background-color: transparent;
+    color: {{ $onSurfaceVariant }};
+}
+
+.thunar .image-button {
+    margin: 0 2px;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+/* =============================================================================
+   Status bar
+   ============================================================================= */
+
+.thunar statusbar,
+.thunar .statusbar {
+    margin: 6px 12px 12px 12px;
+    padding: 6px 10px;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 10px;
+    background-color: {{ $surfaceContainerLow }};
+    color: {{ $onSurfaceVariant }};
+}
+
+.thunar .statusbar-text {
+    color: {{ $onSurfaceVariant }};
+}
+
+/* =============================================================================
+   Menus and popovers
+   ============================================================================= */
+
+.thunar menu,
+.thunar .menu,
+.thunar .context-menu,
+.thunar popover,
+.thunar popover.background,
+.thunar popover > contents {
+    padding: 6px;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 10px;
+    background-color: {{ $surfaceContainer }};
+    color: {{ $onSurface }};
+}
+
+.thunar menu menuitem,
+.thunar .menu menuitem,
+.thunar .context-menu menuitem,
+.thunar popover menuitem {
+    min-height: 28px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    background-color: transparent;
+    color: {{ $onSurface }};
+}
+
+.thunar menuitem:hover,
+.thunar menuitem:focus,
+.thunar popover menuitem:hover,
+.thunar popover menuitem:focus {
+    background-color: alpha({{ $primary }}, 0.10);
+    color: {{ $onSurface }};
+}
+
+.thunar menuitem:disabled,
+.thunar popover menuitem:disabled {
+    background-color: transparent;
+    color: {{ $onSurfaceVariant }};
+}
+
+.thunar menu separator,
+.thunar popover separator {
+    min-height: 1px;
+    margin: 4px 8px;
+    background-color: {{ $outlineVariant }};
+}
+
+.thunar popover > arrow {
+    border: 1px solid {{ $outlineVariant }};
+    background-color: {{ $surfaceContainer }};
+}
+
+/* =============================================================================
+   Dialogs and message dialogs
+   ============================================================================= */
+
+.thunar dialog,
+.thunar .dialog,
+.thunar messagedialog,
+.thunar window.dialog,
+dialog.thunar {
+    background-color: {{ $surface }};
+    color: {{ $onSurface }};
+}
+
+.thunar dialog .titlebar,
+.thunar dialog headerbar,
+.thunar messagedialog .titlebar,
+.thunar messagedialog headerbar {
+    background-color: {{ $surface }};
+    color: {{ $onSurface }};
+    border: none;
+    box-shadow: none;
+}
+
+.thunar dialog .dialog-vbox,
+.thunar dialog > box,
+.thunar dialog .content-area,
+.thunar messagedialog .dialog-vbox {
+    padding: 12px;
+}
+
+.thunar dialog label,
+.thunar messagedialog label {
+    color: {{ $onSurface }};
+}
+
+.thunar dialog .dim-label,
+.thunar dialog .subtitle,
+.thunar messagedialog .dim-label,
+.thunar messagedialog .subtitle {
+    color: {{ $onSurfaceVariant }};
+}
+
+.thunar dialog button,
+.thunar messagedialog button {
+    min-height: 30px;
+    padding: 6px 12px;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 8px;
+    background-color: {{ $surfaceContainerLow }};
+    color: {{ $onSurface }};
+}
+
+.thunar dialog button:hover,
+.thunar messagedialog button:hover {
+    background-color: {{ $surfaceContainerHigh }};
+    color: {{ $onSurface }};
+}
+
+.thunar dialog button:active,
+.thunar messagedialog button:active {
+    background-color: {{ $primaryContainer }};
+    border-color: alpha({{ $primary }}, 0.30);
+    color: {{ $onPrimaryContainer }};
+}
+
+.thunar dialog button:disabled,
+.thunar messagedialog button:disabled {
+    background-color: {{ $surfaceContainerLow }};
+    color: {{ $onSurfaceVariant }};
+}
+
+/* =============================================================================
+   Keyboard focus
+   ============================================================================= */
+
+/* The old global outline reset hid every keyboard ring. These selectors give
+ * buttons, entries, rows, tabs and menu items the generated primary colour at
+ * a non-text 3:1 contrast against the surfaces they sit on. */
+.thunar button:focus,
+.thunar .titlebutton:focus,
+.thunar .path-bar-button:focus,
+.thunar .location-button:focus,
+.thunar entry:focus,
+.thunar treeview.view:focus,
+.thunar .view:focus,
+.thunar iconview:focus,
+.thunar listview > row:focus,
+.thunar gridview > child:focus,
+.thunar columnview > row:focus,
+.thunar flowboxchild:focus,
+.thunar tab:focus,
+.thunar menuitem:focus,
+.thunar dialog button:focus,
+.thunar messagedialog button:focus {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: {{ $primary }};
+    outline-offset: -2px;
+    box-shadow: inset 0 0 0 2px {{ $primary }};
+}
+
+/* Keep a visible ring when a selected row is also focused; the selection fill
+ * and the focus ring must not collapse into one flat colour. */
+.thunar treeview.view:focus:selected,
+.thunar .view:focus:selected,
+.thunar listview > row:focus:selected,
+.thunar gridview > child:focus:selected,
+.thunar columnview > row:focus:selected,
+.thunar flowboxchild:focus:selected {
+    border-color: {{ $onPrimaryContainer }};
+    box-shadow: inset 0 0 0 2px {{ $onPrimaryContainer }};
+}
+
+/* =============================================================================
+   Misc content
    ============================================================================= */
 
 .thunar box.vertical .image {
-    margin: 15px;
+    margin: 12px;
 }
 
-
-/* =============================================================================
-   Animation
-   ============================================================================= */
-
-@keyframes fading {
+@keyframes thunar-fade {
     to {
         opacity: 1;
     }

@@ -72,10 +72,31 @@ check "no empty files" "! find '$tmp/tree' -type f -empty | grep -q ."
 check "firefox is skipped without a profile" "! test -e '$tmp/tree/home/machine/.mozilla'"
 
 gtk="$tmp/tree/home/machine/.config/gtk-3.0/gtk.css"
+gtk3_thunar="$tmp/tree/home/machine/.config/gtk-3.0/thunar.css"
+gtk4_thunar="$tmp/tree/home/machine/.config/gtk-4.0/thunar.css"
 hypr="$tmp/tree/home/machine/.config/hypr/scheme/current.lua"
 seq="$tmp/tree/home/machine/.local/state/caelestia/sequences.txt"
 
 check "gtk gets hashed colours" "grep -q 'window_bg_color #' '$gtk'"
+check "gtk selection foreground is a generated role" \
+    "grep -q 'theme_selected_fg_color #' '$gtk'"
+check "gtk3 thunar stylesheet is written" "test -s '$gtk3_thunar'"
+check "gtk4 thunar stylesheet is written" "test -s '$gtk4_thunar'"
+check "both thunar include points share the stylesheet" \
+    "cmp -s '$gtk3_thunar' '$gtk4_thunar'"
+check "thunar keeps a generated focus outline" \
+    "grep -q 'outline-color: #' '$gtk3_thunar'"
+check "thunar covers both view toolkits" \
+    "grep -q 'treeview.view' '$gtk3_thunar' && grep -q 'listview' '$gtk3_thunar' && grep -q 'gridview' '$gtk3_thunar'"
+
+if /usr/bin/python3 "$root/tests/theme/check-thunar-contrast.py" "$root" \
+    > "$tmp/thunar-contrast.log" 2>&1; then
+    ok "thunar text, selection and focus pairs meet contrast"
+else
+    bad "thunar text, selection and focus pairs meet contrast" \
+        "$(tail -6 "$tmp/thunar-contrast.log")"
+fi
+
 check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
 lockconf="$tmp/tree/home/machine/.config/hypr/hyprlock.conf"
 check "hyprlock gets a palette" "test -s '$lockconf' && grep -q 'rgba(' '$lockconf'"
