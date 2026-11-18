@@ -1,0 +1,17 @@
+Repository      : core
+Name            : linux
+Version         : 6.12.2-arch1-1
+Download Size   : 600.00 MiB
+Installed Size  : 1.20 GiB
+
+Repository      : extra
+Name            : mesa
+Version         : 1:24.3.1-1
+Download Size   : 1.50 MiB
+Installed Size  : 12.00 MiB
+
+Repository      : extra
+Name            : ignored-package
+Version         : 1.1-1
+Download Size   : 1.00 MiB
+Installed Size  : 2.00 MiB

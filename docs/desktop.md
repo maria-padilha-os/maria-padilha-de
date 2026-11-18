@@ -19,6 +19,31 @@ Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
 colorscheme follows the same palette and switches between its ayu-inspired
 light and dark variants.
 
+## Package updates
+
+**Settings → Updates** lists pending pacman upgrades with the installed and
+candidate versions plus the download and installed size. The list is read-only:
+nothing is downloaded or installed until you choose **Review and apply** and
+then **Confirm update**. The manager never adds a timer, updates in the
+background, or starts a reboot.
+
+A confirmed update runs pacman through the existing polkit agent (pkexec). It
+does not install a second privileged helper or a root daemon. Every attempt
+writes a log under `~/.local/state/padilha/updates`; a failure shows its last
+lines in the page and the full path has a **Copy log path** button. Low battery
+always gets a warning, and a large update (500 MiB or more by download or
+installed size) warns when the session is on battery.
+
+The same flow is available from a terminal:
+
+```sh
+padilha update check          # read-only list, or --json
+padilha update apply          # lists, asks y/N, then applies
+padilha update apply --yes    # skip the prompt only after you reviewed check
+padilha update log            # newest log path
+padilha-update check          # same command under its own name
+```
+
 ## Colour picker
 
 The palette icon in the bar opens the colour picker. Nothing samples the screen

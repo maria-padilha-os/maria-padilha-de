@@ -269,7 +269,8 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 
 | command | purpose |
 | --- | --- |
-| `padilha` | small command surface for keybinds (wallpaper, scheme, `doctor`) |
+| `padilha` | small command surface for keybinds (wallpaper, scheme, updates, `doctor`) |
+| `padilha-update` | explicit package update check, confirmation, log path |
 | `padilha-config` | compile the Lua configuration; `set`, `unset`, `capture` |
 | `padilha-session` | compile, paint the palette, and start the shell |
 | `padilha-lock` | lock through `hyprlock` in its own process |
