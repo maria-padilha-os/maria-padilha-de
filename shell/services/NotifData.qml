@@ -35,7 +35,8 @@ QtObject {
     readonly property Timer timeStrTimer: Timer {
         running: !notif.closed
         repeat: true
-        interval: 5000
+        // Ages are shown in minutes, so "now" does not need a 5 s tick.
+        interval: 30000
         onTriggered: notif.updateTimeStr()
     }
 
@@ -191,7 +192,7 @@ QtObject {
         ageMins = m;
 
         if (m < 1) {
-            timeStrTimer.interval = 5000;
+            timeStrTimer.interval = 30000;
         } else {
             const h = Math.floor(m / 60);
             const d = Math.floor(h / 24);

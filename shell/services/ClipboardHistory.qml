@@ -199,11 +199,11 @@ Singleton {
         }
     }
 
-    // The marker files are watched, but a poll is the safety net for editors
-    // and filesystems where the watch is still catching up. It is cheap: two
-    // small reads, and only while the feature is enabled.
+    // The marker files are watched. This slow poll is only a safety net for
+    // filesystems where the watch is still catching up; the old 1.5 s cadence
+    // reread both files 40 times a minute while nothing changed.
     Timer {
-        interval: 1500
+        interval: 5000
         repeat: true
         running: root.enabled
         onTriggered: root.refresh()

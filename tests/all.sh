@@ -21,6 +21,7 @@ suites=(
     "$root/tests/screens/run.sh"
     "$root/tests/ai/run.sh"
     "$root/tests/voice/run.sh"
+    "$root/tests/performance/run.sh"
 )
 for extra in "$root"/tests/cli/*.sh; do
     [ -f "$extra" ] && suites+=("$extra")

@@ -75,7 +75,7 @@ Item {
                 }
 
                 FrameAnimation {
-                    running: root.opacity > 0 && !bars.settled
+                    running: root.opacity > 0 && !bars.settled && !Accessibility.reducedMotion
                     onTriggered: bars.advance(frameTime)
                 }
             }

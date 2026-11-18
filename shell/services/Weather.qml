@@ -613,9 +613,11 @@ Singleton {
         onTriggered: root.reload()
     }
 
+    // Only the relative "last updated" label needs this tick. Without a
+    // location there is no label to age, so stay asleep.
     Timer {
-        interval: 30000
-        running: true
+        interval: 60000
+        running: root.hasData
         repeat: true
         onTriggered: root.now = Date.now()
     }

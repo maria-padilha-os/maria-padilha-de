@@ -13,6 +13,14 @@
   panel metadata only, never screenshots or other screen contents. See
   `docs/multi-monitor.md` for the nested Hyprland/headless test matrix and
   `tests/screens/` for the model, removal and privacy contracts.
+- The shell now has a recorded performance budget. Media position updates use
+  one timer in the `Players` service instead of one per surface, night light
+  schedules the next hour instead of polling every minute, weather/uptime,
+  clipboard-watch and notification-age timers are slower, and looping
+  animations stop under `PADILHA_REDUCED_MOTION=1`. `tests/performance/run.sh`
+  measures offscreen startup, idle CPU, RSS and QML warning classes against
+  `tests/performance/baseline.json` and is part of `tests/all.sh`; the method
+  and reference numbers are in `docs/performance.md`.
 - New screenshots and recording panel in the utilities drawer. It captures the
   focused monitor, focused window or a slurp region with `grim`, records with
   `wf-recorder`, has explicit Start/Stop, a configurable countdown, an in-panel

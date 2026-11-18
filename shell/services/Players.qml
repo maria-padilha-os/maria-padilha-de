@@ -172,6 +172,17 @@ Singleton {
 
     onActiveChanged: lastNowPlayingKey = ""
 
+    // One position tick for every surface. The bar, popout, dashboard and
+    // lock screen all read Players.active, so a timer per widget would wake
+    // the process several times per interval for the same MPRIS update.
+    Timer {
+        running: root.active?.isPlaying ?? false
+        interval: GlobalConfig.dashboard.mediaUpdateInterval
+        triggeredOnStart: true
+        repeat: true
+        onTriggered: root.active?.positionChanged()
+    }
+
     Connections {
         function onPostTrackChanged(): void {
             root.maybeToastNowPlaying();

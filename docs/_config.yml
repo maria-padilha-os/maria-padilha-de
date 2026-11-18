@@ -12,5 +12,6 @@ header_pages:
   - design-checklist.md
   - accessibility.md
   - multi-monitor.md
+  - performance.md
   - support.md
 show_excerpts: true

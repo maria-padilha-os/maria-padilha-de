@@ -61,7 +61,7 @@ MaterialShape {
     }
 
     FrameAnimation {
-        running: root.animated && !root.springSettled
+        running: root.animated && !Accessibility.reducedMotion && !root.springSettled
         onTriggered: {
             const t = timer.elapsed();
 
@@ -80,7 +80,7 @@ MaterialShape {
         interval: 650
         repeat: true
         triggeredOnStart: true
-        running: root.animated
+        running: root.animated && !Accessibility.reducedMotion
         onTriggered: {
             root.beginBatchUpdate();
             root.fromShape = root.toShape;
@@ -102,7 +102,7 @@ MaterialShape {
     RotationAnimation on cRotation {
         id: rotateAnim
 
-        running: root.animated
+        running: root.animated && !Accessibility.reducedMotion
         from: 0
         to: 360
         easing.type: Easing.Linear
