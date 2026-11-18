@@ -182,7 +182,7 @@ StyledRect {
                             fill: 1
 
                             SequentialAnimation on opacity {
-                                running: Recorder.running && !Recorder.paused
+                                running: Recorder.running && !Recorder.paused && !Accessibility.reducedMotion
                                 alwaysRunToEnd: true
                                 loops: Animation.Infinite
 

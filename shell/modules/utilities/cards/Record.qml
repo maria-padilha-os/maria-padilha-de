@@ -440,7 +440,7 @@ StyledRect {
                 }
 
                 SequentialAnimation on opacity {
-                    running: !Recorder.paused
+                    running: !Recorder.paused && !Accessibility.reducedMotion
                     alwaysRunToEnd: true
                     loops: Animation.Infinite
 

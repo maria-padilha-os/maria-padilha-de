@@ -85,11 +85,11 @@ Item {
         Anim on waveProgress {
             id: waveProgAnim
 
-            running: true
-            paused: root.wavePaused || wave.amplitudeMultiplier === 0
+            running: !Accessibility.reducedMotion
+            paused: root.wavePaused || wave.amplitudeMultiplier === 0 || Accessibility.reducedMotion
             from: 0
             to: 1
-            duration: 2000
+            duration: Accessibility.motion(2000)
             easing.type: Easing.Linear
             loops: Animation.Infinite
         }

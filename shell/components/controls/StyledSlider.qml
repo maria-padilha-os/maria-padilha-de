@@ -164,11 +164,11 @@ Slider {
                 implicitHeight: lineWidth * amplitudeMultiplier * 2 + lineWidth
 
                 Anim on waveProgress {
-                    running: true
-                    paused: !root.animateWave
+                    running: !Accessibility.reducedMotion
+                    paused: !root.animateWave || Accessibility.reducedMotion
                     from: 0
                     to: 1
-                    duration: root.waveDuration
+                    duration: Accessibility.motion(root.waveDuration)
                     easing.type: Easing.Linear
                     loops: Animation.Infinite
                 }

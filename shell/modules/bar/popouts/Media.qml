@@ -40,14 +40,6 @@ ColumnLayout {
         event.accepted = true;
     }
 
-    Timer {
-        running: root.playing
-        interval: GlobalConfig.dashboard.mediaUpdateInterval
-        triggeredOnStart: true
-        repeat: true
-        onTriggered: root.player?.positionChanged()
-    }
-
     RowLayout {
         Layout.fillWidth: true
         spacing: Tokens.spacing.small

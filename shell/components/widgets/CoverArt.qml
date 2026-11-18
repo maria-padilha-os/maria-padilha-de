@@ -47,7 +47,7 @@ Item {
 
             Anim on rotation {
                 running: true
-                paused: !Players.active?.isPlaying
+                paused: !Players.active?.isPlaying || Accessibility.reducedMotion
                 from: 360
                 to: 0
                 duration: 23500

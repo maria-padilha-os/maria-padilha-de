@@ -110,10 +110,12 @@ Singleton {
         onLoaded: root.firmware = root.sanitiseDmi(text())
     }
 
+    // Uptime is displayed in whole minutes; 15 s was four times faster than
+    // the value can change.
     Timer {
         running: true
         repeat: true
-        interval: 15000
+        interval: 60000
         onTriggered: fileUptime.reload()
     }
 

@@ -28,14 +28,6 @@ ColumnLayout {
 
     spacing: Tokens.spacing.extraSmall
 
-    Timer {
-        running: Players.active?.isPlaying ?? false
-        interval: GlobalConfig.dashboard.mediaUpdateInterval
-        triggeredOnStart: true
-        repeat: true
-        onTriggered: Players.active?.positionChanged()
-    }
-
     StyledText {
         Layout.fillWidth: true
         text: Players.active?.trackTitle ?? ""

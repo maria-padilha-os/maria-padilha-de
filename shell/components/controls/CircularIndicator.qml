@@ -86,13 +86,13 @@ BusyIndicator {
     }
 
     NumberAnimation {
-        running: root.animState !== CircularIndicator.Stopped
+        running: root.animState !== CircularIndicator.Stopped && !Accessibility.reducedMotion
         loops: Animation.Infinite
         target: manager
         property: "progress"
         from: 0
         to: 1
-        duration: manager.duration * Tokens.anim.durations.scale
+        duration: Accessibility.motion(manager.duration * Tokens.anim.durations.scale)
     }
 
     NumberAnimation {
@@ -101,7 +101,7 @@ BusyIndicator {
         property: "completeEndProgress"
         from: 0
         to: 1
-        duration: manager.completeEndDuration * Tokens.anim.durations.scale
+        duration: Accessibility.motion(manager.completeEndDuration * Tokens.anim.durations.scale)
         onFinished: {
             if (root.animState === CircularIndicator.Completing)
                 root.animState = CircularIndicator.Stopped;

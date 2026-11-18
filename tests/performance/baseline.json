@@ -1,0 +1,50 @@
+{
+  "commit": "29e5fe2",
+  "idle_cpu_percent": 1.2,
+  "measured_at": "2026-11-18T10:35:27Z",
+  "method": "Quickshell offscreen load of the full shell tree with tests/performance/stubs; startup is launch to the Configuration Loaded marker (fastest of 3 runs), CPU/RSS are the shell process after 1.5 s settle and a 2.5 s idle sample (median of the runs)",
+  "qml_warnings": {
+    "WARN scene: @<qml>: TypeError: Cannot read property 'denyClasses' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'denyTitles' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'enabled' of undefined": 2,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'maxEntries' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'maxEntryBytes' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'name' of undefined": 2,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'privateWindowDelay' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'recordingDir' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'screenshotDir' of undefined": 1,
+    "WARN scene: @<qml>: TypeError: Cannot read property 'showIndicator' of undefined": 1,
+    "WARN scene: QML CachingImage at @<qml>: Source file does not exist: <tmp>/home/.face": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onSecureChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherApiKeyChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherCacheTtlChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherCoordinatesChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherGeocodingUrlChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherLanguageChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherProviderUrlChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML Connections at @<qml>: Detected function \"onWeatherRefreshIntervalChanged\" in Connections element. This is probably intended to be a signal handler but no signal of the target matches the name.": 1,
+    "WARN scene: QML FileView at @<qml>: Read of <tmp>/state/caelestia/scheme.json failed: File does not exist.": 1,
+    "WARN scene: QML FocusRing at @<qml>: Cannot anchor to an item that isn't a parent or sibling.": 1
+  },
+  "reference_machine": {
+    "display": "offscreen (QT_QPA_PLATFORM=offscreen)",
+    "kernel": "7.3.0-rc6-1-MANJARO",
+    "machine": "x86_64",
+    "os": "Manjaro Linux",
+    "quickshell": "Quickshell 0.3.2 (revision 9b0f339b19057f4731bf3b48293307d7ef241671, distributed by AUR (package: quickshell-git))",
+    "reduced_motion": false
+  },
+  "rss_kb": 277332,
+  "schema": 1,
+  "startup_ms": 1360.7,
+  "thresholds": {
+    "idle_cpu_factor": 2.0,
+    "idle_cpu_slack_percent": 1.0,
+    "rss_factor": 1.25,
+    "rss_slack_kb": 32768,
+    "startup_factor": 1.75,
+    "startup_slack_ms": 1000,
+    "warning_count_factor": 2,
+    "warning_count_slack": 1
+  }
+}

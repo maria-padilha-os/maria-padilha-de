@@ -70,10 +70,10 @@ ProgressBar {
         gap: root.Tokens.spacing.extraSmall
 
         Anim on progress {
-            running: root.indeterminateAnimState !== StyledProgressBar.Stopped
+            running: root.indeterminateAnimState !== StyledProgressBar.Stopped && !Accessibility.reducedMotion
             from: 0
             to: 1
-            duration: manager.duration
+            duration: Accessibility.motion(manager.duration)
             easing.type: Easing.Linear
             loops: Animation.Infinite
         }
@@ -224,11 +224,11 @@ ProgressBar {
         color: root.fgColour
 
         Anim on waveProgress {
-            running: true
-            paused: wave.amplitudeMultiplier === 0 || root.wavePaused
+            running: !Accessibility.reducedMotion
+            paused: wave.amplitudeMultiplier === 0 || root.wavePaused || Accessibility.reducedMotion
             from: 0
             to: 1
-            duration: root.waveDuration
+            duration: Accessibility.motion(root.waveDuration)
             easing.type: Easing.Linear
             loops: Animation.Infinite
         }

@@ -51,14 +51,6 @@ Item {
         radius: Tokens.rounding.medium
     }
 
-    Timer {
-        running: root.playing
-        interval: GlobalConfig.dashboard.mediaUpdateInterval
-        triggeredOnStart: true
-        repeat: true
-        onTriggered: root.player?.positionChanged()
-    }
-
     MediaArtwork {
         id: artwork
 

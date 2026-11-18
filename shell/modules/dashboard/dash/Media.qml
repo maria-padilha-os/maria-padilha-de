@@ -31,14 +31,6 @@ Item {
         }
     }
 
-    Timer {
-        running: Players.active?.isPlaying ?? false
-        interval: GlobalConfig.dashboard.mediaUpdateInterval
-        triggeredOnStart: true
-        repeat: true
-        onTriggered: Players.active?.positionChanged()
-    }
-
     ServiceRef {
         service: Audio.beatTracker
     }

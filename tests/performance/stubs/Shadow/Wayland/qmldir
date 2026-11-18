@@ -1,0 +1,10 @@
+module Shadow.Wayland
+singleton ExclusionMode 1.0 ExclusionMode.qml
+singleton WlrLayer 1.0 WlrLayer.qml
+singleton WlrKeyboardFocus 1.0 WlrKeyboardFocus.qml
+Region 1.0 Region.qml
+StubPanelWindow 1.0 StubPanelWindow.qml
+ScreencopyView 1.0 ScreencopyView.qml
+WlSessionLock 1.0 WlSessionLock.qml
+WlSessionLockSurface 1.0 WlSessionLockSurface.qml
+IdleMonitor 1.0 IdleMonitor.qml

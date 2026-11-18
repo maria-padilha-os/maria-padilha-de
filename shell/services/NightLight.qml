@@ -44,14 +44,53 @@ Singleton {
             setActive(want);
     }
 
-    Component.onCompleted: statusProc.running = true
+    // The schedule only changes on the hour. A minute-by-minute poll would
+    // wake the shell 1,440 times a day for a value that changes twice.
+    function scheduleTick(): void {
+        if (!GlobalConfig.services.nightLightAuto) {
+            tickTimer.stop();
+            return;
+        }
+
+        const now = new Date();
+        const nextHour = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0, 0, 0);
+        tickTimer.interval = Math.max(1000, nextHour.getTime() - now.getTime());
+        tickTimer.restart();
+    }
+
+    Component.onCompleted: {
+        statusProc.running = true;
+        root.scheduleTick();
+    }
+
+    Connections {
+        function onNightLightAutoChanged(): void {
+            root.tick();
+            root.scheduleTick();
+        }
+
+        function onNightLightOnChanged(): void {
+            root.tick();
+            root.scheduleTick();
+        }
+
+        function onNightLightOffChanged(): void {
+            root.tick();
+            root.scheduleTick();
+        }
+
+        target: GlobalConfig.services
+    }
 
     Timer {
-        interval: 60000
-        repeat: true
-        running: true
-        triggeredOnStart: true
-        onTriggered: root.tick()
+        id: tickTimer
+
+        repeat: false
+        running: false
+        onTriggered: {
+            root.tick();
+            root.scheduleTick();
+        }
     }
 
     Process {
