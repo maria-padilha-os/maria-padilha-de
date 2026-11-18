@@ -11,5 +11,6 @@ header_pages:
   - screenshots.md
   - design-checklist.md
   - accessibility.md
+  - localization.md
   - support.md
 show_excerpts: true

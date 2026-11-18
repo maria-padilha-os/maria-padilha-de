@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components.misc
 import qs.services
 
@@ -54,7 +55,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "clipboard"
-        description: "Toggle clipboard history"
+        description: Tr.tr("Toggle clipboard history")
         onPressed: root.toggle()
     }
 
@@ -62,7 +63,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "clipboardPause"
-        description: "Pause or resume clipboard history"
+        description: Tr.tr("Pause or resume clipboard history")
         onPressed: ClipboardHistory.togglePause()
     }
 

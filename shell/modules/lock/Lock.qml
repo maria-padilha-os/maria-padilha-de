@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.components.misc
+import Caelestia.I18n
 
 Scope {
     property alias lock: lock
@@ -44,7 +45,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "lock"
-        description: "Lock the current session"
+        description: Tr.tr("Lock the current session")
         onPressed: lock.locked = true
     }
 
@@ -52,7 +53,7 @@ Scope {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "unlock"
-        description: "Unlock the current session"
+        description: Tr.tr("Unlock the current session")
         onPressed: lock.unlock()
     }
 

@@ -18,6 +18,7 @@ suites=(
     "$root/tests/extensions/run.sh"
     "$root/tests/filemanager/run.sh"
     "$root/tests/nexus/run.sh"
+    "$root/tests/localization/run.sh"
     "$root/tests/ai/run.sh"
     "$root/tests/voice/run.sh"
 )

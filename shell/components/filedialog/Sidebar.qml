@@ -136,7 +136,7 @@ StyledRect {
 
                     StyledText {
                         Layout.fillWidth: true
-                        text: place.modelData
+                        text: root.dialog.placeLabel(place.modelData)
                         color: place.selected ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                         font: Tokens.font.body.small
                         elide: Text.ElideRight

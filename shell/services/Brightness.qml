@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components.misc
 
 Singleton {
@@ -96,7 +97,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "brightnessUp"
-        description: "Increase brightness"
+        description: Tr.tr("Increase brightness")
         onPressed: root.increaseBrightness()
     }
 
@@ -104,7 +105,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "brightnessDown"
-        description: "Decrease brightness"
+        description: Tr.tr("Decrease brightness")
         onPressed: root.decreaseBrightness()
     }
 

@@ -212,7 +212,7 @@ Singleton {
     CustomShortcut {
         // qmllint enable unresolved-type
         name: "refreshDevices"
-        description: "Reload devices"
+        description: Tr.tr("Reload devices")
         onPressed: extras.refreshDevices()
         onReleased: extras.refreshDevices()
     }

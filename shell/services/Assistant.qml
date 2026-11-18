@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Caelestia.I18n
 
 Singleton {
     id: root
@@ -20,10 +21,10 @@ Singleton {
     property bool stopping: false
 
     readonly property bool configured: models.length > 0
-    readonly property string rootsLabel: roots.length === 0 ? "No folders granted" : roots.map(r => r.display || r.path).join(" · ")
+    readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : roots.map(r => r.display || r.path).join(" · ")
     readonly property string modelLabel: {
         const model = models.find(m => m.id === selectedModel);
-        return model ? model.name : "No model configured";
+        return model ? model.name : Tr.tr("No model configured");
     }
 
     function handle(line: string): void {
@@ -42,7 +43,7 @@ Singleton {
             root.models = event.models || [];
             root.roots = event.root_entries || [];
             root.selectedModel = root.selectedModel || (root.models[0]?.id ?? "");
-            root.error = event.chat ? "" : "No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.";
+            root.error = event.chat ? "" : Tr.tr("No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.");
             break;
         case "done": {
             if (event.id !== root.activeId)
@@ -64,7 +65,7 @@ Singleton {
         case "error": {
             if (event.id !== root.activeId && event.id !== undefined)
                 return;
-            root.error = event.message || "Assistant request failed";
+            root.error = event.message || Tr.tr("Assistant request failed");
             const index = root.messages.findIndex(m => m.id === root.activeId);
             if (index >= 0) {
                 const next = root.messages.slice();
@@ -87,7 +88,7 @@ Singleton {
         if (!text || root.streaming || !root.ready)
             return;
         if (!root.configured) {
-            root.error = "No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.";
+            root.error = Tr.tr("No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.");
             return;
         }
 
@@ -187,7 +188,7 @@ Singleton {
                 root.stopping = false;
                 return;
             }
-            root.error = "Assistant backend exited.";
+            root.error = Tr.tr("Assistant backend exited.");
         }
     }
 }
