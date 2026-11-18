@@ -15,8 +15,11 @@ Item {
     property string source: Wallpapers.current
     property CachingImage current
     property bool completed
+    property bool alive: true
 
     onSourceChanged: {
+        if (!alive)
+            return;
         if (!source)
             current = null;
         else
@@ -26,14 +29,21 @@ Item {
     }
 
     Component.onCompleted: {
-        if (source)
-            Qt.callLater(() => {
-                current = imgComp.createObject(this, {
-                    path: source
-                });
-                completed = true;
+        if (!source)
+            return;
+        // A monitor can disappear between construction and this callback. The
+        // guard keeps a teardown from creating an image for a dead surface.
+        Qt.callLater(() => {
+            if (!root.alive || !root.source)
+                return;
+            current = imgComp.createObject(root, {
+                path: root.source
             });
+            completed = true;
+        });
     }
+
+    Component.onDestruction: alive = false
 
     Loader {
         asynchronous: true

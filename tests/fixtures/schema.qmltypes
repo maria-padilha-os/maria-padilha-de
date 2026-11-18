@@ -19,6 +19,16 @@ Module {
             type: "caelestia::config::Mode::Enum"
             index: 2
         }
+        Property {
+            name: "general"
+            type: "caelestia::config::GeneralConfig"
+            index: 3
+        }
+        Property {
+            name: "utilities"
+            type: "caelestia::config::UtilitiesConfig"
+            index: 4
+        }
     }
     Component {
         name: "caelestia::config::Mode"
@@ -42,6 +52,54 @@ Module {
         accessSemantics: "reference"
         Property {
             name: "enabled"
+            type: "bool"
+        }
+    }
+    Component {
+        name: "caelestia::config::GeneralConfig"
+        accessSemantics: "reference"
+        Property {
+            name: "idle"
+            type: "caelestia::config::IdleConfig"
+        }
+    }
+    Component {
+        name: "caelestia::config::IdleConfig"
+        accessSemantics: "reference"
+        Property {
+            name: "timeouts"
+            type: "caelestia::config::TimeoutList"
+        }
+    }
+    Component {
+        name: "caelestia::config::UtilitiesConfig"
+        accessSemantics: "reference"
+        Property {
+            name: "capture"
+            type: "caelestia::config::CaptureConfig"
+        }
+    }
+    Component {
+        name: "caelestia::config::CaptureConfig"
+        accessSemantics: "reference"
+        Property {
+            name: "screenshotDir"
+            type: "QString"
+        }
+        Property {
+            name: "recordingDir"
+            type: "QString"
+        }
+        Property {
+            name: "workspace"
+            type: "QString"
+        }
+        Property {
+            name: "countdown"
+            type: "int"
+        }
+        Property {
+            name: "copyScreenshot"
             type: "bool"
         }
     }

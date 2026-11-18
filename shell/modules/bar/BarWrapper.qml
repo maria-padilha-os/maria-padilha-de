@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Caelestia.Config
 import qs.components
+import qs.services
 import qs.utils
 import qs.modules.bar.popouts as BarPopouts
 
@@ -15,7 +16,12 @@ Item {
     required property BarPopouts.Wrapper popouts
     required property bool fullscreen
 
-    readonly property bool disabled: Strings.testRegexList(Config.bar.excludedScreens, screen.name)
+    readonly property bool disabled: !screen || Strings.testRegexList(Config.bar.excludedScreens, screen.name)
+    // Restored from panel-layout.json. The default is the built-in right edge,
+    // so an untouched install behaves exactly as before.
+    readonly property var placement: PanelLayout.placement(screen, "bar") ?? ({})
+    readonly property string edge: placement.edge === "left" ? "left" : "right"
+    readonly property real edgeOffset: Math.max(0, Math.min(4096, Number(placement.offsetX) || 0))
 
     readonly property int clampedWidth: Math.max(Config.border.minThickness, implicitWidth)
     readonly property int padding: Math.max(Tokens.padding.small, Config.border.thickness)
@@ -85,7 +91,10 @@ Item {
 
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        anchors.right: parent.right
+        anchors.right: root.edge === "right" ? parent.right : undefined
+        anchors.left: root.edge === "left" ? parent.left : undefined
+        anchors.rightMargin: root.edge === "right" ? root.edgeOffset : 0
+        anchors.leftMargin: root.edge === "left" ? root.edgeOffset : 0
 
         active: root.shouldBeVisible
 

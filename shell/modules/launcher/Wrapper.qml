@@ -12,6 +12,8 @@ Item {
     required property ShellScreen screen
     required property ScreenState screenState
     required property var panels
+    property real placementX
+    property real placementY
 
     readonly property bool shouldBeActive: screenState.launcher && Config.launcher.enabled
 
@@ -32,7 +34,8 @@ Item {
     }
 
     visible: offsetScale < 1
-    anchors.bottomMargin: (-implicitHeight - 5) * offsetScale
+    anchors.horizontalCenterOffset: root.placementX
+    anchors.bottomMargin: (-implicitHeight - 5) * offsetScale + root.placementY
     implicitHeight: content.implicitHeight
     implicitWidth: content.implicitWidth || 630 // Hard coded fallback for first open
     opacity: 1 - offsetScale

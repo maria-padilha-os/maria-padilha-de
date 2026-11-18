@@ -340,7 +340,10 @@ else
     ok "init refuses to overwrite an existing config"
 fi
 
-if XDG_CONFIG_HOME="$init_home" "$padilha_config" compile --quiet; then
+# Validate against the shipped fixture, not whichever Caelestia plugin happens
+# to be installed on the machine running the tests. A stale system module must
+# not hide a key added to the default config in this checkout.
+if XDG_CONFIG_HOME="$init_home" "$padilha_config" compile --quiet --schema "$root/tests/fixtures/schema.qmltypes"; then
     ok "the default config compiles"
 else
     bad "the default config compiles"

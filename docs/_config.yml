@@ -11,5 +11,6 @@ header_pages:
   - screenshots.md
   - design-checklist.md
   - accessibility.md
+  - multi-monitor.md
   - support.md
 show_excerpts: true

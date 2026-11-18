@@ -39,6 +39,12 @@ Item {
     // Exactly one of the right drawers can be visible at a time.
     readonly property Item rightDrawer: assistant.visible ? assistant : sidebar
 
+    // Per-output anchors restored by PanelLayout.  The defaults are the
+    // built-in positions, so this is a no-op on a fresh install.
+    function placement(panel: string): var {
+        return PanelLayout.placement(root.screen, panel) ?? ({});
+    }
+
     anchors.fill: parent
     anchors.margins: borderThickness
     anchors.leftMargin: bar.implicitWidth
@@ -76,8 +82,9 @@ Item {
         sessionPanel: sessionWrapper
         utilitiesPanel: utilities
 
-        anchors.top: parent.top
-        anchors.right: parent.right
+        placementX: root.placement("notifications").offsetX ?? 0
+        placementY: root.placement("notifications").offsetY ?? 0
+        placementAnchor: root.placement("notifications").anchor ?? "top-right"
     }
 
     Item {
@@ -108,6 +115,8 @@ Item {
         screen: root.screen
         screenState: root.screenState
         panels: root
+        placementX: root.placement("launcher").offsetX ?? 0
+        placementY: root.placement("launcher").offsetY ?? 0
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
@@ -117,6 +126,8 @@ Item {
         id: dashboard
 
         screenState: root.screenState
+        placementX: root.placement("dashboard").offsetX ?? 0
+        placementY: root.placement("dashboard").offsetY ?? 0
 
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top

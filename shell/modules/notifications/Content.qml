@@ -18,6 +18,7 @@ Item {
     required property Item osdPanel
     required property Item sessionPanel
     required property Item utilitiesPanel
+    readonly property string outputName: screenState?.outputName ?? ""
     readonly property int padding: Tokens.padding.large
     readonly property int clampedPadding: CUtils.clamp(padding - Config.border.thickness, 0, padding)
 
@@ -69,7 +70,10 @@ Item {
             id: list
 
             model: ScriptModel {
-                values: Notifs.popups.filter(n => !n.closed)
+                // A popup is rendered by the one output it belongs to. Older
+                // notifications without a target fall back to the primary, not
+                // to every monitor.
+                values: Notifs.popups.filter(n => !n.closed && (n.outputName || Screens.primaryName) === root.outputName)
             }
 
             anchors.fill: parent

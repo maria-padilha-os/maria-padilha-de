@@ -19,7 +19,10 @@ StyledWindow {
     readonly property alias bar: bar
     readonly property alias interactionWrapper: interactions
 
-    readonly property ScreenState screenState: ShellState.forScreen(screen)
+    // During a hotplug the state variant can be between destruction and
+    // creation. A detached state keeps the window renderable and harmless
+    // instead of dereferencing null during teardown.
+    readonly property ScreenState screenState: ShellState.forScreen(screen) ?? ShellState.detached
 
     readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
     readonly property bool hasSpecialWorkspace: (monitor?.lastIpcObject.specialWorkspace?.name.length ?? 0) > 0

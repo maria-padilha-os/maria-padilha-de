@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import qs.components.misc
+import qs.services
 
 Scope {
     property alias lock: lock
@@ -36,7 +37,9 @@ Scope {
         // the first request it fails to capture (because it's async and the compositor
         // refuses capture when locked)
         sourceComponent: ScreencopyView {
-            captureSource: Quickshell.screens[0]
+            // Do not index a screen array: the primary may disappear while the
+            // lock surface is alive. An empty capture source is harmless.
+            captureSource: Screens.primary
         }
     }
 

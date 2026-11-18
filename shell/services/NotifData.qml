@@ -40,6 +40,9 @@ QtObject {
     }
 
     property Notification notification
+    // Output that should render the popup. Kept per notification so a popup is
+    // drawn once, not once on every monitor.
+    property string outputName
     property string notificationId
     property string summary
     property string body

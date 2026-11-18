@@ -38,6 +38,19 @@ Singleton {
         return true;
     }
 
+    // A notification belongs to exactly one output. If that output disappears,
+    // move it to the current primary instead of leaving an invisible popup
+    // behind or duplicating it on the remaining monitors.
+    function reconcileOutputs(): void {
+        const names = Screens.keys;
+        const fallback = Screens.primaryName;
+        for (const notif of root.list) {
+            if (notif.outputName && names.indexOf(notif.outputName) >= 0)
+                continue;
+            notif.outputName = fallback;
+        }
+    }
+
     onDndChanged: {
         if (!GlobalConfig.utilities.toasts.dndChanged)
             return;
@@ -69,6 +82,7 @@ Singleton {
                     urgency: n.urgency,
                     resident: n.resident,
                     hasActionIcons: n.hasActionIcons,
+                    outputName: n.outputName,
                     actions: n.actions
                 }))))
     }
@@ -95,9 +109,11 @@ Singleton {
         onNotification: notif => {
             notif.tracked = true;
 
+            const active = ShellState.forActive();
             const comp = notifComp.createObject(root, {
                 popup: root.shouldShowPopup(),
-                notification: notif
+                notification: notif,
+                outputName: active?.outputName || Screens.primaryName
             });
             root.list = [comp, ...root.list];
         }
@@ -116,12 +132,15 @@ Singleton {
                 // Backwards compatibility for old notifications
                 if (properties.notificationId === undefined && properties.id !== undefined)
                     properties.notificationId = properties.id;
+                if (!properties.outputName)
+                    properties.outputName = Screens.primaryName;
 
                 delete properties.id;
                 root.list.push(notifComp.createObject(root, properties));
             }
             root.list.sort((a, b) => b.time - a.time);
             root.loaded = true;
+            root.reconcileOutputs();
         }
         onLoadFailed: err => {
             if (err === FileViewError.FileNotFound) {
@@ -165,6 +184,14 @@ Singleton {
         }
 
         target: "notifs"
+    }
+
+    Connections {
+        function onModelChanged(change: var): void {
+            root.reconcileOutputs();
+        }
+
+        target: Screens
     }
 
     Component {

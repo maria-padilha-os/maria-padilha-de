@@ -13,6 +13,8 @@ Item {
     id: root
 
     required property ScreenState screenState
+    property real placementX
+    property real placementY
     readonly property FileDialog facePicker: FileDialog {
         title: Tr.tr("Select a profile picture")
         filterLabel: Tr.tr("Image files")
@@ -32,7 +34,8 @@ Item {
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
-    anchors.topMargin: (-implicitHeight - 5) * offsetScale
+    anchors.horizontalCenterOffset: root.placementX
+    anchors.topMargin: (-implicitHeight - 5) * offsetScale + root.placementY
     implicitHeight: content.implicitHeight
     implicitWidth: content.implicitWidth || Tokens.sizes.dashboard.mediaTabWidth
     opacity: 1 - offsetScale

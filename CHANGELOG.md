@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- The shell now handles multiple monitors and hotplug through a stable screen
+  model instead of array indices or `ShellScreen` object identity. Adding,
+  removing, rotating or scaling an output rebuilds only that output's bar,
+  launcher, dashboard, notifications and wallpaper; duplicate connector entries
+  are collapsed and the last output removal falls back to a detached state
+  rather than crashing. Popup notifications are routed to one output and move
+  to the new primary if theirs disappears. Per-output panel anchors are kept in
+  `~/.local/state/padilha/panel-layout.json`; the file contains geometry and
+  panel metadata only, never screenshots or other screen contents. See
+  `docs/multi-monitor.md` for the nested Hyprland/headless test matrix and
+  `tests/screens/` for the model, removal and privacy contracts.
 - New screenshots and recording panel in the utilities drawer. It captures the
   focused monitor, focused window or a slurp region with `grim`, records with
   `wf-recorder`, has explicit Start/Stop, a configurable countdown, an in-panel

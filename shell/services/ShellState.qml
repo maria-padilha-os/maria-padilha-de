@@ -7,28 +7,49 @@ import qs.components
 import qs.services
 
 Singleton {
+    id: root
+
     property ShellRoot shellRoot
+
+    // A detached state keeps shortcuts and IPC callable for the short window
+    // after the last output is removed.  It has no screen and therefore no
+    // window, but writes to it are harmless instead of dereferencing null.
+    readonly property ScreenState detached: ScreenState {}
 
     function anySidebarOpen(): bool {
         return states.instances.some(s => s.sidebar);
     }
 
     function forScreen(screen: ShellScreen): ScreenState {
+        if (!screen)
+            return null;
+
+        // Compare the connector key, not QObject identity: Quickshell replaces
+        // the ShellScreen object when a monitor is reconnected.
+        const key = Screens.keyFor(screen);
         for (const s of states.instances)
-            if (s.modelData === screen)
+            if (s.modelData === screen || (key && s.outputName === key))
                 return s;
         return null;
     }
 
     function forActive(): ScreenState {
-        const mon = Hypr.focusedMonitor;
-        for (const s of states.instances)
-            if (Hypr.monitorFor(s.modelData) === mon)
-                return s;
-        return null;
+        // Screens.focused already falls back to the primary when Hyprland's
+        // focused monitor is stale or has just disappeared.
+        const focused = Screens.focused;
+        if (focused) {
+            const state = forScreen(focused);
+            if (state)
+                return state;
+        }
+
+        return detached;
     }
 
     function componentsFor(screen: ShellScreen): Components {
+        if (!screen)
+            return null;
+
         for (const c of components.instances)
             if (c.modelData === screen)
                 return c;
@@ -36,12 +57,11 @@ Singleton {
     }
 
     function componentsForActive(): Components {
-        const mon = Hypr.focusedMonitor;
-        for (const c of components.instances)
-            if (Hypr.monitorFor(c.modelData) === mon)
-                return c;
-        return null;
+        const focused = Screens.focused;
+        return focused ? componentsFor(focused) : null;
     }
+
+    Component.onCompleted: PanelLayout.reconcile(Screens.screens)
 
     Variants {
         id: states
@@ -57,6 +77,16 @@ Singleton {
         model: Screens.screens
 
         Components {}
+    }
+
+    Connections {
+        function onModelChanged(change: var): void {
+            // Keep the per-output layout in step with additions, removals,
+            // rotations and scale changes. Offline entries are retained.
+            PanelLayout.reconcile(Screens.screens);
+        }
+
+        target: Screens
     }
 
     component Components: QtObject {
@@ -86,13 +116,22 @@ Singleton {
         required property string slot
         required property var component
 
+        // Capture the object that actually received the reference.  During
+        // output teardown `screen` may already be invalid, so destruction must
+        // not look it up again through the screen object.
+        property QtObject boundTarget: null
         readonly property QtObject target: ShellState.componentsFor(screen)
 
         onTargetChanged: {
-            if (target)
-                target[slot] = component;
+            if (!target)
+                return;
+            boundTarget = target;
+            target[slot] = component;
         }
+
         Component.onDestruction: {
+            const target = boundTarget;
+            boundTarget = null;
             if (target && target[slot] === component)
                 target[slot] = null;
         }

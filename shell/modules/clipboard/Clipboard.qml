@@ -12,6 +12,10 @@ Scope {
 
     readonly property bool enabled: GlobalConfig.clipboard.enabled
 
+    function screenForPalette(): ShellScreen {
+        return ShellState.forActive()?.modelData ?? Screens.primary;
+    }
+
     function open(): void {
         // Opening while disabled is deliberate: the palette then explains how
         // to enable history instead of failing silently.
@@ -42,10 +46,10 @@ Scope {
     LazyLoader {
         id: loader
 
-        active: root.opened
+        active: root.opened && root.screenForPalette() !== null
 
         ClipboardWindow {
-            modelData: ShellState.forActive()?.modelData ?? Quickshell.screens[0]
+            modelData: root.screenForPalette()
             onCloseRequested: root.close()
         }
     }
