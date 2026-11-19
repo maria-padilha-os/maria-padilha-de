@@ -142,8 +142,10 @@ theme, so the explicit choice is not overwritten at the next boundary.
   fault cannot take the shell and the session with it. The in-shell lock is
   opt-in.
 - **Colour** — a wallpaper is scored into a Material You palette and written to
-  Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, spicetify,
-  Neovim, and Midnight Commander. Discord is an opt-in, user-loaded theme.
+  Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, Neovim,
+  Midnight Commander, and Firefox. Discord is an opt-in, user-loaded theme;
+  the Spicetify output is optional and needs the user's own Spotify client.
+  See the [app theme coverage table](docs/app-themes.md).
 - **Daylight** — a light wallpaper for the day and a dark one for the night,
   with the palette reapplied when the period changes.
 - **Media** — a bar item and popout for the active MPRIS player, with artwork,
@@ -189,8 +191,9 @@ Manjaro. It requires:
   [INSTALL.md](INSTALL.md#email-optional)
 
 Building additionally needs CMake, Ninja, Python 3, and a C++ toolchain.
-Optional tools enable screenshots, recording, the pickers, and the opt-in
-Discord theme; see `packaging/PKGBUILD`.
+Optional tools enable screenshots, recording, the pickers, the opt-in Discord
+theme, and the optional Spicetify colours; see `packaging/PKGBUILD`. Maria
+Padilha does not install or bundle Spotify or its client assets.
 
 ## Building
 

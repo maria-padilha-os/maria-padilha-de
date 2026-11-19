@@ -52,6 +52,10 @@ check the portal and that app's sandbox before copying anything into
 `~/.var/app`. The manual pass and its caveats are in the
 [GTK and Qt visual checklist]({{ '/gtk-qt-visual-checklist.html' | relative_url }}).
 
+The generated btop, cava, fuzzel, micro, Midnight Commander and optional
+Spicetify files are listed in the [app theme coverage table]({{ '/app-themes.html' | relative_url }}),
+including the states each template checks and the reload behaviour.
+
 ## Package updates
 
 **Settings → Updates** lists pending pacman upgrades with the installed and

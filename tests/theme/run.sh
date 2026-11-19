@@ -119,6 +119,39 @@ else
         "$(tail -8 "$tmp/gtk-qt-contrast.log")"
 fi
 
+if /usr/bin/python3 "$root/tests/theme/check-app-contrast.py" "$root" \
+    > "$tmp/app-contrast.log" 2>&1; then
+    ok "btop, cava, fuzzel, micro, mc and spicetify meet the app contract"
+else
+    bad "btop, cava, fuzzel, micro, mc and spicetify meet the app contract" \
+        "$(tail -8 "$tmp/app-contrast.log")"
+fi
+
+btop="$tmp/tree/home/machine/.config/btop/themes/caelestia.theme"
+cava="$tmp/tree/home/machine/.config/cava/config"
+fuzzel="$tmp/tree/home/machine/.config/fuzzel/fuzzel.ini"
+micro="$tmp/tree/home/machine/.config/micro/colorschemes/padilha.micro"
+check "btop theme is written" "test -s '$btop'"
+check "cava config is written" "test -s '$cava'"
+check "fuzzel config is written" "test -s '$fuzzel'"
+check "micro colourscheme is written" "test -s '$micro'"
+check "fuzzel has one colours section" "[ \$(grep -c '^\[colors\]' '$fuzzel') -eq 1 ]"
+check "cava paints an explicit background" "grep -qx \"background = '#[0-9a-f]*'\" '$cava'"
+check "cava paints an explicit foreground" "grep -qx \"foreground = '#[0-9a-f]*'\" '$cava'"
+scheme_json="$tmp/tree/home/machine/.local/state/caelestia/scheme.json"
+btop_sel_bg=$(/usr/bin/python3 -c "import json;print(json.load(open('$scheme_json'))['colours']['primaryContainer'])")
+btop_sel_fg=$(/usr/bin/python3 -c "import json;print(json.load(open('$scheme_json'))['colours']['onPrimaryContainer'])")
+check "btop selection uses the container pair" \
+    "grep -qx 'theme\\[selected_bg\\]=#$btop_sel_bg' '$btop' && grep -qx 'theme\\[selected_fg\\]=#$btop_sel_fg' '$btop'"
+fuzzel_selection=$(/usr/bin/python3 -c "import json;print(json.load(open('$scheme_json'))['colours']['primaryContainer'])")
+fuzzel_selection_fg=$(/usr/bin/python3 -c "import json;print(json.load(open('$scheme_json'))['colours']['onPrimaryContainer'])")
+check "fuzzel selection uses the container pair" \
+    "grep -qx 'selection=${fuzzel_selection}ff' '$fuzzel' && grep -qx 'selection-text=${fuzzel_selection_fg}ff' '$fuzzel'"
+cava_bg=$(/usr/bin/python3 -c "import json;print(json.load(open('$scheme_json'))['colours']['surface'])")
+cava_fg=$(/usr/bin/python3 -c "import json;print(json.load(open('$scheme_json'))['colours']['onSurface'])")
+check "cava uses the scheme surface and text" \
+    "grep -qx \"background = '#$cava_bg'\" '$cava' && grep -qx \"foreground = '#$cava_fg'\" '$cava'"
+
 check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
 lockconf="$tmp/tree/home/machine/.config/hypr/hyprlock.conf"
 check "hyprlock gets a palette" "test -s '$lockconf' && grep -q 'rgba(' '$lockconf'"
@@ -462,6 +495,15 @@ check "theme.lua disables btop" \
     "! test -e '$tmp/theme-tree$tmp/theme-home/btop/themes/caelestia.theme'"
 check "the rest of the theme is still written" \
     "test -s '$tmp/theme-tree$tmp/theme-home/gtk-3.0/gtk.css'"
+
+mkdir -p "$tmp/spice-home/padilha"
+printf 'return { theme = { enableSpicetify = false } }\n' > "$tmp/spice-home/padilha/theme.lua"
+XDG_CONFIG_HOME="$tmp/spice-home" "$theme" apply --seed ff1a1a --mode dark \
+    --prefix "$tmp/spice-tree" --no-signals > /dev/null 2>&1
+check "theme.lua keeps optional Spicetify off" \
+    "! test -e '$tmp/spice-tree$tmp/spice-home/spicetify/Themes/caelestia/color.ini'"
+check "disabling Spicetify leaves other apps alone" \
+    "test -s '$tmp/spice-tree$tmp/spice-home/btop/themes/caelestia.theme'"
 
 echo "bad input"
 

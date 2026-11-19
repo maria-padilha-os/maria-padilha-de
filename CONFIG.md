@@ -97,6 +97,11 @@ or network code.
 > practice, but that is not a guarantee. If losing your account would be a
 > disaster for you, do not use any client mod.
 
+Spicetify is optional: the generated `color.ini` only does something when the
+user already has Spotify and the Spicetify CLI installed. Maria Padilha does
+not install or bundle either one. See [docs/app-themes.md](docs/app-themes.md)
+for the generated files, the states they cover, and the per-app reload notes.
+
 ## Clipboard history
 
 Clipboard history is opt-in and off by default. Enable the palette in
