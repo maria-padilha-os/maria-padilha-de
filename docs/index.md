@@ -38,7 +38,9 @@ image. This site is the shared documentation for all of them.
 - A bar, launcher, notifications, OSD, dashboard, and a hyprlock-based lock
   screen.
 - One wallpaper palette applied to Hyprland, GTK, Qt/Kvantum, terminals, btop,
-  cava, fuzzel, Neovim, Discord, Midnight Commander, and Firefox.
+  cava, fuzzel, Neovim, Discord, Midnight Commander, and Firefox. The optional
+  Spicetify output needs the user's own Spotify client and is not bundled; see
+  the [app theme coverage table]({{ '/app-themes.html' | relative_url }}).
 - A light wallpaper by day and a dark one at night, with the palette reapplied
   when the period changes.
 - Vim-style navigation: `Super + h/j/k/l` for focus, `Super + Alt + h/l` for

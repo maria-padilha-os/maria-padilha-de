@@ -416,7 +416,9 @@ function M.apply(scheme, opts)
         ::continue::
     end
 
-    -- Spicetify: one ini per mode.
+    -- Spicetify: one ini per mode. This is optional output only; it does not
+    -- install or launch Spotify, and it is inert until the user runs
+    -- `spicetify apply` against their own client. The switch can turn it off.
     if config_value(config, "enableSpicetify", true) ~= false then
         local template = read_template("spicetify-" .. scheme.mode .. ".ini")
         if template then

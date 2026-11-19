@@ -74,6 +74,11 @@ The switches are `enableHypr`, `enableHyprlock`, `enableFuzzel`, `enableBtop`,
 `enableDiscord`, `enableMc`, and `enableFirefox`. A missing file, or an omitted
 key, means enabled. `postHook` runs only with `padilha-theme apply --hooks`.
 
+Spicetify is optional: the generated `color.ini` only does something when the
+user already has Spotify and the Spicetify CLI installed. Maria Padilha does
+not install or bundle either one. See [docs/app-themes.md](docs/app-themes.md)
+for the generated files, the states they cover, and the per-app reload notes.
+
 ## Clipboard history
 
 Clipboard history is opt-in and off by default. Enable the palette in

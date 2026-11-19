@@ -11,10 +11,10 @@ theme[title]={{ $onSurface }}
 theme[hi_fg]={{ $primary }}
 
 # Background color of selected item in processes box
-theme[selected_bg]={{ $surfaceContainer }}
+theme[selected_bg]={{ $primaryContainer }}
 
 # Foreground color of selected item in processes box
-theme[selected_fg]={{ $primary }}
+theme[selected_fg]={{ $onPrimaryContainer }}
 
 # Color of inactive/disabled text
 theme[inactive_fg]={{ $outline }}
@@ -23,7 +23,7 @@ theme[inactive_fg]={{ $outline }}
 theme[graph_text]={{ $tertiary }}
 
 # Background color of the percentage meters
-theme[meter_bg]={{ $outline }}
+theme[meter_bg]={{ $surfaceContainerHighest }}
 
 # Misc colors for processes box including mini cpu graphs, details memory graph and details status text
 theme[proc_misc]={{ $tertiary }}
@@ -35,7 +35,7 @@ theme[net_box]={{ $maroon }}
 theme[proc_box]={{ $blue }}
 
 # Box divider line and small boxes line color
-theme[div_line]={{ $outlineVariant }}
+theme[div_line]={{ $outline }}
 
 # Temperature graph color (Green -> Yellow -> Red)
 theme[temp_start]={{ $green }}

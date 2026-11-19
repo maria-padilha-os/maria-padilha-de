@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Polished the remaining generated app themes. btop now uses a container pair
+  for the selected process row, a quiet meter background and a visible divider;
+  cava paints an explicit background and foreground before its gradient; fuzzel
+  no longer ships a second, hard-coded colour section and uses an opaque
+  selection/border; micro and the Midnight Commander aliases use readable
+  syntax, file-highlight and editor-line-state roles; Spicetify puts hover,
+  notification and error-toast backgrounds in container roles so selected-row
+  text stays readable. A role-based fixture
+  (`tests/fixtures/app-contrast.json`) checks every app across seeds,
+  variants and both modes, and `docs/app-themes.md` is the coverage table.
+  Spicetify remains optional: it needs the user's Spotify client and a separate
+  Spicetify install, and Maria Padilha bundles neither.
 - The shell now handles multiple monitors and hotplug through a stable screen
   model instead of array indices or `ShellScreen` object identity. Adding,
   removing, rotating or scaling an output rebuilds only that output's bar,

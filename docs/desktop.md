@@ -19,6 +19,10 @@ Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
 colorscheme follows the same palette and switches between its ayu-inspired
 light and dark variants.
 
+The generated btop, cava, fuzzel, micro, Midnight Commander and optional
+Spicetify files are listed in the [app theme coverage table]({{ '/app-themes.html' | relative_url }}),
+including the states each template checks and the reload behaviour.
+
 ## Package updates
 
 **Settings → Updates** lists pending pacman upgrades with the installed and
