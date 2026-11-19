@@ -72,14 +72,23 @@ check "no empty files" "! find '$tmp/tree' -type f -empty | grep -q ."
 check "firefox is skipped without a profile" "! test -e '$tmp/tree/home/machine/.mozilla'"
 
 gtk="$tmp/tree/home/machine/.config/gtk-3.0/gtk.css"
+gtk4="$tmp/tree/home/machine/.config/gtk-4.0/gtk.css"
 gtk3_thunar="$tmp/tree/home/machine/.config/gtk-3.0/thunar.css"
 gtk4_thunar="$tmp/tree/home/machine/.config/gtk-4.0/thunar.css"
+qt_colours="$tmp/tree/home/machine/.config/qtengine/caelestia.colors"
+qt_engine="$tmp/tree/home/machine/.config/qtengine/config.json"
 hypr="$tmp/tree/home/machine/.config/hypr/scheme/current.lua"
 seq="$tmp/tree/home/machine/.local/state/caelestia/sequences.txt"
 
 check "gtk gets hashed colours" "grep -q 'window_bg_color #' '$gtk'"
 check "gtk selection foreground is a generated role" \
     "grep -q 'theme_selected_fg_color #' '$gtk'"
+check "gtk defines menu, tooltip and disabled roles" \
+    "grep -q '@define-color menu_bg_color #' '$gtk' && grep -q '@define-color tooltip_bg_color #' '$gtk' && grep -q '@define-color insensitive_fg_color #' '$gtk'"
+check "gtk keeps a generated focus outline" \
+    "grep -q 'outline-color: @accent_color' '$gtk'"
+check "gtk4 stylesheet is written" "test -s '$gtk4'"
+check "both gtk include points share the base stylesheet" "cmp -s '$gtk' '$gtk4'"
 check "gtk3 thunar stylesheet is written" "test -s '$gtk3_thunar'"
 check "gtk4 thunar stylesheet is written" "test -s '$gtk4_thunar'"
 check "both thunar include points share the stylesheet" \
@@ -88,6 +97,11 @@ check "thunar keeps a generated focus outline" \
     "grep -q 'outline-color: #' '$gtk3_thunar'"
 check "thunar covers both view toolkits" \
     "grep -q 'treeview.view' '$gtk3_thunar' && grep -q 'listview' '$gtk3_thunar' && grep -q 'gridview' '$gtk3_thunar'"
+check "the Qt colour scheme is written" "test -s '$qt_colours'"
+check "qtengine.json is valid JSON" \
+    "/usr/bin/python3 -m json.tool < '$qt_engine' > /dev/null"
+check "the Qt titlebar blends are generated RGB" \
+    "grep -Eq '^(active|inactive)Blend=[0-9]+,[0-9]+,[0-9]+\$' '$qt_colours'"
 
 if /usr/bin/python3 "$root/tests/theme/check-thunar-contrast.py" "$root" \
     > "$tmp/thunar-contrast.log" 2>&1; then
@@ -95,6 +109,14 @@ if /usr/bin/python3 "$root/tests/theme/check-thunar-contrast.py" "$root" \
 else
     bad "thunar text, selection and focus pairs meet contrast" \
         "$(tail -6 "$tmp/thunar-contrast.log")"
+fi
+
+if /usr/bin/python3 "$root/tests/theme/check-gtk-qt-contrast.py" "$root" \
+    > "$tmp/gtk-qt-contrast.log" 2>&1; then
+    ok "GTK/Qt text, disabled, selection, focus and border pairs meet contrast"
+else
+    bad "GTK/Qt text, disabled, selection, focus and border pairs meet contrast" \
+        "$(tail -8 "$tmp/gtk-qt-contrast.log")"
 fi
 
 check "hypr gets bare colours" "grep -q 'surface = \"' '$hypr'"
@@ -378,6 +400,11 @@ echo "modes differ"
 "$theme" apply --seed ff1a1a --mode light --prefix "$tmp/light-tree" --no-signals > /dev/null 2>&1
 light_surface=$(tone "$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/light-tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")")
 check "light mode has a light surface" "[ $light_surface -ge 90 ]" "tone $light_surface"
+light_qt="$tmp/light-tree/home/machine/.config/qtengine/caelestia.colors"
+check "light mode rewrites the Qt colour scheme" \
+    "test -s '$light_qt' && ! cmp -s '$qt_colours' '$light_qt'"
+check "both Qt modes keep the same keys" \
+    "[ \"\$(grep -E '^[A-Za-z]+=' '$qt_colours' | cut -d= -f1 | sort -u)\" = \"\$(grep -E '^[A-Za-z]+=' '$light_qt' | cut -d= -f1 | sort -u)\" ]"
 
 echo "daylight"
 
@@ -469,6 +496,14 @@ if lua -e "package.path='$root/lib/?.lua;'..package.path; local t=require('templ
     bad "a missing colour is an error"
 else
     ok "a missing colour is an error"
+fi
+
+rgb=$(lua -e "package.path='$root/lib/?.lua;'..package.path; local t=require('template'); io.write(t.render('{{ \$primary | rgb }}', { primary = '112233' }))")
+check "the rgb filter formats a generated colour" "[ \"$rgb\" = '17,34,51' ]" "$rgb"
+if lua -e "package.path='$root/lib/?.lua;'..package.path; local t=require('template'); t.render('{{ \$primary | nope }}', { primary = '112233' })" > /dev/null 2>&1; then
+    bad "an unknown template filter is an error"
+else
+    ok "an unknown template filter is an error"
 fi
 
 printf '\n%d passed, %d failed\n' "$pass" "$fail"

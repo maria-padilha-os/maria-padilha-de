@@ -1,21 +1,469 @@
+/* Maria Padilha GTK 3 / GTK 4 theme.
+ *
+ * The same file is rendered into gtk-3.0/gtk.css and gtk-4.0/gtk.css. Only
+ * generated scheme roles are used here; the handful of alpha() calls derive
+ * shades from those roles. Keep selectors inside the GTK 3.24 / GTK 4
+ * intersection so one file stays valid for both toolkits.
+ */
+
+@import "thunar.css";
+
+/* ---------------------------------------------------------------------------
+   libadwaita semantic colours
+   ------------------------------------------------------------------------- */
+
 @define-color accent_color {{ $primary }};
-@define-color accent_fg_color {{ $onPrimary }};
 @define-color accent_bg_color {{ $primary }};
-@define-color window_bg_color {{ $background }};
-@define-color window_fg_color {{ $onBackground }};
+@define-color accent_fg_color {{ $onPrimary }};
+
+@define-color destructive_color {{ $error }};
+@define-color destructive_bg_color {{ $error }};
+@define-color destructive_fg_color {{ $onError }};
+
+@define-color success_color {{ $success }};
+@define-color success_bg_color {{ $success }};
+@define-color success_fg_color {{ $onSuccess }};
+
+/* Material has no warning ramp; tertiary is the palette family whose tone is
+ * checked against the same surfaces as error and success. */
+@define-color warning_color {{ $tertiary }};
+@define-color warning_bg_color {{ $tertiaryContainer }};
+@define-color warning_fg_color {{ $onTertiaryContainer }};
+
+@define-color error_color {{ $error }};
+@define-color error_bg_color {{ $error }};
+@define-color error_fg_color {{ $onError }};
+
+@define-color window_bg_color {{ $surface }};
+@define-color window_fg_color {{ $onSurface }};
+
+@define-color view_bg_color {{ $surfaceContainerLowest }};
+@define-color view_fg_color {{ $onSurface }};
+
 @define-color headerbar_bg_color {{ $surfaceDim }};
 @define-color headerbar_fg_color {{ $onSurface }};
-@define-color popover_bg_color {{ $surfaceDim }};
-@define-color popover_fg_color {{ $onSurface }};
-@define-color view_bg_color {{ $surface }};
-@define-color view_fg_color {{ $onSurface }};
-@define-color card_bg_color {{ $surface }};
+@define-color headerbar_border_color {{ $outline }};
+@define-color headerbar_backdrop_color {{ $surfaceContainer }};
+@define-color headerbar_shade_color alpha({{ $outlineVariant }}, 0.55);
+@define-color headerbar_darker_shade_color alpha({{ $outlineVariant }}, 0.72);
+
+@define-color sidebar_bg_color {{ $surfaceContainerLow }};
+@define-color sidebar_fg_color {{ $onSurface }};
+@define-color sidebar_backdrop_color {{ $surfaceContainer }};
+@define-color sidebar_border_color {{ $outline }};
+@define-color sidebar_shade_color alpha({{ $outlineVariant }}, 0.55);
+
+@define-color secondary_sidebar_bg_color {{ $surfaceContainer }};
+@define-color secondary_sidebar_fg_color {{ $onSurface }};
+@define-color secondary_sidebar_backdrop_color {{ $surfaceContainerHigh }};
+@define-color secondary_sidebar_border_color {{ $outline }};
+@define-color secondary_sidebar_shade_color alpha({{ $outlineVariant }}, 0.55);
+
+@define-color card_bg_color {{ $surfaceContainer }};
 @define-color card_fg_color {{ $onSurface }};
-@define-color sidebar_bg_color @window_bg_color;
-@define-color sidebar_fg_color @window_fg_color;
-@define-color sidebar_border_color @window_bg_color;
-@define-color sidebar_backdrop_color @window_bg_color;
+@define-color card_shade_color alpha({{ $outlineVariant }}, 0.55);
+
+@define-color dialog_bg_color {{ $surface }};
+@define-color dialog_fg_color {{ $onSurface }};
+
+@define-color popover_bg_color {{ $surfaceContainer }};
+@define-color popover_fg_color {{ $onSurface }};
+@define-color popover_border_color {{ $outline }};
+@define-color popover_shade_color alpha({{ $outlineVariant }}, 0.55);
+
+@define-color menu_bg_color {{ $surfaceContainer }};
+@define-color menu_fg_color {{ $onSurface }};
+@define-color menu_border_color {{ $outline }};
+@define-color menu_hover_color {{ $surfaceContainerHigh }};
+
+@define-color tooltip_bg_color {{ $surfaceContainerHighest }};
+@define-color tooltip_fg_color {{ $onSurface }};
+@define-color tooltip_border_color {{ $outline }};
+
+@define-color thumbnail_bg_color {{ $surfaceContainerHighest }};
+@define-color thumbnail_fg_color {{ $onSurface }};
+@define-color shade_color alpha({{ $outlineVariant }}, 0.55);
+@define-color scrollbar_outline_color {{ $surface }};
+@define-color panel_bg_color {{ $surfaceDim }};
+@define-color panel_fg_color {{ $onSurface }};
+
+@define-color button_bg_color {{ $surfaceContainerHigh }};
+@define-color button_fg_color {{ $onSurface }};
+@define-color button_hover_color {{ $surfaceContainerHighest }};
+
+/* ---------------------------------------------------------------------------
+   GTK 3 / GTK 4 compatibility colours
+   ------------------------------------------------------------------------- */
+
+@define-color theme_fg_color @window_fg_color;
+@define-color theme_text_color @view_fg_color;
+@define-color theme_bg_color @window_bg_color;
+@define-color theme_base_color @view_bg_color;
 @define-color theme_selected_bg_color {{ $primaryContainer }};
 @define-color theme_selected_fg_color {{ $onPrimaryContainer }};
 
-@import "thunar.css";
+@define-color fg_color @theme_fg_color;
+@define-color text_color @theme_text_color;
+@define-color bg_color @theme_bg_color;
+@define-color base_color @theme_base_color;
+@define-color selected_bg_color @theme_selected_bg_color;
+@define-color selected_fg_color @theme_selected_fg_color;
+
+@define-color insensitive_bg_color {{ $surfaceContainerLow }};
+@define-color insensitive_fg_color {{ $onSurfaceVariant }};
+@define-color insensitive_base_color {{ $surfaceContainerLow }};
+@define-color theme_unfocused_fg_color {{ $onSurfaceVariant }};
+@define-color theme_unfocused_text_color {{ $onSurface }};
+@define-color theme_unfocused_bg_color {{ $surface }};
+@define-color theme_unfocused_base_color {{ $surfaceContainerLowest }};
+@define-color theme_unfocused_selected_bg_color @theme_selected_bg_color;
+@define-color theme_unfocused_selected_fg_color @theme_selected_fg_color;
+@define-color unfocused_insensitive_color {{ $onSurfaceVariant }};
+
+@define-color borders {{ $outline }};
+@define-color unfocused_borders {{ $outlineVariant }};
+@define-color warning_color {{ $tertiary }};
+@define-color error_color {{ $error }};
+@define-color success_color {{ $success }};
+@define-color placeholder_text_color {{ $onSurfaceVariant }};
+@define-color link_color {{ $primary }};
+@define-color link_visited_color {{ $tertiary }};
+@define-color content_view_bg @view_bg_color;
+@define-color text_view_bg @view_bg_color;
+
+@define-color wm_title @window_fg_color;
+@define-color wm_unfocused_title @theme_unfocused_fg_color;
+@define-color wm_highlight alpha({{ $outlineVariant }}, 0.80);
+@define-color wm_borders_edge alpha({{ $outline }}, 0.60);
+@define-color wm_bg {{ $surfaceDim }};
+@define-color wm_bg_unfocused {{ $surfaceContainer }};
+@define-color wm_shadow alpha({{ $shadow }}, 0.35);
+@define-color wm_border alpha({{ $outline }}, 0.45);
+@define-color wm_bg_a {{ $surfaceDim }};
+@define-color wm_bg_b {{ $surface }};
+@define-color wm_button_hover_color_a {{ $surfaceContainerHigh }};
+@define-color wm_button_hover_color_b {{ $surfaceContainer }};
+@define-color wm_button_active_color_a {{ $surfaceContainerHighest }};
+@define-color wm_button_active_color_b {{ $surfaceContainerHigh }};
+@define-color wm_button_active_color_c {{ $surfaceContainer }};
+
+/* ---------------------------------------------------------------------------
+   Window chrome
+   ------------------------------------------------------------------------- */
+
+window,
+.background {
+    background-color: @theme_bg_color;
+    color: @theme_fg_color;
+}
+
+window:backdrop,
+.background:backdrop {
+    background-color: @theme_unfocused_bg_color;
+    color: @theme_unfocused_fg_color;
+}
+
+headerbar,
+.titlebar {
+    background-color: @headerbar_bg_color;
+    color: @headerbar_fg_color;
+    border-bottom: 1px solid @headerbar_border_color;
+    box-shadow: none;
+}
+
+headerbar:backdrop,
+.titlebar:backdrop {
+    background-color: @headerbar_backdrop_color;
+    color: @theme_unfocused_fg_color;
+}
+
+headerbar .title,
+headerbar .subtitle,
+.titlebar .title,
+.titlebar .subtitle {
+    color: @headerbar_fg_color;
+}
+
+headerbar:backdrop .title,
+headerbar:backdrop .subtitle,
+.titlebar:backdrop .title,
+.titlebar:backdrop .subtitle {
+    color: @theme_unfocused_fg_color;
+}
+
+/* ---------------------------------------------------------------------------
+   Menus, popovers and tooltips
+   ------------------------------------------------------------------------- */
+
+menu,
+.menu,
+.context-menu,
+popover,
+popover.background,
+popover > contents {
+    background-color: @menu_bg_color;
+    color: @menu_fg_color;
+    border: 1px solid @menu_border_color;
+}
+
+popover > arrow {
+    background-color: @menu_bg_color;
+    border: 1px solid @menu_border_color;
+}
+
+menuitem {
+    min-height: 28px;
+    padding: 6px 10px;
+    background-color: transparent;
+    color: @menu_fg_color;
+}
+
+menuitem:hover,
+menuitem:focus {
+    background-color: @menu_hover_color;
+    color: @menu_fg_color;
+}
+
+menuitem:disabled {
+    background-color: transparent;
+    color: @insensitive_fg_color;
+}
+
+menu separator,
+popover separator {
+    min-height: 1px;
+    margin: 4px 8px;
+    background-color: @borders;
+}
+
+tooltip,
+tooltip.background {
+    background-color: @tooltip_bg_color;
+    color: @tooltip_fg_color;
+    border: 1px solid @tooltip_border_color;
+    box-shadow: none;
+}
+
+tooltip label,
+tooltip.background label {
+    color: @tooltip_fg_color;
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons, entries and other controls
+   ------------------------------------------------------------------------- */
+
+button {
+    border: 1px solid @borders;
+    background-color: @button_bg_color;
+    color: @button_fg_color;
+}
+
+button:hover {
+    background-color: @button_hover_color;
+    color: @button_fg_color;
+}
+
+button:active,
+button:checked {
+    background-color: @accent_bg_color;
+    border-color: @accent_bg_color;
+    color: @accent_fg_color;
+}
+
+button:disabled {
+    background-color: @insensitive_bg_color;
+    border-color: @unfocused_borders;
+    color: @insensitive_fg_color;
+}
+
+entry,
+spinbutton,
+searchentry {
+    border: 1px solid @borders;
+    background-color: @theme_base_color;
+    color: @theme_text_color;
+    caret-color: @accent_color;
+}
+
+entry:focus,
+spinbutton:focus,
+searchentry:focus {
+    border-color: @accent_color;
+}
+
+entry:disabled,
+spinbutton:disabled,
+searchentry:disabled {
+    background-color: @insensitive_base_color;
+    border-color: @unfocused_borders;
+    color: @insensitive_fg_color;
+}
+
+check,
+radio,
+switch {
+    border-color: @borders;
+}
+
+check:checked,
+radio:checked,
+switch:checked {
+    background-color: @accent_bg_color;
+    border-color: @accent_bg_color;
+    color: @accent_fg_color;
+}
+
+check:disabled,
+radio:disabled,
+switch:disabled {
+    border-color: @unfocused_borders;
+    color: @insensitive_fg_color;
+}
+
+scale highlight,
+progressbar progress {
+    background-color: @accent_bg_color;
+    color: @accent_fg_color;
+}
+
+separator {
+    background-color: @borders;
+}
+
+frame > border,
+.frame {
+    border: 1px solid @borders;
+}
+
+/* ---------------------------------------------------------------------------
+   Dialogs, file choosers and sidebars
+   ------------------------------------------------------------------------- */
+
+dialog,
+messagedialog,
+window.dialog {
+    background-color: @dialog_bg_color;
+    color: @dialog_fg_color;
+}
+
+dialog button,
+messagedialog button {
+    border-color: @borders;
+    background-color: @button_bg_color;
+    color: @button_fg_color;
+}
+
+dialog button:focus,
+messagedialog button:focus {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: @accent_color;
+    outline-offset: -2px;
+}
+
+filechooser,
+filechooser .view,
+filechooser treeview.view,
+placessidebar,
+placessidebar .view,
+placessidebar row,
+.pathbar,
+.path-bar,
+locationbar,
+.location-bar {
+    background-color: @view_bg_color;
+    color: @view_fg_color;
+}
+
+placessidebar row,
+.pathbar,
+.path-bar,
+locationbar {
+    border: 1px solid transparent;
+}
+
+placessidebar row:hover,
+.pathbar button:hover,
+.path-bar button:hover,
+locationbar button:hover {
+    background-color: @menu_hover_color;
+    border-color: @borders;
+    color: @view_fg_color;
+}
+
+placessidebar row:selected,
+filechooser .view:selected,
+filechooser treeview.view:selected {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+/* ---------------------------------------------------------------------------
+   Selection and disabled content
+   ------------------------------------------------------------------------- */
+
+selection,
+*:selected,
+.view:selected,
+treeview.view:selected,
+iconview:selected,
+listview > row:selected,
+gridview > child:selected,
+columnview > row:selected,
+flowboxchild:selected {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+*:disabled {
+    color: @insensitive_fg_color;
+}
+
+.dim-label,
+.subtitle,
+.caption {
+    color: @insensitive_fg_color;
+}
+
+/* ---------------------------------------------------------------------------
+   Keyboard focus
+   ------------------------------------------------------------------------- */
+
+button:focus,
+entry:focus,
+spinbutton:focus,
+searchentry:focus,
+treeview.view:focus,
+.view:focus,
+iconview:focus,
+listview > row:focus,
+gridview > child:focus,
+columnview > row:focus,
+flowboxchild:focus,
+tab:focus,
+menuitem:focus,
+checkbutton:focus,
+radiobutton:focus,
+switch:focus,
+scale:focus,
+placessidebar row:focus,
+filechooser .view:focus {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: @accent_color;
+    outline-offset: -2px;
+}
+
+/* A focus ring inside an already selected row must contrast with the selection
+ * fill, not disappear into it. */
+treeview.view:focus:selected,
+.view:focus:selected,
+listview > row:focus:selected,
+gridview > child:focus:selected,
+columnview > row:focus:selected,
+flowboxchild:focus:selected,
+placessidebar row:focus:selected {
+    outline-color: @theme_selected_fg_color;
+    border-color: @theme_selected_fg_color;
+}

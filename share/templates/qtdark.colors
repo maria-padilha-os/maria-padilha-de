@@ -1,7 +1,10 @@
 [ColorEffects:Disabled]
+# Keep disabled text on the generated onSurfaceVariant role. Blending it with
+# a surface (the old ColorEffect=3/0.5 combination) dropped it below body-text
+# contrast and produced a different result in each Qt style.
 Color={{ $surfaceContainer }}
-ColorAmount=0.5
-ColorEffect=3
+ColorAmount=0
+ColorEffect=0
 ContrastAmount=0
 ContrastEffect=0
 IntensityAmount=0
@@ -9,132 +12,132 @@ IntensityEffect=0
 
 [ColorEffects:Inactive]
 ChangeSelectionColor=true
-Color={{ $surfaceContainerLowest }}
-ColorAmount=0.025
+Color={{ $surfaceContainer }}
+ColorAmount=0
 ColorEffect=0
-ContrastAmount=0.1
+ContrastAmount=0
 ContrastEffect=0
-Enable=true
+Enable=false
 IntensityAmount=0
 IntensityEffect=0
 
 [Colors:Button]
-BackgroundAlternate={{ $surfaceVariant }}
+BackgroundAlternate={{ $surfaceContainer }}
 BackgroundNormal={{ $surfaceContainerHigh }}
 DecorationFocus={{ $primary }}
 DecorationHover={{ $primary }}
-ForegroundActive={{ $onSurface }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
 ForegroundNormal={{ $onSurface }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
 
 [Colors:Complementary]
-BackgroundAlternate={{ $surface }}
+BackgroundAlternate={{ $surfaceContainerHigh }}
 BackgroundNormal={{ $surfaceContainer }}
 DecorationFocus={{ $primary }}
 DecorationHover={{ $primary }}
-ForegroundActive={{ $inverseSurface }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
-ForegroundNormal={{ $onSurfaceVariant }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
+ForegroundNormal={{ $onSurface }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
 
 [Colors:Header]
 BackgroundAlternate={{ $surfaceContainer }}
-BackgroundNormal={{ $surfaceContainer }}
-DecorationFocus={{ $primary }}
-DecorationHover={{ $primary }}
-ForegroundActive={{ $inverseSurface }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
-ForegroundNormal={{ $onSurfaceVariant }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
-
-[Colors:Header][Inactive]
-BackgroundAlternate={{ $surfaceContainer }}
-BackgroundNormal={{ $surfaceContainer }}
-DecorationFocus={{ $primary }}
-DecorationHover={{ $primary }}
-ForegroundActive={{ $inverseSurface }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
-ForegroundNormal={{ $onSurfaceVariant }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
-
-[Colors:Selection]
-BackgroundAlternate={{ $primary }}
-BackgroundNormal={{ $primary }}
-DecorationFocus={{ $primary }}
-DecorationHover={{ $secondary }}
-ForegroundActive={{ $onPrimary }}
-ForegroundInactive={{ $onPrimary }}
-ForegroundLink={{ $klinkSelection }}
-ForegroundNegative={{ $knegativeSelection }}
-ForegroundNeutral={{ $kneutralSelection }}
-ForegroundNormal={{ $onPrimary }}
-ForegroundPositive={{ $kpositiveSelection }}
-ForegroundVisited={{ $kvisitedSelection }}
-
-[Colors:Tooltip]
-BackgroundAlternate={{ $surfaceVariant }}
-BackgroundNormal={{ $surfaceContainer }}
-DecorationFocus={{ $primary }}
-DecorationHover={{ $primary }}
-ForegroundActive={{ $onSurface }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
-ForegroundNormal={{ $onSurface }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
-
-[Colors:View]
-BackgroundAlternate={{ $surfaceContainer }}
 BackgroundNormal={{ $surfaceDim }}
 DecorationFocus={{ $primary }}
-#-----------------------------------------------
-DecorationHover={{ $inversePrimary }}
-ForegroundActive={{ $inverseSurface }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
+DecorationHover={{ $primary }}
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
 ForegroundNormal={{ $onSurface }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
 
-[Colors:Window]
-BackgroundAlternate={{ $surfaceVariant }}
+[Colors:Header][Inactive]
+BackgroundAlternate={{ $surfaceContainerHigh }}
 BackgroundNormal={{ $surfaceContainer }}
 DecorationFocus={{ $primary }}
 DecorationHover={{ $primary }}
-ForegroundActive={{ $klink }}
-ForegroundInactive={{ $outline }}
-ForegroundLink={{ $klink }}
-ForegroundNegative={{ $knegative }}
-ForegroundNeutral={{ $kneutral }}
-#--- Window titles, context icons
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
 ForegroundNormal={{ $onSurfaceVariant }}
-ForegroundPositive={{ $kpositive }}
-ForegroundVisited={{ $kvisited }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
+
+[Colors:Selection]
+# primaryContainer is the same selected fill used by GTK and Thunar. The focus
+# decoration is the selection foreground so it cannot vanish into the fill.
+BackgroundAlternate={{ $primaryContainer }}
+BackgroundNormal={{ $primaryContainer }}
+DecorationFocus={{ $onPrimaryContainer }}
+DecorationHover={{ $onPrimaryContainer }}
+ForegroundActive={{ $onPrimaryContainer }}
+ForegroundInactive={{ $onPrimaryContainer }}
+ForegroundLink={{ $onPrimaryContainer }}
+ForegroundNegative={{ $onPrimaryContainer }}
+ForegroundNeutral={{ $onPrimaryContainer }}
+ForegroundNormal={{ $onPrimaryContainer }}
+ForegroundPositive={{ $onPrimaryContainer }}
+ForegroundVisited={{ $onPrimaryContainer }}
+
+[Colors:Tooltip]
+BackgroundAlternate={{ $surfaceContainerHigh }}
+BackgroundNormal={{ $surfaceContainerHighest }}
+DecorationFocus={{ $primary }}
+DecorationHover={{ $primary }}
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
+ForegroundNormal={{ $onSurface }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
+
+[Colors:View]
+BackgroundAlternate={{ $surfaceContainerLow }}
+BackgroundNormal={{ $surfaceContainerLowest }}
+DecorationFocus={{ $primary }}
+DecorationHover={{ $primary }}
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
+ForegroundNormal={{ $onSurface }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
+
+[Colors:Window]
+BackgroundAlternate={{ $surfaceContainerLow }}
+BackgroundNormal={{ $surface }}
+DecorationFocus={{ $primary }}
+DecorationHover={{ $primary }}
+ForegroundActive={{ $primary }}
+ForegroundInactive={{ $onSurfaceVariant }}
+ForegroundLink={{ $primary }}
+ForegroundNegative={{ $error }}
+ForegroundNeutral={{ $tertiary }}
+ForegroundNormal={{ $onSurface }}
+ForegroundPositive={{ $success }}
+ForegroundVisited={{ $tertiary }}
 
 [General]
 ColorScheme=Caelestia
-Name=Caelestia
+Name=Caelestia {{ $mode }}
 shadeSortColumn=true
 
 [KDE]
@@ -142,8 +145,8 @@ contrast=4
 
 [WM]
 activeBackground={{ $surfaceContainerHighest }}
-activeBlend=252,252,252
+activeBlend={{ $surfaceContainerHighest | rgb }}
 activeForeground={{ $onSurface }}
 inactiveBackground={{ $secondaryContainer }}
-inactiveBlend=161,169,177
+inactiveBlend={{ $secondaryContainer | rgb }}
 inactiveForeground={{ $onSecondaryContainer }}
