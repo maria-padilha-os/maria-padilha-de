@@ -30,9 +30,9 @@ The installer has its own runtime list in `install.sh`, kept in sync with
 `packaging/PKGBUILD`; the important pieces are Hyprland, Quickshell, Qt 6,
 PipeWire, `brightnessctl`, Python, Lua, ImageMagick, `hyprlock`, the session
 daemons (`hypridle`, `hyprsunset`, `gnome-keyring`, `polkit-gnome`), the
-clipboard tools, and fuzzel. Screenshots, recording, the Discord theme, and the
-optional email client use packages listed in the PKGBUILD; Thunderbird is an
-`optdepends`, not a hard dependency.
+clipboard tools, and fuzzel. Screenshots, recording, the opt-in Discord theme,
+and the optional email client use packages listed in the PKGBUILD; Thunderbird
+is an `optdepends`, not a hard dependency.
 
 ## Quick start
 

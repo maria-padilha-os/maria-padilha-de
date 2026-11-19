@@ -1,176 +1,237 @@
 /**
- * @name Midnight (Caelestia)
- * @description A dark, rounded discord theme. Caelestia scheme colours.
- * @author refact0r, esme, anubis
- * @version 1.6.2
- * @invite nz87hXyvcy
- * @website https://github.com/refact0r/midnight-discord
- * @authorId 508863359777505290
- * @authorLink https://www.refact0r.dev
-*/
+ * @name Maria Padilha
+ * @author Maria Padilha
+ * @description A Material You recolour for Discord generated from the
+ *   current wallpaper palette. Unsupported by Discord; opt-in only.
+ * @version 2.0.0
+ * @license GPL-3.0-only
+ */
 
 @use "sass:color";
 @use "colours" as c;
 
-@import url("https://refact0r.github.io/midnight-discord/build/midnight.css");
-
-body {
-    /* font options */
-    --font: "figtree"; /* change to '' for default discord font */
-    --code-font: "JetBrainsMono NF"; /* change to '' for default discord font */
-    font-weight: 400; /* normal text font weight. DOES NOT AFFECT BOLD TEXT */
-
-    /* sizes */
-    --gap: 12px; /* spacing between panels */
-    --divider-thickness: 4px; /* thickness of unread messages divider and highlighted message borders */
-    --border-thickness: 1px; /* thickness of borders around main panels. DOES NOT AFFECT OTHER BORDERS */
-
-    /* animation/transition options */
-    --animations: on; /* turn off to disable all midnight animations/transitions */
-    --list-item-transition: 0.2s ease; /* transition for list items */
-    --dms-icon-svg-transition: 0.4s ease; /* transition for the dms icon */
-    --border-hover-transition: 0.2s ease; /* transition for borders when hovered */
-
-    /* top bar options */
-    --top-bar-height: var(
-        --gap
-    ); /* height of the titlebar/top bar (discord default is 36px, 24px recommended if moving/hiding top bar buttons) */
-    --top-bar-button-position: titlebar; /* off: default position, hide: hide inbox/support buttons completely, serverlist: move inbox button to server list, titlebar: move inbox button to titlebar (will hide title) */
-    --top-bar-title-position: off; /* off: default centered position, hide: hide title completely, left: left align title (like old discord) */
-    --subtle-top-bar-title: off; /* off: default, on: hide the icon and use subtle text color (like old discord) */
-
-    /* window controls */
-    --custom-window-controls: on; /* turn off to use discord default window controls */
-    --window-control-size: 14px; /* size of custom window controls */
-
-    /* dms button icon options */
-    --custom-dms-icon: custom; /* off: use default discord icon, hide: remove icon entirely, custom: use custom icon */
-    --dms-icon-svg-url: url("https://refact0r.github.io/midnight-discord/assets/Font_Awesome_5_solid_moon.svg"); /* icon svg url. MUST BE A SVG. */
-    --dms-icon-svg-size: 90%; /* size of the svg (css mask-size) */
-    --dms-icon-color-before: var(--icon-subtle); /* normal icon color */
-    --dms-icon-color-after: var(--white); /* icon color when button is hovered/selected */
-
-    /* dms button background options */
-    --custom-dms-background: off; /* off to disable, image to use a background image (must set url variable below), color to use a custom color/gradient */
-    --dms-background-image-url: url(""); /* url of the background image */
-    --dms-background-image-size: cover; /* size of the background image (css background-size) */
-    --dms-background-color: linear-gradient(
-        70deg,
-        var(--blue-2),
-        var(--purple-2),
-        var(--red-2)
-    ); /* fixed color/gradient (css background) */
-
-    /* background image options */
-    --background-image: off; /* turn on to use a background image */
-    --background-image-url: url(""); /* url of the background image */
-
-    /* transparency/blur options */
-    /* NOTE: TO USE TRANSPARENCY/BLUR, YOU MUST HAVE TRANSPARENT BG COLORS. FOR EXAMPLE: --bg-4: hsla(220, 15%, 10%, 0.7); */
-    --transparency-tweaks: off; /* turn on to remove some elements for better transparency */
-    --remove-bg-layer: off; /* turn on to remove the base --bg-3 layer for use with window transparency (WILL OVERRIDE BACKGROUND IMAGE) */
-    --panel-blur: off; /* turn on to blur the background of panels */
-    --blur-amount: 12px; /* amount of blur */
-    --bg-floating: #{c.$surface}; /* you can set this to a more opaque color if floating panels look too transparent */
-
-    /* chatbar options */
-    --custom-chatbar: off; /* off: default chatbar, separated: chatbar separated from chat */
-    --chatbar-height: 47px; /* height of the chatbar (56px by default, 47px to align with user panel, 56px recommended for separated) */
-
-    /* other options */
-    --small-user-panel: off; /* off: default user panel, on: smaller user panel like in old discord */
+/* The surface role is near-black in a dark palette and near-white in a light
+ * one. Deriving color-scheme from it keeps the stylesheet buildable with the
+ * same palette partial as every other template. */
+$mode: dark;
+@if color.channel(c.$surface, "lightness", $space: hsl) > 50% {
+    $mode: light;
 }
 
-/* color options */
-:root {
-    --colors: on; /* turn off to use discord default colors */
+/* Discord has no supported user-stylesheet API. This file does nothing unless
+ * a third-party client mod (Vencord or BetterDiscord) injects it. The theme
+ * engine only writes the stylesheet; it never installs, launches, patches or
+ * updates Discord or the mod, and it never touches an account.
+ *
+ * The sheet is deliberately self-contained: no scripts, no imports, no remote
+ * assets, no fonts or images, and no network access. Discord's design tokens
+ * are the stable surface; the element selectors below are limited to the app
+ * roots and native controls that survive client restructures.
+ *
+ * Every custom property consumed below has a literal fallback, so a partial
+ * palette still produces a readable client. The :where(:root) block carries
+ * the generated values, which makes the file standalone; a future palette can
+ * replace that block without editing the mapping.
+ */
 
-    /* text colors */
-    --text-0: #{c.$onPrimary}; /* text on colored elements */
-    --text-1: #{color.scale(c.$onSurface, $lightness: 10%)}; /* bright text on colored elements */
-    --text-2: #{color.scale(c.$onSurface, $lightness: 5%)}; /* headings and important text */
-    --text-3: #{c.$onSurface}; /* normal text */
-    --text-4: #{c.$outline}; /* icon buttons and channels */
-    --text-5: #{c.$outline}; /* muted channels/chats and timestamps */
+:where(:root) {
+    --lilith-scheme: #{$mode};
 
-    /* background and dark colors */
-    --bg-1: #{c.$surfaceContainerHighest}; /* dark buttons when clicked */
-    --bg-2: #{c.$surfaceContainerHigh}; /* dark buttons */
-    --bg-3: #{c.$surface}; /* spacing, secondary elements */
-    --bg-4: #{c.$surfaceContainer}; /* main background color */
-    --hover: #{color.change(c.$onSurface, $alpha: 0.08)}; /* channels and buttons when hovered */
-    --active: #{color.change(c.$onSurface, $alpha: 0.1)}; /* channels and buttons when clicked or selected */
-    --active-2: #{color.change(c.$onSurface, $alpha: 0.2)}; /* extra state for transparent buttons */
-    --message-hover: #{color.change(c.$onSurface, $alpha: 0.08)}; /* messages when hovered */
+    --lilith-bg: #{c.$background};
+    --lilith-surface: #{c.$surface};
+    --lilith-surface-dim: #{c.$surfaceDim};
+    --lilith-surface-container-lowest: #{c.$surfaceContainerLowest};
+    --lilith-surface-container-low: #{c.$surfaceContainerLow};
+    --lilith-surface-container: #{c.$surfaceContainer};
+    --lilith-surface-container-high: #{c.$surfaceContainerHigh};
+    --lilith-surface-container-highest: #{c.$surfaceContainerHighest};
 
-    /* accent colors */
-    --accent-1: var(--blue-1); /* links and other accent text */
-    --accent-2: var(--blue-2); /* small accent elements */
-    --accent-3: var(--blue-3); /* accent buttons */
-    --accent-4: var(--blue-4); /* accent buttons when hovered */
-    --accent-5: var(--blue-5); /* accent buttons when clicked */
-    --accent-new: #{c.$error}; /* stuff that's normally red like mute/deafen buttons */
-    --mention: linear-gradient(
-        to right,
-        color-mix(in hsl, var(--blue-2), transparent 90%) 40%,
-        transparent
-    ); /* background of messages that mention you */
-    --mention-hover: linear-gradient(
-        to right,
-        color-mix(in hsl, var(--blue-2), transparent 95%) 40%,
-        transparent
-    ); /* background of messages that mention you when hovered */
-    --reply: linear-gradient(
-        to right,
-        color-mix(in hsl, var(--text-3), transparent 90%) 40%,
-        transparent
-    ); /* background of messages that reply to you */
-    --reply-hover: linear-gradient(
-        to right,
-        color-mix(in hsl, var(--text-3), transparent 95%) 40%,
-        transparent
-    ); /* background of messages that reply to you when hovered */
+    /* Older generated palettes used the short names. Keep both spellings so a
+     * stale palette cannot leave a surface transparent. */
+    --lilith-surface-low: #{c.$surfaceContainerLow};
+    --lilith-surface-lowest: #{c.$surfaceContainerLowest};
 
-    /* status indicator colors */
-    --online: var(--green-2); /* change to #43a25a for default */
-    --dnd: var(--red-2); /* change to #d83a42 for default */
-    --idle: var(--yellow-2); /* change to #ca9654 for default */
-    --streaming: var(--purple-2); /* change to #593695 for default */
-    --offline: var(--text-4); /* change to #83838b for default offline color */
+    --lilith-on-surface: #{c.$onSurface};
+    --lilith-on-surface-variant: #{c.$onSurfaceVariant};
 
-    /* border colors */
-    --border-light: #{color.change(c.$outline, $alpha: 0)}; /* light border color */
-    --border: #{color.change(c.$outline, $alpha: 0.2)}; /* normal border color */
-    --button-border: #{color.change(c.$outline, $alpha: 0)}; /* neutral border color of buttons */
+    --lilith-primary: #{c.$primary};
+    --lilith-on-primary: #{c.$onPrimary};
+    --lilith-primary-container: #{c.$primaryContainer};
+    --lilith-on-primary-container: #{c.$onPrimaryContainer};
+    --lilith-secondary: #{c.$secondary};
+    --lilith-on-secondary: #{c.$onSecondary};
+    --lilith-secondary-container: #{c.$secondaryContainer};
+    --lilith-on-secondary-container: #{c.$onSecondaryContainer};
+    --lilith-tertiary: #{c.$tertiary};
+    --lilith-on-tertiary: #{c.$onTertiary};
+    --lilith-tertiary-container: #{c.$tertiaryContainer};
+    --lilith-on-tertiary-container: #{c.$onTertiaryContainer};
 
-    /* base colors */
-    --red-1: #{c.$error};
-    --red-2: #{color.scale(c.$error, $lightness: -5%)};
-    --red-3: #{color.scale(c.$error, $lightness: -10%)};
-    --red-4: #{color.scale(c.$error, $lightness: -15%)};
-    --red-5: #{color.scale(c.$error, $lightness: -20%)};
+    --lilith-outline: #{c.$outline};
+    --lilith-outline-variant: #{c.$outlineVariant};
+    --lilith-error: #{c.$error};
+    --lilith-on-error: #{c.$onError};
+    --lilith-error-container: #{c.$errorContainer};
+    --lilith-on-error-container: #{c.$onErrorContainer};
 
-    --green-1: #{c.$green};
-    --green-2: #{color.scale(c.$green, $lightness: -5%)};
-    --green-3: #{color.scale(c.$green, $lightness: -10%)};
-    --green-4: #{color.scale(c.$green, $lightness: -15%)};
-    --green-5: #{color.scale(c.$green, $lightness: -20%)};
+    --lilith-inverse-surface: #{c.$inverseSurface};
+    --lilith-inverse-on-surface: #{c.$inverseOnSurface};
+    --lilith-inverse-primary: #{c.$inversePrimary};
+    --lilith-shadow: #{c.$shadow};
+    --lilith-scrim: #{c.$scrim};
+}
 
-    --blue-1: #{c.$primary};
-    --blue-2: #{color.scale(c.$primary, $lightness: -5%)};
-    --blue-3: #{color.scale(c.$primary, $lightness: -10%)};
-    --blue-4: #{color.scale(c.$primary, $lightness: -15%)};
-    --blue-5: #{color.scale(c.$primary, $lightness: -20%)};
+/* Discord's own design tokens. Both the legacy surface vocabulary and the
+ * newer base/surface names are mapped, so an incremental client update keeps
+ * the palette instead of falling back to stock blurple-grey. */
+:root,
+.theme-dark,
+.theme-light {
+    color-scheme: $mode;
 
-    --yellow-1: #{c.$yellow};
-    --yellow-2: #{color.scale(c.$yellow, $lightness: -5%)};
-    --yellow-3: #{color.scale(c.$yellow, $lightness: -10%)};
-    --yellow-4: #{color.scale(c.$yellow, $lightness: -15%)};
-    --yellow-5: #{color.scale(c.$yellow, $lightness: -20%)};
+    /* Legacy surfaces. */
+    --background-primary: var(--lilith-surface, #{c.$surface});
+    --background-secondary: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
+    --background-secondary-alt: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --background-tertiary: var(--lilith-bg, #{c.$background});
+    --background-accent: var(--lilith-primary, #{c.$primary});
+    --background-floating: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+    --background-nested-floating: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+    --background-mobile-primary: var(--lilith-surface, #{c.$surface});
+    --background-mobile-secondary: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
 
-    --purple-1: #{c.$mauve};
-    --purple-2: #{color.scale(c.$mauve, $lightness: -5%)};
-    --purple-3: #{color.scale(c.$mauve, $lightness: -10%)};
-    --purple-4: #{color.scale(c.$mauve, $lightness: -15%)};
-    --purple-5: #{color.scale(c.$mauve, $lightness: -20%)};
+    --background-modifier-hover: #{color.change(c.$onSurface, $alpha: 0.08)};
+    --background-modifier-active: #{color.change(c.$onSurface, $alpha: 0.12)};
+    --background-modifier-selected: #{color.change(c.$primary, $alpha: 0.2)};
+    --background-modifier-accent: var(--lilith-outline-variant, #{c.$outlineVariant});
+    --background-mentioned: #{color.change(c.$primary, $alpha: 0.12)};
+    --background-mentioned-hover: #{color.change(c.$primary, $alpha: 0.18)};
+    --background-message-hover: #{color.change(c.$onSurface, $alpha: 0.05)};
+    --background-message-highlight: #{color.change(c.$primary, $alpha: 0.1)};
+
+    --channeltextarea-background: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --chat-background: var(--lilith-surface, #{c.$surface});
+    --chat-input-container-background: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --home-background: var(--lilith-bg, #{c.$background});
+    --modal-background: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --modal-footer-background: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
+    --card-primary-bg: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --card-secondary-bg: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
+    --deprecated-card-bg: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --input-background: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --input-pressed-background: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+
+    /* Text and icons. Muted text stays on-surface-variant, not outline, so it
+     * keeps body-text contrast instead of becoming decorative grey. */
+    --text-normal: var(--lilith-on-surface, #{c.$onSurface});
+    --text-primary: var(--lilith-on-surface, #{c.$onSurface});
+    --text-secondary: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --text-muted: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --text-low-contrast: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --header-primary: var(--lilith-on-surface, #{c.$onSurface});
+    --header-secondary: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --header-muted: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --interactive-normal: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --interactive-hover: var(--lilith-on-surface, #{c.$onSurface});
+    --interactive-active: var(--lilith-on-surface, #{c.$onSurface});
+    --interactive-muted: var(--lilith-outline, #{c.$outline});
+    --channels-default: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+    --channel-icon: var(--lilith-on-surface-variant, #{c.$onSurfaceVariant});
+
+    --text-link: var(--lilith-primary, #{c.$primary});
+    --text-brand: var(--lilith-primary, #{c.$primary});
+    --text-danger: var(--lilith-error, #{c.$error});
+    --text-positive: #{c.$green};
+    --text-warning: #{c.$yellow};
+    --status-danger: var(--lilith-error, #{c.$error});
+    --status-danger-background: var(--lilith-error, #{c.$error});
+    --focus-primary: var(--lilith-primary, #{c.$primary});
+    --control-brand-foreground: var(--lilith-primary, #{c.$primary});
+    --control-brand-foreground-new: var(--lilith-primary, #{c.$primary});
+    --mention-foreground: var(--lilith-primary, #{c.$primary});
+    --mention-background: #{color.change(c.$primary, $alpha: 0.15)};
+
+    /* Presence indicators. The generated scheme can make several hues very
+     * close; the labels and shapes still carry the meaning, not colour alone. */
+    --status-online: #{c.$green};
+    --status-idle: #{c.$yellow};
+    --status-dnd: #{c.$error};
+    --status-streaming: #{c.$mauve};
+    --status-offline: var(--lilith-outline, #{c.$outline});
+
+    --scrollbar-thin-thumb: var(--lilith-outline-variant, #{c.$outlineVariant});
+    --scrollbar-thin-track: transparent;
+    --scrollbar-auto-thumb: var(--lilith-outline-variant, #{c.$outlineVariant});
+    --scrollbar-auto-track: var(--lilith-bg, #{c.$background});
+    --scrollbar-auto-scrollbar-color-thumb: var(--lilith-outline-variant, #{c.$outlineVariant});
+    --scrollbar-auto-scrollbar-color-track: var(--lilith-bg, #{c.$background});
+
+    /* Newer Discord design tokens. Names mirror the client's current surface
+     * vocabulary; the legacy block above covers older builds. */
+    --bg-base-primary: var(--lilith-surface, #{c.$surface});
+    --bg-base-secondary: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
+    --bg-base-tertiary: var(--lilith-bg, #{c.$background});
+    --bg-surface-overlay: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+    --bg-surface-overlay-tmp: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+    --bg-surface-raised: var(--lilith-surface-container, #{c.$surfaceContainer});
+    --bg-mod-faint: #{color.change(c.$onSurface, $alpha: 0.04)};
+    --bg-mod-subtle: #{color.change(c.$onSurface, $alpha: 0.08)};
+    --bg-mod-strong: #{color.change(c.$onSurface, $alpha: 0.16)};
+    --border-faint: #{color.change(c.$outlineVariant, $alpha: 0.45)};
+    --border-subtle: var(--lilith-outline-variant, #{c.$outlineVariant});
+    --border-strong: var(--lilith-outline, #{c.$outline});
+
+    --background-base-lowest: var(--lilith-surface-container-lowest, #{c.$surfaceContainerLowest});
+    --background-base-low: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
+    --background-base: var(--lilith-surface, #{c.$surface});
+    --background-surface-high: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+    --background-surface-higher: var(--lilith-surface-container-high, #{c.$surfaceContainerHigh});
+    --background-surface-highest: var(--lilith-surface-container-highest, #{c.$surfaceContainerHighest});
+}
+
+/* The outer canvas. Discord normally paints this from its own tokens, but a
+ * literal background avoids a flash of the old theme while the client boots. */
+html,
+body,
+#app-mount {
+    background-color: var(--lilith-bg, #{c.$background});
+    color: var(--lilith-on-surface, #{c.$onSurface});
+}
+
+::selection {
+    background-color: var(--lilith-primary-container, #{c.$primaryContainer});
+    color: var(--lilith-on-primary-container, #{c.$onPrimaryContainer});
+}
+
+/* Chromium scrollbars in Discord. Keep the track transparent so the palette's
+ * surface shows through instead of drawing a second slab of colour. */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--lilith-outline-variant, #{c.$outlineVariant});
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--lilith-outline, #{c.$outline});
+}
+
+/* Focus is an accessibility surface: keep it visible and let the generated
+ * primary colour carry it. */
+:where(a, button, input, textarea, select, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--lilith-primary, #{c.$primary});
+    outline-offset: 2px;
+}
+
+/* Code blocks and inline code are frequent low-contrast spots. */
+:where(code, pre) {
+    background-color: var(--lilith-surface-container-low, #{c.$surfaceContainerLow});
+    color: var(--lilith-on-surface, #{c.$onSurface});
 }

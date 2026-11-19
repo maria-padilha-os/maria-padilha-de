@@ -63,7 +63,7 @@ apply`, including the daylight and wallpaper paths:
 return {
     theme = {
         enableBtop = false,
-        enableDiscord = false,
+        enableDiscord = false, -- opt-in; set true to enable
         postHook = "pkill -USR2 some-app",
     },
 }
@@ -72,7 +72,30 @@ return {
 The switches are `enableHypr`, `enableHyprlock`, `enableFuzzel`, `enableBtop`,
 `enableCava`, `enableGtk`, `enableQt`, `enableMicro`, `enableSpicetify`,
 `enableDiscord`, `enableMc`, and `enableFirefox`. A missing file, or an omitted
-key, means enabled. `postHook` runs only with `padilha-theme apply --hooks`.
+key, uses the default: every switch is enabled except `enableDiscord`, which
+is opt-in and defaults to false. `postHook` runs only with `padilha-theme apply
+--hooks`.
+
+### Discord (opt-in, unsupported)
+
+Set `enableDiscord = true` to have `padilha-theme apply` compile
+`share/templates/discord.scss` with the current palette into a standalone
+`caelestia.theme.css`. If a supported client mod's config directory already
+exists (Equicord, Vencord, BetterDiscord, equibop, vesktop or legcord), the
+engine writes the stylesheet to its `themes/` folder. It does not install,
+launch, patch or update Discord, the client mod, or any account.
+
+The theme is only active after you install a client mod yourself and enable
+the theme or paste the stylesheet into its custom-CSS panel. The manual
+install, update and removal steps live with the
+[dotfiles repository](https://github.com/maria-padilha-os/maria-padilha-dotfiles).
+The generated file is self-contained: no imports, remote assets, fonts, images
+or network code.
+
+> Client modifications are against Discord's Terms of Service. Vencord and
+> BetterDiscord both document this; bans are reported as rare or unknown in
+> practice, but that is not a guarantee. If losing your account would be a
+> disaster for you, do not use any client mod.
 
 ## Clipboard history
 

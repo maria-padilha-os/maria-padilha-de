@@ -179,11 +179,47 @@ check "the pinned bar palette is black" "[ \"$bar_bg\" = 000000 ]" "background $
 
 check "spicetify gets a colour.ini" "test -s '$tmp/tree/home/machine/.config/spicetify/Themes/caelestia/color.ini'"
 
-mkdir -p "$tmp/tree/home/machine/.config/Equicord"
-"$theme" apply --seed ff1a1a --mode dark --prefix "$tmp/tree" --no-signals > /dev/null 2>&1
-discord="$tmp/tree/home/machine/.config/Equicord/themes/caelestia.theme.css"
+# Discord is opt-in: a client directory alone must not receive a theme. Once
+# enableDiscord is set, apply writes the standalone stylesheet for the active
+# palette. The contract check below covers both modes in one pass.
+discord_cfg="$tmp/discord-config"
+discord_tree="$tmp/discord-tree"
+discord_state="$tmp/discord-state"
+mkdir -p "$discord_tree$discord_cfg/Equicord" "$discord_cfg"
+XDG_CONFIG_HOME="$discord_cfg" XDG_STATE_HOME="$discord_state" XDG_DATA_HOME="$tmp/discord-data" \
+    "$theme" apply --seed ff1a1a --mode dark --prefix "$discord_tree" --no-signals > /dev/null 2>&1
+discord="$discord_tree$discord_cfg/Equicord/themes/caelestia.theme.css"
+check "discord theme is opt-in and stays off by default" "! test -e '$discord'"
+
+mkdir -p "$discord_cfg/padilha"
+printf 'return { theme = { enableDiscord = true } }\n' > "$discord_cfg/padilha/theme.lua"
+XDG_CONFIG_HOME="$discord_cfg" XDG_STATE_HOME="$discord_state" XDG_DATA_HOME="$tmp/discord-data" \
+    "$theme" apply --seed ff1a1a --mode dark --prefix "$discord_tree" --no-signals > /dev/null 2>&1
+discord_scheme="$discord_tree$discord_state/caelestia/scheme.json"
 check "discord clients get a compiled theme" "test -s '$discord'"
 check "the discord theme carries the palette" "grep -q '#ffb4a6\|#ffb4ab\|#ffb4a9' '$discord'"
+
+check "the discord template has no remote assets" \
+    "! grep -Eqi 'https?://|@import|url[[:space:]]*\(' '$root/share/templates/discord.scss'"
+
+discord_light_cfg="$tmp/discord-light-config"
+discord_light_tree="$tmp/discord-light-tree"
+discord_light_state="$tmp/discord-light-state"
+mkdir -p "$discord_light_tree$discord_light_cfg/Equicord" "$discord_light_cfg/padilha"
+printf 'return { theme = { enableDiscord = true } }\n' > "$discord_light_cfg/padilha/theme.lua"
+XDG_CONFIG_HOME="$discord_light_cfg" XDG_STATE_HOME="$discord_light_state" XDG_DATA_HOME="$tmp/discord-light-data" \
+    "$theme" apply --seed ff1a1a --mode light --prefix "$discord_light_tree" --no-signals > /dev/null 2>&1
+discord_light="$discord_light_tree$discord_light_cfg/Equicord/themes/caelestia.theme.css"
+discord_light_scheme="$discord_light_tree$discord_light_state/caelestia/scheme.json"
+check "discord light mode is compiled" "test -s '$discord_light'"
+if /usr/bin/python3 "$root/tests/theme/check-discord.py" \
+    "$discord" "$discord_scheme" "$discord_light" "$discord_light_scheme" \
+    > "$tmp/discord.log" 2>&1; then
+    ok "discord theme contract: standalone, fallbacks, coverage, contrast"
+else
+    bad "discord theme contract: standalone, fallbacks, coverage, contrast" \
+        "$(tail -12 "$tmp/discord.log")"
+fi
 
 echo "firefox"
 

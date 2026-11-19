@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- The Discord theme is now an opt-in, standalone stylesheet instead of a
+  Midnight override with a remote import. `padilha-theme apply` compiles
+  `share/templates/discord.scss` with the current palette into a
+  BetterDiscord/Vencord `.theme.css`, maps Material roles onto Discord's legacy
+  and current design variables with literal fallbacks, follows light and dark
+  modes, and has no imports, remote assets, fonts, images or network code.
+  `enableDiscord` now defaults to false; when enabled, the engine only writes
+  into existing client-mod theme directories and never installs, patches,
+  launches or updates Discord or the mod. The ToS/account risk and the manual
+  opt-in are documented, while the install steps stay in the dotfiles
+  repository. Tests compile both modes and check variable coverage, contrast
+  and the absence of remote URLs.
 - The shell now handles multiple monitors and hotplug through a stable screen
   model instead of array indices or `ShellScreen` object identity. Adding,
   removing, rotating or scaling an output rebuilds only that output's bar,

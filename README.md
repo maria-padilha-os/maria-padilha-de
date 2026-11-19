@@ -143,7 +143,7 @@ theme, so the explicit choice is not overwritten at the next boundary.
   opt-in.
 - **Colour** — a wallpaper is scored into a Material You palette and written to
   Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, spicetify,
-  Neovim, Discord, and Midnight Commander.
+  Neovim, and Midnight Commander. Discord is an opt-in, user-loaded theme.
 - **Daylight** — a light wallpaper for the day and a dark one for the night,
   with the palette reapplied when the period changes.
 - **Media** — a bar item and popout for the active MPRIS player, with artwork,
@@ -189,8 +189,8 @@ Manjaro. It requires:
   [INSTALL.md](INSTALL.md#email-optional)
 
 Building additionally needs CMake, Ninja, Python 3, and a C++ toolchain.
-Optional tools enable screenshots, recording, the pickers, and the Discord
-theme; see `packaging/PKGBUILD`.
+Optional tools enable screenshots, recording, the pickers, and the opt-in
+Discord theme; see `packaging/PKGBUILD`.
 
 ## Building
 

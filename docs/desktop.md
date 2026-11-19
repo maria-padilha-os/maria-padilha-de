@@ -15,9 +15,34 @@ itself goes through `padilha-lock` and `hyprlock`.
 `padilha-daylight` switches between a light wallpaper at 06:00 and a dark one at
 18:00. Each switch rebuilds the Material You palette from the image and applies
 it to Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, lazygit, Thunderbird, cava, fuzzel, Neovim,
-Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
-colorscheme follows the same palette and switches between its ayu-inspired
-light and dark variants.
+Midnight Commander, Firefox's chrome and new tab page, and the opt-in Discord
+theme. The Neovim colorscheme follows the same palette and switches between its
+ayu-inspired light and dark variants.
+
+## Discord theme (opt-in, unsupported)
+
+Discord does not load user stylesheets. `padilha-theme` can compile the
+palette into a standalone `caelestia.theme.css`, but only a third-party client
+mod can inject it. The engine does not install, launch, patch or update
+Discord, Vencord, BetterDiscord or any other client.
+
+Set `enableDiscord = true` in `~/.config/padilha/theme.lua` (it is off by
+default) and apply the theme. If a supported client mod's config directory
+already exists, the stylesheet is written to its `themes/` folder; you still
+install the mod and enable the theme yourself. The generated sheet has no
+imports, remote assets, fonts, images or network code, and it maps the
+Material roles onto Discord's own design variables with literal fallbacks for
+both light and dark palettes. The manual install, update and removal steps are
+documented with the
+[dotfiles repository](https://github.com/maria-padilha-os/maria-padilha-dotfiles).
+
+> **Warning:** client modifications are against Discord's Terms of Service.
+> Vencord and BetterDiscord both document this. Bans are reported as rare or
+> unknown in practice, but that is not a guarantee. If losing your account
+> would be a disaster for you, do not use any client mod.
+
+See the [theme settings](https://github.com/maria-padilha-os/maria-padilha-de/blob/main/CONFIG.md#theme-settings)
+for the switch and its default.
 
 ## Package updates
 

@@ -430,9 +430,12 @@ function M.apply(scheme, opts)
         end
     end
 
-    -- Discord clients: the theme is SCSS because the upstream stylesheet is;
-    -- compile it once, then drop the CSS into whichever clients exist.
-    if config_value(config, "enableDiscord", true) ~= false then
+    -- Discord clients: the theme is SCSS because its palette is compiled by
+    -- Sass. This is opt-in (`enableDiscord` defaults to false), and writing a
+    -- standalone stylesheet into an existing client-mod themes directory is as
+    -- far as the engine goes: it never installs, launches or patches Discord,
+    -- Vencord, BetterDiscord or any other client.
+    if config_value(config, "enableDiscord", false) == true then
         local template = read_template("discord.scss")
         if template then
             local stamp = tostring(os.time()) .. "-" .. tostring(math.random(100000))
@@ -455,7 +458,7 @@ function M.apply(scheme, opts)
                 f:close()
             end
 
-            if css then
+            if css and css ~= "" then
                 for _, client in ipairs({ "Equicord", "Vencord", "BetterDiscord", "equibop", "vesktop", "legcord" }) do
                     local dir = bases.config .. "/" .. client
                     if os.execute("test -d " .. quote(dir)) == true then
