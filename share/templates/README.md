@@ -1,7 +1,9 @@
 # Templates
 
 Every file here is a Maria Padilha template: `{{ $colour }}` where a colour from
-`scheme.json` goes, `{{ $mode }}` where `Light`/`Dark` goes.
+`scheme.json` goes, `{{ $mode }}` where `Light`/`Dark` goes. Colours that have
+to be `r,g,b` rather than `#rrggbb` use `{{ $colour | rgb }}`; this exists for
+the KDE window-manager blend fields in the Qt colour schemes.
 
 They started as the Caelestia 2.5.0 set (GPL-3.0, like the shell this desktop
 descends from) and are ours to change from here. A template may ask for any

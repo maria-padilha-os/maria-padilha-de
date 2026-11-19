@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The generated GTK 3/4 and Qt themes now share the same selection, disabled,
+  menu, tooltip, focus and border roles. GTK gained the standard and libadwaita
+  names it was missing, the Qt light/dark schemes stopped blending disabled
+  text below contrast, and the KDE titlebar blend fields are generated instead
+  of frozen RGB values. `tests/theme/check-gtk-qt-contrast.py` exercises the
+  contrast fixture for both modes, and `docs/gtk-qt-visual-checklist.md` records
+  the manual pass and the Flatpak/portal caveats.
 - The shell now handles multiple monitors and hotplug through a stable screen
   model instead of array indices or `ShellScreen` object identity. Adding,
   removing, rotating or scaling an output rebuilds only that output's bar,

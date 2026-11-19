@@ -19,6 +19,14 @@ Discord, Midnight Commander, and Firefox's chrome and new tab page. The Neovim
 colorscheme follows the same palette and switches between its ayu-inspired
 light and dark variants.
 
+The GTK 3/4 and Qt files are user config written by the theme engine; it never
+edits an app's cache or a Flatpak sandbox. A Flatpak app only sees the palette
+when its sandbox or the XDG desktop portal exposes the host setting, and a Qt
+Flatpak may bundle its own platform theme. If an app ignores a palette switch,
+check the portal and that app's sandbox before copying anything into
+`~/.var/app`. The manual pass and its caveats are in the
+[GTK and Qt visual checklist]({{ '/gtk-qt-visual-checklist.html' | relative_url }}).
+
 ## Package updates
 
 **Settings → Updates** lists pending pacman upgrades with the installed and

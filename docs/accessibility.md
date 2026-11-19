@@ -140,9 +140,10 @@ descriptions on the accessibility tree are always present.
 ## Automated coverage
 
 ```sh
-python3 tests/accessibility/contrast.py .   # palette contrast fixture
-python3 tests/accessibility/check.py .      # static keyboard/name contract
-bash tests/accessibility/run.sh             # both, plus the QML load harness
+python3 tests/accessibility/contrast.py .       # palette contrast fixture
+python3 tests/accessibility/check.py .          # static keyboard/name contract
+python3 tests/theme/check-gtk-qt-contrast.py .  # GTK and Qt theme contract
+bash tests/accessibility/run.sh                 # both, plus the QML load harness
 bash tests/all.sh
 ```
 
@@ -150,6 +151,8 @@ bash tests/all.sh
 search field, switch and radio button offscreen, checks their accessible names
 and reduces-motion result, and runs with a minimal palette stub so it does not
 need the live desktop. The extension suite already loads every extension tab.
+The manual GTK/Qt pass is in the
+[GTK and Qt visual checklist](gtk-qt-visual-checklist.html).
 
 ## Known limits
 
