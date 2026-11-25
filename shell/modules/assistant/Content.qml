@@ -42,7 +42,6 @@ Item {
         // restore). Following contentHeight also snapped the view back while
         // scrolling, because ListView grows its estimate as delegates appear.
         function onMessagesChanged(): void {
-            momentum.stop();
             Qt.callLater(() => transcript.positionViewAtEnd());
         }
 
@@ -130,15 +129,9 @@ Item {
 
                 maximumFlickVelocity: 3000
 
-                onMovementStarted: momentum.stop()
-
                 // Qt follows wheel deltas almost 1:1, which feels sluggish;
                 // scale them like the shell's other flickables.
                 WheelHandler {
-                    id: wheel
-
-                    property real lastMove: 0
-
                     acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
 
                     onWheel: event => {
@@ -147,40 +140,10 @@ Item {
                         const delta = pixel.y !== 0 ? pixel.y : angle.y / 120 * 90;
                         if (delta === 0)
                             return;
-                        momentum.stop();
                         const maxY = Math.max(0, transcript.contentHeight - transcript.height);
-                        const before = transcript.contentY;
-                        transcript.contentY = Math.max(0, Math.min(maxY, before - delta * 4));
-                        wheel.lastMove = transcript.contentY - before;
-                        if (wheel.lastMove !== 0)
-                            momentumTimer.restart();
+                        transcript.contentY = Math.max(0, Math.min(maxY, transcript.contentY - delta * 4));
                         event.accepted = true;
                     }
-                }
-
-                Timer {
-                    id: momentumTimer
-
-                    interval: 90
-                    repeat: false
-                    onTriggered: {
-                        const extra = wheel.lastMove * 2.5;
-                        if (Math.abs(extra) < 8)
-                            return;
-                        const maxY = Math.max(0, transcript.contentHeight - transcript.height);
-                        momentum.from = transcript.contentY;
-                        momentum.to = Math.max(0, Math.min(maxY, transcript.contentY + extra));
-                        momentum.start();
-                    }
-                }
-
-                NumberAnimation {
-                    id: momentum
-
-                    target: transcript
-                    property: "contentY"
-                    duration: 380
-                    easing.type: Easing.OutCubic
                 }
 
                 delegate: ColumnLayout {
