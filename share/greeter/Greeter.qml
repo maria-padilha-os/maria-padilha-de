@@ -200,9 +200,9 @@ Item {
         spacing: 24
 
         ColumnLayout {
-            Layout.fillWidth: true
+            Layout.fillWidth: false
             Layout.fillHeight: true
-            Layout.preferredWidth: root.width * 0.70
+            Layout.preferredWidth: root.width * 0.60
             Layout.alignment: Qt.AlignVCenter
             spacing: 18
 
