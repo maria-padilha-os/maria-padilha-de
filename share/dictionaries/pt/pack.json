@@ -1,0 +1,20 @@
+{
+    "id": "pt",
+    "language": "pt",
+    "name": "Português",
+    "version": "2026.11",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://freedict.org/",
+    "dictionaries": [
+        {
+            "id": "por-eng",
+            "name": "Português → English",
+            "license": "GPL-2.0-or-later"
+        },
+        {
+            "id": "eng-por",
+            "name": "English → Português",
+            "license": "GPL-2.0-or-later"
+        }
+    ]
+}

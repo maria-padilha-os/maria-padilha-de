@@ -233,6 +233,14 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "extensionDictionary"
+        description: Tr.tr("Open dashboard on the dictionary tab")
+        onPressed: root.openExtension("dictionary")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "extensionContacts"
         description: Tr.tr("Open dashboard on the contacts tab")
         onPressed: root.openExtension("contacts")

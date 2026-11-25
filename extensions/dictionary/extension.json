@@ -1,0 +1,9 @@
+{
+    "name": "Dictionary",
+    "description": "Offline Portuguese dictionary",
+    "version": "1.0",
+    "icon": "menu_book",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + Shift + D",
+    "permissions": ["filesystem", "processes"]
+}
