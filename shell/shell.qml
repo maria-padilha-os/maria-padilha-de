@@ -10,7 +10,6 @@ import "modules/background"
 import "modules/areapicker"
 import "modules/capture"
 import "modules/clipboard"
-import "modules/lock"
 import QtQuick
 import Quickshell
 import qs.services
@@ -34,13 +33,7 @@ ShellRoot {
     AreaPicker {}
     Capture {}
     Clipboard {}
-    Lock {
-        id: lock
-    }
-
     Shortcuts {}
     BatteryMonitor {}
-    IdleMonitors {
-        lock: lock
-    }
+    IdleMonitors {}
 }

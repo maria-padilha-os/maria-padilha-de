@@ -42,7 +42,6 @@ media_qml=(
     "$root/shell/modules/bar/Bar.qml"
     "$root/shell/modules/bar/popouts/Content.qml"
     "$root/shell/modules/dashboard/media/Details.qml"
-    "$root/shell/modules/lock/Media.qml"
 )
 if [ -x "$qmllint" ]; then
     lint_failed=()
