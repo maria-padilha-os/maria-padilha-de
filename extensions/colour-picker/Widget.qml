@@ -340,7 +340,7 @@ Item {
         }
 
         ColumnLayout {
-            Layout.alignment: Qt.AlignTop
+            Layout.alignment: Qt.AlignVCenter
             spacing: Tokens.spacing.small
 
             Item {

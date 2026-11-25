@@ -1,4 +1,5 @@
 import QtQuick
+import Caelestia.Config
 
 // Dashboard entry point. The dashboard sizes itself to this item.
 Item {
@@ -7,7 +8,7 @@ Item {
     property var api
     property bool active: true
 
-    implicitWidth: 800
+    implicitWidth: Tokens.sizes.dashboard.mediaTabWidth
     implicitHeight: 540
 
     Widget {
