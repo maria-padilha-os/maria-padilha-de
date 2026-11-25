@@ -120,6 +120,25 @@ Item {
                 spacing: Tokens.spacing.small
                 model: Assistant.messages
 
+                maximumFlickVelocity: 3000
+
+                // Qt follows wheel deltas almost 1:1, which feels sluggish;
+                // scale them like the shell's other flickables.
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+
+                    onWheel: event => {
+                        const pixel = event.pixelDelta;
+                        const angle = event.angleDelta;
+                        const delta = pixel.y !== 0 ? pixel.y : angle.y / 120 * 60;
+                        if (delta === 0)
+                            return;
+                        const maxY = Math.max(0, transcript.contentHeight - transcript.height);
+                        transcript.contentY = Math.max(0, Math.min(maxY, transcript.contentY - delta * 2.5));
+                        event.accepted = true;
+                    }
+                }
+
                 delegate: ColumnLayout {
                     required property var modelData
 
