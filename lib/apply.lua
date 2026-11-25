@@ -584,6 +584,7 @@ function M.apply(scheme, opts)
         os.execute("dconf write /org/gnome/desktop/interface/gtk-theme \"'" .. gtk_theme .. "'\" 2>/dev/null")
         os.execute("dconf write /org/gnome/desktop/interface/icon-theme \"'Papirus-" ..
             scheme.mode:gsub("^%l", string.upper) .. "'\" 2>/dev/null")
+        os.execute("padilha-icons --quiet 2>/dev/null || true")
     end
 
     if opts.hooks and config and config.theme and config.theme.postHook then

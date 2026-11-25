@@ -160,8 +160,10 @@ mc="$tmp/tree/home/machine/.local/share/mc/skins/caelestia.ini"
 mc_fg=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['onSurface'])")
 check "mc gets a skin" "test -s '$mc'"
 mc_surface=$(/usr/bin/python3 -c "import json;print(json.load(open('$tmp/tree/home/machine/.local/state/caelestia/scheme.json'))['colours']['surface'])")
-check "mc main surface is explicit" "grep -qx '    Main = #$mc_surface' '$mc'"
-check "mc no longer uses terminal default surfaces" "! grep -Eq '^    (Main|Dialog|Input|Top|Menu|Bottom|Help|ShadowBg|EditorVoid) = default$' '$mc'"
+check "mc main surface inherits terminal transparency" "grep -qx '    Main = default' '$mc'"
+check "mc surfaces leave only the background transparent" \
+    "for a in Dialog Input Top Menu Bottom Help ShadowBg EditorVoid; do grep -qx \"    \$a = default\" '$mc' || exit 1; done"
+check "mc error surface stays opaque" "grep -Eq '^    Error = #[0-9a-fA-F]{6}\$' '$mc'"
 check "mc foregrounds keep the scheme" "grep -qx \"    MainFg = #$mc_fg\" '$mc'"
 check "mc selection stays an opaque accent" "grep -Eq '^    Selected = #[0-9a-fA-F]{6}\$' '$mc'"
 check "mc sections use the generated aliases" "grep -q '^    _default_ = MainFg;Main$' '$mc'"

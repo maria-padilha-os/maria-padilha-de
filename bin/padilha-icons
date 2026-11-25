@@ -1,0 +1,73 @@
+#!/bin/sh
+# Choose the Papirus folder colour for the current wallpaper without root.
+#
+# papirus-folders edits a theme in place, so we keep a writable user copy of
+# Papirus-Light/Papirus-Dark in ~/.local/share/icons and let that shadow the
+# system theme. The colour is carmine for Maria Padilha artwork, blue for the
+# rest by default, and follows a red/blue primary role when the scheme has one.
+set -u
+
+[ "${PADILHA_SKIP_ICONS:-0}" = 1 ] && exit 0
+
+bin_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd) || exit 1
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
+scheme="$state_dir/scheme.json"
+wallpaper_file="$state_dir/wallpaper/path.txt"
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+icons_dir="$data_home/icons"
+
+command -v jq >/dev/null 2>&1 || exit 0
+command -v papirus-folders >/dev/null 2>&1 || exit 0
+
+mode=$(jq -r '.mode // "dark"' "$scheme" 2>/dev/null || printf 'dark')
+case "$mode" in
+    light) theme=Papirus-Light ;;
+    *) theme=Papirus-Dark ;;
+esac
+
+wallpaper=$(cat "$wallpaper_file" 2>/dev/null || true)
+wallpaper_name=$(basename -- "$wallpaper" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+color=blue
+case "$wallpaper_name" in
+    *maria*padilha*|*padilha*) color=carmine ;;
+    *machinedramon*) color=blue ;;
+    *)
+        primary=$(jq -r '.colours.primary // empty' "$scheme" 2>/dev/null || true)
+        if [ -n "$primary" ]; then
+            hue=$(python3 - "$primary" <<'PY' 2>/dev/null || true
+import colorsys, sys
+value = sys.argv[1].lstrip('#')
+if len(value) == 6:
+    r, g, b = (int(value[i:i+2], 16) / 255 for i in (0, 2, 4))
+    h, s, _v = colorsys.rgb_to_hsv(r, g, b)
+    if s >= 0.18:
+        print(int(h * 360))
+PY
+)
+            case "${hue:-}" in
+                0|1|2|3|4|5|6|7|8|9|1[0-9]|2[0-9]|3[0-5]|3[2-5][0-9]) color=carmine ;;
+                1[8-9][0-9]|2[0-9][0-9]|3[0-2][0-9]) color=blue ;;
+            esac
+        fi
+        ;;
+esac
+
+source_theme="/usr/share/icons/$theme"
+target_theme="$icons_dir/$theme"
+[ -d "$source_theme" ] || exit 0
+
+mkdir -p "$icons_dir"
+
+# Papirus-Dark/Light are thin overlays whose icon directories symlink into
+# the base Papirus theme; copy the base too or the symlinks dangle.
+for part in Papirus "$theme"; do
+    source_part="/usr/share/icons/$part"
+    target_part="$icons_dir/$part"
+    [ -d "$source_part" ] || continue
+    if [ ! -d "$target_part" ] || [ "$source_part/index.theme" -nt "$target_part/index.theme" ]; then
+        rm -rf "$target_part"
+        cp -a --reflink=auto "$source_part" "$target_part" 2>/dev/null || exit 0
+    fi
+done
+
+XDG_DATA_HOME="$data_home" papirus-folders -C "$color" -t "$theme" --update-caches >/dev/null 2>&1 || true

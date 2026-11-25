@@ -76,9 +76,21 @@ local ALIASES = {
 
 -- The [aliases] block mc expects, as text.
 --
--- Every surface is explicit: `default` would make mc inherit the terminal's
--- background, which can still be the previous theme when a long-running
--- terminal opens a new mc, so the generated skin has to be self-contained.
+-- Surfaces marked here use mc's `default` colour so the terminal's transparent
+-- background shows through. Foregrounds and selection/error surfaces stay
+-- explicit: only the background is transparent, not the text.
+local TRANSPARENT_SURFACES = {
+    Main = true,
+    Dialog = true,
+    Input = true,
+    ShadowBg = true,
+    Top = true,
+    Menu = true,
+    Bottom = true,
+    Help = true,
+    EditorVoid = true,
+}
+
 function M.aliases(colours)
     local out = { "[aliases]" }
     for _, entry in ipairs(ALIASES) do
@@ -89,7 +101,9 @@ function M.aliases(colours)
                 break
             end
         end
-        if value then
+        if TRANSPARENT_SURFACES[entry[1]] then
+            out[#out + 1] = ("    %s = default"):format(entry[1])
+        elseif value then
             out[#out + 1] = ("    %s = #%s"):format(entry[1], value)
         end
     end
