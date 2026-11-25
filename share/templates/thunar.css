@@ -143,9 +143,11 @@ window.thunar,
 .thunar .path-bar,
 .thunar .location-bar,
 .thunar .path-bar-box {
-    padding: 2px;
-    border: none;
-    background-color: transparent;
+    margin: 4px 8px;
+    padding: 4px;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 12px;
+    background-color: {{ $surfaceContainerLow }};
     box-shadow: none;
 }
 
@@ -283,13 +285,11 @@ window.thunar,
 }
 
 .thunar .frame.standard-view {
-    margin: 8px 12px 8px 0;
-    padding: 8px;
+    margin: 8px 12px 10px 0;
+    padding: 10px;
     border: 1px solid {{ $outlineVariant }};
-    border-radius: 12px;
+    border-radius: 14px;
     background-color: {{ $surfaceContainerLow }};
-    animation: thunar-fade 220ms ease-out forwards;
-    opacity: 0;
 }
 
 .thunar .frame.standard-view scrolledwindow,
@@ -328,6 +328,14 @@ window.thunar,
 .thunar .frame.standard-view gridview > child:selected label,
 .thunar .frame.standard-view columnview > row:selected label {
     color: {{ $onPrimaryContainer }};
+}
+
+.thunar .frame.standard-view treeview.view {
+    padding: 2px 4px;
+}
+
+.thunar treeview.view {
+    border-radius: 8px;
 }
 
 .thunar treeview.view header button,
@@ -588,10 +596,6 @@ dialog.thunar {
 .thunar menuitem:focus,
 .thunar dialog button:focus,
 .thunar messagedialog button:focus {
-    outline-style: solid;
-    outline-width: 2px;
-    outline-color: {{ $primary }};
-    outline-offset: -2px;
     box-shadow: inset 0 0 0 2px {{ $primary }};
 }
 
@@ -608,6 +612,42 @@ dialog.thunar {
 }
 
 /* =============================================================================
+   Scrollbars and tooltips
+   ============================================================================= */
+
+.thunar scrollbar {
+    background-color: transparent;
+    border: none;
+}
+
+.thunar scrollbar slider {
+    min-width: 8px;
+    min-height: 24px;
+    margin: 2px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background-color: alpha({{ $onSurface }}, 0.24);
+}
+
+.thunar scrollbar slider:hover {
+    background-color: alpha({{ $primary }}, 0.65);
+}
+
+.thunar scrollbar slider:active {
+    background-color: {{ $primary }};
+}
+
+.thunar tooltip,
+.thunar tooltip.background {
+    padding: 6px 10px;
+    border: 1px solid {{ $outlineVariant }};
+    border-radius: 8px;
+    background-color: {{ $surfaceContainer }};
+    color: {{ $onSurface }};
+}
+
+/* =============================================================================
    Misc content
    ============================================================================= */
 
@@ -615,8 +655,3 @@ dialog.thunar {
     margin: 12px;
 }
 
-@keyframes thunar-fade {
-    to {
-        opacity: 1;
-    }
-}
