@@ -10,16 +10,15 @@
 -- os.execute("sleep") and a directory lock so it can be tested without
 -- installing anything.
 
+local posix = require("posix")
+local lfs = require("lfs")
+
 local function env(name, fallback)
     local value = os.getenv(name)
     if value and value ~= "" then
         return value
     end
     return fallback
-end
-
-local function shell_quote(value)
-    return "'" .. value:gsub("'", "'\\''") .. "'"
 end
 
 local HOLD_HOURS = tonumber(env("PADILHA_BRIGHTNESS_HOLD_HOURS", env("LILITH_BRIGHTNESS_HOLD_HOURS", "4")))
@@ -39,6 +38,7 @@ local ANCHORS = {
 }
 
 local WRITE = false
+local OBSERVE = false
 local LOG_PATH = nil
 local MAX_CYCLES = nil
 
@@ -112,13 +112,14 @@ local function command_number(command)
 end
 
 local function get_percent()
-    local pipe = io.popen("ls -1 " .. shell_quote(BACKLIGHT_DIR) .. " 2>/dev/null")
-    if pipe then
+    local ok, iter, dir_obj = pcall(lfs.dir, BACKLIGHT_DIR)
+    if ok then
         local names = {}
-        for name in pipe:lines() do
-            names[#names + 1] = name
+        for name in iter, dir_obj do
+            if name ~= "." and name ~= ".." then
+                names[#names + 1] = name
+            end
         end
-        pipe:close()
         table.sort(names)
         for _, name in ipairs(names) do
             local current = read_number(BACKLIGHT_DIR .. "/" .. name .. "/brightness")
@@ -160,7 +161,6 @@ end
 
 local function save_state(override_until, last_applied)
     local path = state_path()
-    os.execute("mkdir -p " .. shell_quote(dirname(path)))
     local tmp = path:gsub("%.state$", ".tmp")
     local file = io.open(tmp, "w")
     if not file then
@@ -184,18 +184,39 @@ local function log_line(now, current, target, action)
 end
 
 local function sleep(seconds)
-    os.execute("sleep " .. tostring(seconds))
+    local whole = math.floor(seconds)
+    local nanos = math.floor((seconds - whole) * 1e9)
+    if whole > 0 then
+        posix.sleep(whole)
+    end
+    if nanos > 0 then
+        posix.nanosleep(0, nanos)
+    end
+end
+
+local function ensure_dir(path)
+    local current = ""
+    for part in path:gmatch("[^/]+") do
+        current = current .. "/" .. part
+        pcall(posix.mkdir, current, "rwx------")
+    end
 end
 
 local function acquire_lock()
     local path = state_path()
-    os.execute("mkdir -p " .. shell_quote(dirname(path)))
-    local lock = path .. ".lock.d"
-    local ok = os.execute("mkdir " .. shell_quote(lock) .. " 2>/dev/null")
-    if not ok then
+    ensure_dir(dirname(path))
+    local lock_path = path .. ".lock"
+    local fd = posix.open(lock_path, posix.fcntl.O_CREAT + posix.fcntl.O_RDWR, "rw-------")
+    if not fd then
         return nil
     end
-    return lock
+    local lock = { l_type = posix.fcntl.F_WRLCK, l_whence = posix.SEEK_SET, l_start = 0, l_len = 0 }
+    local ok = pcall(posix.fcntl.fcntl, fd, posix.fcntl.F_SETLK, lock)
+    if not ok then
+        posix.close(fd)
+        return nil
+    end
+    return { fd = fd }
 end
 
 local function parse_args(argv)
@@ -206,6 +227,8 @@ local function parse_args(argv)
             WRITE = true
         elseif arg == "--dry-run" then
             WRITE = false
+        elseif arg == "--observe" then
+            OBSERVE = true
         elseif arg == "--log" then
             index = index + 1
             LOG_PATH = argv[index]
@@ -220,14 +243,36 @@ local function parse_args(argv)
             print(target_percent(tonumber(argv[index]) or os.time()))
             os.exit(0)
         elseif arg == "--help" then
-            io.write("usage: daemon.lua [--dry-run|--write] [--log PATH] [--cycles N] [--poll SECONDS]\n")
+            io.write("usage: daemon.lua [--dry-run|--write|--observe] [--log PATH] [--cycles N] [--poll SECONDS]\n")
             os.exit(0)
         end
         index = index + 1
     end
 end
 
+local function observe()
+    local cycles = 0
+    while true do
+        local now = os.time()
+        local current = get_percent()
+        if current then
+            local override_until = select(1, load_state())
+            log_line(now, current, target_percent(now), string.format("observe:%d", override_until))
+            cycles = cycles + 1
+            if MAX_CYCLES and cycles >= MAX_CYCLES then
+                break
+            end
+        end
+        sleep(POLL_SECONDS)
+    end
+    return 0
+end
+
 local function run()
+    if OBSERVE then
+        return observe()
+    end
+
     local lock = acquire_lock()
     if not lock then
         return 0
@@ -290,7 +335,7 @@ local function run()
         end
     end
 
-    os.execute("rmdir " .. shell_quote(lock))
+    posix.close(lock.fd)
     return 0
 end
 
