@@ -15,4 +15,8 @@ if [ ! -f "$config/shell.qml" ]; then
 fi
 
 export QS_NO_RELOAD_POPUP=1
+if [ -r /etc/locale.conf ]; then
+    . /etc/locale.conf
+fi
+export LANG="${LANG:-pt_BR.UTF-8}"
 exec qs -p "$config" -n

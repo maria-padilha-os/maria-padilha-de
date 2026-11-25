@@ -17,6 +17,15 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 if [ "${1:-}" = "--rollback" ]; then
+    if [ -n "${XDG_SESSION_TYPE:-}" ]; then
+        # Running from the desktop: leave this session alone, prepare the
+        # next boot, and let the user reboot in their own time.
+        systemctl disable greetd.service 2>/dev/null || true
+        systemctl enable lightdm.service
+        ln -sfn /usr/lib/systemd/system/lightdm.service /etc/systemd/system/display-manager.service
+        echo "LightDM will be used on the next boot. Reboot when ready."
+        exit 0
+    fi
     systemctl stop greetd.service 2>/dev/null || true
     systemctl disable greetd.service 2>/dev/null || true
     systemctl enable lightdm.service
@@ -38,6 +47,17 @@ install -Dm755 "$root/bin/padilha-greeter-qs" /usr/local/bin/padilha-greeter-qs
 rm -rf /usr/local/share/greeter
 cp -a "$root/share/greeter" /usr/local/share/greeter
 chmod -R a+rX /usr/local/share/greeter
+
+if [ -n "${SUDO_USER:-}" ]; then
+    user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    wallpaper_path_file="$user_home/.local/state/caelestia/wallpaper/path.txt"
+    if [ -r "$wallpaper_path_file" ]; then
+        wallpaper_path=$(cat "$wallpaper_path_file")
+        if [ -r "$wallpaper_path" ]; then
+            install -Dm644 "$wallpaper_path" /usr/local/share/greeter/wallpaper
+        fi
+    fi
+fi
 
 install -d -m 755 /etc/greetd
 if [ -f /etc/greetd/config.toml ]; then

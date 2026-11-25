@@ -19,4 +19,13 @@ ShellRoot {
             anchors.fill: parent
         }
     }
+
+    // Last-resort escape if the greeter itself is unusable. Exiting makes cage
+    // return non-zero, and padilha-greeter-qs falls back to the console
+    // tuigreet UI, which does not grab the DRM seat.
+    Shortcut {
+        sequence: "F12"
+        context: Qt.ApplicationShortcut
+        onActivated: Quickshell.execDetached(["/usr/bin/kill", "-TERM", "" + Quickshell.processId])
+    }
 }
