@@ -12,11 +12,13 @@ Item {
     required property ScreenState screenState
 
     readonly property bool shouldBeActive: screenState.assistant && AssistantSettings.enabled
+    // Slightly wider than the sidebar: the chat needs room for code and tables.
+    readonly property real panelWidth: Tokens.sizes.sidebar.width + 48
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
     anchors.rightMargin: (-implicitWidth - 5) * offsetScale
-    implicitWidth: Tokens.sizes.sidebar.width
+    implicitWidth: root.panelWidth
     opacity: 1 - offsetScale
 
     Behavior on offsetScale {
@@ -36,7 +38,7 @@ Item {
         active: root.shouldBeActive || root.visible
 
         sourceComponent: Content {
-            implicitWidth: Tokens.sizes.sidebar.width - content.anchors.leftMargin - content.anchors.margins
+            implicitWidth: root.panelWidth - content.anchors.leftMargin - content.anchors.margins
             screenState: root.screenState
         }
     }
