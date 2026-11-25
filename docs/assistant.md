@@ -35,7 +35,9 @@ the conversation across shell restarts and reboots: the backend writes a JSONL
 transcript under the broker's state directory
 (`~/.local/state/padilha/ai/transcript.jsonl`) with mode `0600` and no automatic
 pruning. The next panel session restores it from the `ready` event. "New chat"
-clears the file; deleting it is equivalent.
+clears the file; deleting it is equivalent. The user's message is written
+before the provider request, so a failed or interrupted turn still keeps the
+conversation up to that point.
 
 ## No roots approved
 

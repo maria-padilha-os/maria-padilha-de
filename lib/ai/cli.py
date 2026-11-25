@@ -623,6 +623,18 @@ def _history_path(broker: Broker):
     return history.path_for(broker.state_dir)
 
 
+def _history_rows(messages: Any) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for item in messages or []:
+        if not isinstance(item, dict):
+            continue
+        role = item.get("role")
+        text = item.get("content", item.get("text"))
+        if role in ("user", "assistant") and isinstance(text, str):
+            rows.append({"role": role, "text": text})
+    return rows
+
+
 class BrokerToolRunner:
     """Read-only tool surface for the chat loop; the broker stays the judge.
 
@@ -834,6 +846,10 @@ def _dispatch_protocol(
     if command in ("chat", "start"):
         if command == "start":
             return None
+        if _history_enabled(broker):
+            # Persist the user's side before the provider call: a failed turn
+            # or a restarted panel still keeps the conversation up to here.
+            history.save(_history_path(broker), _history_rows(request.get("messages")))
         result = complete(
             broker.config,
             request.get("model"),
@@ -850,14 +866,7 @@ def _dispatch_protocol(
             tool_calls=result.get("tool_calls", 0),
         )
         if _history_enabled(broker):
-            stored = []
-            for item in request.get("messages") or []:
-                if not isinstance(item, dict):
-                    continue
-                role = item.get("role")
-                text = item.get("content", item.get("text"))
-                if role in ("user", "assistant") and isinstance(text, str):
-                    stored.append({"role": role, "text": text})
+            stored = _history_rows(request.get("messages"))
             stored.append({"role": "assistant", "text": result.get("text", "")})
             history.save(_history_path(broker), stored)
         return {"type": "done", "stop": "complete", **result}
