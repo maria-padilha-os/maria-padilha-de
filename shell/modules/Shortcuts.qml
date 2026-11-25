@@ -233,6 +233,14 @@ Scope {
     // qmllint disable unresolved-type
     CustomShortcut {
         // qmllint enable unresolved-type
+        name: "extensionContacts"
+        description: Tr.tr("Open dashboard on the contacts tab")
+        onPressed: root.openExtension("contacts")
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
         name: "extensionSystemMonitor"
         description: Tr.tr("Open dashboard on the system monitor tab")
         onPressed: root.openExtension("system-monitor")
