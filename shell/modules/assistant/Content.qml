@@ -127,6 +127,10 @@ Item {
                 spacing: Tokens.spacing.small
                 model: Assistant.messages
 
+                StyledScrollBar.vertical: StyledScrollBar {
+                    flickable: transcript
+                }
+
                 maximumFlickVelocity: 3000
 
                 // Qt follows wheel deltas almost 1:1, which feels sluggish;
@@ -173,7 +177,7 @@ Item {
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             text: (modelData.text || (modelData.streaming ? Tr.tr("Thinking…") : "")) + (modelData.streaming ? " ▍" : "")
                             wrapMode: Text.Wrap
-                            textFormat: Text.PlainText
+                            textFormat: modelData.role === "user" ? Text.PlainText : Text.MarkdownText
                             color: modelData.role === "user" ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                         }
                     }

@@ -21,7 +21,7 @@ Singleton {
     property bool stopping: false
 
     readonly property bool configured: models.length > 0
-    readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : roots.map(r => r.display || r.path).join(" · ")
+    readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : Tr.trN("%n folder granted", "%n folders granted", roots.length)
     readonly property string modelLabel: {
         const model = models.find(m => m.id === selectedModel);
         return model ? model.name : Tr.tr("No model configured");
