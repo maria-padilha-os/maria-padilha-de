@@ -67,6 +67,18 @@ if [ -f /etc/greetd/config.toml ]; then
     cp -a /etc/greetd/config.toml "/etc/greetd/config.toml.bak.$(date +%Y%m%d-%H%M%S)"
 fi
 
+# LightDM unlocks the login keyring through PAM; greetd's stock file does not.
+# Add the same optional hooks so a real password login does not leave every
+# application asking for the keyring password afterwards.
+pam_file=/etc/pam.d/greetd
+if [ -f "$pam_file" ]; then
+    cp -a "$pam_file" "$pam_file.bak.$(date +%Y%m%d-%H%M%S)"
+    if ! grep -q 'pam_gnome_keyring.so' "$pam_file"; then
+        sed -i '/^auth[[:space:]].*system-local-login/a -auth       optional    pam_gnome_keyring.so' "$pam_file"
+        sed -i '/^session[[:space:]].*system-local-login/a -session    optional    pam_gnome_keyring.so auto_start' "$pam_file"
+    fi
+fi
+
 cat >/etc/greetd/config.toml <<'EOF'
 [terminal]
 vt = 1
