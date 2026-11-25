@@ -206,7 +206,7 @@ Item {
 
                         MaterialIcon {
                             Layout.alignment: Qt.AlignHCenter
-                            text: forecastItem.modelData.icon
+                            text: Icons.getWeatherIcon(forecastItem.modelData.weatherCode ?? "")
                             fontStyle: Tokens.font.icon.extraLarge
                             color: Colours.palette.m3secondary
                         }
