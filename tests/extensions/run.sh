@@ -33,6 +33,35 @@ else
     bad "manifest validation, duplicate ids/shortcuts and enable/disable persistence" "$(tail -30 "$tmp/manifest.log")"
 fi
 
+echo "extension scan"
+
+scan="$root/shell/services/extension-scan.sh"
+scan_root="$tmp/scan"
+mkdir -p "$scan_root/checkout/shell" "$scan_root/checkout/extensions/a" "$scan_root/checkout/share/extensions/b" \
+    "$scan_root/installed/a" "$scan_root/installed/b" "$scan_root/empty"
+for extension in "$scan_root/checkout/extensions/a" "$scan_root/checkout/share/extensions/b" "$scan_root/installed/a" "$scan_root/installed/b"; do
+    printf '{\n  "name": "%s"\n}\n' "$(basename "$extension")" >"$extension/extension.json"
+    printf 'import QtQuick\nItem {}\n' >"$extension/Tab.qml"
+done
+
+checkout_scan=$(sh "$scan" "$scan_root/empty" "$scan_root/empty" "$scan_root/checkout/shell" /bin/false "$scan_root/installed" "$scan_root/installed")
+checkout_count=$(printf '%s\n' "$checkout_scan" | grep -c '^EXTENSION:')
+if [ "$checkout_count" -eq 2 ] &&
+    printf '%s\n' "$checkout_scan" | grep -q '^EXTENSION:.*/checkout/extensions/a/$' &&
+    printf '%s\n' "$checkout_scan" | grep -q '^EXTENSION:.*/checkout/share/extensions/b/$'; then
+    ok "checkout scan skips installed duplicates"
+else
+    bad "checkout scan skips installed duplicates" "got $checkout_count entries"
+fi
+
+installed_scan=$(sh "$scan" "$scan_root/empty" "$scan_root/empty" "$scan_root/empty" /bin/false "$scan_root/installed" "$scan_root/installed")
+installed_count=$(printf '%s\n' "$installed_scan" | grep -c '^EXTENSION:')
+if [ "$installed_count" -eq 2 ]; then
+    ok "installed scan reads each real path once"
+else
+    bad "installed scan reads each real path once" "got $installed_count entries"
+fi
+
 echo "maps style, URLs and cache keys"
 
 # The Maps extension keeps its selection/URL/cache logic in a plain JS module

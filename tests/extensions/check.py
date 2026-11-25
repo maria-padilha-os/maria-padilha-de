@@ -188,7 +188,13 @@ def main() -> int:
 
     service = (ROOT / "shell" / "services" / "Extensions.qml").read_text(encoding="utf-8")
     manifest_js = (ROOT / "shell" / "services" / "ExtensionManifest.js").read_text(encoding="utf-8")
-    if "catalogFromScan" in service and "extension.json" in service and "tabUrl" in manifest_js:
+    scan_sh = (ROOT / "shell" / "services" / "extension-scan.sh").read_text(encoding="utf-8")
+    if (
+        "catalogFromScan" in service
+        and "extension-scan.sh" in service
+        and "extension.json" in scan_sh
+        and "tabUrl" in manifest_js
+    ):
         ok("the extension service builds tab URLs from the manifest")
     else:
         bad("the extension service builds tab URLs from the manifest")
