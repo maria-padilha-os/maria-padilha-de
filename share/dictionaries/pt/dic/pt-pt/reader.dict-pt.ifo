@@ -1,0 +1,11 @@
+StarDict's dict ifo file
+version=3.0.0
+bookname=reader.dict PT
+wordcount=86999
+idxfilesize=1632493
+author=reader.dict
+website=https://www.reader-dict.com
+description=Clean, optimized dictionary generated from Wiktionary data.<br>Contains 542,528 entries with etymologies.<br><br>© reader.dict 2026
+date=2026-11-01
+sametypesequence=h
+synwordcount=455529

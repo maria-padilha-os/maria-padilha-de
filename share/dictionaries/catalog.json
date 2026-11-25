@@ -1,0 +1,32 @@
+{
+    "version": 1,
+    "packs": [
+        {
+            "id": "pt-spa",
+            "name": "Português → Español",
+            "language": "pt",
+            "url": "https://download.freedict.org/dictionaries/por-spa/2025.11.23/freedict-por-spa-2025.11.23.stardict.tar.xz",
+            "sha512": "02d3a5672a0f33ce241626a6b89f84f3a5361b73ba5d90c9735828e00c43f4c8432c026fd50b46e939b769ccc919f2ac716e06f81fdc7e3b5ba6e17e13566049",
+            "size": 299476,
+            "license": "GPL-2.0-or-later"
+        },
+        {
+            "id": "pt-fra",
+            "name": "Português → Français",
+            "language": "pt",
+            "url": "https://download.freedict.org/dictionaries/por-fra/2025.11.23/freedict-por-fra-2025.11.23.stardict.tar.xz",
+            "sha512": "3e7e4ec7efab8cb61bb9b95eb25b2279ef96e12cacd196c499f93592de323b82f8683bf27bdc81162f671544f0dffc0c1a58cf9fdb9a79f7e7e6528aca381886",
+            "size": 288516,
+            "license": "GPL-2.0-or-later"
+        },
+        {
+            "id": "pt-deu",
+            "name": "Português → Deutsch",
+            "language": "pt",
+            "url": "https://download.freedict.org/dictionaries/por-deu/0.2/freedict-por-deu-0.2.stardict.tar.xz",
+            "sha512": "4ff028504262ba7f59dea6862bcca6087cb9038af6a446cd077c68e09ce7c1f417b057ea35eb3cc421e7363bc58e0dfe95eab3567d39e80523a8c205098a5e5d",
+            "size": 183552,
+            "license": "GPL-2.0-or-later"
+        }
+    ]
+}

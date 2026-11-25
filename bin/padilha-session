@@ -27,6 +27,27 @@ if [ ! -f "$config_home/padilha/init.lua" ] && [ ! -f "$config_home/lilith/init.
     "$config" init >/dev/null 2>&1 || true
 fi
 
+# The shell's Qt locale must follow the configured UI language even when the
+# watchdog starts it with the login environment used before a language change.
+shell_json="$config_home/padilha/shell.json"
+if [ -f "$shell_json" ] && command -v jq >/dev/null 2>&1; then
+    language=$(jq -r '.general.language // empty' "$shell_json" 2>/dev/null || true)
+    case "$language" in
+        pt_BR | pt_BR.UTF-8)
+            export LANG=pt_BR.UTF-8
+            export LC_TIME=pt_BR.UTF-8
+            ;;
+        pt_PT | pt_PT.UTF-8)
+            export LANG=pt_PT.UTF-8
+            export LC_TIME=pt_PT.UTF-8
+            ;;
+        en | en_US | en_US.UTF-8)
+            export LANG=en_US.UTF-8
+            export LC_TIME=en_US.UTF-8
+            ;;
+    esac
+fi
+
 if ! "$config" compile --quiet; then
     command -v notify-send >/dev/null 2>&1 &&
         notify-send -a padilha-config "Config not applied" "init.lua failed to compile; keeping the previous shell.json"
