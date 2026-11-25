@@ -8,13 +8,15 @@ import Quickshell
 ShellRoot {
     FloatingWindow {
         screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
-        implicitWidth: screen ? screen.width : 1920
-        implicitHeight: screen ? screen.height : 1080
+        width: screen ? screen.width : 1920
+        height: screen ? screen.height : 1080
         visible: true
         // Cage maximizes toplevels, but an explicit fullscreen request keeps
         // the card centred on the output instead of inheriting stale geometry.
         fullscreen: true
 
-        Greeter {}
+        Greeter {
+            anchors.fill: parent
+        }
     }
 }
