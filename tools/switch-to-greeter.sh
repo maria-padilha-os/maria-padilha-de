@@ -17,10 +17,12 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 if [ "${1:-}" = "--rollback" ]; then
+    systemctl stop greetd.service 2>/dev/null || true
     systemctl disable greetd.service 2>/dev/null || true
     systemctl enable lightdm.service
     ln -sfn /usr/lib/systemd/system/lightdm.service /etc/systemd/system/display-manager.service
-    echo "LightDM restored. Reboot to use it."
+    systemctl start lightdm.service
+    echo "LightDM restored and started."
     exit 0
 fi
 
