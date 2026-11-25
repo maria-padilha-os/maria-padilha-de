@@ -43,6 +43,7 @@ Singleton {
             root.models = event.models || [];
             root.roots = event.root_entries || [];
             root.selectedModel = root.selectedModel || (root.models[0]?.id ?? "");
+            root.restoreHistory(event.history);
             root.error = event.chat ? "" : Tr.tr("No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.");
             break;
         case "done": {
@@ -81,6 +82,21 @@ Singleton {
             break;
         }
         }
+    }
+
+    function restoreHistory(entries: var): void {
+        if (root.messages.length > 0 || !Array.isArray(entries) || entries.length === 0)
+            return;
+        const restored = entries
+            .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
+            .map((entry, index) => ({
+                id: "history-" + index,
+                role: entry.role,
+                text: entry.text,
+                streaming: false,
+            }));
+        if (restored.length > 0)
+            root.messages = restored;
     }
 
     function send(text: string): void {
@@ -134,6 +150,8 @@ Singleton {
 
     function newChat(): void {
         root.cancel();
+        if (root.started)
+            process.write(JSON.stringify({ cmd: "new_chat" }) + "\n");
         root.messages = [];
         root.error = "";
     }

@@ -23,6 +23,7 @@ from .chat import ChatError, chat_models, complete
 from .config import ConfigError
 from .policy import home_from_environment
 from .redact import redact
+from . import history
 
 VERSION = "0.1.0"
 MAX_PROTOCOL_LINE = 1024 * 1024
@@ -534,6 +535,7 @@ def _run_stdio(broker: Broker) -> int:
         "audit": str(broker.audit.path),
         "models": chat_models(broker.config),
         "chat": bool(chat_models(broker.config)),
+        "history": history.load(history.path_for(broker.state_dir)) if _history_enabled(broker) else [],
     }
     _emit_json(ready)
     sys.stdout.flush()
@@ -611,6 +613,14 @@ def _display_root(broker: Broker, path: str) -> str:
     from .policy import display_path
 
     return display_path(path, broker.home)
+
+
+def _history_enabled(broker: Broker) -> bool:
+    return broker.config.data.get("history") == "persist"
+
+
+def _history_path(broker: Broker):
+    return history.path_for(broker.state_dir)
 
 
 class BrokerToolRunner:
@@ -816,6 +826,11 @@ def _dispatch_protocol(
         broker.execute_command(str(request.get("command", "")))
         return None
 
+    if command in ("new_chat", "history_clear"):
+        if _history_enabled(broker):
+            history.clear(_history_path(broker))
+        return {"type": "done", "stop": "new_chat"}
+
     if command in ("chat", "start"):
         if command == "start":
             return None
@@ -834,6 +849,17 @@ def _dispatch_protocol(
             redactions=result.get("redactions", 0),
             tool_calls=result.get("tool_calls", 0),
         )
+        if _history_enabled(broker):
+            stored = []
+            for item in request.get("messages") or []:
+                if not isinstance(item, dict):
+                    continue
+                role = item.get("role")
+                text = item.get("content", item.get("text"))
+                if role in ("user", "assistant") and isinstance(text, str):
+                    stored.append({"role": role, "text": text})
+            stored.append({"role": "assistant", "text": result.get("text", "")})
+            history.save(_history_path(broker), stored)
         return {"type": "done", "stop": "complete", **result}
 
     raise BrokerError("unknown command", code="unknown_command")
