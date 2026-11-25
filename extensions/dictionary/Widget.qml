@@ -23,6 +23,13 @@ Item {
     property bool searching: false
     property string status: ""
     property string statusKind: ""
+    property var catalog: []
+    property var installedPacks: []
+    property bool showPacks: false
+    property bool packBusy: false
+    property string packStatus: ""
+    property string packStatusKind: ""
+    property string pendingPackName: ""
 
     readonly property var themePalette: root.api && root.api.colours ? root.api.colours.palette : null
     readonly property color foreground: root.themePalette ? root.themePalette.m3onSurface : "transparent"
@@ -41,6 +48,8 @@ Item {
     readonly property string language: root.systemLanguage()
     readonly property string userDir: `${root.dataHome}/padilha/dictionary/${root.language}`
     readonly property string systemDir: `/usr/lib/maria-padilha/share/dictionaries/${root.language}`
+    readonly property string catalogUser: `${root.dataHome}/padilha/dictionary/catalog.json`
+    readonly property string catalogSystem: `/usr/lib/maria-padilha/share/dictionaries/catalog.json`
 
     function systemLanguage(): string {
         const configured = typeof Tr !== "undefined" && Tr.language ? Tr.language : "";
@@ -82,6 +91,108 @@ Item {
         }
     }
 
+    function refreshInstalled(): void {
+        installedProc.command = ["sh", "-c", `for d in "$1"/dic/*/; do [ -d "$d" ] && basename "$d"; done`, "sh", root.userDir];
+        installedProc.running = true;
+    }
+
+    function handleInstalled(output: string): void {
+        const value = output.trim();
+        root.installedPacks = value.length > 0 ? value.split("\n") : [];
+    }
+
+    function loadCatalog(): void {
+        catalogProc.command = ["sh", "-c", `cat -- "$1" 2>/dev/null || cat -- "$2" 2>/dev/null || true`, "sh", root.catalogUser, root.catalogSystem];
+        catalogProc.running = true;
+    }
+
+    function handleCatalog(output: string): void {
+        try {
+            const data = JSON.parse(output);
+            root.catalog = Array.isArray(data.packs) ? data.packs : [];
+        } catch (error) {
+            root.catalog = [];
+        }
+    }
+
+    function isInstalled(id: string): bool {
+        return root.installedPacks.indexOf(id) !== -1;
+    }
+
+    function formatSize(bytes: var): string {
+        const value = Number(bytes) || 0;
+        if (value >= 1024 * 1024)
+            return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+        return `${Math.max(1, Math.round(value / 1024))} KB`;
+    }
+
+    function installPack(pack: var): void {
+        if (root.packBusy || !pack || !pack.url)
+            return;
+        root.packBusy = true;
+        root.pendingPackName = pack.name ?? pack.id;
+        root.packStatusKind = "";
+        root.packStatus = Tr.tr("Downloading %1...").arg(root.pendingPackName);
+        installProc.command = [
+            "sh", "-c",
+            `set -e
+command -v curl >/dev/null 2>&1 || exit 3
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+curl -fL -o "$tmp/pack.tar.xz" -- "$1"
+printf '%s  %s\\n' "$2" "$tmp/pack.tar.xz" | sha512sum -c -
+mkdir -p "$tmp/unpack"
+tar -xJf "$tmp/pack.tar.xz" -C "$tmp/unpack"
+src=$(find "$tmp/unpack" -name '*.ifo' -printf '%h\\n' | head -n 1)
+[ -n "$src" ] || exit 4
+dest="$3/dic/$4"
+rm -rf "$dest"
+mkdir -p "$dest"
+cp -a "$src"/. "$dest"/
+for idx in "$dest"/*.idx.gz; do [ -e "$idx" ] && gzip -dc "$idx" > "\${idx%.gz}"; done
+rm -f "$dest"/*.idx.gz`,
+            "sh", pack.url, pack.sha512 ?? "", root.userDir, pack.id
+        ];
+        installProc.running = true;
+    }
+
+    function handleInstall(code: int, errorOutput: string): void {
+        root.packBusy = false;
+        if (code === 0) {
+            root.packStatusKind = "ok";
+            root.packStatus = Tr.tr("Installed %1.").arg(root.pendingPackName);
+            root.refreshInstalled();
+            root.resolvePack();
+        } else {
+            root.packStatusKind = "error";
+            root.packStatus = errorOutput.trim() || Tr.tr("The language pack could not be installed.");
+        }
+    }
+
+    function removePack(pack: var): void {
+        if (root.packBusy || !pack)
+            return;
+        root.packBusy = true;
+        root.pendingPackName = pack.name ?? pack.id;
+        root.packStatusKind = "";
+        root.packStatus = Tr.tr("Removing %1...").arg(root.pendingPackName);
+        removeProc.command = ["rm", "-rf", `${root.userDir}/dic/${pack.id}`];
+        removeProc.running = true;
+    }
+
+    function handleRemove(code: int): void {
+        root.packBusy = false;
+        if (code === 0) {
+            root.packStatusKind = "ok";
+            root.packStatus = Tr.tr("Removed %1.").arg(root.pendingPackName);
+            root.refreshInstalled();
+            root.resolvePack();
+        } else {
+            root.packStatusKind = "error";
+            root.packStatus = Tr.tr("The language pack could not be removed.");
+        }
+    }
+
     function lookup(): void {
         const text = root.query.trim();
         if (text.length === 0) {
@@ -99,8 +210,20 @@ Item {
         root.statusKind = "";
         root.status = Tr.tr("Searching...");
         lookupProc.command = [
-            "sdcv", "-n", "-j", "--utf8-input", "--utf8-output",
-            "--data-dir", root.dataDir, text
+            "sh", "-c",
+            `command -v sdcv >/dev/null 2>&1 || exit 127
+out=$(mktemp) || exit 1
+trap 'rm -f "$out"' EXIT
+query=$1
+shift
+status=0
+for d in "$@"; do
+    [ -d "$d/dic" ] || continue
+    sdcv -n -j --utf8-input --utf8-output --data-dir "$d" "$query" >> "$out" || status=$?
+done
+[ "$status" -eq 0 ] || exit "$status"
+jq -s 'add // []' "$out"`,
+            "sh", text, root.systemDir, root.userDir
         ];
         lookupProc.running = true;
     }
@@ -153,7 +276,11 @@ Item {
         }
     }
 
-    Component.onCompleted: root.resolvePack()
+    Component.onCompleted: {
+        root.resolvePack();
+        root.refreshInstalled();
+        root.loadCatalog();
+    }
 
     Process {
         id: dirProc
@@ -177,6 +304,42 @@ Item {
         }
 
         onExited: code => Qt.callLater(() => root.handleLookup(code, lookupOutput.text, lookupError.text))
+    }
+
+    Process {
+        id: installedProc
+
+        stdout: StdioCollector {
+            id: installedOutput
+        }
+
+        onExited: root.handleInstalled(installedOutput.text)
+    }
+
+    Process {
+        id: catalogProc
+
+        stdout: StdioCollector {
+            id: catalogOutput
+        }
+
+        onExited: root.handleCatalog(catalogOutput.text)
+    }
+
+    Process {
+        id: installProc
+
+        stderr: StdioCollector {
+            id: installError
+        }
+
+        onExited: code => root.handleInstall(code, installError.text)
+    }
+
+    Process {
+        id: removeProc
+
+        onExited: code => root.handleRemove(code)
     }
 
     ColumnLayout {
@@ -313,6 +476,89 @@ Item {
                 color: root.statusKind === "error" ? root.errorColour : root.muted
                 font: Tokens.font.label.medium
                 horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.Wrap
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Tokens.spacing.small
+
+            Text {
+                text: Tr.tr("Language packs")
+                color: root.foreground
+                font: Tokens.font.label.medium
+            }
+
+            Text {
+                text: root.installedPacks.length > 0 ? Tr.trN("%n installed", "%n installed", root.installedPacks.length) : ""
+                color: root.muted
+                font: Tokens.font.label.small
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            ActionButton {
+                label: root.showPacks ? Tr.tr("Hide") : Tr.tr("Show")
+                onActivated: root.showPacks = !root.showPacks
+            }
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.showPacks
+            spacing: Tokens.spacing.extraSmall
+
+            Repeater {
+                model: root.catalog
+
+                delegate: RowLayout {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.small
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: modelData.name
+                        color: root.foreground
+                        font: Tokens.font.label.medium
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        text: root.formatSize(modelData.size)
+                        color: root.muted
+                        font: Tokens.font.label.small
+                    }
+
+                    ActionButton {
+                        label: root.isInstalled(modelData.id) ? Tr.tr("Remove") : Tr.tr("Download")
+                        primary: !root.isInstalled(modelData.id)
+                        onActivated: {
+                            if (root.isInstalled(modelData.id))
+                                root.removePack(modelData);
+                            else
+                                root.installPack(modelData);
+                        }
+                    }
+                }
+            }
+
+            Text {
+                visible: root.catalog.length === 0
+                text: Tr.tr("No language packs are available.")
+                color: root.muted
+                font: Tokens.font.label.small
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: root.packStatus
+                color: root.packStatusKind === "error" ? root.errorColour : root.muted
+                font: Tokens.font.label.small
                 wrapMode: Text.Wrap
             }
         }

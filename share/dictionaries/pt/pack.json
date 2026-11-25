@@ -7,6 +7,12 @@
     "homepage": "https://freedict.org/",
     "dictionaries": [
         {
+            "id": "pt-pt",
+            "name": "Português (monolíngue)",
+            "license": "CC-BY-SA-3.0",
+            "source": "https://www.reader-dict.com/download/pt"
+        },
+        {
             "id": "por-eng",
             "name": "Português → English",
             "license": "GPL-2.0-or-later"

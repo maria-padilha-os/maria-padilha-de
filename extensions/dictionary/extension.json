@@ -5,5 +5,9 @@
     "icon": "menu_book",
     "tab": "Tab.qml",
     "shortcut": "Super + Alt + Shift + D",
-    "permissions": ["filesystem", "processes"]
+    "permissions": [
+        "filesystem",
+        "processes",
+        "network"
+    ]
 }
