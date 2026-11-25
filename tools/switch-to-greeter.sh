@@ -57,6 +57,9 @@ if [ -n "${SUDO_USER:-}" ]; then
             install -Dm644 "$wallpaper_path" /usr/local/share/greeter/wallpaper
         fi
     fi
+    if [ -r "$user_home/.face" ]; then
+        install -Dm644 "$user_home/.face" /usr/local/share/greeter/face
+    fi
 fi
 
 install -d -m 755 /etc/greetd

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Greetd
@@ -18,13 +19,13 @@ Item {
 
     readonly property var weekdays: ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"]
     readonly property var months: ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+
     readonly property color background: "#09080b"
     readonly property color surface: "#171319"
     readonly property color surfaceHigh: "#211a22"
     readonly property color foreground: "#f7f0f2"
     readonly property color muted: "#c6b8bf"
     readonly property color accent: "#e05263"
-    readonly property color accentForeground: "#19080b"
     readonly property color outline: "#5a4650"
 
     function submit(): void {
@@ -111,8 +112,15 @@ Item {
         }
     }
 
-    // The lock screen's wallpaper. The installed copy can carry a wallpaper
-    // next to this file; the repository falls back to the gradient below.
+    Rectangle {
+        anchors.fill: parent
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#08070a" }
+            GradientStop { position: 0.55; color: "#1b0e16" }
+            GradientStop { position: 1.0; color: "#09080b" }
+        }
+    }
+
     Image {
         id: wallpaper
         anchors.fill: parent
@@ -121,112 +129,105 @@ Item {
         asynchronous: true
         cache: false
         visible: status === Image.Ready
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        visible: wallpaper.status !== Image.Ready
-
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#08070a" }
-            GradientStop { position: 0.55; color: "#1b0e16" }
-            GradientStop { position: 1.0; color: "#09080b" }
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            blurEnabled: true
+            blur: 0.7
+            blurMax: 64
+            saturation: 0.85
         }
     }
 
     Rectangle {
         anchors.fill: parent
-        color: "#09080b"
-        opacity: 0.55
-    }
-
-    Rectangle {
-        width: parent.width * 0.65
-        height: width
-        radius: width / 2
-        x: -width * 0.35
-        y: -height * 0.55
-        color: "#3a1420"
-        opacity: 0.35
-    }
-
-    Rectangle {
-        width: parent.width * 0.5
-        height: width
-        radius: width / 2
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.rightMargin: -width * 0.3
-        anchors.bottomMargin: -height * 0.35
-        color: "#2a1624"
-        opacity: 0.35
-    }
-
-    Text {
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.margins: 40
-        text: "Maria Padilha"
-        color: root.foreground
-        font.pixelSize: 18
-        font.weight: Font.Medium
+        color: root.background
+        opacity: 0.45
     }
 
     ColumnLayout {
         id: center
 
         anchors.centerIn: parent
-        width: Math.min(420, root.width - 80)
-        spacing: 12
+        width: Math.min(430, root.width - 80)
+        spacing: 14
 
-        Text {
+        RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            text: Qt.formatDateTime(root.now, "HH:mm")
-            color: root.foreground
-            font.pixelSize: Math.min(96, root.height * 0.11)
-            font.weight: Font.Light
+            spacing: 4
+
+            Text {
+                text: Qt.formatDateTime(root.now, "HH")
+                color: root.accent
+                font.pixelSize: Math.min(104, root.height * 0.12)
+                font.weight: Font.Light
+            }
+
+            Text {
+                text: Qt.formatDateTime(root.now, "mm")
+                color: root.foreground
+                font.pixelSize: Math.min(104, root.height * 0.12)
+                font.weight: Font.Light
+            }
         }
 
         Text {
             Layout.alignment: Qt.AlignHCenter
-            Layout.bottomMargin: 12
+            Layout.bottomMargin: 18
             text: (root.weekdays[root.now.getDay()] + ", " + root.now.getDate() + " de " + root.months[root.now.getMonth()]).toUpperCase()
             color: root.muted
             font.pixelSize: 14
             font.weight: Font.DemiBold
         }
 
-        Rectangle {
+        Item {
             Layout.alignment: Qt.AlignHCenter
-            implicitWidth: 104
-            implicitHeight: 104
-            radius: width / 2
-            color: root.surfaceHigh
-            border.width: 1
-            border.color: root.outline
+            implicitWidth: 112
+            implicitHeight: 112
+
+            Rectangle {
+                id: avatarMask
+                anchors.fill: parent
+                radius: width / 2
+                visible: false
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: width / 2
+                color: root.surfaceHigh
+                border.width: 1
+                border.color: root.outline
+                visible: face.status !== Image.Ready
+            }
 
             Text {
                 anchors.centerIn: parent
+                visible: face.status !== Image.Ready
                 text: userField.text.length > 0 ? userField.text.charAt(0).toUpperCase() : "?"
                 color: root.foreground
-                font.pixelSize: 42
+                font.pixelSize: 44
                 font.weight: Font.Medium
             }
-        }
 
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: userField.text.length > 0 ? userField.text : "usuário"
-            color: root.foreground
-            font.pixelSize: 18
-            font.weight: Font.Medium
+            Image {
+                id: face
+                anchors.fill: parent
+                source: "face"
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                visible: status === Image.Ready
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: avatarMask
+                }
+            }
         }
 
         TextField {
             id: userField
 
             Layout.fillWidth: true
-            Layout.topMargin: 8
             visible: root.users.length !== 1
             text: root.users.length > 0 ? root.users[0] : ""
             color: root.foreground
@@ -241,98 +242,72 @@ Item {
             bottomPadding: 10
             background: Rectangle {
                 color: "#33000000"
-                radius: 12
+                radius: 22
                 border.width: 1
                 border.color: userField.activeFocus ? root.accent : root.outline
             }
             onAccepted: passField.forceActiveFocus()
         }
 
-        Text {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 4
-            text: "Senha"
-            color: root.muted
-            font.pixelSize: 12
-        }
-
-        TextField {
-            id: passField
+        Rectangle {
+            id: passwordPill
 
             Layout.fillWidth: true
-            color: root.foreground
-            placeholderText: "senha"
-            placeholderTextColor: root.muted
-            horizontalAlignment: TextInput.AlignHCenter
-            echoMode: root.passwordVisible ? TextInput.Normal : TextInput.Password
-            font.pixelSize: 17
-            selectByMouse: true
-            leftPadding: 14
-            rightPadding: 70
-            topPadding: 12
-            bottomPadding: 12
-            background: Rectangle {
-                color: "#44000000"
-                radius: 14
-                border.width: 1
-                border.color: passField.activeFocus ? root.accent : root.outline
-            }
-            onAccepted: root.submit()
+            Layout.topMargin: 4
+            implicitHeight: 58
+            radius: height / 2
+            color: "#66171319"
+            border.width: 1
+            border.color: passField.activeFocus ? root.accent : root.outline
 
-            Text {
-                anchors.right: parent.right
-                anchors.rightMargin: 14
-                anchors.verticalCenter: parent.verticalCenter
-                text: root.passwordVisible ? "ocultar" : "mostrar"
-                color: root.muted
-                font.pixelSize: 11
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: 8
+                spacing: 8
 
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                        root.passwordVisible = !root.passwordVisible;
-                        passField.forceActiveFocus();
+                Text {
+                    text: root.passwordVisible ? "visibility_off" : "lock"
+                    color: root.muted
+                    font.family: "Material Symbols Rounded"
+                    font.pixelSize: 23
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.passwordVisible = !root.passwordVisible
                     }
                 }
-            }
-        }
 
-        Rectangle {
-            id: enterButton
+                TextField {
+                    id: passField
 
-            Layout.fillWidth: true
-            Layout.topMargin: 4
-            implicitHeight: 46
-            radius: 14
-            color: root.busy ? root.surfaceHigh : root.accent
-            opacity: root.busy ? 0.7 : 1
-            activeFocusOnTab: !root.busy
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    color: root.foreground
+                    placeholderText: "Senha"
+                    placeholderTextColor: root.muted
+                    echoMode: root.passwordVisible ? TextInput.Normal : TextInput.Password
+                    font.pixelSize: 17
+                    selectByMouse: true
+                    leftPadding: 0
+                    rightPadding: 0
+                    topPadding: 0
+                    bottomPadding: 0
+                    background: null
+                    onAccepted: root.submit()
+                }
 
-            Accessible.role: Accessible.Button
-            Accessible.name: "Entrar"
-            Accessible.focusable: true
-            Accessible.onPressAction: root.submit()
+                Text {
+                    text: "arrow_forward"
+                    color: root.accent
+                    font.family: "Material Symbols Rounded"
+                    font.pixelSize: 25
 
-            Keys.onReturnPressed: root.submit()
-            Keys.onEnterPressed: root.submit()
-            Keys.onSpacePressed: root.submit()
-
-            Text {
-                anchors.centerIn: parent
-                text: root.busy ? "Entrando..." : "Entrar"
-                color: root.accentForeground
-                font.pixelSize: 15
-                font.weight: Font.Medium
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: !root.busy
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    enterButton.forceActiveFocus();
-                    root.submit();
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.submit()
+                    }
                 }
             }
         }
@@ -362,7 +337,7 @@ Item {
         Accessible.role: Accessible.Button
         Accessible.name: "Usar o greeter de texto"
         Accessible.focusable: true
-        Accessible.onPressAction: Qt.exit(1)
+        Accessible.onPressAction: Quickshell.execDetached(["/usr/bin/kill", "-TERM", "" + Quickshell.processId])
 
         Text {
             id: fallbackText
