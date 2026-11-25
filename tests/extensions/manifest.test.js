@@ -337,6 +337,14 @@ test("a malformed stored list is normalised instead of crashing", () => {
     assert.equal(Manifest.isEnabled(undefined, "notes"), false);
 });
 
+test("a QML string list (array-like) is handled like an array", () => {
+    const sequence = { 0: "notes", 1: "calendar", length: 2 };
+    assert.equal(Manifest.isEnabled(sequence, "notes"), true);
+    assert.equal(Manifest.isEnabled(sequence, "maps"), false);
+    assert.deepEqual(Manifest.setEnabled(sequence, "maps", true), ["notes", "calendar", "maps"]);
+    assert.deepEqual(Manifest.setEnabled(sequence, "notes", false), ["calendar"]);
+});
+
 console.log("search and filter");
 
 test("search matches names, descriptions, permissions and errors", () => {

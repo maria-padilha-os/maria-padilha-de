@@ -549,14 +549,30 @@ function catalogFromScan(output, options) {
     return buildCatalog(parseScanOutput(output), options);
 }
 
+function enabledIdsList(enabledIds) {
+    if (Array.isArray(enabledIds))
+        return enabledIds;
+    var values = [];
+    if (enabledIds === null || enabledIds === undefined)
+        return values;
+    var length = enabledIds.length;
+    if (typeof length !== "number")
+        return values;
+    for (var i = 0; i < length; ++i) {
+        if (typeof enabledIds[i] === "string" && enabledIds[i].length > 0)
+            values.push(enabledIds[i]);
+    }
+    return values;
+}
+
 function isEnabled(enabledIds, id) {
-    return Array.isArray(enabledIds) && enabledIds.indexOf(id) !== -1;
+    return enabledIdsList(enabledIds).indexOf(id) !== -1;
 }
 
 // Return a new list. Keeping this pure makes the value that is written back to
 // dashboard.extensionTabs easy to test without a running shell.
 function setEnabled(enabledIds, id, enabled) {
-    var current = Array.isArray(enabledIds) ? enabledIds.filter(value => typeof value === "string" && value.length > 0) : [];
+    var current = enabledIdsList(enabledIds).filter(value => typeof value === "string" && value.length > 0);
     var hasId = current.indexOf(id) !== -1;
     if (typeof id !== "string" || id.length === 0 || enabled === hasId)
         return current;
