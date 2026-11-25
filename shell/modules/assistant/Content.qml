@@ -60,7 +60,7 @@ Item {
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: Tokens.padding.large
+            anchors.margins: Tokens.padding.medium
             spacing: Tokens.spacing.medium
 
             RowLayout {

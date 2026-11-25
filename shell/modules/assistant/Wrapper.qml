@@ -12,8 +12,8 @@ Item {
     required property ScreenState screenState
 
     readonly property bool shouldBeActive: screenState.assistant && AssistantSettings.enabled
-    // Slightly wider than the sidebar: the chat needs room for code and tables.
-    readonly property real panelWidth: Tokens.sizes.sidebar.width + 224
+    // One third of the 1920 px screen; the chat needs room for code and tables.
+    readonly property real panelWidth: 640
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
@@ -31,7 +31,7 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        anchors.leftMargin: Tokens.padding.large
+        anchors.leftMargin: Tokens.padding.medium
         anchors.margins: CUtils.clamp(anchors.leftMargin - Config.border.thickness, 0, anchors.leftMargin)
         anchors.bottomMargin: 0
 
