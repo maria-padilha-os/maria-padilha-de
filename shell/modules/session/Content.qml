@@ -21,10 +21,10 @@ Column {
     spacing: Tokens.spacing.large
 
     SessionButton {
-        id: logout
+        id: lockScreen
 
-        icon: Config.session.icons.logout
-        command: Config.session.commands.logout
+        icon: "lock"
+        command: ["qs", "-c", "caelestia", "ipc", "call", "lock", "lock"]
 
         KeyNavigation.down: shutdown
 
@@ -33,7 +33,7 @@ Column {
         Connections {
             function onLauncherChanged(): void {
                 if (!root.screenState.launcher)
-                    logout.forceActiveFocus();
+                    lockScreen.forceActiveFocus();
             }
 
             target: root.screenState
@@ -79,6 +79,16 @@ Column {
         command: Config.session.commands.reboot
 
         KeyNavigation.up: hibernate
+        KeyNavigation.down: logout
+    }
+
+    SessionButton {
+        id: logout
+
+        icon: Config.session.icons.logout
+        command: Config.session.commands.logout
+
+        KeyNavigation.up: reboot
     }
 
     component SessionButton: IconButton {
