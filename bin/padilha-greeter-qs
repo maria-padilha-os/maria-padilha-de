@@ -9,8 +9,12 @@
 # of leaving the machine at a dead login screen.
 set -u
 
-if command -v cage >/dev/null 2>&1 && [ -x /usr/bin/padilha-greeter ]; then
-    cage -- /usr/bin/padilha-greeter
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+bin_dir=$(CDPATH='' cd -- "$(dirname -- "$self")" && pwd) || exit 1
+greeter="$bin_dir/padilha-greeter"
+
+if command -v cage >/dev/null 2>&1 && [ -x "$greeter" ]; then
+    cage -- "$greeter"
     status=$?
     if [ "$status" -eq 0 ]; then
         exit 0
