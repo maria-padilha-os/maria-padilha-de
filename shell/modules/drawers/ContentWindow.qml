@@ -71,11 +71,10 @@ StyledWindow {
     name: "drawers"
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: (fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top
-    // The launcher, session menu, dashboard, sidebar, bar popouts and the
-    // assistant drawer are keyboard surfaces. Ask the compositor for keyboard
-    // focus only while one of them is open, so ordinary app windows keep focus
-    // the rest of the time.
-    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session || screenState.dashboard || screenState.sidebar || screenState.barFocus || screenState.assistant ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    // The assistant is a text surface: on-demand did not pull focus away from
+    // the terminal, so grab the keyboard while it is open and release it on
+    // close. The other keyboard surfaces stay on-demand.
+    WlrLayershell.keyboardFocus: screenState.assistant ? WlrKeyboardFocus.Exclusive : (screenState.launcher || screenState.session || screenState.dashboard || screenState.sidebar || screenState.barFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None)
 
     mask: hasFullscreen ? emptyRegion : regions
 
