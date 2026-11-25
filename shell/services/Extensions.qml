@@ -103,18 +103,19 @@ Singleton {
     Process {
         id: scanProc
 
-        // User extensions take precedence over later bases, then the checkout
-        // trees while developing, then the installed copies. Duplicate ids are
-        // deliberately kept in the output: the manager marks shadowed copies
-        // and real duplicates instead of silently hiding one of them.
+        // User extensions win, then the checkout, then the installed copies.
+        // The scan script resolves symlinks, deduplicates real paths and skips
+        // the installed copies when a checkout is present: the checkout already
+        // ships those extensions, and scanning both made every card a shadowed
+        // duplicate.
         command: [
-            "sh", "-c",
-            // Resolve each base before walking it: when the shell is a symlink
-            // (~/.config/quickshell/caelestia -> checkout/shell), lexical ".."
-            // in a QML file URL would drop into ~/.config/quickshell instead
-            // of the checkout's extensions directory.
-            `priority=0; for base in "$1" "$2" "$3" "$4" "$5" "$6"; do priority=$((priority + 1)); [ -d "$base" ] || continue; base=$(realpath "$base"); for d in "$base"/*/; do [ -f "$d/extension.json" ] || continue; printf 'EXTENSION:%s\\nPRIORITY:%s\\nFILES:' "$d" "$priority"; find "$d" -mindepth 1 -printf '%P\\t' 2>/dev/null; printf '\\n'; if command -v python3 >/dev/null 2>&1 && grep -q '"commands"' "$d/extension.json" 2>/dev/null && out=$(python3 "$7" "$d/extension.json" 2>/dev/null); then printf 'COMMANDS:%s\\n' "$out"; else printf 'COMMANDS:?\\n'; fi; cat "$d/extension.json"; printf '\\n'; done; done`,
-            "sh", `${Paths.home}/.config/padilha/extensions`, `${Paths.home}/.config/lilith/extensions`, `${Quickshell.shellDir}/../extensions`, `${Quickshell.shellDir}/../share/extensions`, "/usr/lib/maria-padilha/share/extensions", "/usr/lib/lilith/share/extensions", `${Quickshell.shellDir}/services/extension-commands.py`
+            "sh", `${Quickshell.shellDir}/services/extension-scan.sh`,
+            `${Paths.home}/.config/padilha/extensions`,
+            `${Paths.home}/.config/lilith/extensions`,
+            `${Quickshell.shellDir}`,
+            `${Quickshell.shellDir}/services/extension-commands.py`,
+            "/usr/lib/maria-padilha/share/extensions",
+            "/usr/lib/lilith/share/extensions"
         ]
 
         stdout: StdioCollector {
