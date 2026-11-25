@@ -166,6 +166,7 @@ runtime_deps=(
     wl-clipboard
     cliphist
     fuzzel
+    papirus-icon-theme
 )
 
 if [ "$editor" = nvim ]; then
