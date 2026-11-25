@@ -5,7 +5,7 @@ writes the backlight.
 
 ## What it tests
 
-`bin/padilha-brightness` is the only always-resident Python helper. This spike
+`bin/padilha-brightness-python` is the old Python daemon, kept as a fallback. This spike
 answers two questions before considering a port:
 
 1. Can pure Lua 5.5 reproduce the curve exactly?

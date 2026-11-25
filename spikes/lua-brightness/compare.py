@@ -11,7 +11,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "bin" / "padilha-brightness"
+SCRIPT = ROOT / "bin" / "padilha-brightness-python"
 LUA = ROOT / "spikes" / "lua-brightness" / "brightness.lua"
 
 

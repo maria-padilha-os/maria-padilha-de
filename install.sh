@@ -216,6 +216,7 @@ commands=(
     padilha
     padilha-update
     padilha-brightness
+    padilha-brightness-python
     padilha-config
     padilha-session
     padilha-lock

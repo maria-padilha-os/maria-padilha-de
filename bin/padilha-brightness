@@ -1,182 +1,350 @@
-#!/usr/bin/env python3
-"""Keep the panel at a time-of-day brightness unless the user just set it.
+#!/usr/bin/env lua
+-- Keep the panel at a time-of-day brightness unless the user just set it.
+--
+-- This is the Lua implementation; bin/padilha-brightness-python is kept as a
+-- fallback. The curve is a set of local-time anchors, linearly interpolated.
+-- A change made by the user (brightness keys, the bar slider, brightnessctl)
+-- is held for PADILHA_BRIGHTNESS_HOLD_HOURS (default 4). The hold survives
+-- suspend and restart in $XDG_STATE_HOME/padilha/brightness.state, or the old
+-- $XDG_STATE_HOME/lilith/brightness.state when that is the one that exists.
+--
+-- Like the Python daemon, the polling loop reads sysfs and only calls
+-- brightnessctl when it actually changes the panel.
 
-The curve is a set of local-time anchors, linearly interpolated.  Any change
-that the daemon did not make (brightness keys, the bar slider, brightnessctl)
-is treated as a manual choice and held for PADILHA_BRIGHTNESS_HOLD_HOURS
-(default 4; the old LILITH_BRIGHTNESS_HOLD_HOURS is still accepted).  The hold
-survives suspend and restart in $XDG_STATE_HOME/padilha/brightness.state, or
-the old $XDG_STATE_HOME/lilith/brightness.state when that is the one that
-exists.
-"""
+local posix = require("posix")
+local lfs = require("lfs")
 
-from __future__ import annotations
+local function env(name, fallback)
+    local value = os.getenv(name)
+    if value and value ~= "" then
+        return value
+    end
+    return fallback
+end
 
-import fcntl
-import os
-import subprocess
-import sys
-import time
-from pathlib import Path
+local HOLD_HOURS = tonumber(env("PADILHA_BRIGHTNESS_HOLD_HOURS", env("LILITH_BRIGHTNESS_HOLD_HOURS", "4")))
+local POLL_SECONDS = tonumber(env("PADILHA_BRIGHTNESS_POLL", "2"))
+local BACKLIGHT_DIR = env("PADILHA_BACKLIGHT_DIR", "/sys/class/backlight")
 
-HOLD_HOURS = float(
-    os.environ.get(
-        "PADILHA_BRIGHTNESS_HOLD_HOURS",
-        os.environ.get("LILITH_BRIGHTNESS_HOLD_HOURS", "4"),
-    )
-)
-POLL_SECONDS = 2
-# Read brightness from sysfs; only setting it needs the brightnessctl helper.
-BACKLIGHT_DIR = Path(os.environ.get("PADILHA_BACKLIGHT_DIR", "/sys/class/backlight"))
-# minutes since midnight -> percent
-ANCHORS = [
-    (0, 15),
-    (6 * 60, 20),
-    (7 * 60 + 30, 70),
-    (12 * 60, 100),
-    (17 * 60, 85),
-    (19 * 60, 55),
-    (21 * 60, 30),
-    (23 * 60, 20),
-    (24 * 60, 15),
-]
+local ANCHORS = {
+    { 0, 15 },
+    { 6 * 60, 20 },
+    { 7 * 60 + 30, 70 },
+    { 12 * 60, 100 },
+    { 17 * 60, 85 },
+    { 19 * 60, 55 },
+    { 21 * 60, 30 },
+    { 23 * 60, 20 },
+    { 24 * 60, 15 },
+}
 
+local WRITE = true
+local OBSERVE = false
+local LOG_PATH = nil
+local MAX_CYCLES = nil
 
-def state_path() -> Path:
-    base = Path(os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local/state"))
-    primary = base / "padilha" / "brightness.state"
-    legacy = base / "lilith" / "brightness.state"
-    if not primary.exists() and legacy.exists():
+-- Python's round() is half-to-even.
+local function pyround(value)
+    local lower = math.floor(value)
+    local fraction = value - lower
+    if fraction > 0.5 then
+        return lower + 1
+    elseif fraction < 0.5 then
+        return lower
+    elseif lower % 2 == 0 then
+        return lower
+    end
+    return lower + 1
+end
+
+local function target_percent(epoch)
+    local now = os.date("*t", epoch)
+    local minutes = now.hour * 60 + now.min + now.sec / 60
+    for index = 1, #ANCHORS - 1 do
+        local m0, v0 = ANCHORS[index][1], ANCHORS[index][2]
+        local m1, v1 = ANCHORS[index + 1][1], ANCHORS[index + 1][2]
+        if m0 <= minutes and minutes <= m1 then
+            local fraction = m1 > m0 and (minutes - m0) / (m1 - m0) or 0
+            return pyround(v0 + (v1 - v0) * fraction)
+        end
+    end
+    return ANCHORS[#ANCHORS][2]
+end
+
+local function state_path()
+    local base = env("XDG_STATE_HOME", (os.getenv("HOME") or "") .. "/.local/state")
+    local primary = base .. "/padilha/brightness.state"
+    local legacy = base .. "/lilith/brightness.state"
+    local file = io.open(primary, "r")
+    if file then
+        file:close()
+        return primary
+    end
+    file = io.open(legacy, "r")
+    if file then
+        file:close()
         return legacy
+    end
     return primary
+end
 
+local function dirname(path)
+    return path:match("^(.*)/[^/]+$") or "."
+end
 
-def get_percent() -> int | None:
-    """Read sysfs first; the polling loop must not spawn two processes every 2s."""
-    try:
-        for device in sorted(BACKLIGHT_DIR.iterdir()):
-            try:
-                current = int((device / "brightness").read_text())
-                maximum = int((device / "max_brightness").read_text())
-            except (OSError, ValueError):
-                continue
-            if maximum > 0:
-                return round(current * 100 / maximum)
-    except OSError:
-        pass
+local function read_number(path)
+    local file = io.open(path, "r")
+    if not file then
+        return nil
+    end
+    local text = file:read("*l")
+    file:close()
+    return tonumber((text or ""):match("^%s*(-?%d+)%s*$") or "")
+end
 
-    # Fallback for a machine where the sysfs node is not readable by the user.
-    try:
-        current = int(subprocess.check_output(["brightnessctl", "g"], text=True).strip())
-        maximum = int(subprocess.check_output(["brightnessctl", "m"], text=True).strip())
-        return round(current * 100 / maximum)
-    except Exception:
-        return None
+local function command_number(command)
+    local pipe = io.popen(command .. " 2>/dev/null")
+    if not pipe then
+        return nil
+    end
+    local text = pipe:read("*l")
+    pipe:close()
+    return tonumber(text or "")
+end
 
+local function get_percent()
+    local ok, iter, dir_obj = pcall(lfs.dir, BACKLIGHT_DIR)
+    if ok then
+        local names = {}
+        for name in iter, dir_obj do
+            if name ~= "." and name ~= ".." then
+                names[#names + 1] = name
+            end
+        end
+        table.sort(names)
+        for _, name in ipairs(names) do
+            local current = read_number(BACKLIGHT_DIR .. "/" .. name .. "/brightness")
+            local maximum = read_number(BACKLIGHT_DIR .. "/" .. name .. "/max_brightness")
+            if current and maximum and maximum > 0 then
+                return pyround(current * 100 / maximum)
+            end
+        end
+    end
+    local current = command_number("brightnessctl g")
+    local maximum = command_number("brightnessctl m")
+    if current and maximum and maximum > 0 then
+        return pyround(current * 100 / maximum)
+    end
+    return nil
+end
 
-def set_percent(value: int) -> None:
-    subprocess.run(
-        ["brightnessctl", "s", f"{value}%"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        check=False,
-    )
+local function set_percent(value)
+    if WRITE then
+        os.execute("brightnessctl s " .. tostring(value) .. "% >/dev/null 2>&1")
+    end
+end
 
+local function load_state()
+    local file = io.open(state_path(), "r")
+    if not file then
+        return 0, -1
+    end
+    local values = {}
+    for line in file:lines() do
+        local key, value = line:match("^%s*([^=]+)%s*=%s*(.-)%s*$")
+        if key then
+            values[key] = value
+        end
+    end
+    file:close()
+    return tonumber(values.override_until) or 0, tonumber(values.last_applied) or -1
+end
 
-def target_percent(now: float) -> int:
-    lt = time.localtime(now)
-    minutes = lt.tm_hour * 60 + lt.tm_min + lt.tm_sec / 60
-    for (m0, v0), (m1, v1) in zip(ANCHORS, ANCHORS[1:]):
-        if m0 <= minutes <= m1:
-            fraction = (minutes - m0) / (m1 - m0) if m1 > m0 else 0
-            return round(v0 + (v1 - v0) * fraction)
-    return ANCHORS[-1][1]
+local function save_state(override_until, last_applied)
+    local path = state_path()
+    local tmp = path:gsub("%.state$", ".tmp")
+    local file = io.open(tmp, "w")
+    if not file then
+        return
+    end
+    file:write(string.format("override_until=%.0f\nlast_applied=%d\n", override_until, last_applied))
+    file:close()
+    os.rename(tmp, path)
+end
 
+local function log_line(now, current, target, action)
+    if not LOG_PATH then
+        return
+    end
+    local file = io.open(LOG_PATH, "a")
+    if not file then
+        return
+    end
+    file:write(string.format("%d,%s,%s,%s\n", now, tostring(current or ""), tostring(target or ""), action))
+    file:close()
+end
 
-def load_state() -> tuple[float, int]:
-    try:
-        values: dict[str, str] = {}
-        for line in state_path().read_text().splitlines():
-            if "=" in line:
-                key, value = line.split("=", 1)
-                values[key.strip()] = value.strip()
-        return float(values.get("override_until", 0)), int(values.get("last_applied", -1))
-    except Exception:
-        return 0.0, -1
+local function sleep(seconds)
+    local whole = math.floor(seconds)
+    local nanos = math.floor((seconds - whole) * 1e9)
+    if whole > 0 then
+        posix.sleep(whole)
+    end
+    if nanos > 0 then
+        posix.nanosleep(0, nanos)
+    end
+end
 
+local function ensure_dir(path)
+    local current = ""
+    for part in path:gmatch("[^/]+") do
+        current = current .. "/" .. part
+        pcall(posix.mkdir, current, "rwx------")
+    end
+end
 
-def save_state(override_until: float, last_applied: int) -> None:
-    path = state_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(f"override_until={override_until:.0f}\nlast_applied={last_applied}\n")
-    tmp.replace(path)
+local function acquire_lock()
+    local path = state_path()
+    ensure_dir(dirname(path))
+    local lock_path = path .. ".lock"
+    local fd = posix.open(lock_path, posix.fcntl.O_CREAT + posix.fcntl.O_RDWR, "rw-------")
+    if not fd then
+        return nil
+    end
+    local lock = { l_type = posix.fcntl.F_WRLCK, l_whence = posix.SEEK_SET, l_start = 0, l_len = 0 }
+    local ok = pcall(posix.fcntl.fcntl, fd, posix.fcntl.F_SETLK, lock)
+    if not ok then
+        posix.close(fd)
+        return nil
+    end
+    return { fd = fd }
+end
 
+local function parse_args(argv)
+    local index = 1
+    while index <= #argv do
+        local arg = argv[index]
+        if arg == "--write" then
+            WRITE = true
+        elseif arg == "--dry-run" then
+            WRITE = false
+        elseif arg == "--observe" then
+            OBSERVE = true
+        elseif arg == "--log" then
+            index = index + 1
+            LOG_PATH = argv[index]
+        elseif arg == "--cycles" then
+            index = index + 1
+            MAX_CYCLES = tonumber(argv[index])
+        elseif arg == "--poll" then
+            index = index + 1
+            POLL_SECONDS = tonumber(argv[index])
+        elseif arg == "--status" then
+            local override_until, last_applied = load_state()
+            local current = get_percent()
+            local target = target_percent(os.time())
+            print(string.format("current=%d%% target=%d%% override_until=%d last_applied=%d", current or -1, target, override_until, last_applied))
+            os.exit(0)
+        elseif arg == "--target" then
+            index = index + 1
+            print(target_percent(tonumber(argv[index]) or os.time()))
+            os.exit(0)
+        elseif arg == "--help" then
+            io.write("usage: daemon.lua [--dry-run|--write|--observe] [--log PATH] [--cycles N] [--poll SECONDS]\n")
+            os.exit(0)
+        end
+        index = index + 1
+    end
+end
 
-def main() -> int:
-    path = state_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    lock = open(path.with_suffix(".lock"), "w")
-    try:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
+local function observe()
+    local cycles = 0
+    while true do
+        local now = os.time()
+        local current = get_percent()
+        if current then
+            local override_until = select(1, load_state())
+            log_line(now, current, target_percent(now), string.format("observe:%d", override_until))
+            cycles = cycles + 1
+            if MAX_CYCLES and cycles >= MAX_CYCLES then
+                break
+            end
+        end
+        sleep(POLL_SECONDS)
+    end
+    return 0
+end
+
+local function run()
+    if OBSERVE then
+        return observe()
+    end
+
+    local lock = acquire_lock()
+    if not lock then
         return 0
+    end
 
-    override_until, _ = load_state()
-    current = get_percent()
-    while current is None:
-        time.sleep(1)
+    local override_until = load_state()
+    local current = get_percent()
+    while current == nil do
+        sleep(1)
         current = get_percent()
+    end
 
-    last_seen = current
-    last_set = 0.0
-    last_loop = time.time()
+    local last_seen = current
+    local last_set = 0
+    local last_loop = os.time()
+    local cycles = 0
     save_state(override_until, current)
 
-    while True:
-        now = time.time()
-        resumed = now - last_loop > 60
+    while true do
+        local now = os.time()
+        local resumed = now - last_loop > 60
         last_loop = now
         current = get_percent()
-        if current is None:
-            time.sleep(POLL_SECONDS)
-            continue
-
-        # A change across a suspend/resume is the hardware coming back, not
-        # the user; only changes while awake count as manual.
-        if resumed:
-            last_seen = current
-        elif abs(current - last_seen) > 2 and now - last_set > 5:
-            # Any change we did not make is the user: hold their value.
-            override_until = now + HOLD_HOURS * 3600
-            last_seen = current
-            save_state(override_until, current)
-            time.sleep(POLL_SECONDS)
-            continue
-
-        if now >= override_until:
-            want = target_percent(now)
-            if abs(want - current) >= 1:
-                set_percent(want)
-                last_seen = want
-                last_set = time.time()
-                save_state(override_until, want)
-            else:
+        if current == nil then
+            sleep(POLL_SECONDS)
+        else
+            local manual = false
+            if resumed then
                 last_seen = current
-        else:
-            last_seen = current
+            elseif math.abs(current - last_seen) > 2 and now - last_set > 5 then
+                override_until = now + HOLD_HOURS * 3600
+                last_seen = current
+                save_state(override_until, current)
+                log_line(now, current, "", "hold")
+                manual = true
+            end
 
-        time.sleep(POLL_SECONDS)
+            if not manual then
+                if now >= override_until then
+                    local want = target_percent(now)
+                    if math.abs(want - current) >= 1 then
+                        set_percent(want)
+                        last_seen = want
+                        last_set = os.time()
+                        save_state(override_until, want)
+                        log_line(now, current, want, "set")
+                    else
+                        last_seen = current
+                    end
+                else
+                    last_seen = current
+                end
+            end
 
+            cycles = cycles + 1
+            if MAX_CYCLES and cycles >= MAX_CYCLES then
+                break
+            end
+            sleep(POLL_SECONDS)
+        end
+    end
 
-if __name__ == "__main__":
-    if "--target" in sys.argv:
-        print(target_percent(time.time()))
-    elif "--status" in sys.argv:
-        override_until, last_applied = load_state()
-        print(
-            f"current={get_percent()}% target={target_percent(time.time())}% "
-            f"override_until={int(override_until)} last_applied={last_applied}"
-        )
-    else:
-        sys.exit(main())
+    posix.close(lock.fd)
+    return 0
+end
+
+parse_args(arg)
+os.exit(run())
