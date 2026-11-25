@@ -13,7 +13,7 @@ Item {
 
     readonly property bool shouldBeActive: screenState.assistant && AssistantSettings.enabled
     // Slightly wider than the sidebar: the chat needs room for code and tables.
-    readonly property real panelWidth: Tokens.sizes.sidebar.width + 192
+    readonly property real panelWidth: Tokens.sizes.sidebar.width + 224
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
