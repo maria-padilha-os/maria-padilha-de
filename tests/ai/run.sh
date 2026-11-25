@@ -461,5 +461,55 @@ else
     bad "read-only tools run, fail closed and redact" "$(tail -20 "$tmp/chat-tools.log")"
 fi
 
+if python3 "$root/tests/ai/test_chat_history.py" >"$tmp/chat-history.log" 2>&1; then
+    ok "the transcript round-trips with private modes"
+else
+    bad "the transcript round-trips with private modes" "$(tail -20 "$tmp/chat-history.log")"
+fi
+
+echo "persistent transcript"
+
+cat >"$config_file" <<'LUA'
+return {
+    history = "persist",
+    permissions = { write = false, roots = {} },
+}
+LUA
+chmod 600 "$config_file"
+mkdir -p "$XDG_STATE_HOME/padilha/ai"
+transcript="$XDG_STATE_HOME/padilha/ai/transcript.jsonl"
+printf '%s\n' \
+    '{"role": "user", "text": "remember me"}' \
+    '{"role": "assistant", "text": "forever"}' >"$transcript"
+chmod 600 "$transcript"
+
+out=$(printf '%s\n' '{"cmd":"shutdown"}' | ai --stdio 2>&1)
+if printf '%s\n' "$out" | head -n1 | python3 -c '
+import json, sys
+ready = json.loads(sys.stdin.readline())
+history = ready.get("history") or []
+assert history == [
+    {"role": "user", "text": "remember me"},
+    {"role": "assistant", "text": "forever"},
+], history
+'; then
+    ok "stdio restores the persisted transcript"
+else
+    bad "stdio restores the persisted transcript" "$(printf '%s' "$out" | head -c 300)"
+fi
+
+if [ "$(stat -c %a "$transcript" 2>/dev/null)" = "600" ]; then
+    ok "the transcript stays mode 0600"
+else
+    bad "the transcript stays mode 0600" "$(stat -c %a "$transcript" 2>/dev/null)"
+fi
+
+out=$(printf '%s\n' '{"cmd":"new_chat"}' '{"cmd":"shutdown"}' | ai --stdio 2>&1)
+if [ ! -e "$transcript" ]; then
+    ok "a new chat clears the transcript"
+else
+    bad "a new chat clears the transcript" "$out"
+fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

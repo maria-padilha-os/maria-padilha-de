@@ -5,7 +5,7 @@ title: "ADR 0001: Built-in AI assistant"
 
 # ADR 0001 — Built-in AI assistant and permissioned home access
 
-- **Status:** Accepted. The home-access broker, OpenAI-compatible chat transport, right-side panel, bar indicator, `Super + A`, and the read-only chat tools (`read_file`, `list_dir`, `search_text`) are implemented; write confirmation inside chat remains future work.
+- **Status:** Accepted. The home-access broker, OpenAI-compatible chat transport, right-side panel, bar indicator, `Super + A`, the read-only chat tools (`read_file`, `list_dir`, `search_text`) and opt-in persistent transcripts are implemented; write confirmation inside chat remains future work.
 - **Date:** 2026-11-08
 - **Owner:** `maria-padilha-de` repository owner
 - **Reviewers:** coordinator and the security reviewer for the desktop

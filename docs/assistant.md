@@ -26,6 +26,15 @@ audit — and the loop stops after `permissions.max_tool_calls` (8 by default).
 Writes are not part of the chat loop yet: `write_file` stays behind the CLI's
 two-step `write`/`confirm` flow until the panel has its confirmation card.
 
+## Persistent transcript
+
+`history = "off"` is the default. Set `history = "persist"` in `ai.lua` to keep
+the conversation across shell restarts and reboots: the backend writes a JSONL
+transcript under the broker's state directory
+(`~/.local/state/padilha/ai/transcript.jsonl`) with mode `0600` and no automatic
+pruning. The next panel session restores it from the `ready` event. "New chat"
+clears the file; deleting it is equivalent.
+
 ## No roots approved
 
 A fresh install has no access at all. There is no implicit `$HOME`, current
