@@ -20,7 +20,7 @@ Item {
     readonly property alias count: bar.count
     readonly property real minimumWidth: Math.max(Tokens.sizes.bar.innerWidth, 0) * count
 
-    implicitHeight: bar.implicitHeight + bar.anchors.topMargin + indicator.implicitHeight + indicator.anchors.topMargin + separator.implicitHeight
+    implicitHeight: bar.implicitHeight + bar.anchors.topMargin + indicator.implicitHeight + indicator.anchors.topMargin
 
     TabBar {
         id: bar
@@ -101,17 +101,6 @@ Item {
         Behavior on implicitWidth {
             Anim {}
         }
-    }
-
-    StyledRect {
-        id: separator
-
-        anchors.top: indicator.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-
-        implicitHeight: Math.max(1, Config.border.thickness)
-        color: Colours.palette.m3outlineVariant
     }
 
     component Tab: TabButton {
