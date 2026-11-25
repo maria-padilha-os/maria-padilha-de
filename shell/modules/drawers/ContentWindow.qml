@@ -201,6 +201,8 @@ StyledWindow {
             deformAmount: 0.2
             x: panels.sessionWrapper.x + panels.session.x + bar.implicitWidth
             implicitWidth: panels.session.width
+            visible: panels.session.visible
+            group: panels.session.visible ? blobGroup : null
         }
 
         PanelBg {
@@ -358,7 +360,12 @@ StyledWindow {
         required property Item panel
         property real deformAmount: 0.15
 
-        group: blobGroup
+        // Closed drawers keep their inner content size, so leaving them in the
+        // blob group deforms the outline of whichever drawer is actually open.
+        // sessionBg and osdBg override this with their inner panel because
+        // their wrappers stay visible while collapsing.
+        visible: panel.visible
+        group: panel.visible ? blobGroup : null
         x: panel.x + bar.implicitWidth
         y: panel.y + root.borderThickness
         implicitWidth: panel.width
