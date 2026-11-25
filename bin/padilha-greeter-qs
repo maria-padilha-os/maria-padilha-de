@@ -14,7 +14,8 @@ bin_dir=$(CDPATH='' cd -- "$(dirname -- "$self")" && pwd) || exit 1
 greeter="$bin_dir/padilha-greeter"
 
 if command -v cage >/dev/null 2>&1 && [ -x "$greeter" ]; then
-    cage -- "$greeter"
+    # -s keeps Ctrl+Alt+F* working if the greeter misbehaves.
+    cage -s -- "$greeter"
     status=$?
     if [ "$status" -eq 0 ]; then
         exit 0
