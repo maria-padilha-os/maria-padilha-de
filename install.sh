@@ -218,6 +218,7 @@ commands=(
     padilha-brightness
     padilha-brightness-python
     padilha-greeter
+    padilha-greeter-qs
     padilha-config
     padilha-session
     padilha-lock
