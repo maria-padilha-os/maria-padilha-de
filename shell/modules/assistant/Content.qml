@@ -16,8 +16,6 @@ Item {
 
     // Slightly smaller than the shell default so the transcript fits more text.
     readonly property real fontScale: 0.92
-    // True while the view should trail new turns; a manual scroll turns it off.
-    property bool follow: true
 
     Component.onCompleted: {
         Assistant.start();
@@ -30,13 +28,6 @@ Item {
             Qt.callLater(() => composer.forceActiveFocus());
     }
 
-    // positionViewAtEnd() is a no-op here once ListView reports atYEnd, so
-    // assign the scroll offset directly and let the height handler repeat it
-    // while delegates are still being laid out.
-    function scrollToEnd(): void {
-        transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
-    }
-
     Connections {
         function onReadyChanged(): void {
             root.focusComposer();
@@ -47,33 +38,15 @@ Item {
                 root.focusComposer();
         }
 
-        // Follow new turns as they arrive, but never fight a manual scroll:
-        // contentHeight also grows while ListView instantiates delegates.
+        // Follow the conversation only when its content changes (send, reply,
+        // restore). Following contentHeight also snapped the view back while
+        // scrolling, because ListView grows its estimate as delegates appear.
         function onMessagesChanged(): void {
-            const last = Assistant.messages[Assistant.messages.length - 1];
-            if (last && last.role === "user")
-                root.follow = true;
-            if (root.follow) {
-                momentum.stop();
-                Qt.callLater(() => root.scrollToEnd());
-            }
+            momentum.stop();
+            Qt.callLater(() => transcript.positionViewAtEnd());
         }
 
         target: Assistant
-    }
-
-    // Keep the view pinned while the follow flag is set. A one-shot scroll can
-    // run before ListView has instantiated the last delegates and gets clamped;
-    // repeating it while following survives that.
-    Timer {
-        interval: 120
-        repeat: true
-        running: root.follow
-        onTriggered: {
-            const maxY = Math.max(0, transcript.contentHeight - transcript.height);
-            if (maxY > 0 && transcript.contentY < maxY - 1)
-                transcript.contentY = maxY;
-        }
     }
 
     ColumnLayout {
@@ -157,26 +130,16 @@ Item {
 
                 maximumFlickVelocity: 3000
 
-                onDraggingChanged: {
-                    if (dragging) {
-                        root.follow = false;
-                        momentum.stop();
-                    }
-                }
-                onMovementEnded: {
-                    if (atYEnd)
-                        root.follow = true;
-                }
+                onMovementStarted: momentum.stop()
 
-                // A handler on top of the list: ListView's own wheel processing
-                // swallowed events before a handler on the view saw them.
-                MouseArea {
-                    id: wheelArea
+                // Qt follows wheel deltas almost 1:1, which feels sluggish;
+                // scale them like the shell's other flickables.
+                WheelHandler {
+                    id: wheel
 
-                    anchors.fill: parent
-                    z: 100
-                    acceptedButtons: Qt.NoButton
                     property real lastMove: 0
+
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
 
                     onWheel: event => {
                         const pixel = event.pixelDelta;
@@ -188,9 +151,8 @@ Item {
                         const maxY = Math.max(0, transcript.contentHeight - transcript.height);
                         const before = transcript.contentY;
                         transcript.contentY = Math.max(0, Math.min(maxY, before - delta * 4));
-                        wheelArea.lastMove = transcript.contentY - before;
-                        root.follow = transcript.contentY >= maxY - 2;
-                        if (wheelArea.lastMove !== 0)
+                        wheel.lastMove = transcript.contentY - before;
+                        if (wheel.lastMove !== 0)
                             momentumTimer.restart();
                         event.accepted = true;
                     }
@@ -202,7 +164,7 @@ Item {
                     interval: 90
                     repeat: false
                     onTriggered: {
-                        const extra = wheelArea.lastMove * 2.5;
+                        const extra = wheel.lastMove * 2.5;
                         if (Math.abs(extra) < 8)
                             return;
                         const maxY = Math.max(0, transcript.contentHeight - transcript.height);
@@ -219,7 +181,6 @@ Item {
                     property: "contentY"
                     duration: 380
                     easing.type: Easing.OutCubic
-                    onStopped: root.follow = transcript.contentY >= Math.max(0, transcript.contentHeight - transcript.height) - 2
                 }
 
                 delegate: ColumnLayout {
@@ -255,14 +216,7 @@ Item {
                     }
                 }
 
-                onCountChanged: {
-                    if (root.follow)
-                        Qt.callLater(() => root.scrollToEnd());
-                }
-                onContentHeightChanged: {
-                    if (root.follow)
-                        Qt.callLater(() => root.scrollToEnd());
-                }
+                onCountChanged: Qt.callLater(() => positionViewAtEnd())
             }
 
             RowLayout {
