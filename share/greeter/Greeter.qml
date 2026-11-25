@@ -207,7 +207,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 470
+                Layout.fillHeight: true
                 radius: 28
                 color: "#cc1a161d"
                 border.width: 1
@@ -481,7 +481,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 330
+                Layout.fillHeight: true
                 radius: 28
                 color: "#cc1a161d"
                 border.width: 1
@@ -536,60 +536,70 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Carga"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 12; Layout.fillWidth: true }
-                        Text { text: root.cpuLoad; color: root.foreground; font.family: root.fontFamily; font.pixelSize: 12 }
-                    }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 5
-                        radius: 3
-                        color: root.surfaceHigh
-                        Rectangle {
-                            width: parent.width * Math.min(1, (parseFloat(root.cpuLoad) || 0) / 8)
-                            height: parent.height
-                            radius: 3
-                            color: root.accent
-                        }
-                    }
+                        Layout.topMargin: 4
+                        spacing: 12
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Memória"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 12; Layout.fillWidth: true }
-                        Text { text: root.memPercent + "%"; color: root.foreground; font.family: root.fontFamily; font.pixelSize: 12 }
-                    }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 5
-                        radius: 3
-                        color: root.surfaceHigh
-                        Rectangle {
-                            width: parent.width * Math.min(1, root.memPercent / 100)
-                            height: parent.height
-                            radius: 3
-                            color: root.accent
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            Text { text: "Carga"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 11 }
+                            Text { text: root.cpuLoad; color: root.foreground; font.family: root.fontFamily; font.pixelSize: 18; font.weight: Font.Medium }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: 4
+                                radius: 2
+                                color: root.surfaceHigh
+                                Rectangle {
+                                    width: parent.width * Math.min(1, (parseFloat(root.cpuLoad) || 0) / 8)
+                                    height: parent.height
+                                    radius: 2
+                                    color: root.accent
+                                }
+                            }
                         }
-                    }
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Text { text: "Bateria"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 12; Layout.fillWidth: true }
-                        Text {
-                            text: UPower.displayDevice.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) + "%" : "AC"
-                            color: root.foreground
-                            font.family: root.fontFamily
-                            font.pixelSize: 12
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            Text { text: "Memória"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 11 }
+                            Text { text: root.memPercent + "%"; color: root.foreground; font.family: root.fontFamily; font.pixelSize: 18; font.weight: Font.Medium }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: 4
+                                radius: 2
+                                color: root.surfaceHigh
+                                Rectangle {
+                                    width: parent.width * Math.min(1, root.memPercent / 100)
+                                    height: parent.height
+                                    radius: 2
+                                    color: root.accent
+                                }
+                            }
                         }
-                    }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 5
-                        radius: 3
-                        color: root.surfaceHigh
-                        Rectangle {
-                            width: UPower.displayDevice.isLaptopBattery ? parent.width * UPower.displayDevice.percentage : 0
-                            height: parent.height
-                            radius: 3
-                            color: root.accent
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 6
+                            Text { text: "Bateria"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 11 }
+                            Text {
+                                text: UPower.displayDevice.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) + "%" : "AC"
+                                color: root.foreground
+                                font.family: root.fontFamily
+                                font.pixelSize: 18
+                                font.weight: Font.Medium
+                            }
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: 4
+                                radius: 2
+                                color: root.surfaceHigh
+                                Rectangle {
+                                    width: UPower.displayDevice.isLaptopBattery ? parent.width * UPower.displayDevice.percentage : 0
+                                    height: parent.height
+                                    radius: 2
+                                    color: root.accent
+                                }
+                            }
                         }
                     }
 
