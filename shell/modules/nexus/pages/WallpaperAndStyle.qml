@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Caelestia.Components
 import Caelestia.Config
 import Caelestia.I18n
@@ -197,7 +198,10 @@ PageBase {
             // TRANSLATORS: %1/%2 = opacity values from 0 to 1 for the base surface and layered surfaces
             subtext: Tr.tr("Base %1, layers %2").arg(Colours.transparency.base).arg(Colours.transparency.layers)
             checked: Colours.transparency.enabled
-            onToggled: GlobalConfig.appearance.transparency.enabled = checked
+            onToggled: {
+                GlobalConfig.appearance.transparency.enabled = checked;
+                Quickshell.execDetached(["padilha-transparency", checked ? "on" : "off"]);
+            }
         }
 
         ToggleRow {

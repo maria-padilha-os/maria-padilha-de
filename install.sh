@@ -220,6 +220,7 @@ commands=(
     padilha-greeter
     padilha-greeter-qs
     padilha-icons
+    padilha-transparency
     padilha-config
     padilha-session
     padilha-shell-watch

@@ -1,0 +1,32 @@
+#!/bin/sh
+# Keep the terminal background in sync with Settings -> Themes -> Transparency.
+#
+# Only the background is affected: WezTerm's foreground stays opaque, and MC
+# already uses the terminal default background in its generated skin.
+set -u
+
+arg=${1:-}
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+shell_json="$config_home/padilha/shell.json"
+wezterm_dir="$config_home/wezterm"
+
+[ -d "$wezterm_dir" ] || exit 0
+command -v jq >/dev/null 2>&1 || exit 0
+
+enabled=$(jq -r '.appearance.transparency.enabled // false' "$shell_json" 2>/dev/null || printf 'false')
+case "$arg" in
+    on) enabled=true ;;
+    off) enabled=false ;;
+esac
+base=$(jq -r '.appearance.transparency.base // 0.85' "$shell_json" 2>/dev/null || printf '0.85')
+opacity=$(awk -v b="$base" 'BEGIN { if (b < 0.05 || b > 1) b = 0.85; printf "%.3f", b }')
+
+if [ "$enabled" != true ]; then
+    opacity=1.000
+fi
+
+tmp="$wezterm_dir/.opacity.$$"
+printf '%s\n' "$opacity" > "$tmp" && mv -f "$tmp" "$wezterm_dir/opacity"
+# auto_reload_config is on in wezterm.lua; touching it applies the opacity to
+# already-open windows without restarting the terminal.
+touch "$wezterm_dir/wezterm.lua"

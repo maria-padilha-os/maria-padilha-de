@@ -56,6 +56,7 @@ fi
 # Colours before the first paint: apply the current period's wallpaper and
 # palette. The daylight daemon repeats this later only when the period moves.
 "$bin_dir/padilha-daylight" --once >/dev/null 2>&1 || true
+"$bin_dir/padilha-transparency" >/dev/null 2>&1 || true
 
 # A checkout carries its own C++ QML modules in build/qml. Prefer them over an
 # older installed copy: the settings schema ships there (a stale module would
