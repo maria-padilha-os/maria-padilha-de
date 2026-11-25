@@ -39,8 +39,6 @@ weather_qml=(
     "$root/shell/services/Weather.qml"
     "$root/shell/modules/dashboard/WeatherTab.qml"
     "$root/shell/modules/dashboard/dash/SmallWeather.qml"
-    "$root/shell/modules/lock/WeatherInfo.qml"
-    "$root/shell/modules/lock/weather/BriefInfo.qml"
     "$root/shell/modules/nexus/pages/LanguageAndRegion.qml"
 )
 if [ -x "$qmllint" ]; then

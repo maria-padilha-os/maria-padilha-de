@@ -102,7 +102,6 @@ require("shell/modules/drawers/Drawers.qml", ("model: Screens.screens",))
 require("shell/modules/background/Background.qml", ("Screens.screens", "GlobalConfig.forScreen"))
 require("shell/modules/areapicker/AreaPicker.qml", ("model: Screens.screens",))
 reject("shell/modules/clipboard/Clipboard.qml", ("Quickshell.screens[0]",))
-reject("shell/modules/lock/Lock.qml", ("Quickshell.screens[0]",))
 
 print("surfaces")
 

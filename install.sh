@@ -166,7 +166,6 @@ runtime_deps=(
     wl-clipboard
     cliphist
     fuzzel
-    hyprlock
 )
 
 if [ "$editor" = nvim ]; then
@@ -221,7 +220,6 @@ commands=(
     padilha-greeter-qs
     padilha-config
     padilha-session
-    padilha-lock
     padilha-shell-watch
     padilha-theme
     padilha-mc-theme

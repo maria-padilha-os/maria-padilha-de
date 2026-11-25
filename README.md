@@ -138,9 +138,8 @@ theme, so the explicit choice is not overwritten at the next boundary.
 
 - **Shell** — bar, launcher, notifications, on-screen display, dashboard, and
   the panels around them.
-- **Locking** — `padilha-lock` runs `hyprlock` in its own process, so a locker
-  fault cannot take the shell and the session with it. The in-shell lock is
-  opt-in.
+- **Logout** — logging out opens the locker-style greeter. There is no separate
+  in-session locker.
 - **Colour** — a wallpaper is scored into a Material You palette and written to
   Hyprland, GTK 3/4, Qt/Kvantum, terminals, btop, cava, fuzzel, Neovim,
   Midnight Commander, and Firefox. Discord is an opt-in, user-loaded theme;
@@ -180,8 +179,6 @@ Maria Padilha is packaged for Arch Linux and Arch-based distributions such as
 Manjaro. It requires:
 
 - Hyprland and Quickshell
-- `hyprlock` for screen locking (installed by `install.sh --full`; an
-  opt-in/recommended package dependency)
 - Qt 6 (`qt6-base`, `qt6-declarative`)
 - PipeWire, aubio, libcava, libqalculate, and lm_sensors
 - Lua, ImageMagick, and `jq`
@@ -276,7 +273,6 @@ See [CONFIG.md](CONFIG.md) for the precedence rules, the supported keys, and
 | `padilha-update` | explicit package update check, confirmation, log path |
 | `padilha-config` | compile the Lua configuration; `set`, `unset`, `capture` |
 | `padilha-session` | compile, paint the palette, and start the shell |
-| `padilha-lock` | lock through `hyprlock` in its own process |
 | `padilha-shell-watch` | restart the shell after a crash (bounded backoff) |
 | `padilha-brightness` | day/night panel brightness, with a manual hold |
 | `padilha-theme` | render a wallpaper's palette into application configs |
