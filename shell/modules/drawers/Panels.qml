@@ -66,6 +66,7 @@ Item {
             screen: root.screen
             screenState: root.screenState
             sidebarOrSessionVisible: sidebar.visible || session.visible
+            assistantVisible: assistant.visible
 
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right

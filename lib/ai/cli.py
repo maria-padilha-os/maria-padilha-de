@@ -613,6 +613,56 @@ def _display_root(broker: Broker, path: str) -> str:
     return display_path(path, broker.home)
 
 
+class BrokerToolRunner:
+    """Read-only tool surface for the chat loop; the broker stays the judge.
+
+    Every call goes through the same root, deny, redaction and audit checks as
+    the CLI.  Errors are returned as tool results so the model can recover
+    instead of failing the whole turn.
+    """
+
+    def __init__(self, broker: Broker) -> None:
+        self.broker = broker
+
+    def call(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+        try:
+            if name == "read_file":
+                path = arguments.get("path")
+                if not isinstance(path, str) or not path:
+                    return {"error": "invalid_arguments", "message": "read_file needs a path"}
+                offset = arguments.get("offset")
+                limit = arguments.get("limit")
+                result = self.broker.read_file(
+                    path,
+                    offset=offset if isinstance(offset, int) and not isinstance(offset, bool) else None,
+                    limit=limit if isinstance(limit, int) and not isinstance(limit, bool) else None,
+                )
+                return result.as_dict()
+            if name == "list_dir":
+                path = arguments.get("path")
+                if not isinstance(path, str) or not path:
+                    return {"error": "invalid_arguments", "message": "list_dir needs a path"}
+                return self.broker.list_dir(path).as_dict()
+            if name == "search_text":
+                query = arguments.get("query")
+                path = arguments.get("path")
+                if not isinstance(query, str) or not query:
+                    return {"error": "invalid_arguments", "message": "search_text needs a query"}
+                if not isinstance(path, str) or not path:
+                    return {"error": "invalid_arguments", "message": "search_text needs a path"}
+                hits = arguments.get("max_hits")
+                return self.broker.search_text(
+                    query,
+                    path,
+                    max_hits=hits if isinstance(hits, int) and not isinstance(hits, bool) and hits > 0 else 100,
+                ).as_dict()
+        except BrokerError as exc:
+            return {"error": exc.code, "message": str(exc)}
+        except (OSError, ValueError) as exc:
+            return {"error": "tool_failed", "message": str(exc)}
+        return {"error": "unknown_tool", "message": f"unknown tool {name!r}"}
+
+
 def _dispatch_protocol(
     broker: Broker, command: str, request: dict[str, Any]
 ) -> dict[str, Any] | None:
@@ -773,6 +823,7 @@ def _dispatch_protocol(
             broker.config,
             request.get("model"),
             request.get("messages"),
+            runner=BrokerToolRunner(broker),
         )
         broker.audit.record(
             "chat_turn",
@@ -781,6 +832,7 @@ def _dispatch_protocol(
             messages=len(request.get("messages") or []),
             answer_bytes=len(result.get("text", "")),
             redactions=result.get("redactions", 0),
+            tool_calls=result.get("tool_calls", 0),
         )
         return {"type": "done", "stop": "complete", **result}
 
