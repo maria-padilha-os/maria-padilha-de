@@ -453,5 +453,13 @@ else
     bad "stdio advertises configured chat models" "$out"
 fi
 
+echo "chat file tools"
+
+if python3 "$root/tests/ai/test_chat_tools.py" >"$tmp/chat-tools.log" 2>&1; then
+    ok "read-only tools run, fail closed and redact"
+else
+    bad "read-only tools run, fail closed and redact" "$(tail -20 "$tmp/chat-tools.log")"
+fi
+
 printf '\n%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

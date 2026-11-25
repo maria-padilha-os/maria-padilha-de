@@ -15,7 +15,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from .config import Config
 from .redact import redact
@@ -37,6 +37,7 @@ class Model:
     provider: str
     model: str
     context: int
+    tools: bool = False
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,75 @@ class Provider:
     kind: str
     base_url: str
     api_key: str | None
+
+
+class ToolRunner(Protocol):
+    """Runs one read-only tool call inside the broker's permission boundary."""
+
+    def call(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]: ...
+
+
+# Only read-only operations are exposed to the model.  Writes still go through
+# the broker's one-operation confirmation flow and are not part of the chat
+# loop yet.
+TOOL_DEFINITIONS: list[dict[str, Any]] = [
+    {
+        "type": "function",
+        "function": {
+            "name": "read_file",
+            "description": (
+                "Read a UTF-8 text file inside one of the user's approved roots. "
+                "The broker decides access and redacts secret-shaped content. "
+                "Use offset/limit for large files."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string", "description": "Absolute path or ~/... path"},
+                    "offset": {"type": "integer", "description": "1-based first line"},
+                    "limit": {"type": "integer", "description": "Maximum number of lines"},
+                },
+                "required": ["path"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_dir",
+            "description": "List the entries of a directory inside an approved root.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "path": {"type": "string", "description": "Absolute path or ~/... path"},
+                },
+                "required": ["path"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_text",
+            "description": (
+                "Case-insensitive literal text search inside an approved root. "
+                "Returns matching paths and line numbers."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Literal text to search for"},
+                    "path": {"type": "string", "description": "Directory or file to search"},
+                    "max_hits": {"type": "integer", "description": "Maximum matches to return"},
+                },
+                "required": ["query", "path"],
+                "additionalProperties": False,
+            },
+        },
+    },
+]
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
@@ -70,6 +140,7 @@ def models(config: Config) -> list[Model]:
                 provider=provider,
                 model=model,
                 context=context,
+                tools=item.get("tools") is True,
             )
         )
     return out
@@ -175,8 +246,83 @@ def _validate_messages(messages: Any) -> list[dict[str, str]]:
     return out
 
 
-def complete(config: Config, model_id: str | None, messages: Any) -> dict[str, Any]:
-    """Return one assistant reply.  The caller supplies the audit sink."""
+def _post_provider(config: Config, provider: Provider, payload: dict[str, Any]) -> dict[str, Any]:
+    """POST one chat request and return the decoded JSON object."""
+
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    if provider.api_key:
+        headers["Authorization"] = f"Bearer {provider.api_key}"
+    request = urllib.request.Request(
+        provider.base_url + "/chat/completions",
+        data=body,
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=_timeout(config)) as response:
+            raw = response.read(4 * 1024 * 1024)
+    except urllib.error.HTTPError as exc:
+        raise ChatError(f"provider returned HTTP {exc.code}", code="provider_http") from None
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        raise ChatError(f"provider request failed: {exc.reason if hasattr(exc, 'reason') else exc}", code="provider_unreachable") from None
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        raise ChatError("provider returned an invalid response", code="provider_response") from None
+    if not isinstance(data, dict):
+        raise ChatError("provider returned an invalid response", code="provider_response")
+    return data
+
+
+def _content_text(content: Any) -> str:
+    if isinstance(content, list):
+        content = "".join(str(part.get("text", "")) for part in content if isinstance(part, dict))
+    return content if isinstance(content, str) else ""
+
+
+def _tool_call(call: Any) -> tuple[str, dict[str, Any] | None, str]:
+    """Return (name, arguments, call_id) without trusting the provider JSON."""
+
+    if not isinstance(call, dict):
+        return "", None, ""
+    call_id = call.get("id") if isinstance(call.get("id"), str) else ""
+    function = _as_dict(call.get("function"))
+    name = function.get("name") if isinstance(function.get("name"), str) else ""
+    raw = function.get("arguments")
+    if isinstance(raw, dict):
+        return name, raw, call_id
+    if not isinstance(raw, str) or not raw.strip():
+        return name, {}, call_id
+    try:
+        parsed = json.loads(raw)
+    except ValueError:
+        return name, None, call_id
+    return name, parsed if isinstance(parsed, dict) else None, call_id
+
+
+def _run_tool(runner: ToolRunner, name: str, arguments: dict[str, Any] | None) -> dict[str, Any]:
+    if not name:
+        return {"error": "unknown_tool", "message": "the provider sent a tool call without a name"}
+    if arguments is None:
+        return {"error": "invalid_arguments", "message": "tool arguments must be a JSON object"}
+    try:
+        result = runner.call(name, arguments)
+    except Exception as exc:  # a failing tool answers the model; it must not kill the turn
+        return {"error": "tool_failed", "message": str(exc)}
+    if not isinstance(result, dict):
+        return {"error": "tool_failed", "message": "the tool returned no data"}
+    return result
+
+
+def complete(
+    config: Config,
+    model_id: str | None,
+    messages: Any,
+    *,
+    runner: ToolRunner | None = None,
+) -> dict[str, Any]:
+    """Return one assistant reply, running read-only tools when declared."""
 
     available = models(config)
     if not available:
@@ -190,8 +336,8 @@ def complete(config: Config, model_id: str | None, messages: Any) -> dict[str, A
         model = available[0]
 
     cleaned = _validate_messages(messages)
-    redacted = 0
-    safe: list[dict[str, str]] = []
+    redactions = 0
+    safe: list[dict[str, Any]] = []
     for message in cleaned:
         result = redact(message["content"])
         if result.count:
@@ -208,44 +354,81 @@ def complete(config: Config, model_id: str | None, messages: Any) -> dict[str, A
             code="missing_credential",
         )
 
-    payload = json.dumps(
-        {"model": model.model, "messages": safe, "stream": False},
-        ensure_ascii=False,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    headers = {"Content-Type": "application/json", "Accept": "application/json"}
-    if provider.api_key:
-        headers["Authorization"] = f"Bearer {provider.api_key}"
-    request = urllib.request.Request(
-        provider.base_url + "/chat/completions",
-        data=payload,
-        headers=headers,
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=_timeout(config)) as response:
-            body = response.read(4 * 1024 * 1024)
-    except urllib.error.HTTPError as exc:
-        raise ChatError(f"provider returned HTTP {exc.code}", code="provider_http") from None
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise ChatError(f"provider request failed: {exc.reason if hasattr(exc, 'reason') else exc}", code="provider_unreachable") from None
-    try:
-        data = json.loads(body.decode("utf-8"))
-        choice = data["choices"][0]
-        content = choice["message"]["content"]
-    except (ValueError, KeyError, IndexError, TypeError):
-        raise ChatError("provider returned an invalid response", code="provider_response") from None
-    if isinstance(content, list):
-        content = "".join(str(part.get("text", "")) for part in content if isinstance(part, dict))
-    if not isinstance(content, str) or not content.strip():
-        raise ChatError("provider returned an empty answer", code="provider_response")
-    return {
-        "text": content,
-        "model": model.id,
-        "provider": model.provider,
-        "redactions": redacted,
-        "usage": data.get("usage") if isinstance(data.get("usage"), dict) else {},
-    }
+    tool_specs = TOOL_DEFINITIONS if model.tools and runner is not None else None
+    budget = config.max_tool_calls
+    conversation = list(safe)
+    used = 0
+    tool_bytes = 0
+
+    while True:
+        payload: dict[str, Any] = {
+            "model": model.model,
+            "messages": conversation,
+            "stream": False,
+        }
+        if tool_specs is not None:
+            payload["tools"] = tool_specs
+        data = _post_provider(config, provider, payload)
+        try:
+            reply = data["choices"][0]["message"]
+        except (KeyError, IndexError, TypeError):
+            raise ChatError("provider returned an invalid response", code="provider_response") from None
+        if not isinstance(reply, dict):
+            raise ChatError("provider returned an invalid response", code="provider_response")
+
+        calls = reply.get("tool_calls")
+        if calls and not isinstance(calls, list):
+            raise ChatError("provider returned invalid tool calls", code="provider_response")
+        if not calls:
+            content = _content_text(reply.get("content"))
+            if not content.strip():
+                raise ChatError("provider returned an empty answer", code="provider_response")
+            return {
+                "text": content,
+                "model": model.id,
+                "provider": model.provider,
+                "redactions": redactions,
+                "tool_calls": used,
+                "usage": data.get("usage") if isinstance(data.get("usage"), dict) else {},
+            }
+
+        if tool_specs is None:
+            raise ChatError(
+                "provider returned a tool call for a model that is not tool-capable",
+                code="unexpected_tool_call",
+            )
+        if used + len(calls) > budget:
+            raise ChatError("the assistant reached the tool-call limit", code="tool_limit")
+
+        conversation.append(
+            {
+                "role": "assistant",
+                "content": reply.get("content"),
+                "tool_calls": calls,
+            }
+        )
+        for call in calls:
+            used += 1
+            name, arguments, call_id = _tool_call(call)
+            result = _run_tool(runner, name, arguments)
+            encoded = json.dumps(result, ensure_ascii=False, separators=(",", ":"))
+            masked = redact(encoded)
+            if masked.count:
+                redactions += masked.count
+                encoded = masked.text
+            tool_bytes += len(encoded.encode("utf-8"))
+            if tool_bytes > config.max_request_bytes:
+                raise ChatError(
+                    "the assistant reached the request size limit while reading files",
+                    code="tool_result_limit",
+                )
+            conversation.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": call_id or f"call-{used}",
+                    "content": encoded,
+                }
+            )
 
 
 def chat_models(config: Config) -> list[dict[str, Any]]:
