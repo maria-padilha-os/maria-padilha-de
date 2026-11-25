@@ -38,6 +38,7 @@ Item {
     readonly property int daysInMonth: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
     readonly property int firstWeekday: new Date(now.getFullYear(), now.getMonth(), 1).getDay()
     readonly property string monthLabel: (months[now.getMonth()] + " " + now.getFullYear()).toUpperCase()
+    readonly property int calendarCells: Math.ceil((firstWeekday + daysInMonth) / 7) * 7
 
     function dayText(index: int): string {
         const day = index - firstWeekday + 1;
@@ -245,8 +246,16 @@ Item {
                         }
                     }
 
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: 1
+                        color: root.outline
+                        opacity: 0.55
+                    }
+
                     GridLayout {
                         Layout.fillWidth: true
+                        Layout.topMargin: 4
                         columns: 7
                         columnSpacing: 2
                         rowSpacing: 2
@@ -270,7 +279,7 @@ Item {
                         columnSpacing: 2
                         rowSpacing: 2
                         Repeater {
-                            model: 42
+                            model: root.calendarCells
                             Item {
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
