@@ -25,7 +25,7 @@ for layout work, but it is not a login.
 vt = 1
 
 [default_session]
-command = "/usr/bin/cage -- /usr/bin/padilha-greeter"
+command = "/usr/bin/padilha-greeter-qs"
 user = "greeter"
 ```
 

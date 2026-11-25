@@ -1,0 +1,28 @@
+#!/bin/sh
+# Start the Quickshell greeter in cage, falling back to tuigreet.
+#
+# greetd runs this as the unprivileged greeter user:
+#   /usr/bin/padilha-greeter-qs
+#
+# A successful authentication launches the user session and Quickshell exits
+# cleanly; a crash or a missing cage/Quickshell falls back to tuigreet instead
+# of leaving the machine at a dead login screen.
+set -u
+
+if command -v cage >/dev/null 2>&1 && [ -x /usr/bin/padilha-greeter ]; then
+    cage -- /usr/bin/padilha-greeter
+    status=$?
+    if [ "$status" -eq 0 ]; then
+        exit 0
+    fi
+fi
+
+if command -v maria-padilha-greeter >/dev/null 2>&1; then
+    exec maria-padilha-greeter \
+        --sessions /usr/share/wayland-sessions \
+        --greeting "Maria Padilha"
+fi
+
+exec tuigreet \
+    --sessions /usr/share/wayland-sessions \
+    --greeting "Maria Padilha"
