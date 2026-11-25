@@ -13,6 +13,12 @@ self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
 bin_dir=$(CDPATH='' cd -- "$(dirname -- "$self")" && pwd) || exit 1
 greeter="$bin_dir/padilha-greeter"
 
+# Cage does not read localectl/Xorg. wlroots takes the keymap from these
+# variables; without them the greeter falls back to US and a Brazilian
+# password containing @, /, ç, etc. authenticates with the wrong characters.
+export XKB_DEFAULT_LAYOUT="${XKB_DEFAULT_LAYOUT:-br}"
+export XKB_DEFAULT_VARIANT="${XKB_DEFAULT_VARIANT:-}"
+
 if command -v cage >/dev/null 2>&1 && [ -x "$greeter" ]; then
     # -s keeps Ctrl+Alt+F* working if the greeter misbehaves.
     cage -s -- "$greeter"
