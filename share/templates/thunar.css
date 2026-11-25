@@ -596,6 +596,10 @@ dialog.thunar {
 .thunar menuitem:focus,
 .thunar dialog button:focus,
 .thunar messagedialog button:focus {
+    outline-style: solid;
+    outline-width: 2px;
+    outline-color: {{ $primary }};
+    outline-offset: -2px;
     box-shadow: inset 0 0 0 2px {{ $primary }};
 }
 
