@@ -43,7 +43,8 @@ Item {
     readonly property string systemDir: `/usr/lib/maria-padilha/share/dictionaries/${root.language}`
 
     function systemLanguage(): string {
-        const raw = Quickshell.env("LANG") || Quickshell.env("LC_MESSAGES") || "en_US.UTF-8";
+        const configured = typeof Tr !== "undefined" && Tr.language ? Tr.language : "";
+        const raw = configured || Quickshell.env("LANG") || Quickshell.env("LC_MESSAGES") || "en_US.UTF-8";
         const code = raw.split(".")[0].replace(/_/g, "-").toLowerCase();
         if (code.indexOf("pt") === 0)
             return "pt";
