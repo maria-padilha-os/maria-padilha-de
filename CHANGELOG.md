@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `padilha-brightness` now runs the Lua daemon by default; the old Python
+  implementation is kept as `padilha-brightness-python`. The Lua path uses
+  `lua-posix` and `lua-filesystem` and keeps the same CLI (`--status`,
+  `--target`, `--dry-run`).
 - The Discord theme is now an opt-in, standalone stylesheet instead of a
   Midnight override with a remote import. `padilha-theme apply` compiles
   `share/templates/discord.scss` with the current palette into a
