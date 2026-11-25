@@ -153,7 +153,11 @@ Item {
                     }
                 }
 
-                onCountChanged: positionViewAtEnd()
+                onCountChanged: Qt.callLater(() => positionViewAtEnd())
+                // The reply text arrives after the message row exists, so the
+                // count does not change when the viewport finally needs to follow
+                // the grown delegate. Defer until the new height is laid out.
+                onContentHeightChanged: Qt.callLater(() => positionViewAtEnd())
             }
 
             RowLayout {
