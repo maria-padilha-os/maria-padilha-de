@@ -19,7 +19,14 @@ case "$arg" in
     off) enabled=false ;;
 esac
 base=$(jq -r '.appearance.transparency.base // 0.85' "$shell_json" 2>/dev/null || printf '0.85')
-opacity=$(awk -v b="$base" 'BEGIN { if (b < 0.05 || b > 1) b = 0.85; printf "%.3f", b }')
+# The terminal looks better a little lighter than the shell's base surface;
+# keep it relative to the setting with a floor so text remains readable.
+opacity=$(awk -v b="$base" 'BEGIN {
+    if (b < 0.05 || b > 1) b = 0.85;
+    v = b - 0.20;
+    if (v < 0.35) v = 0.35;
+    printf "%.3f", v
+}')
 
 if [ "$enabled" != true ]; then
     opacity=1.000
