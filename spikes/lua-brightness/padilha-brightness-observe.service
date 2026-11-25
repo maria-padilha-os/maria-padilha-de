@@ -1,0 +1,10 @@
+[Unit]
+Description=Maria Padilha brightness shadow observer (Lua spike)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/lua %h/Códigos/maria-padilha/maria-padilha-de/spikes/lua-brightness/daemon.lua --observe --poll 2 --log %h/.local/state/padilha/brightness-observe.csv
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
