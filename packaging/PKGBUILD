@@ -47,6 +47,7 @@ depends=(
     'wl-clipboard'
     'cliphist'
     'fuzzel'
+    'papirus-icon-theme'
 )
 optdepends=(
     'greetd: login greeter daemon for the Maria Padilha greeter'
@@ -70,7 +71,6 @@ optdepends=(
     'swappy: annotate screenshots'
     'wf-recorder: screen recording'
     'btop: system monitor themes'
-    'papirus-icon-theme: icon theme the GTK templates name'
     'ttf-jetbrains-mono-nerd: terminal and bar font'
 )
 options=('!strip')  # the shell is a QML tree; stripping breaks nothing but helps nothing
