@@ -38,6 +38,13 @@ Item {
                 root.focusComposer();
         }
 
+        // Follow the conversation only when its content changes (send, reply,
+        // restore). Following contentHeight also snapped the view back while
+        // scrolling, because ListView grows its estimate as delegates appear.
+        function onMessagesChanged(): void {
+            Qt.callLater(() => transcript.positionViewAtEnd());
+        }
+
         target: Assistant
     }
 
@@ -130,11 +137,11 @@ Item {
                     onWheel: event => {
                         const pixel = event.pixelDelta;
                         const angle = event.angleDelta;
-                        const delta = pixel.y !== 0 ? pixel.y : angle.y / 120 * 60;
+                        const delta = pixel.y !== 0 ? pixel.y : angle.y / 120 * 90;
                         if (delta === 0)
                             return;
                         const maxY = Math.max(0, transcript.contentHeight - transcript.height);
-                        transcript.contentY = Math.max(0, Math.min(maxY, transcript.contentY - delta * 2.5));
+                        transcript.contentY = Math.max(0, Math.min(maxY, transcript.contentY - delta * 4));
                         event.accepted = true;
                     }
                 }
@@ -173,10 +180,6 @@ Item {
                 }
 
                 onCountChanged: Qt.callLater(() => positionViewAtEnd())
-                // The reply text arrives after the message row exists, so the
-                // count does not change when the viewport finally needs to follow
-                // the grown delegate. Defer until the new height is laid out.
-                onContentHeightChanged: Qt.callLater(() => positionViewAtEnd())
             }
 
             RowLayout {
