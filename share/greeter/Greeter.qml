@@ -201,7 +201,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: 320
+            Layout.preferredWidth: 430
             Layout.alignment: Qt.AlignVCenter
             spacing: 18
 
@@ -296,11 +296,20 @@ Item {
             }
         }
 
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 430
+            spacing: 18
+
+            Item { Layout.fillHeight: true }
+
         ColumnLayout {
             Layout.preferredWidth: 430
-            Layout.fillHeight: true
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 16
+            Layout.fillHeight: false
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 12
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
@@ -309,14 +318,14 @@ Item {
                     text: Qt.formatDateTime(root.now, "HH")
                     color: root.accent
                     font.family: root.fontFamily
-                    font.pixelSize: Math.min(104, root.height * 0.12)
+                    font.pixelSize: Math.min(88, root.height * 0.1)
                     font.weight: Font.Light
                 }
                 Text {
                     text: Qt.formatDateTime(root.now, "mm")
                     color: root.foreground
                     font.family: root.fontFamily
-                    font.pixelSize: Math.min(104, root.height * 0.12)
+                    font.pixelSize: Math.min(88, root.height * 0.1)
                     font.weight: Font.Light
                 }
             }
@@ -333,8 +342,8 @@ Item {
 
             Item {
                 Layout.alignment: Qt.AlignHCenter
-                implicitWidth: 112
-                implicitHeight: 112
+                implicitWidth: 96
+                implicitHeight: 96
 
                 Rectangle {
                     id: avatarMask
@@ -405,7 +414,7 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.topMargin: 4
-                implicitHeight: 60
+                implicitHeight: 56
                 radius: height / 2
                 color: "#cc1a161d"
                 border.width: 1
@@ -472,16 +481,13 @@ Item {
             }
         }
 
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.preferredWidth: 320
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 18
+
+            Item { Layout.fillHeight: true }
 
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumHeight: 210
                 radius: 28
                 color: "#cc1a161d"
                 border.width: 1
@@ -496,8 +502,8 @@ Item {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 24
-                    spacing: 14
+                    anchors.margins: 20
+                    spacing: 10
 
                     Text {
                         Layout.fillWidth: true
@@ -615,9 +621,9 @@ Item {
                     }
                 }
             }
+
         }
     }
-
     Rectangle {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
