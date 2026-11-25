@@ -1,95 +1,190 @@
-#!/usr/bin/env python3
-"""Write the current Material You palette into the Thunderbird profile.
+#!/usr/bin/env lua
+-- Write the current Material You palette into the Thunderbird profile.
+--
+-- Lua port of the Python helper: it finds the Thunderbird profile, renders
+-- share/templates/thunderbird.css with the scheme colours and atomically
+-- rewrites chrome/padilha.css. Safe to run repeatedly.
 
-This exists because an older installed padilha-theme may not know about the
-Thunderbird integration. It is safe to run repeatedly and is also usable as a
-theme postHook; it only rewrites chrome/padilha.css.
-"""
-import json
-import os
-import re
-import sys
-from pathlib import Path
+local function script_dir()
+    local raw = arg[0] or "padilha-thunderbird-theme"
+    local handle = io.popen("readlink -f -- '" .. raw:gsub("'", "'\\''") .. "' 2>/dev/null")
+    local resolved = handle and handle:read("*l")
+    if handle then
+        handle:close()
+    end
+    local path = (resolved and resolved ~= "") and resolved or raw
+    return path:match("^(.*)/[^/]+$") or "."
+end
 
-HOME = Path(os.environ.get("HOME", Path.home()))
-SCHEME = HOME / ".local/state/caelestia/scheme.json"
-TEMPLATE = Path(__file__).resolve().parent.parent / "share/templates/thunderbird.css"
+local function find_root(start)
+    local dir = start
+    for _ = 1, 8 do
+        local file = io.open(dir .. "/share/templates/thunderbird.css", "r")
+        if file then
+            file:close()
+            return dir
+        end
+        local parent = dir:match("^(.*)/[^/]+$")
+        if not parent or parent == dir then
+            break
+        end
+        dir = parent
+    end
+    return nil
+end
 
+local dir = script_dir()
+local root = find_root(dir)
+if not root then
+    io.stderr:write("cannot find share/templates/thunderbird.css\n")
+    os.exit(1)
+end
+package.path = root .. "/lib/?.lua;" .. package.path
 
-def profiles(root: Path):
-    ini = root / "profiles.ini"
-    if not ini.is_file():
-        return []
-    sections = {}
-    current = None
-    for raw in ini.read_text(errors="replace").splitlines():
-        line = raw.strip()
-        if line.startswith("[") and line.endswith("]"):
-            current = line[1:-1]
-            sections[current] = {}
-        elif current and "=" in line and not line.startswith(("#", ";")):
-            key, value = line.split("=", 1)
-            sections[current][key.strip().lower()] = value.strip()
-    install_default = None
-    for name, values in sections.items():
-        if name.startswith("Install") and values.get("default"):
-            install_default = values["default"]
-    if install_default:
-        path = Path(install_default)
-        if not path.is_absolute():
-            path = root / path
-        if path.is_dir():
-            return [(True, path)]
-    out = []
-    for name, values in sections.items():
-        if name.startswith("Profile") and values.get("path"):
-            path = Path(values["path"])
-            if not path.is_absolute():
-                path = root / path
-            if path.is_dir():
-                out.append((values.get("default") == "1", path))
+local json = require("json")
+
+local function read_file(path)
+    local file = io.open(path, "r")
+    if not file then
+        return nil
+    end
+    local text = file:read("*a")
+    file:close()
+    return text
+end
+
+local function quote(value)
+    return "'" .. value:gsub("'", "'\\''") .. "'"
+end
+
+local function is_dir(path)
+    return os.execute("test -d " .. quote(path)) == true
+end
+
+local function mkdir_p(path)
+    os.execute("mkdir -p " .. quote(path))
+end
+
+local function parse_ini(path)
+    local text = read_file(path)
+    if not text then
+        return {}
+    end
+    local sections = {}
+    local current = nil
+    for raw in text:gmatch("[^\n]*") do
+        local line = raw:gsub("^%s+", ""):gsub("%s+$", "")
+        local name = line:match("^%[([^%]]+)%]$")
+        if name then
+            current = { name = name, values = {} }
+            sections[#sections + 1] = current
+        elseif current and line:find("=", 1, true) and not line:match("^[#;]") then
+            local key, value = line:match("^([^=]+)=(.*)$")
+            if key then
+                current.values[key:gsub("^%s+", ""):gsub("%s+$", ""):lower()] =
+                    value:gsub("^%s+", ""):gsub("%s+$", "")
+            end
+        end
+    end
+    return sections
+end
+
+local function profiles(rootdir)
+    local sections = parse_ini(rootdir .. "/profiles.ini")
+    local install_default = nil
+    for _, section in ipairs(sections) do
+        if section.name:match("^Install") and section.values.default and section.values.default ~= "" then
+            install_default = section.values.default
+        end
+    end
+    if install_default then
+        local path = install_default
+        if path:sub(1, 1) ~= "/" then
+            path = rootdir .. "/" .. path
+        end
+        if is_dir(path) then
+            return { { default = true, path = path } }
+        end
+    end
+    local out = {}
+    for _, section in ipairs(sections) do
+        if section.name:match("^Profile") and section.values.path and section.values.path ~= "" then
+            local path = section.values.path
+            if path:sub(1, 1) ~= "/" then
+                path = rootdir .. "/" .. path
+            end
+            if is_dir(path) then
+                out[#out + 1] = { default = section.values.default == "1", path = path }
+            end
+        end
+    end
     return out
+end
 
+local function profile_dir(home)
+    local xdg = os.getenv("XDG_CONFIG_HOME") or (home .. "/.config")
+    local roots = {
+        xdg .. "/thunderbird",
+        home .. "/.thunderbird",
+        home .. "/.var/app/org.mozilla.Thunderbird/.thunderbird",
+        home .. "/snap/thunderbird/common/.thunderbird",
+    }
+    for _, rootdir in ipairs(roots) do
+        local found = profiles(rootdir)
+        if #found > 0 then
+            for _, profile in ipairs(found) do
+                if profile.default then
+                    return profile.path
+                end
+            end
+            return found[1].path
+        end
+    end
+    return nil
+end
 
-def profile_dir():
-    roots = [
-        Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "thunderbird",
-        HOME / ".thunderbird",
-        HOME / ".var/app/org.mozilla.Thunderbird/.thunderbird",
-        HOME / "snap/thunderbird/common/.thunderbird",
-    ]
-    for root in roots:
-        found = profiles(root)
-        if found:
-            return next((p for default, p in found if default), found[0][1])
-    return None
+local home = os.getenv("HOME")
+if not home or home == "" then
+    io.stderr:write("HOME is not set\n")
+    os.exit(1)
+end
 
+local profile = profile_dir(home)
+if not profile then
+    os.exit(0)
+end
 
-def main():
-    profile = profile_dir()
-    if profile is None:
-        return 0
-    scheme = json.loads(SCHEME.read_text())
-    template = TEMPLATE.read_text()
-    colours = scheme["colours"]
-    mode = scheme.get("mode", "dark")
+local scheme_path = home .. "/.local/state/caelestia/scheme.json"
+local scheme_text = read_file(scheme_path)
+if not scheme_text then
+    io.stderr:write("cannot read " .. scheme_path .. "\n")
+    os.exit(1)
+end
+local scheme = json.decode(scheme_text)
+local colours = scheme.colours or {}
+local mode = scheme.mode or "dark"
 
-    def replace(match):
-        name = match.group(1)
-        if name == "mode":
-            return mode
-        if name not in colours:
-            raise SystemExit("missing palette role: " + name)
-        return "#" + colours[name].lstrip("#")
+local template = read_file(root .. "/share/templates/thunderbird.css")
+if not template then
+    io.stderr:write("cannot read the Thunderbird template\n")
+    os.exit(1)
+end
 
-    rendered = re.sub(r"\{\{\s*\$(\w+)\s*\}\}", replace, template)
-    dest = profile / "chrome/padilha.css"
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_name(dest.name + ".tmp")
-    tmp.write_text(rendered)
-    tmp.replace(dest)
-    return 0
+local rendered = template:gsub("{{%s*%$([%w_]+)%s*}}", function(name)
+    if name == "mode" then
+        return mode
+    end
+    local value = colours[name]
+    if not value then
+        error("missing palette role: " .. name, 0)
+    end
+    return "#" .. value:gsub("^#", "")
+end)
 
-
-if __name__ == "__main__":
-    sys.exit(main())
+local dest = profile .. "/chrome/padilha.css"
+mkdir_p(profile .. "/chrome")
+local tmp = dest .. ".tmp"
+local file = assert(io.open(tmp, "w"))
+file:write(rendered)
+file:close()
+assert(os.rename(tmp, dest))
