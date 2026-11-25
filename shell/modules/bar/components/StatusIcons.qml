@@ -133,6 +133,7 @@ StyledRect {
                             animate: true
                             text: Nmcli.activeEthernet ? "cable" : Nmcli.active ? Icons.getNetworkIcon(Nmcli.active.strength ?? 0) : "wifi_off"
                             color: root.colour
+                            fontStyle: Tokens.font.icon.medium
 
                             Accessible.name: Nmcli.activeEthernet ? Tr.tr("Ethernet connected") : Nmcli.active ? Tr.tr("Wi-Fi connected") : Tr.tr("Network disconnected")
                             Accessible.role: Accessible.StaticText
@@ -154,6 +155,7 @@ StyledRect {
                             animate: true
                             text: "brightness_6"
                             color: root.colour
+                            fontStyle: Tokens.font.icon.medium
 
                             Accessible.name: Tr.tr("Brightness")
                             Accessible.role: Accessible.StaticText

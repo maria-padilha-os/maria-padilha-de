@@ -40,6 +40,7 @@ Item {
                 return "bluetooth";
             }
             color: root.colour
+            fontStyle: Tokens.font.icon.medium
 
             Accessible.name: !Bluetooth.defaultAdapter?.enabled ? Tr.tr("Bluetooth disabled") : Bluetooth.devices.values.some(d => d.connected) ? Tr.tr("Bluetooth connected") : Tr.tr("Bluetooth enabled")
             Accessible.role: Accessible.StaticText
