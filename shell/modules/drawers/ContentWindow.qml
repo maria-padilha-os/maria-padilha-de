@@ -71,10 +71,11 @@ StyledWindow {
     name: "drawers"
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: (fsTransitionProg > 0 && contentItem.Config.general.showOverFullscreen) || (hasSpecialWorkspace && hasFullscreenOnNormalWs) ? WlrLayer.Overlay : WlrLayer.Top
-    // The launcher, session menu and dashboard are keyboard surfaces. Ask
-    // the compositor for keyboard focus only while one of them is open, so
-    // ordinary app windows keep focus the rest of the time.
-    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session || screenState.dashboard || screenState.sidebar || screenState.barFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    // The launcher, session menu, dashboard, sidebar, bar popouts and the
+    // assistant drawer are keyboard surfaces. Ask the compositor for keyboard
+    // focus only while one of them is open, so ordinary app windows keep focus
+    // the rest of the time.
+    WlrLayershell.keyboardFocus: screenState.launcher || screenState.session || screenState.dashboard || screenState.sidebar || screenState.barFocus || screenState.assistant ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     mask: hasFullscreen ? emptyRegion : regions
 
@@ -227,6 +228,13 @@ StyledWindow {
             deformAmount: 0.25
             x: panels.osdWrapper.x + panels.osd.x + bar.implicitWidth
             implicitWidth: panels.osd.width
+            // The wrapper collapses to zero width when the OSD hides, but this
+            // background is sized from the inner content and stays full width.
+            // With a right drawer open it therefore lands on that drawer and
+            // merges into its outline as a bulge, so keep it out of the blob
+            // group whenever the OSD itself is hidden.
+            visible: panels.osd.visible
+            group: panels.osd.visible ? blobGroup : null
         }
 
         PanelBg {

@@ -14,8 +14,29 @@ Item {
 
     required property ScreenState screenState
 
-    Component.onCompleted: Assistant.start()
+    Component.onCompleted: {
+        Assistant.start();
+        root.focusComposer();
+    }
     Component.onDestruction: Assistant.stop()
+
+    function focusComposer(): void {
+        if (root.screenState.assistant && Assistant.ready && !Assistant.streaming)
+            Qt.callLater(() => composer.forceActiveFocus());
+    }
+
+    Connections {
+        function onReadyChanged(): void {
+            root.focusComposer();
+        }
+
+        function onStreamingChanged(): void {
+            if (!Assistant.streaming)
+                root.focusComposer();
+        }
+
+        target: Assistant
+    }
 
     ColumnLayout {
         anchors.fill: parent
