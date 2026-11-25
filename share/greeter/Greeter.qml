@@ -19,23 +19,21 @@ Item {
     property date now: new Date()
     property string cpuLoad: "—"
     property int memPercent: 0
+    property string hostName: ""
+    property string kernel: ""
+    property string uptime: ""
 
     readonly property var weekdays: ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"]
     readonly property var months: ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
-    readonly property var social: [
-        { name: "Telegram", icon: "telegram", letter: "T", colour: "#229ED9" },
-        { name: "Discord", icon: "discord", letter: "D", colour: "#5865F2" },
-        { name: "WhatsApp", icon: "whatsapp", letter: "W", colour: "#25D366" },
-        { name: "Signal", icon: "signal", letter: "S", colour: "#3A76F0" }
-    ]
+    readonly property string fontFamily: gsf.status === FontLoader.Ready ? gsf.name : "sans-serif"
 
     readonly property color background: "#09080b"
-    readonly property color surface: "#171319"
-    readonly property color surfaceHigh: "#211a22"
+    readonly property color surface: "#1a161d"
+    readonly property color surfaceHigh: "#251f29"
     readonly property color foreground: "#f7f0f2"
     readonly property color muted: "#c6b8bf"
     readonly property color accent: "#e05263"
-    readonly property color outline: "#5a4650"
+    readonly property color outline: "#4a3a44"
 
     readonly property int daysInMonth: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
     readonly property int firstWeekday: new Date(now.getFullYear(), now.getMonth(), 1).getDay()
@@ -66,7 +64,13 @@ Item {
         userProcess.running = true;
         cpuProcess.running = true;
         memProcess.running = true;
+        systemProcess.running = true;
         passField.forceActiveFocus();
+    }
+
+    FontLoader {
+        id: gsf
+        source: "file:///etc/xdg/quickshell/caelestia/assets/google-sans-flex/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.ttf"
     }
 
     Timer {
@@ -83,6 +87,7 @@ Item {
         onTriggered: {
             cpuProcess.running = true;
             memProcess.running = true;
+            systemProcess.running = true;
         }
     }
 
@@ -111,6 +116,18 @@ Item {
         command: ["sh", "-c", "awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{if(t>0)printf \"%d\", (t-a)*100/t}' /proc/meminfo"]
         stdout: StdioCollector { id: memOutput }
         onExited: root.memPercent = parseInt(memOutput.text.trim()) || 0
+    }
+
+    Process {
+        id: systemProcess
+        command: ["sh", "-c", "printf '%s\\n' \"$(hostname)\" \"$(uname -r)\" \"$(uptime -p | sed 's/^up //')\""]
+        stdout: StdioCollector { id: systemOutput }
+        onExited: {
+            const lines = systemOutput.text.trim().split("\n");
+            root.hostName = lines[0] || "";
+            root.kernel = lines[1] || "";
+            root.uptime = lines[2] || "";
+        }
     }
 
     Connections {
@@ -178,34 +195,54 @@ Item {
 
     RowLayout {
         anchors.fill: parent
-        anchors.margins: 30
-        spacing: 22
+        anchors.margins: 34
+        spacing: 24
 
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredWidth: 320
+            Layout.alignment: Qt.AlignVCenter
             spacing: 18
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 262
-                radius: 22
-                color: "#aa171319"
+                Layout.preferredHeight: 470
+                radius: 28
+                color: "#cc1a161d"
                 border.width: 1
                 border.color: root.outline
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowColor: "#66000000"
+                    shadowBlur: 0.5
+                    shadowVerticalOffset: 8
+                }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 8
+                    anchors.margins: 24
+                    spacing: 14
 
-                    Text {
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: root.monthLabel
-                        color: root.foreground
-                        font.pixelSize: 14
-                        font.weight: Font.DemiBold
+                        Text {
+                            Layout.fillWidth: true
+                            text: "CALENDÁRIO"
+                            color: root.muted
+                            font.family: root.fontFamily
+                            font.pixelSize: 11
+                            font.letterSpacing: 1.5
+                            font.weight: Font.DemiBold
+                        }
+                        Text {
+                            text: root.monthLabel
+                            color: root.foreground
+                            font.family: root.fontFamily
+                            font.pixelSize: 12
+                            font.weight: Font.Medium
+                        }
                     }
 
                     GridLayout {
@@ -220,6 +257,7 @@ Item {
                                 horizontalAlignment: Text.AlignHCenter
                                 text: modelData
                                 color: root.muted
+                                font.family: root.fontFamily
                                 font.pixelSize: 10
                             }
                         }
@@ -233,137 +271,26 @@ Item {
                         rowSpacing: 2
                         Repeater {
                             model: 42
-                            Text {
+                            Item {
                                 Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignHCenter
-                                horizontalAlignment: Text.AlignHCenter
-                                verticalAlignment: Text.AlignVCenter
-                                text: root.dayText(index)
-                                color: index - root.firstWeekday + 1 === root.now.getDate() ? root.accent : root.foreground
-                                font.pixelSize: 12
-                                font.weight: index - root.firstWeekday + 1 === root.now.getDate() ? Font.Bold : Font.Normal
-                            }
-                        }
-                    }
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: 154
-                radius: 22
-                color: "#aa171319"
-                border.width: 1
-                border.color: root.outline
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: "MENSAGENS"
-                        color: root.foreground
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 10
-
-                        Repeater {
-                            model: root.social
-                            delegate: Rectangle {
-                                required property var modelData
-                                implicitWidth: 44
-                                implicitHeight: 44
-                                radius: 22
-                                color: modelData.colour
-
-                                Image {
-                                    id: appIcon
-                                    anchors.fill: parent
-                                    anchors.margins: 9
-                                    source: Quickshell.iconPath(modelData.icon, true)
-                                    fillMode: Image.PreserveAspectFit
-                                    visible: status === Image.Ready
+                                Layout.fillHeight: true
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 30
+                                    height: 30
+                                    radius: 15
+                                    color: index - root.firstWeekday + 1 === root.now.getDate() ? root.accent : "transparent"
                                 }
-
                                 Text {
                                     anchors.centerIn: parent
-                                    visible: appIcon.status !== Image.Ready
-                                    text: modelData.letter
-                                    color: "white"
-                                    font.pixelSize: 18
-                                    font.weight: Font.Bold
+                                    text: root.dayText(index)
+                                    color: index - root.firstWeekday + 1 === root.now.getDate() ? "#19080b" : root.foreground
+                                    font.family: root.fontFamily
+                                    font.pixelSize: 13
+                                    font.weight: index - root.firstWeekday + 1 === root.now.getDate() ? Font.Bold : Font.Normal
                                 }
                             }
                         }
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: "Entre para ver suas mensagens"
-                        color: root.muted
-                        font.pixelSize: 11
-                        wrapMode: Text.Wrap
-                    }
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                radius: 22
-                color: "#aa171319"
-                border.width: 1
-                border.color: root.outline
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: "MÍDIA"
-                        color: root.foreground
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
-
-                    Rectangle {
-                        Layout.alignment: Qt.AlignHCenter
-                        implicitWidth: 72
-                        implicitHeight: 72
-                        radius: 16
-                        color: root.surfaceHigh
-
-                        Text {
-                            anchors.centerIn: parent
-                            text: "music_note"
-                            color: root.muted
-                            font.family: "Material Symbols Rounded"
-                            font.pixelSize: 32
-                        }
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: "Nenhum player ativo"
-                        color: root.foreground
-                        font.pixelSize: 13
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: "Entre para continuar ouvindo"
-                        color: root.muted
-                        font.pixelSize: 11
                     }
                 }
             }
@@ -373,7 +300,7 @@ Item {
             Layout.preferredWidth: 430
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignVCenter
-            spacing: 14
+            spacing: 16
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
@@ -381,12 +308,14 @@ Item {
                 Text {
                     text: Qt.formatDateTime(root.now, "HH")
                     color: root.accent
+                    font.family: root.fontFamily
                     font.pixelSize: Math.min(104, root.height * 0.12)
                     font.weight: Font.Light
                 }
                 Text {
                     text: Qt.formatDateTime(root.now, "mm")
                     color: root.foreground
+                    font.family: root.fontFamily
                     font.pixelSize: Math.min(104, root.height * 0.12)
                     font.weight: Font.Light
                 }
@@ -397,6 +326,7 @@ Item {
                 Layout.bottomMargin: 12
                 text: (root.weekdays[root.now.getDay()] + ", " + root.now.getDate() + " de " + root.months[root.now.getMonth()]).toUpperCase()
                 color: root.muted
+                font.family: root.fontFamily
                 font.pixelSize: 14
                 font.weight: Font.DemiBold
             }
@@ -427,6 +357,7 @@ Item {
                     visible: face.status !== Image.Ready
                     text: userField.text.length > 0 ? userField.text.charAt(0).toUpperCase() : "?"
                     color: root.foreground
+                    font.family: root.fontFamily
                     font.pixelSize: 44
                     font.weight: Font.Medium
                 }
@@ -455,6 +386,7 @@ Item {
                 placeholderText: "usuário"
                 placeholderTextColor: root.muted
                 horizontalAlignment: TextInput.AlignHCenter
+                font.family: root.fontFamily
                 font.pixelSize: 15
                 selectByMouse: true
                 leftPadding: 14
@@ -473,16 +405,16 @@ Item {
             Rectangle {
                 Layout.fillWidth: true
                 Layout.topMargin: 4
-                implicitHeight: 58
+                implicitHeight: 60
                 radius: height / 2
-                color: "#66171319"
+                color: "#cc1a161d"
                 border.width: 1
                 border.color: passField.activeFocus ? root.accent : root.outline
 
                 RowLayout {
                     anchors.fill: parent
-                    anchors.margins: 8
-                    spacing: 8
+                    anchors.margins: 9
+                    spacing: 10
 
                     Text {
                         text: root.passwordVisible ? "visibility_off" : "lock"
@@ -504,6 +436,7 @@ Item {
                         placeholderText: "Senha"
                         placeholderTextColor: root.muted
                         echoMode: root.passwordVisible ? TextInput.Normal : TextInput.Password
+                        font.family: root.fontFamily
                         font.pixelSize: 17
                         selectByMouse: true
                         leftPadding: 0
@@ -533,6 +466,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 text: root.errorText.length > 0 ? root.errorText : (Greetd.available ? root.prompt : "greetd não está disponível")
                 color: root.errorText.length > 0 ? "#f08a8a" : root.muted
+                font.family: root.fontFamily
                 font.pixelSize: 12
                 wrapMode: Text.Wrap
             }
@@ -542,133 +476,133 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredWidth: 320
+            Layout.alignment: Qt.AlignVCenter
             spacing: 18
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 192
-                radius: 22
-                color: "#aa171319"
+                Layout.preferredHeight: 330
+                radius: 28
+                color: "#cc1a161d"
                 border.width: 1
                 border.color: root.outline
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    shadowEnabled: true
+                    shadowColor: "#66000000"
+                    shadowBlur: 0.5
+                    shadowVerticalOffset: 8
+                }
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
+                    anchors.margins: 24
+                    spacing: 14
 
                     Text {
                         Layout.fillWidth: true
                         text: "SISTEMA"
-                        color: root.foreground
-                        font.pixelSize: 12
+                        color: root.muted
+                        font.family: root.fontFamily
+                        font.pixelSize: 11
+                        font.letterSpacing: 1.5
                         font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.hostName
+                        color: root.foreground
+                        font.family: root.fontFamily
+                        font.pixelSize: 22
+                        font.weight: Font.Medium
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.uptime
+                        color: root.muted
+                        font.family: root.fontFamily
+                        font.pixelSize: 12
+                        elide: Text.ElideRight
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: 1
+                        color: root.outline
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Carga"; color: root.muted; font.pixelSize: 11; Layout.fillWidth: true }
-                        Text { text: root.cpuLoad; color: root.foreground; font.pixelSize: 11 }
+                        Text { text: "Carga"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 12; Layout.fillWidth: true }
+                        Text { text: root.cpuLoad; color: root.foreground; font.family: root.fontFamily; font.pixelSize: 12 }
                     }
                     Rectangle {
                         Layout.fillWidth: true
-                        implicitHeight: 4
-                        radius: 2
+                        implicitHeight: 5
+                        radius: 3
                         color: root.surfaceHigh
                         Rectangle {
                             width: parent.width * Math.min(1, (parseFloat(root.cpuLoad) || 0) / 8)
                             height: parent.height
-                            radius: 2
+                            radius: 3
                             color: root.accent
                         }
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Memória"; color: root.muted; font.pixelSize: 11; Layout.fillWidth: true }
-                        Text { text: root.memPercent + "%"; color: root.foreground; font.pixelSize: 11 }
+                        Text { text: "Memória"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 12; Layout.fillWidth: true }
+                        Text { text: root.memPercent + "%"; color: root.foreground; font.family: root.fontFamily; font.pixelSize: 12 }
                     }
                     Rectangle {
                         Layout.fillWidth: true
-                        implicitHeight: 4
-                        radius: 2
+                        implicitHeight: 5
+                        radius: 3
                         color: root.surfaceHigh
                         Rectangle {
                             width: parent.width * Math.min(1, root.memPercent / 100)
                             height: parent.height
-                            radius: 2
+                            radius: 3
                             color: root.accent
                         }
                     }
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Bateria"; color: root.muted; font.pixelSize: 11; Layout.fillWidth: true }
-                        Text { text: UPower.displayDevice.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) + "%" : "AC"; color: root.foreground; font.pixelSize: 11 }
+                        Text { text: "Bateria"; color: root.muted; font.family: root.fontFamily; font.pixelSize: 12; Layout.fillWidth: true }
+                        Text {
+                            text: UPower.displayDevice.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) + "%" : "AC"
+                            color: root.foreground
+                            font.family: root.fontFamily
+                            font.pixelSize: 12
+                        }
                     }
                     Rectangle {
                         Layout.fillWidth: true
-                        implicitHeight: 4
-                        radius: 2
+                        implicitHeight: 5
+                        radius: 3
                         color: root.surfaceHigh
                         Rectangle {
                             width: UPower.displayDevice.isLaptopBattery ? parent.width * UPower.displayDevice.percentage : 0
                             height: parent.height
-                            radius: 2
+                            radius: 3
                             color: root.accent
                         }
                     }
-                }
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                radius: 22
-                color: "#aa171319"
-                border.width: 1
-                border.color: root.outline
-
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 10
-
-                    Text {
-                        Layout.fillWidth: true
-                        text: "NOTIFICAÇÕES"
-                        color: root.foreground
-                        font.pixelSize: 12
-                        font.weight: Font.DemiBold
-                    }
 
                     Item { Layout.fillHeight: true }
 
                     Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "notifications_none"
-                        color: root.muted
-                        font.family: "Material Symbols Rounded"
-                        font.pixelSize: 40
-                    }
-
-                    Text {
                         Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: "Sem notificações"
-                        color: root.foreground
-                        font.pixelSize: 13
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        text: "Entre para ver suas mensagens"
+                        text: root.kernel
                         color: root.muted
+                        font.family: root.fontFamily
                         font.pixelSize: 11
+                        elide: Text.ElideRight
                     }
-
-                    Item { Layout.fillHeight: true }
                 }
             }
         }
@@ -696,6 +630,7 @@ Item {
             anchors.centerIn: parent
             text: "Usar texto"
             color: root.muted
+            font.family: root.fontFamily
             font.pixelSize: 12
         }
 
