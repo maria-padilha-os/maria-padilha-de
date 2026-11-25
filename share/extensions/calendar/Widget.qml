@@ -363,7 +363,7 @@ Item {
                             required property var modelData
 
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 34
+                            Layout.preferredHeight: root.compact ? 34 : 40
                             radius: Tokens.rounding.small
                             color: dayCell.modelData.selected ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.22) : (dayMouse.containsMouse ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.07) : "transparent")
                             border.width: dayCell.activeFocus ? 2 : dayCell.modelData.today ? 1 : 0
