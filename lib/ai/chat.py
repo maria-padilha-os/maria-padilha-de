@@ -1,8 +1,9 @@
-"""Small provider-agnostic chat transport for the assistant.
+"""Provider-agnostic chat transport for the assistant.
 
-The broker remains the security boundary.  This module only turns a validated
-model configuration into one HTTPS request and one reply; it never reads files,
-runs commands, or logs message content.
+The broker remains the security boundary.  This module turns a validated model
+configuration into HTTPS requests and, for models that declare tools, runs the
+read-only broker tools the provider asks for (capped and redacted).  It never
+reads files itself, runs commands, or logs message content.
 """
 
 from __future__ import annotations
