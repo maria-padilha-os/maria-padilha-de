@@ -360,6 +360,7 @@ def complete(
     conversation = list(safe)
     used = 0
     tool_bytes = 0
+    final_round = False
 
     while True:
         payload: dict[str, Any] = {
@@ -367,7 +368,7 @@ def complete(
             "messages": conversation,
             "stream": False,
         }
-        if tool_specs is not None:
+        if tool_specs is not None and not final_round:
             payload["tools"] = tool_specs
         data = _post_provider(config, provider, payload)
         try:
@@ -398,8 +399,13 @@ def complete(
                 "provider returned a tool call for a model that is not tool-capable",
                 code="unexpected_tool_call",
             )
-        if used + len(calls) > budget:
-            raise ChatError("the assistant reached the tool-call limit", code="tool_limit")
+        if final_round:
+            raise ChatError(
+                "the assistant kept requesting tools after the tool-call limit",
+                code="tool_limit",
+            )
+        if len(calls) > budget:
+            raise ChatError("the assistant requested too many tools at once", code="tool_limit")
 
         conversation.append(
             {
@@ -430,6 +436,12 @@ def complete(
                     "content": encoded,
                 }
             )
+
+        if used >= budget:
+            # The cap is reached: the next request carries no tool specs, so
+            # the model has to summarise what it already found instead of
+            # failing the whole turn.
+            final_round = True
 
 
 def chat_models(config: Config) -> list[dict[str, Any]]:

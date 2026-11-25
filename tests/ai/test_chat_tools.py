@@ -113,18 +113,39 @@ class ToolLoopTests(unittest.TestCase):
         self.assertEqual(ctx.exception.code, "unexpected_tool_call")
         self.assertEqual(runner.calls, [])
 
-    def test_stops_at_the_tool_call_limit(self):
+    def test_answers_without_tools_at_the_tool_call_limit(self):
+        runner = FakeRunner()
+        result, payloads = self.run_complete(
+            [
+                reply({"content": None, "tool_calls": [tool_call(call_id="a")]}),
+                reply({"content": "I have enough to answer."}),
+            ],
+            runner,
+            cfg=make_config(permissions={"max_tool_calls": 1}),
+        )
+        self.assertEqual(result["text"], "I have enough to answer.")
+        self.assertEqual(result["tool_calls"], 1)
+        self.assertIn("tools", payloads[0])
+        self.assertNotIn("tools", payloads[1])
+        self.assertEqual(len(runner.calls), 1)
+
+    def test_rejects_a_batch_larger_than_the_limit(self):
         runner = FakeRunner()
         with self.assertRaises(ChatError) as ctx:
             self.run_complete(
                 [
-                    reply({"content": None, "tool_calls": [tool_call(call_id="a")]}),
-                    reply({"content": None, "tool_calls": [tool_call(call_id="b")]}),
+                    reply(
+                        {
+                            "content": None,
+                            "tool_calls": [tool_call(call_id="a"), tool_call(call_id="b")],
+                        }
+                    )
                 ],
                 runner,
                 cfg=make_config(permissions={"max_tool_calls": 1}),
             )
         self.assertEqual(ctx.exception.code, "tool_limit")
+        self.assertEqual(runner.calls, [])
 
     def test_malformed_arguments_become_a_tool_error(self):
         call = {
