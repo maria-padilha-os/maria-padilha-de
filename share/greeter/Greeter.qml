@@ -202,7 +202,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: 430
+            Layout.preferredWidth: root.width * 0.70
             Layout.alignment: Qt.AlignVCenter
             spacing: 18
 
@@ -241,7 +241,7 @@ Item {
                             text: root.monthLabel
                             color: root.foreground
                             font.family: root.fontFamily
-                            font.pixelSize: 12
+                            font.pixelSize: 14
                             font.weight: Font.Medium
                         }
                     }
@@ -267,7 +267,7 @@ Item {
                                 text: modelData
                                 color: root.muted
                                 font.family: root.fontFamily
-                                font.pixelSize: 10
+                                font.pixelSize: 12
                             }
                         }
                     }
@@ -295,7 +295,7 @@ Item {
                                     text: root.dayText(index)
                                     color: index - root.firstWeekday + 1 === root.now.getDate() ? "#19080b" : root.foreground
                                     font.family: root.fontFamily
-                                    font.pixelSize: 13
+                                    font.pixelSize: 20
                                     font.weight: index - root.firstWeekday + 1 === root.now.getDate() ? Font.Bold : Font.Normal
                                 }
                             }
@@ -309,13 +309,12 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.preferredWidth: 430
             spacing: 18
 
             Item { Layout.fillHeight: true }
 
         ColumnLayout {
-            Layout.preferredWidth: 430
+            Layout.fillWidth: true
             Layout.fillHeight: false
             Layout.alignment: Qt.AlignHCenter
             spacing: 12
