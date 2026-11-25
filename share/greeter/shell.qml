@@ -11,6 +11,9 @@ ShellRoot {
         implicitWidth: screen ? screen.width : 1920
         implicitHeight: screen ? screen.height : 1080
         visible: true
+        // Cage maximizes toplevels, but an explicit fullscreen request keeps
+        // the card centred on the output instead of inheriting stale geometry.
+        fullscreen: true
 
         Greeter {}
     }
