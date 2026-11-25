@@ -14,6 +14,9 @@ Item {
 
     required property ScreenState screenState
 
+    // Slightly smaller than the shell default so the transcript fits more text.
+    readonly property real fontScale: 0.92
+
     Component.onCompleted: {
         Assistant.start();
         root.focusComposer();
@@ -66,13 +69,13 @@ Item {
                 StyledText {
                     Layout.fillWidth: true
                     text: Tr.tr("Assistant")
-                    font: Tokens.font.title.medium
+                    font: Tokens.font.title.builders.medium.scale(root.fontScale).build()
                     color: Colours.palette.m3onSurface
                 }
 
                 StyledText {
                     text: Assistant.modelLabel
-                    font: Tokens.font.label.small
+                    font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                     color: Colours.palette.m3onSurfaceVariant
                     elide: Text.ElideRight
                     Layout.maximumWidth: 150
@@ -94,7 +97,7 @@ Item {
             StyledText {
                 Layout.fillWidth: true
                 text: Assistant.rootsLabel
-                font: Tokens.font.label.small
+                font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
             }
@@ -104,7 +107,7 @@ Item {
                 visible: Assistant.error.length > 0
                 text: Assistant.error
                 wrapMode: Text.Wrap
-                font: Tokens.font.label.small
+                font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3error
             }
 
@@ -126,7 +129,7 @@ Item {
                     StyledText {
                         Layout.fillWidth: true
                         text: modelData.role === "user" ? Tr.trCtx("You", "chat message author") : (modelData.cancelled ? Tr.trCtx("Assistant · cancelled", "chat message author and state") : Tr.trCtx("Assistant", "chat message author"))
-                        font: Tokens.font.label.small
+                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                         color: Colours.palette.m3onSurfaceVariant
                     }
 
@@ -141,6 +144,7 @@ Item {
 
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.medium
+                            font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             text: (modelData.text || (modelData.streaming ? Tr.tr("Thinking…") : "")) + (modelData.streaming ? " ▍" : "")
                             wrapMode: Text.Wrap
                             textFormat: Text.PlainText
@@ -170,7 +174,7 @@ Item {
                         wrapMode: TextArea.Wrap
                         placeholderText: Tr.tr("Ask the assistant")
                         color: Colours.palette.m3onSurface
-                        font: Tokens.font.body.medium
+                        font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
                         enabled: Assistant.ready && !Assistant.streaming
 
@@ -200,7 +204,7 @@ Item {
             StyledText {
                 Layout.fillWidth: true
                 text: Assistant.configured ? Tr.tr("Read-only · grants are managed by padilha-ai") : Tr.tr("Configure a provider in ~/.config/padilha/ai.lua")
-                font: Tokens.font.label.small
+                font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
             }
