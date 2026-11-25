@@ -1,0 +1,9 @@
+{
+    "name": "Contacts",
+    "description": "Local address book",
+    "version": "1.0",
+    "icon": "contacts",
+    "tab": "Tab.qml",
+    "shortcut": "Super + Alt + Shift + C",
+    "permissions": ["filesystem", "processes"]
+}
