@@ -90,10 +90,11 @@ Item {
 
         function onReadyToLaunch() {
             root.busy = true;
-            Greetd.launch(["hyprland"], [
+            Greetd.launch(["dbus-run-session", "--", "hyprland"], [
                 "XDG_SESSION_TYPE=wayland",
                 "XDG_CURRENT_DESKTOP=Hyprland",
-                "XDG_SESSION_DESKTOP=Hyprland"
+                "XDG_SESSION_DESKTOP=Hyprland",
+                "XDG_SESSION_CLASS=user"
             ]);
         }
 

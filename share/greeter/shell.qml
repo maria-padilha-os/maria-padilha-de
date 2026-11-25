@@ -8,8 +8,8 @@ import Quickshell
 ShellRoot {
     FloatingWindow {
         screen: Quickshell.screens.length > 0 ? Quickshell.screens[0] : null
-        width: screen ? screen.width : 1920
-        height: screen ? screen.height : 1080
+        implicitWidth: screen ? screen.width : 1920
+        implicitHeight: screen ? screen.height : 1080
         visible: true
 
         Greeter {}
