@@ -7,13 +7,13 @@ Item {
     property var api
     property bool active: true
 
-    implicitWidth: 680
-    implicitHeight: 460
+    implicitWidth: 800
+    implicitHeight: 540
 
     Widget {
         anchors.fill: parent
         api: root.api
         active: root.active
-        compact: true
+        compact: false
     }
 }

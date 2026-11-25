@@ -7,8 +7,8 @@ Item {
     property var api
     property bool active: true
 
-    implicitWidth: 360
-    implicitHeight: 430
+    implicitWidth: 600
+    implicitHeight: 420
 
     Widget {
         anchors.fill: parent
