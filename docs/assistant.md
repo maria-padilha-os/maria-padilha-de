@@ -22,7 +22,9 @@ sparkle button in the bar.
 A model declared with `tools = true` in `ai.lua` can call three read-only tools
 while answering: `read_file`, `list_dir`, and `search_text`. Every call goes
 through the same broker checks — approved roots, built-in denies, redaction and
-audit — and the loop stops after `permissions.max_tool_calls` (8 by default).
+audit — and after `permissions.max_tool_calls` (8 by default) the panel asks for
+one final answer without tools, so a long exploration still ends with a summary
+instead of an error.
 Writes are not part of the chat loop yet: `write_file` stays behind the CLI's
 two-step `write`/`confirm` flow until the panel has its confirmation card.
 
