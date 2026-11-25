@@ -1,0 +1,18 @@
+#!/bin/sh
+# Start the Maria Padilha greeter Quickshell configuration.
+#
+# greetd runs this inside cage:
+#   command = "/usr/bin/cage -s -- /usr/bin/padilha-greeter"
+set -u
+
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+root=$(CDPATH='' cd -- "$(dirname -- "$self")/.." && pwd) || exit 1
+config="$root/share/greeter"
+
+if [ ! -f "$config/shell.qml" ]; then
+    printf '%s: greeter config not found at %s\n' "${0##*/}" "$config" >&2
+    exit 1
+fi
+
+export QS_NO_RELOAD_POPUP=1
+exec qs -p "$config" -n
