@@ -20,6 +20,37 @@ PageBase {
         },
     ]
 
+    readonly property list<MenuItem> widthItems: [
+        MenuItem {
+            text: Tr.tr("Quarter screen")
+            value: 0.25
+        },
+        MenuItem {
+            text: Tr.tr("One third")
+            value: 0.333
+        },
+        MenuItem {
+            text: Tr.tr("Two fifths")
+            value: 0.4
+        },
+        MenuItem {
+            text: Tr.tr("Half screen")
+            value: 0.5
+        },
+        MenuItem {
+            text: Tr.tr("Three fifths")
+            value: 0.6
+        },
+        MenuItem {
+            text: Tr.tr("Two thirds")
+            value: 0.667
+        },
+        MenuItem {
+            text: Tr.tr("Three quarters")
+            value: 0.75
+        },
+    ]
+
     Component.onCompleted: {
         Assistant.start();
         Voice.refresh();
@@ -45,11 +76,19 @@ PageBase {
         }
 
         ToggleRow {
-            last: true
             text: Tr.tr("Bar indicator")
             subtext: Tr.tr("Show the assistant toggle in the bar")
             checked: AssistantSettings.showIndicator
             onToggled: AssistantSettings.showIndicator = checked
+        }
+
+        SelectRow {
+            last: true
+            label: Tr.tr("Chat width")
+            subtext: Tr.tr("Share of the screen occupied by the assistant · %1%").arg(Math.round(AssistantSettings.widthRatio * 100))
+            menuItems: root.widthItems
+            active: root.widthItems.find(item => Math.abs(item.value - AssistantSettings.widthRatio) < 0.01) ?? root.widthItems[3]
+            onSelected: item => AssistantSettings.widthRatio = item.value
         }
 
         SectionHeader {

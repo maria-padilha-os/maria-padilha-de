@@ -251,6 +251,7 @@ QtObject {
         { pageIdx: 8, subPageIdx: 5, label: Tr.tr("VPN"), description: Tr.tr("Connect or disconnect the VPN"), keywords: "utilities vpn" },
         { pageIdx: 8, subPageIdx: 6, label: Tr.tr("Enabled"), description: Tr.tr("Show the assistant drawer"), keywords: "assistant enable" },
         { pageIdx: 8, subPageIdx: 6, label: Tr.tr("Bar indicator"), description: Tr.tr("Show the assistant toggle in the bar"), keywords: "assistant bar" },
+        { pageIdx: 8, subPageIdx: 6, label: Tr.tr("Chat width"), description: Tr.tr("Share of the screen occupied by the assistant"), keywords: "assistant width half screen size" },
         { pageIdx: 8, subPageIdx: 6, label: Tr.tr("Spoken replies"), description: Tr.tr("Read completed assistant answers aloud"), keywords: "assistant voice speech tts spoken" },
         { pageIdx: 8, subPageIdx: 6, label: Tr.tr("Voice"), description: Tr.tr("Kokoro local speech voice"), keywords: "assistant voice dora kokoro" },
         { pageIdx: 8, subPageIdx: 6, label: Tr.tr("Speed"), description: Tr.tr("Speech speed"), keywords: "assistant voice speed" },

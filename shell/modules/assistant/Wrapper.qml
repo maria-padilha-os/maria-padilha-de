@@ -12,8 +12,10 @@ Item {
     required property ScreenState screenState
 
     readonly property bool shouldBeActive: screenState.assistant && AssistantSettings.enabled
-    // One third of the 1920 px screen; the chat needs room for code and tables.
-    readonly property real panelWidth: 640
+    readonly property real screenWidth: root.screenState.modelData ? root.screenState.modelData.width : 1920
+    // Share of the current screen, clamped so the drawer remains usable on
+    // small outputs and never covers the whole desktop.
+    readonly property real panelWidth: Math.round(Math.max(360, Math.min(root.screenWidth * AssistantSettings.widthRatio, root.screenWidth - 48)))
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1
