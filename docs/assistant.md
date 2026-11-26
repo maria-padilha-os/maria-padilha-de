@@ -56,9 +56,16 @@ Say “Padilha”; the drawer opens and the next utterance is transcribed into t
 composer as editable text. It is local, opt-in, and disabled by default. See
 [Padilha voice service](voice.md) for `padilha-voice setup-wake`.
 
-The experimental browser voice-input bundle is installed in the DSH **web**
-profile for microphone input there. The native Assistant drawer does not
-consume browser plugins.
+The composer also has a **mic button** for one-shot local dictation: click it,
+speak, and the transcript is inserted as an editable draft. This uses the same
+local Whisper model as the wake listener and does not require the wake phrase.
+
+The native drawer does not consume browser plugins. It supports image and
+small UTF-8 text attachments, selectable/copyable answers, queued messages while
+a turn is running, and pinned sessions.
+
+The experimental browser voice-input bundle remains installed in the DSH **web**
+profile for microphone input there.
 
 ## File tools in chat
 
