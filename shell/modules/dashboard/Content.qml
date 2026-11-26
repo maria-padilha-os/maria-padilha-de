@@ -95,13 +95,16 @@ Item {
     Tabs {
         id: tabs
 
+        // The tab strip keeps its minimum width; only the tab content below
+        // follows the extension's own width. A narrow Translator tab therefore
+        // does not squeeze the tab buttons into a different size.
         anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: CUtils.clamp(anchors.margins - Config.border.thickness, 0, anchors.margins)
         anchors.margins: Tokens.padding.large
+        width: Math.min(parent.width - anchors.margins * 2, minimumWidth)
 
-        nonAnimWidth: root.nonAnimWidth - anchors.margins * 2
+        nonAnimWidth: width
         screenState: root.screenState
         tabs: root.dashboardTabs
     }
