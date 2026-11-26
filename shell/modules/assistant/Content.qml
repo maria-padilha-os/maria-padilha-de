@@ -27,6 +27,129 @@ Item {
     property bool showArchived: false
     property bool dropActive: false
     property string renameTargetId: ""
+    property bool sidebarOpen: false
+    property var openTabs: []
+    property string maintenanceSessionId: ""
+    readonly property real sidebarWidth: {
+        const total = root.width > 0 ? root.width : root.implicitWidth;
+        return Math.min(total, Math.min(300, Math.max(220, total * 0.36)));
+    }
+
+    function toggleSidebar(): void {
+        root.sidebarOpen = !root.sidebarOpen;
+    }
+
+    function focusSessionSearch(): void {
+        root.sidebarOpen = true;
+        Qt.callLater(() => sidebar.focusSearch());
+    }
+
+    function selectRelativeSession(delta: int): void {
+        const ids = sidebar.visibleIds;
+        if (ids.length === 0)
+            return;
+        let index = ids.indexOf(Assistant.sessionId);
+        if (index < 0)
+            index = delta > 0 ? -1 : 0;
+        const next = Math.max(0, Math.min(ids.length - 1, index + delta));
+        Assistant.selectSession(ids[next]);
+    }
+
+    function selectSessionAt(index: int): void {
+        const ids = sidebar.visibleIds;
+        if (index >= 0 && index < ids.length)
+            Assistant.selectSession(ids[index]);
+    }
+
+    function selectAgentAt(index: int): void {
+        if (index === 0) {
+            Assistant.viewHome();
+            return;
+        }
+        const agent = Assistant.agentSessions[index - 1];
+        if (agent)
+            Assistant.viewAgent(agent.id);
+    }
+
+    function ensureTab(id: string, title: string, persistent: bool): void {
+        if (!id)
+            return;
+        const index = root.openTabs.findIndex(tab => tab.id === id);
+        if (index >= 0) {
+            const current = root.openTabs[index];
+            const nextTitle = title || current.title;
+            const nextPersistent = persistent || current.persistent;
+            if (nextTitle === current.title && nextPersistent === current.persistent)
+                return;
+            const next = root.openTabs.slice();
+            next[index] = Object.assign({}, current, { title: nextTitle, persistent: nextPersistent });
+            root.openTabs = next;
+            return;
+        }
+        const entry = { id, title: title || Tr.tr("New chat"), persistent: persistent };
+        root.openTabs = persistent ? [entry].concat(root.openTabs) : root.openTabs.concat([entry]);
+    }
+
+    function updateTabTitle(id: string, title: string): void {
+        const index = root.openTabs.findIndex(tab => tab.id === id);
+        if (index < 0 || !title || root.openTabs[index].title === title)
+            return;
+        const next = root.openTabs.slice();
+        next[index] = Object.assign({}, next[index], { title });
+        root.openTabs = next;
+    }
+
+    function seedTabs(): void {
+        const maintenance = Assistant.sessions.find(session => session.title === "OS maintenance");
+        if (maintenance)
+            root.maintenanceSessionId = maintenance.id;
+        for (const session of Assistant.sessions) {
+            const tab = root.openTabs.find(item => item.id === session.id);
+            if (tab)
+                root.updateTabTitle(session.id, Assistant.sessionTitleFor(session.id, session.title));
+        }
+        if (root.maintenanceSessionId.length > 0)
+            root.ensureTab(root.maintenanceSessionId, "OS maintenance", true);
+        if (Assistant.sessionId.length > 0)
+            root.ensureTab(Assistant.sessionId, Assistant.sessionTitle || Tr.tr("Chat"), Assistant.sessionId === root.maintenanceSessionId);
+    }
+
+    function activateTab(id: string): void {
+        if (!id || Assistant.streaming || id === Assistant.sessionId)
+            return;
+        Assistant.selectSession(id);
+    }
+
+    function closeTab(id: string): void {
+        if (Assistant.streaming)
+            return;
+        const index = root.openTabs.findIndex(tab => tab.id === id);
+        if (index < 0 || root.openTabs[index].persistent)
+            return;
+        const next = root.openTabs.slice();
+        next.splice(index, 1);
+        root.openTabs = next;
+        if (id !== Assistant.sessionId)
+            return;
+        const fallback = next[Math.max(0, Math.min(index - 1, next.length - 1))];
+        if (fallback)
+            Assistant.selectSession(fallback.id);
+        else
+            Assistant.newChat();
+    }
+
+    function closeCurrentTab(): void {
+        root.closeTab(Assistant.sessionId);
+    }
+
+    function cycleTab(delta: int): void {
+        if (root.openTabs.length < 2)
+            return;
+        const index = root.openTabs.findIndex(tab => tab.id === Assistant.sessionId);
+        const start = index < 0 ? 0 : index;
+        const next = root.openTabs[(start + delta + root.openTabs.length) % root.openTabs.length];
+        root.activateTab(next.id);
+    }
 
     function questions(): var {
         const out = [];
@@ -82,6 +205,7 @@ Item {
         if (root.renameTargetId.length === 0)
             return;
         Assistant.renameSession(root.renameTargetId, renameField.text);
+        root.seedTabs();
         root.renameTargetId = "";
         renamePopup.close();
     }
@@ -94,7 +218,7 @@ Item {
             root.queueComposer();
             return;
         }
-        if (!Assistant.ready || Assistant.sessionOwned)
+        if (!Assistant.ready || Assistant.sessionOwned || root.viewingAgent)
             return;
         Assistant.send(text, root.attachmentPaths.slice());
         composer.text = "";
@@ -103,6 +227,8 @@ Item {
     }
 
     function queueComposer(): void {
+        if (root.viewingAgent)
+            return;
         const text = composer.text.trim();
         if (text.length === 0 && root.attachmentPaths.length === 0)
             return;
@@ -114,7 +240,7 @@ Item {
     }
 
     function sendQueued(): void {
-        if ((root.queuedText.length === 0 && root.queuedAttachments.length === 0) || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned)
+        if ((root.queuedText.length === 0 && root.queuedAttachments.length === 0) || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned || root.viewingAgent)
             return;
         const text = root.queuedText;
         const attachments = root.queuedAttachments.slice();
@@ -161,6 +287,7 @@ Item {
     Connections {
         function onReadyChanged(): void {
             root.focusComposer();
+            root.seedTabs();
         }
 
         function onStreamingChanged(): void {
@@ -184,10 +311,20 @@ Item {
             root.queuedAttachments = [];
             root.attachmentPaths = [];
             root.activityExpanded = false;
+            if (Assistant.sessionId.length > 0)
+                root.ensureTab(Assistant.sessionId, Assistant.sessionTitle || Tr.tr("Chat"), Assistant.sessionId === root.maintenanceSessionId);
+        }
+
+        function onSessionTitleChanged(): void {
+            root.updateTabTitle(Assistant.sessionId, Assistant.sessionTitle);
+        }
+
+        function onSessionsChanged(): void {
+            root.seedTabs();
         }
 
         function onSessionsRequested(): void {
-            sessionsPopup.open();
+            Assistant.refreshAgents();
         }
 
         function onCloseRequested(): void {
@@ -292,8 +429,24 @@ Item {
     }
 
     ColumnLayout {
+        id: chatColumn
+
         anchors.fill: parent
+        anchors.leftMargin: root.sidebarOpen ? root.sidebarWidth + Tokens.spacing.small : 0
         spacing: Tokens.spacing.medium
+
+        AgentTabs {
+            Layout.fillWidth: true
+            agents: Assistant.agentSessions
+            homeId: Assistant.defaultSessionId
+            activeId: Assistant.sessionId
+            viewingAgent: Assistant.viewingAgent
+
+            onHomeRequested: Assistant.viewHome()
+            onAgentRequested: function (id) {
+                Assistant.viewAgent(id);
+            }
+        }
 
         StyledRect {
             Layout.fillWidth: true
@@ -334,6 +487,7 @@ Item {
                 IconButton {
                     id: historyButton
 
+                    visible: false
                     icon: "history"
                     accessibleName: Tr.tr("DSH sessions")
                     onClicked: sessionsPopup.open()
@@ -592,6 +746,7 @@ Item {
                         id: bubble
 
                         readonly property bool fromUser: modelData.role === "user"
+                        readonly property bool hasCode: !fromUser && (modelData.text || "").indexOf("```") !== -1
                         readonly property real maxBubbleWidth: transcript.width * 0.82
 
                         Layout.fillWidth: !fromUser
@@ -599,7 +754,7 @@ Item {
                         Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.contentWidth + Tokens.padding.medium * 2) : transcript.width
                         Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
                         visible: fromUser || !modelData.streaming || modelData.text.length > 0
-                        implicitHeight: body.contentHeight + Tokens.padding.medium * 2
+                        implicitHeight: (hasCode ? richBody.implicitHeight : body.contentHeight) + Tokens.padding.medium * 2
                         radius: Tokens.rounding.medium
                         color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
 
@@ -622,6 +777,7 @@ Item {
 
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.medium
+                            visible: !bubble.hasCode
                             readOnly: true
                             selectByMouse: true
                             persistentSelection: true
@@ -632,6 +788,19 @@ Item {
                             color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                             selectionColor: Colours.palette.m3primary
                             selectedTextColor: Colours.palette.m3onPrimary
+                        }
+
+                        MarkdownBody {
+                            id: richBody
+
+                            anchors.fill: parent
+                            anchors.margins: Tokens.padding.medium
+                            visible: bubble.hasCode
+                            text: modelData.text || ""
+                            streaming: modelData.streaming === true
+                            fontScale: root.fontScale
+
+                            onCopyRequested: text => root.copyMessage(text)
                         }
                     }
                 }
@@ -818,14 +987,14 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: VoiceInput.dictating ? Tr.tr("Listening… speak now") : (Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant")))
+                        placeholderText: VoiceInput.dictating ? Tr.tr("Listening… speak now") : (root.viewingAgent ? Tr.tr("Agent session — read-only") : (Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant"))))
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
                         // Keep the draft editable while the answer streams;
                         // Enter waits for the current turn to finish instead of
                         // sending a second prompt into an active turn.
-                        enabled: Assistant.ready && !Assistant.sessionOwned
+                        enabled: Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent
 
                         Keys.onPressed: event => {
                             const plain = !(event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
@@ -851,14 +1020,14 @@ Item {
                 IconButton {
                     icon: "attach_file"
                     accessibleName: Tr.tr("Attach images")
-                    enabled: !Assistant.sessionOwned
+                    enabled: !Assistant.sessionOwned && !root.viewingAgent
                     onClicked: attachmentDialog.open()
                 }
 
                 IconButton {
                     icon: VoiceInput.dictating ? "stop_circle" : "mic"
                     accessibleName: VoiceInput.dictating ? Tr.tr("Stop dictation") : Tr.tr("Dictate a message")
-                    enabled: Assistant.ready && !Assistant.sessionOwned
+                    enabled: Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent
                     onClicked: VoiceInput.dictate()
                 }
 
@@ -878,14 +1047,14 @@ Item {
                 IconTextButton {
                     icon: Assistant.streaming ? "stop" : "send"
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
-                    enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0))
+                    enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0))
                     onClicked: Assistant.streaming ? Assistant.cancel() : root.submitComposer()
                 }
             }
 
             StyledText {
                 Layout.fillWidth: true
-                text: Assistant.sessionOwned ? Tr.tr("Read-only · this session is open in dsh-tui") : (Assistant.configured ? Tr.tr("Local DeepSeek Harness session") : Tr.tr("DeepSeek Harness is not ready"))
+                text: root.viewingAgent ? Tr.tr("Agent session · read-only") : (Assistant.sessionOwned ? Tr.tr("Read-only · this session is open in dsh-tui") : (Assistant.configured ? Tr.tr("Local DeepSeek Harness session") : Tr.tr("DeepSeek Harness is not ready")))
                 font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
@@ -899,6 +1068,85 @@ Item {
             implicitHeight: 1
             color: Colours.tPalette.m3outlineVariant
         }
+    }
+
+    Timer {
+        interval: 8000
+        running: Assistant.ready
+        repeat: true
+        onTriggered: Assistant.refreshAgents()
+    }
+
+    Timer {
+        interval: 2000
+        running: Assistant.viewingAgent
+        repeat: true
+        onTriggered: Assistant.reloadCurrent()
+    }
+
+    // The full session sidebar is archived; AgentTabs is the only session UI.
+    Item {
+        id: sidebar
+
+        visible: false
+        readonly property var visibleIds: []
+
+        function focusSearch(): void {}
+    }
+
+    Shortcut {
+        sequence: "Ctrl+N"
+        onActivated: Assistant.newChat()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+L"
+        onActivated: root.focusComposer()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+1"
+        onActivated: root.selectAgentAt(0)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+2"
+        onActivated: root.selectAgentAt(1)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+3"
+        onActivated: root.selectAgentAt(2)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+4"
+        onActivated: root.selectAgentAt(3)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+5"
+        onActivated: root.selectAgentAt(4)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+6"
+        onActivated: root.selectAgentAt(5)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+7"
+        onActivated: root.selectAgentAt(6)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+8"
+        onActivated: root.selectAgentAt(7)
+    }
+
+    Shortcut {
+        sequence: "Ctrl+9"
+        onActivated: root.selectAgentAt(8)
     }
 
     Keys.onEscapePressed: Assistant.cancelOrClose()

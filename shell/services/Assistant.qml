@@ -19,6 +19,9 @@ Singleton {
     property list<var> models: []
     property list<var> roots: []
     property list<var> sessions: []
+    property list<var> agentSessions: []
+    property string defaultSessionId: ""
+    property bool viewingAgent: false
     property string sessionId: ""
     property string sessionTitle: ""
     property bool sessionOwned: false
@@ -87,11 +90,19 @@ Singleton {
             root.roots = event.roots || [];
             root.selectedModel = root.selectedModel || (root.models[0]?.id ?? "");
             root.sessions = event.sessions || [];
+            root.defaultSessionId = event.defaultSessionId || event.sessionId || "";
+            root.refreshAgents();
             root.sessionId = event.sessionId || "";
             root.sessionTitle = event.sessionTitle || "";
             root.sessionOwned = !!event.sessionOwned;
             root.setHistory(event.history, false);
             root.error = "";
+            break;
+        case "sessions":
+            root.sessions = event.sessions || [];
+            break;
+        case "subagents":
+            root.agentSessions = event.agents || [];
             break;
         case "history":
             root.activity = "";
@@ -175,6 +186,8 @@ Singleton {
             root.streaming = false;
             root.activeId = -1;
             root.activity = "";
+            root.refreshSessions();
+            root.refreshAgents();
             if (root.speakReplies && (event.text || "").trim().length > 0)
                 Quickshell.execDetached(["padilha-voice", "speak", "--", event.text]);
             break;
@@ -442,11 +455,14 @@ Singleton {
         root.activityLog = [];
         root.activity = "";
         root.lastStop = "";
+        root.viewingAgent = false;
     }
 
     function selectSession(id: string): void {
         if (!id || root.streaming || id === root.sessionId)
             return;
+        if (id === root.defaultSessionId)
+            root.viewingAgent = false;
         root.sessionId = id;
         root.sessionTitle = "";
         root.sessionOwned = false;
@@ -459,6 +475,38 @@ Singleton {
     function selectModel(id: string): void {
         if (!root.streaming)
             root.selectedModel = id;
+    }
+
+    function refreshSessions(): void {
+        if (root.started)
+            process.write(JSON.stringify({ cmd: "list" }) + "\n");
+    }
+
+    function refreshAgents(): void {
+        if (root.started) {
+            const parent = root.defaultSessionId || root.sessionId;
+            if (parent.length > 0)
+                process.write(JSON.stringify({ cmd: "subagents", parent }) + "\n");
+        }
+    }
+
+    function viewAgent(id: string): void {
+        if (!id || root.streaming)
+            return;
+        root.viewingAgent = true;
+        root.selectSession(id);
+    }
+
+    function viewHome(): void {
+        if (!root.defaultSessionId || root.streaming)
+            return;
+        root.viewingAgent = false;
+        root.selectSession(root.defaultSessionId);
+    }
+
+    function reloadCurrent(): void {
+        if (root.started && root.sessionId.length > 0)
+            process.write(JSON.stringify({ cmd: "load", sessionId: root.sessionId }) + "\n");
     }
 
     function attachFile(): void {

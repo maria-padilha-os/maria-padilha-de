@@ -98,6 +98,19 @@ add one (for example `Super + Alt + B`); until then the taskbar is still
 reachable with `Tab` from an open panel. See the
 [accessibility checklist](docs/accessibility.md).
 
+## Assistente
+
+| keys | action |
+| --- | --- |
+| `Ctrl + N` | new chat / new session |
+| `Ctrl + L` | focus the composer |
+| `Ctrl + 1` | return to the OS-maintenance tab |
+| `Ctrl + 2…9` | open the corresponding agent tab |
+| `Esc` | cancel the current stream / close the assistant |
+
+Agent tabs appear only for subagents spawned by the current session; they are
+read-only and refresh while the agent is running.
+
 ## Applications
 
 | keys | action |

@@ -27,7 +27,7 @@ os.environ.setdefault("DSH_PERMISSION_MODE", "danger-full-access")
 PROVIDER = os.environ.get("PADILHA_DSH_PROVIDER", "deepseek-official")
 MODEL = os.environ.get("PADILHA_DSH_MODEL", "deepseek-flash")
 MAX_HISTORY = 80
-MAX_LIST = 30
+MAX_LIST = 200
 PROMPT_TIMEOUT = 60 * 15
 DEFAULT_SESSION_FILE = Path(os.environ.get("PADILHA_DSH_DEFAULT_FILE", Path.home() / ".config/padilha/dsh-default-session"))
 
@@ -235,14 +235,66 @@ def session_summary(session: Path) -> dict[str, Any] | None:
     }
 
 
-def list_sessions() -> list[dict[str, Any]]:
+def list_sessions(limit: int = MAX_LIST) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
+    default_id = default_session_id()
     for session in session_dirs():
         item = session_summary(session)
         if item is not None:
+            if item["id"] == default_id:
+                item["title"] = "OS maintenance"
             out.append(item)
-        if len(out) >= MAX_LIST:
+        if len(out) >= limit:
             break
+    return out
+
+
+def list_subagents(parent_id: str, limit: int = 12) -> list[dict[str, Any]]:
+    """Recent DSH subagent sessions spawned by the given parent session."""
+    if not parent_id:
+        return []
+    out: list[dict[str, Any]] = []
+    cutoff = time.time() - 86400
+    for session in session_dirs():
+        path = log_path(session)
+        if path is None:
+            continue
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            continue
+        if mtime < cutoff:
+            continue
+        origin = ""
+        parent = ""
+        cwd = ""
+        label = ""
+        try:
+            for event in events(path, limit=20):
+                kind = event.get("type")
+                if kind == "session":
+                    origin = str(event.get("origin") or "")
+                    parent = str(event.get("parentSession") or "")
+                    cwd = str(event.get("cwd") or "")
+                elif kind == "subagent/descriptor":
+                    data = event.get("data")
+                    if isinstance(data, dict):
+                        label = str(data.get("label") or "")
+        except Exception:
+            continue
+        if origin == "subagent" and parent == parent_id:
+            out.append(
+                {
+                    "id": session.name,
+                    "label": label or "Agent",
+                    "cwd": cwd,
+                    "updated": int(mtime * 1000),
+                    "owned": session_owned(session),
+                }
+            )
+            if len(out) >= limit:
+                break
+    out.sort(key=lambda item: item["updated"], reverse=True)
     return out
 
 
@@ -532,6 +584,7 @@ def main() -> int:
             "sessionTitle": active["title"] if active else "",
             "sessionOwned": bool(active and active.get("owned")),
             "sessions": sessions,
+            "defaultSessionId": fixed_default,
         }
     )
 
@@ -543,7 +596,12 @@ def main() -> int:
         if not isinstance(request, dict):
             continue
         command = request.get("cmd")
-        if command == "load":
+        if command == "list":
+            emit({"type": "sessions", "sessions": list_sessions()})
+        elif command == "subagents":
+            parent = str(request.get("parent") or "")
+            emit({"type": "subagents", "parent": parent, "agents": list_subagents(parent)})
+        elif command == "load":
             session_id = str(request.get("sessionId") or "")
             path = find_session(session_id)
             if path is None:
