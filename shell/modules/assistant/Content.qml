@@ -152,11 +152,19 @@ Item {
                 }
 
                 StyledText {
+                    Layout.maximumWidth: 190
+                    text: Assistant.streaming ? (Assistant.activity.length > 0 ? Assistant.activity : Tr.tr("Working…")) : Tr.tr("Ready")
+                    color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                    font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                    elide: Text.ElideRight
+                }
+
+                StyledText {
                     text: Assistant.modelLabel
                     font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                     color: Colours.palette.m3onSurfaceVariant
                     elide: Text.ElideRight
-                    Layout.maximumWidth: 150
+                    Layout.maximumWidth: 110
                 }
 
                 IconButton {
