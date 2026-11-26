@@ -367,11 +367,14 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : Tr.tr("Ask the assistant")
+                        placeholderText: Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works…") : Tr.tr("Ask the assistant"))
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
-                        enabled: Assistant.ready && !Assistant.streaming && !Assistant.sessionOwned
+                        // Keep the draft editable while the answer streams;
+                        // Enter waits for the current turn to finish instead of
+                        // sending a second prompt into an active turn.
+                        enabled: Assistant.ready && !Assistant.sessionOwned
 
                         Keys.onPressed: event => {
                             const plain = !(event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
