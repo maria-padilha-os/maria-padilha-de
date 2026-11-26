@@ -283,6 +283,36 @@ def dsh_binary() -> str | None:
     return None
 
 
+def activity_label(name: str, arguments: Any) -> str:
+    """Short, human-readable activity for a DSH tool call."""
+    values: dict[str, Any] = {}
+    if isinstance(arguments, dict):
+        values = arguments
+    elif isinstance(arguments, str):
+        try:
+            parsed = json.loads(arguments)
+            if isinstance(parsed, dict):
+                values = parsed
+        except ValueError:
+            pass
+    if name in ("bash", "shell"):
+        description = str(values.get("description") or "").strip()
+        command = str(values.get("command") or "").strip()
+        detail = description or command.splitlines()[0] if command else ""
+        return "Running shell" + (f" · {detail[:90]}" if detail else "")
+    if name in ("read", "read_file"):
+        return f"Reading {str(values.get('path') or '')[:90]}".strip()
+    if name in ("write", "write_file", "edit", "apply_patch"):
+        return f"Editing {str(values.get('path') or '')[:90]}".strip()
+    if name in ("list_dir", "ls"):
+        return f"Listing {str(values.get('path') or '')[:90]}".strip()
+    if name in ("search", "search_text", "grep"):
+        return f"Searching for {str(values.get('query') or '')[:70]}".strip()
+    if name in ("ask_user", "ask_user_question"):
+        return "Waiting for your answer"
+    return f"Using {name}"
+
+
 class SdkError(RuntimeError):
     pass
 
@@ -396,7 +426,13 @@ class DshSdk:
             event = params.get("event") or {}
             kind = event.get("type")
             data = event.get("data")
-            if kind == "assistant/message" and isinstance(data, dict):
+            if kind == "step/start":
+                yield {"kind": "activity", "text": "Thinking…"}
+            elif kind == "tool/call" and isinstance(data, dict):
+                yield {"kind": "activity", "text": activity_label(str(data.get("name") or "tool"), data.get("arguments"))}
+            elif kind == "tool/result":
+                yield {"kind": "activity", "text": "Processing the result…"}
+            elif kind == "assistant/message" and isinstance(data, dict):
                 content = data.get("message", {}).get("content") if isinstance(data.get("message"), dict) else None
                 body = text_blocks(content)
                 if body:
@@ -527,6 +563,8 @@ def main() -> int:
                         if item["kind"] == "assistant":
                             last = item["text"]
                             emit({"type": "assistant", "id": request.get("id"), "text": last})
+                        elif item["kind"] == "activity":
+                            emit({"type": "activity", "id": request.get("id"), "text": item["text"]})
                         elif item["kind"] == "done":
                             emit({"type": "done", "id": request.get("id"), "text": last, "stop": "complete"})
                             break

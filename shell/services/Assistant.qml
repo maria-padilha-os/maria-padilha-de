@@ -12,6 +12,7 @@ Singleton {
     property bool ready: false
     property bool streaming: false
     property string error: ""
+    property string activity: ""
     property string selectedModel: ""
     property list<var> models: []
     property list<var> roots: []
@@ -50,6 +51,7 @@ Singleton {
         switch (event.type) {
         case "ready":
             root.ready = true;
+            root.activity = "";
             root.models = event.models || [];
             root.roots = event.roots || [];
             root.selectedModel = root.selectedModel || (root.models[0]?.id ?? "");
@@ -61,6 +63,7 @@ Singleton {
             root.error = "";
             break;
         case "history":
+            root.activity = "";
             root.sessionId = event.sessionId || root.sessionId;
             root.sessionTitle = event.sessionTitle || "";
             root.sessionOwned = !!event.sessionOwned;
@@ -70,6 +73,7 @@ Singleton {
             root.activeId = -1;
             break;
         case "new":
+            root.activity = "";
             root.sessionId = event.sessionId || "";
             root.sessionTitle = "";
             root.sessionOwned = false;
@@ -91,6 +95,10 @@ Singleton {
                 root.sessions = next;
             }
             break;
+        case "activity":
+            if (event.id === root.activeId)
+                root.activity = event.text || "";
+            break;
         case "assistant": {
             if (event.id !== root.activeId)
                 return;
@@ -103,6 +111,7 @@ Singleton {
                 });
                 root.messages = next;
             }
+            root.activity = Tr.tr("Writing the answer…");
             break;
         }
         case "done": {
@@ -120,6 +129,7 @@ Singleton {
             }
             root.streaming = false;
             root.activeId = -1;
+            root.activity = "";
             if (root.speakReplies && (event.text || "").trim().length > 0)
                 Quickshell.execDetached(["padilha-voice", "speak", "--", event.text]);
             break;
@@ -140,6 +150,7 @@ Singleton {
             }
             root.streaming = false;
             root.activeId = -1;
+            root.activity = "";
             break;
         }
         }
@@ -216,6 +227,7 @@ Singleton {
         ]);
         root.activeId = id;
         root.streaming = true;
+        root.activity = Tr.tr("Thinking…");
         root.error = "";
         process.write(JSON.stringify({
             cmd: "chat",
@@ -237,6 +249,7 @@ Singleton {
         }
         root.streaming = false;
         root.activeId = -1;
+        root.activity = "";
     }
 
     function cancelOrClose(): void {

@@ -352,6 +352,39 @@ Item {
             }
 
             RowLayout {
+                id: activityRow
+
+                Layout.fillWidth: true
+                visible: Assistant.streaming
+                spacing: Tokens.spacing.small
+
+                MaterialIcon {
+                    id: activityIcon
+
+                    text: "progress_activity"
+                    color: Colours.palette.m3primary
+                    fontStyle: Tokens.font.icon.small
+                    transformOrigin: Item.Center
+
+                    RotationAnimator on rotation {
+                        from: 0
+                        to: 360
+                        duration: 900
+                        loops: Animation.Infinite
+                        running: activityRow.visible
+                    }
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Assistant.activity.length > 0 ? Assistant.activity : Tr.tr("Thinking…")
+                    color: Colours.palette.m3onSurfaceVariant
+                    font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                    elide: Text.ElideRight
+                }
+            }
+
+            RowLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.spacing.small
 
