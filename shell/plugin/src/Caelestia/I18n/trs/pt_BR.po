@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maria-padilha-de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 15:51-0300\n"
+"POT-Creation-Date: 2026-11-26 16:49-0300\n"
 "PO-Revision-Date: 2026-11-18 07:59-0300\n"
 "Last-Translator: Maria Padilha contributors\n"
 "Language-Team: Portuguese (Brazil)\n"
@@ -151,6 +151,14 @@ msgstr "Captura de tela feita"
 msgid "Screenshot copied to clipboard"
 msgstr "Captura de tela copiada para a área de transferência"
 
+#: modules/assistant/Content.qml
+msgid "Attach files"
+msgstr "Anexar arquivos"
+
+#: modules/assistant/Content.qml services/ExtensionManifest.js
+msgid "Files"
+msgstr "Arquivos"
+
 #: modules/assistant/Content.qml modules/bar/components/AssistantButton.qml
 #: modules/nexus/pages/panels/AssistantPanel.qml
 #: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
@@ -158,35 +166,100 @@ msgid "Assistant"
 msgstr "Assistente"
 
 #: modules/assistant/Content.qml
-msgid "New assistant chat"
-msgstr "Nova conversa com o assistente"
+msgid "DSH sessions"
+msgstr "DSH sessions"
+
+#: modules/assistant/Content.qml
+msgid "New DSH session"
+msgstr "New DSH session"
 
 #: modules/assistant/Content.qml
 msgid "Close assistant"
 msgstr "Fechar assistente"
 
 #: modules/assistant/Content.qml
-msgctxt "chat message author"
-msgid "You"
-msgstr "Você"
+msgid "Search sessions"
+msgstr "Pesquisar sessões"
 
 #: modules/assistant/Content.qml
-msgctxt "chat message author and state"
-msgid "Assistant · cancelled"
-msgstr "Assistente · cancelado"
+msgid "Unpin session"
+msgstr "Desafixar sessão"
 
 #: modules/assistant/Content.qml
-msgctxt "chat message author"
-msgid "Assistant"
-msgstr "Assistente"
+msgid "Pin session"
+msgstr "Fixar sessão"
 
 #: modules/assistant/Content.qml
+msgid "Copy message"
+msgstr "Copiar mensagem"
+
+#: modules/assistant/Content.qml services/Assistant.qml
 msgid "Thinking…"
 msgstr "Pensando…"
 
 #: modules/assistant/Content.qml
+msgid "Remove attachment"
+msgstr "Remover anexo"
+
+#: modules/assistant/Content.qml
+#, qt-format
+msgid "Queued · sends after this turn: %1"
+msgstr "Na fila · envia depois deste turno: %1"
+
+#: modules/assistant/Content.qml
+#, qt-plural-format
+msgid "[%n image]"
+msgid_plural "[%n images]"
+msgstr[0] "[%n imagem]"
+msgstr[1] "[%n imagens]"
+
+#: modules/assistant/Content.qml
+msgid "Send queued message"
+msgstr "Enviar mensagem na fila"
+
+#: modules/assistant/Content.qml
+msgid "Discard queued message"
+msgstr "Descartar mensagem na fila"
+
+#: modules/assistant/Content.qml
+msgid "Listening… speak now"
+msgstr "Ouvindo… fale agora"
+
+#: modules/assistant/Content.qml
+msgid "Read-only session — start a new chat"
+msgstr "Read-only session — start a new chat"
+
+#: modules/assistant/Content.qml
+msgid "Type while the assistant works — Enter queues"
+msgstr "Digite enquanto o assistente trabalha — Enter enfileira"
+
+#: modules/assistant/Content.qml
 msgid "Ask the assistant"
 msgstr "Pergunte ao assistente"
+
+#: modules/assistant/Content.qml
+msgid "Attach images"
+msgstr "Anexar imagens"
+
+#: modules/assistant/Content.qml
+msgid "Stop dictation"
+msgstr "Parar ditado"
+
+#: modules/assistant/Content.qml
+msgid "Dictate a message"
+msgstr "Ditar uma mensagem"
+
+#: modules/assistant/Content.qml
+msgid "Queue this message for after the current turn"
+msgstr "Colocar esta mensagem na fila para depois deste turno"
+
+#: modules/assistant/Content.qml
+msgid "Disable spoken replies"
+msgstr "Disable spoken replies"
+
+#: modules/assistant/Content.qml
+msgid "Speak replies"
+msgstr "Speak replies"
 
 #: modules/assistant/Content.qml ../extensions/stopwatch/Widget.qml
 #: ../extensions/tuner/Widget.qml
@@ -198,12 +271,16 @@ msgid "Send"
 msgstr "Enviar"
 
 #: modules/assistant/Content.qml
-msgid "Read-only · grants are managed by padilha-ai"
-msgstr "Somente leitura · as permissões são gerenciadas pelo padilha-ai"
+msgid "Read-only · this session is open in dsh-tui"
+msgstr "Read-only · this session is open in dsh-tui"
 
 #: modules/assistant/Content.qml
-msgid "Configure a provider in ~/.config/padilha/ai.lua"
-msgstr "Configure um provedor em ~/.config/padilha/ai.lua"
+msgid "Local DeepSeek Harness session"
+msgstr "Local DeepSeek Harness session"
+
+#: modules/assistant/Content.qml
+msgid "DeepSeek Harness is not ready"
+msgstr "DeepSeek Harness is not ready"
 
 #: modules/background/Wallpaper.qml
 msgid "Wallpaper missing?"
@@ -1731,6 +1808,7 @@ msgstr "Requer atenção"
 
 #: modules/nexus/common/ExtensionCard.qml
 #: modules/nexus/pages/ExtensionsPage.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
 msgid "Disabled"
 msgstr "Desativado"
 
@@ -2837,6 +2915,7 @@ msgid "Status"
 msgstr "Status"
 
 #: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
 #: modules/nexus/SettingsCatalog.qml
 msgid "Speed"
 msgstr "Velocidade"
@@ -3064,6 +3143,38 @@ msgid "Add provider"
 msgstr "Adicionar provedor"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Maria · Dora"
+msgstr "Maria · Dora"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Quarter screen"
+msgstr "Quarter screen"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "One third"
+msgstr "One third"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Two fifths"
+msgstr "Two fifths"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Half screen"
+msgstr "Half screen"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Three fifths"
+msgstr "Three fifths"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Two thirds"
+msgstr "Two thirds"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Three quarters"
+msgstr "Three quarters"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
 #: modules/nexus/pages/panels/DashboardPanel.qml
 #: modules/nexus/pages/panels/LauncherPanel.qml
 #: modules/nexus/pages/panels/SidebarPanel.qml
@@ -3088,12 +3199,100 @@ msgstr "Mostrar o botão do assistente na barra"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
 #: modules/nexus/SettingsCatalog.qml
+msgid "Chat width"
+msgstr "Chat width"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#, qt-format
+msgid "Share of the screen occupied by the assistant · %1%"
+msgstr "Share of the screen occupied by the assistant · %1%"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Voice"
+msgstr "Voice"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Spoken replies"
+msgstr "Spoken replies"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Read completed assistant answers aloud"
+msgstr "Read completed assistant answers aloud"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Wake word"
+msgstr "Wake word"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Listen for “Padilha” and open the Assistant with dictation"
+msgstr "Listen for “Padilha” and open the Assistant with dictation"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Wake status"
+msgstr "Wake status"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Local Whisper listener; no audio leaves the machine"
+msgstr "Local Whisper listener; no audio leaves the machine"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Listening"
+msgstr "Listening"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Starting…"
+msgstr "Starting…"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Kokoro local speech"
+msgstr "Kokoro local speech"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Run padilha-voice setup to install the local voice"
+msgstr "Run padilha-voice setup to install the local voice"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Lower is slower and warmer"
+msgstr "Lower is slower and warmer"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Agent"
+msgstr "Agente"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Current session"
+msgstr "Current session"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Select another session from the widget history button"
+msgstr "Select another session from the widget history button"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Permission"
+msgstr "Permission"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Widget sessions run with approvals off"
+msgstr "Widget sessions run with approvals off"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "High · danger-full-access"
+msgstr "High · danger-full-access"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Provider"
 msgstr "Provedor"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
-msgid "Configured in ~/.config/padilha/ai.lua"
-msgstr "Configurado em ~/.config/padilha/ai.lua"
+msgid "DeepSeek Harness SDK"
+msgstr "DeepSeek Harness SDK"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
 msgid "Not configured"
@@ -3105,8 +3304,15 @@ msgid "Access"
 msgstr "Acesso"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
-msgid "Managed by padilha-ai"
-msgstr "Gerenciado pelo padilha-ai"
+msgid "Local DSH session history"
+msgstr "Local DSH session history"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#, qt-plural-format
+msgid "%n session"
+msgid_plural "%n sessions"
+msgstr[0] "%n sessão"
+msgstr[1] "%n sessões"
 
 #: modules/nexus/pages/panels/DashboardPanel.qml
 #: modules/nexus/pages/panels/LauncherPanel.qml
@@ -5089,6 +5295,30 @@ msgid "Show the screen recorder card"
 msgstr "Mostrar o cartão do gravador de tela"
 
 #: modules/nexus/SettingsCatalog.qml
+msgid "Share of the screen occupied by the assistant"
+msgstr "Share of the screen occupied by the assistant"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Listen for Padilha and dictate into the assistant"
+msgstr "Listen for Padilha and dictate into the assistant"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Kokoro local speech voice"
+msgstr "Kokoro local speech voice"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Speech speed"
+msgstr "Speech speed"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Active DSH session"
+msgstr "Active DSH session"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Widget session permission"
+msgstr "Widget session permission"
+
+#: modules/nexus/SettingsCatalog.qml
 msgid "Assistant status"
 msgstr "Status do assistente"
 
@@ -5657,12 +5887,10 @@ msgid "Open dashboard on the notes tab"
 msgstr "Abrir o painel na aba de notas"
 
 #: modules/Shortcuts.qml
-#, fuzzy
 msgid "Open dashboard on the dictionary tab"
 msgstr "Abrir o painel na aba de mídia"
 
 #: modules/Shortcuts.qml
-#, fuzzy
 msgid "Open dashboard on the contacts tab"
 msgstr "Abrir o painel na aba de notas"
 
@@ -6202,31 +6430,54 @@ msgid "No folders granted"
 msgstr "Nenhuma pasta concedida"
 
 #: services/Assistant.qml
-#, fuzzy, qt-plural-format
+#, qt-plural-format
 msgid "%n folder granted"
 msgid_plural "%n folders granted"
-msgstr[0] "Nenhuma pasta concedida"
-msgstr[1] "Nenhuma pasta concedida"
+msgstr[0] "%n pasta concedida"
+msgstr[1] "%n pastas concedidas"
 
 #: services/Assistant.qml
-msgid "No model configured"
-msgstr "Nenhum modelo configurado"
+msgid "No DSH session"
+msgstr "No DSH session"
+
+#: services/Assistant.qml
+msgid "DeepSeek Harness"
+msgstr "DeepSeek Harness"
+
+#: services/Assistant.qml
+msgid "Writing the answer…"
+msgstr "Escrevendo a resposta…"
+
+#: services/Assistant.qml
+msgid "DSH request failed"
+msgstr "DSH request failed"
 
 #: services/Assistant.qml
 msgid ""
-"No chat provider configured. Add models and providers to ~/.config/padilha/"
-"ai.lua."
-msgstr ""
-"Nenhum provedor de chat configurado. Adicione modelos e provedores em "
-"~/.config/padilha/ai.lua."
+"Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /"
+"btw and /compact require dsh-tui."
+msgstr "Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /btw and /compact require dsh-tui."
 
 #: services/Assistant.qml
-msgid "Assistant request failed"
-msgstr "Falha na solicitação do assistente"
+msgid "Unknown widget command. Use /help, or run DSH commands in dsh-tui."
+msgstr "Unknown widget command. Use /help, or run DSH commands in dsh-tui."
 
 #: services/Assistant.qml
-msgid "Assistant backend exited."
-msgstr "O backend do assistente foi encerrado."
+msgid "This session is open in dsh-tui. Close it there or start a new chat."
+msgstr "This session is open in dsh-tui. Close it there or start a new chat."
+
+#: services/Assistant.qml
+msgid "DSH is not ready"
+msgstr "DSH is not ready"
+
+#: services/Assistant.qml
+#, qt-format
+msgid "Attached: %1"
+msgstr "Anexado: %1"
+
+#: services/Assistant.qml
+msgid "DSH backend exited."
+msgstr "DSH backend exited."
 
 #: services/Audio.qml
 msgctxt "unknown audio stream"
@@ -6918,7 +7169,6 @@ msgid "Name"
 msgstr "Nome"
 
 #: ../extensions/contacts/Widget.qml
-#, fuzzy
 msgid "Full name"
 msgstr "Totalmente carregada"
 
@@ -6947,7 +7197,6 @@ msgid "Birthdays, addresses, anything..."
 msgstr "Aniversários, endereços, qualquer coisa..."
 
 #: ../extensions/contacts/Widget.qml
-#, fuzzy
 msgid "Confirm delete"
 msgstr "Confirmar atualização"
 
@@ -6960,7 +7209,6 @@ msgid "Select a contact to edit it."
 msgstr "Selecione um contato para editá-lo."
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy
 msgid "Portuguese"
 msgstr "Português (Brasil)"
 
@@ -6974,12 +7222,12 @@ msgid "No dictionary pack is installed for %1."
 msgstr "Nenhum pacote de dicionário está instalado para %1."
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy, qt-format
+#, qt-format
 msgid "Downloading %1..."
 msgstr "Baixando %1..."
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy, qt-format
+#, qt-format
 msgid "Installed %1."
 msgstr "%1 instalado."
 
@@ -6988,12 +7236,12 @@ msgid "The language pack could not be installed."
 msgstr "Não foi possível instalar o pacote de idioma."
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy, qt-format
+#, qt-format
 msgid "Removing %1..."
 msgstr "Removendo %1..."
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy, qt-format
+#, qt-format
 msgid "Removed %1."
 msgstr "%1 removido."
 
@@ -7026,7 +7274,7 @@ msgid "Dictionary"
 msgstr "Dicionário"
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy, qt-format
+#, qt-format
 msgid "System language: %1"
 msgstr "Idioma do sistema: %1"
 
@@ -7047,7 +7295,7 @@ msgid "Language packs"
 msgstr "Pacotes de idioma"
 
 #: ../extensions/dictionary/Widget.qml
-#, fuzzy, qt-plural-format
+#, qt-plural-format
 msgid "%n installed"
 msgid_plural "%n installed"
 msgstr[0] "%n instalado"
@@ -7922,10 +8170,6 @@ msgstr "As entradas de \"%1\" devem ser textos não vazios."
 #, qt-format
 msgid "\"%1\" lists \"%2\" more than once."
 msgstr "\"%1\" lista \"%2\" mais de uma vez."
-
-#: services/ExtensionManifest.js
-msgid "Files"
-msgstr "Arquivos"
 
 #: services/ExtensionManifest.js
 msgid "Screen"

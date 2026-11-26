@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: maria-padilha-de\n"
-"Report-Msgid-Bugs-To: https://github.com/maria-padilha-os/maria-padilha-de/issues\n"
-"POT-Creation-Date: 2026-11-18 00:00+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-26 16:49-0300\n"
 "PO-Revision-Date: 2026-11-18 00:00+0000\n"
 "Last-Translator: Maria Padilha contributors\n"
 "Language-Team: English\n"
@@ -61,7 +61,13 @@ msgctxt "button"
 msgid "Select"
 msgstr "Select"
 
-#: components/filedialog/DialogButtons.qml modules/bar/popouts/WirelessPassword.qml modules/nexus/common/DialogRowButton.qml modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/pages/network/AddVpnPage.qml modules/utilities/RecordingDeleteModal.qml
+#: components/filedialog/DialogButtons.qml
+#: modules/bar/popouts/WirelessPassword.qml
+#: modules/nexus/common/DialogRowButton.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/UpdatesPage.qml
+#: modules/utilities/RecordingDeleteModal.qml
 msgctxt "button"
 msgid "Cancel"
 msgstr "Cancel"
@@ -109,7 +115,8 @@ msgctxt "file dialog place"
 msgid "Videos"
 msgstr "Videos"
 
-#: components/filedialog/FolderContents.qml ../extensions/filemanager/Widget.qml
+#: components/filedialog/FolderContents.qml
+#: ../extensions/filemanager/Widget.qml
 msgid "This folder is empty"
 msgstr "This folder is empty"
 
@@ -142,42 +149,118 @@ msgstr "Screenshot taken"
 msgid "Screenshot copied to clipboard"
 msgstr "Screenshot copied to clipboard"
 
-#: modules/assistant/Content.qml modules/bar/components/AssistantButton.qml modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/assistant/Content.qml
+msgid "Attach files"
+msgstr "Attach files"
+
+#: modules/assistant/Content.qml services/ExtensionManifest.js
+msgid "Files"
+msgstr "Files"
+
+#: modules/assistant/Content.qml modules/bar/components/AssistantButton.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Assistant"
 msgstr "Assistant"
 
 #: modules/assistant/Content.qml
-msgid "New assistant chat"
-msgstr "New assistant chat"
+msgid "DSH sessions"
+msgstr "DSH sessions"
+
+#: modules/assistant/Content.qml
+msgid "New DSH session"
+msgstr "New DSH session"
 
 #: modules/assistant/Content.qml
 msgid "Close assistant"
 msgstr "Close assistant"
 
 #: modules/assistant/Content.qml
-msgctxt "chat message author"
-msgid "You"
-msgstr "You"
+msgid "Search sessions"
+msgstr "Search sessions"
 
 #: modules/assistant/Content.qml
-msgctxt "chat message author and state"
-msgid "Assistant · cancelled"
-msgstr "Assistant · cancelled"
+msgid "Unpin session"
+msgstr "Unpin session"
 
 #: modules/assistant/Content.qml
-msgctxt "chat message author"
-msgid "Assistant"
-msgstr "Assistant"
+msgid "Pin session"
+msgstr "Pin session"
 
 #: modules/assistant/Content.qml
+msgid "Copy message"
+msgstr "Copy message"
+
+#: modules/assistant/Content.qml services/Assistant.qml
 msgid "Thinking…"
 msgstr "Thinking…"
+
+#: modules/assistant/Content.qml
+msgid "Remove attachment"
+msgstr "Remove attachment"
+
+#: modules/assistant/Content.qml
+#, qt-format
+msgid "Queued · sends after this turn: %1"
+msgstr "Queued · sends after this turn: %1"
+
+#: modules/assistant/Content.qml
+#, qt-plural-format
+msgid "[%n image]"
+msgid_plural "[%n images]"
+msgstr[0] "[%n image]"
+msgstr[1] "[%n images]"
+
+#: modules/assistant/Content.qml
+msgid "Send queued message"
+msgstr "Send queued message"
+
+#: modules/assistant/Content.qml
+msgid "Discard queued message"
+msgstr "Discard queued message"
+
+#: modules/assistant/Content.qml
+msgid "Listening… speak now"
+msgstr "Listening… speak now"
+
+#: modules/assistant/Content.qml
+msgid "Read-only session — start a new chat"
+msgstr "Read-only session — start a new chat"
+
+#: modules/assistant/Content.qml
+msgid "Type while the assistant works — Enter queues"
+msgstr "Type while the assistant works — Enter queues"
 
 #: modules/assistant/Content.qml
 msgid "Ask the assistant"
 msgstr "Ask the assistant"
 
-#: modules/assistant/Content.qml ../extensions/stopwatch/Widget.qml ../extensions/tuner/Widget.qml
+#: modules/assistant/Content.qml
+msgid "Attach images"
+msgstr "Attach images"
+
+#: modules/assistant/Content.qml
+msgid "Stop dictation"
+msgstr "Stop dictation"
+
+#: modules/assistant/Content.qml
+msgid "Dictate a message"
+msgstr "Dictate a message"
+
+#: modules/assistant/Content.qml
+msgid "Queue this message for after the current turn"
+msgstr "Queue this message for after the current turn"
+
+#: modules/assistant/Content.qml
+msgid "Disable spoken replies"
+msgstr "Disable spoken replies"
+
+#: modules/assistant/Content.qml
+msgid "Speak replies"
+msgstr "Speak replies"
+
+#: modules/assistant/Content.qml ../extensions/stopwatch/Widget.qml
+#: ../extensions/tuner/Widget.qml
 msgid "Stop"
 msgstr "Stop"
 
@@ -186,12 +269,16 @@ msgid "Send"
 msgstr "Send"
 
 #: modules/assistant/Content.qml
-msgid "Read-only · grants are managed by padilha-ai"
-msgstr "Read-only · grants are managed by padilha-ai"
+msgid "Read-only · this session is open in dsh-tui"
+msgstr "Read-only · this session is open in dsh-tui"
 
 #: modules/assistant/Content.qml
-msgid "Configure a provider in ~/.config/padilha/ai.lua"
-msgstr "Configure a provider in ~/.config/padilha/ai.lua"
+msgid "Local DeepSeek Harness session"
+msgstr "Local DeepSeek Harness session"
+
+#: modules/assistant/Content.qml
+msgid "DeepSeek Harness is not ready"
+msgstr "DeepSeek Harness is not ready"
 
 #: modules/background/Wallpaper.qml
 msgid "Wallpaper missing?"
@@ -201,7 +288,9 @@ msgstr "Wallpaper missing?"
 msgid "Select a wallpaper"
 msgstr "Select a wallpaper"
 
-#: modules/background/Wallpaper.qml modules/dashboard/Wrapper.qml modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/background/Wallpaper.qml modules/dashboard/Wrapper.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
 msgid "Image files"
 msgstr "Image files"
 
@@ -244,7 +333,8 @@ msgstr "Clock: %1"
 msgid "Open or close the dashboard"
 msgstr "Open or close the dashboard"
 
-#: modules/bar/components/Media.qml modules/bar/popouts/Media.qml modules/dashboard/Media.qml modules/lock/Media.qml
+#: modules/bar/components/Media.qml modules/bar/popouts/Media.qml
+#: modules/dashboard/Media.qml modules/lock/Media.qml
 msgid "Nothing playing"
 msgstr "Nothing playing"
 
@@ -252,7 +342,9 @@ msgstr "Nothing playing"
 msgid "No active media player"
 msgstr "No active media player"
 
-#: modules/bar/components/Media.qml modules/bar/popouts/Media.qml modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/components/Media.qml modules/bar/popouts/Media.qml
+#: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Media"
 msgstr "Media"
 
@@ -276,11 +368,14 @@ msgstr "Session menu"
 msgid "Open or close the session menu"
 msgstr "Open or close the session menu"
 
-#: modules/bar/components/Settings.qml modules/bar/popouts/AudioPopout.qml modules/bar/popouts/Bluetooth.qml modules/utilities/cards/Toggles.qml
+#: modules/bar/components/Settings.qml modules/bar/popouts/AudioPopout.qml
+#: modules/bar/popouts/Bluetooth.qml modules/utilities/cards/Toggles.qml
 msgid "Open settings"
 msgstr "Open settings"
 
-#: modules/bar/components/Settings.qml modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/components/Settings.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Open the settings window"
 msgstr "Open the settings window"
 
@@ -289,11 +384,13 @@ msgstr "Open the settings window"
 msgid "Battery %1%"
 msgstr "Battery %1%"
 
-#: modules/bar/components/status/BatteryStatus.qml modules/nexus/pages/PowerPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/components/status/BatteryStatus.qml
+#: modules/nexus/pages/PowerPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Power profile"
 msgstr "Power profile"
 
-#: modules/bar/components/status/BluetoothStatus.qml modules/nexus/pages/BluetoothPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/components/status/BluetoothStatus.qml
+#: modules/nexus/pages/BluetoothPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Bluetooth disabled"
 msgstr "Bluetooth disabled"
 
@@ -343,7 +440,10 @@ msgstr "Wi-Fi connected"
 msgid "Network disconnected"
 msgstr "Network disconnected"
 
-#: modules/bar/components/StatusIcons.qml modules/bar/popouts/Display.qml modules/nexus/pages/DisplayPage.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/components/StatusIcons.qml modules/bar/popouts/Display.qml
+#: modules/nexus/pages/DisplayPage.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Brightness"
 msgstr "Brightness"
 
@@ -379,7 +479,10 @@ msgstr "Expand or collapse tray icons"
 msgid "System tray item"
 msgstr "System tray item"
 
-#: modules/bar/components/workspaces/Workspaces.qml modules/nexus/pages/panels/taskbar/BarWorkspaces.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/components/workspaces/Workspaces.qml
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Workspaces"
 msgstr "Workspaces"
 
@@ -406,7 +509,9 @@ msgstr "Volume (muted)"
 msgid "Volume (%1%)"
 msgstr "Volume (%1%)"
 
-#: modules/bar/popouts/AudioPopout.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/popouts/AudioPopout.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Volume"
 msgstr "Volume"
 
@@ -417,7 +522,8 @@ msgid_plural "%n days"
 msgstr[0] "%n day"
 msgstr[1] "%n days"
 
-#: modules/bar/popouts/Battery.qml modules/nexus/pages/PowerPage.qml utils/SysInfo.qml
+#: modules/bar/popouts/Battery.qml modules/nexus/pages/PowerPage.qml
+#: utils/SysInfo.qml
 #, qt-plural-format
 msgid "%n hour"
 msgid_plural "%n hours"
@@ -510,11 +616,19 @@ msgstr "Calculating time until charged..."
 msgid "Performance degraded"
 msgstr "Performance degraded"
 
-#: modules/bar/popouts/Bluetooth.qml modules/nexus/pages/BluetoothPage.qml modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: modules/bar/popouts/Bluetooth.qml modules/nexus/pages/BluetoothPage.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
-#: modules/bar/popouts/Bluetooth.qml modules/bar/popouts/Network.qml modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/panels/SidebarPanel.qml modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/bar/popouts/Bluetooth.qml modules/bar/popouts/Network.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/panels/SidebarPanel.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgctxt "toggle label"
 msgid "Enabled"
 msgstr "Enabled"
@@ -554,11 +668,14 @@ msgstr "Connect %1"
 msgid "Forget %1"
 msgstr "Forget %1"
 
-#: modules/bar/popouts/Display.qml modules/nexus/PageRegistry.qml modules/nexus/pages/DisplayPage.qml modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/bar/popouts/Display.qml modules/nexus/PageRegistry.qml
+#: modules/nexus/pages/DisplayPage.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
 msgid "Display"
 msgstr "Display"
 
-#: modules/bar/popouts/Display.qml modules/nexus/pages/DisplayPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/popouts/Display.qml modules/nexus/pages/DisplayPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Night light"
 msgstr "Night light"
 
@@ -592,19 +709,23 @@ msgctxt "keyboard layout code and name"
 msgid "%1 - %2"
 msgstr "%1 - %2"
 
-#: modules/bar/popouts/LockStatus.qml plugin/src/Caelestia/Services/hyprdevices.cpp
+#: modules/bar/popouts/LockStatus.qml
+#: plugin/src/Caelestia/Services/hyprdevices.cpp
 msgid "Caps lock enabled"
 msgstr "Caps lock enabled"
 
-#: modules/bar/popouts/LockStatus.qml plugin/src/Caelestia/Services/hyprdevices.cpp
+#: modules/bar/popouts/LockStatus.qml
+#: plugin/src/Caelestia/Services/hyprdevices.cpp
 msgid "Caps lock disabled"
 msgstr "Caps lock disabled"
 
-#: modules/bar/popouts/LockStatus.qml plugin/src/Caelestia/Services/hyprdevices.cpp
+#: modules/bar/popouts/LockStatus.qml
+#: plugin/src/Caelestia/Services/hyprdevices.cpp
 msgid "Num lock enabled"
 msgstr "Num lock enabled"
 
-#: modules/bar/popouts/LockStatus.qml plugin/src/Caelestia/Services/hyprdevices.cpp
+#: modules/bar/popouts/LockStatus.qml
+#: plugin/src/Caelestia/Services/hyprdevices.cpp
 msgid "Num lock disabled"
 msgstr "Num lock disabled"
 
@@ -620,11 +741,13 @@ msgstr "Start playback in a media app to use these controls."
 msgid "Unknown track"
 msgstr "Unknown track"
 
-#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml modules/lock/Media.qml
+#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml
+#: modules/dashboard/media/Details.qml modules/lock/Media.qml
 msgid "Unknown artist"
 msgstr "Unknown artist"
 
-#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml modules/lock/Media.qml
+#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml
+#: modules/dashboard/media/Details.qml modules/lock/Media.qml
 msgid "Unknown album"
 msgstr "Unknown album"
 
@@ -632,19 +755,26 @@ msgstr "Unknown album"
 msgid "Seek"
 msgstr "Seek"
 
-#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml modules/lock/Media.qml services/Players.qml
+#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml
+#: modules/dashboard/media/Details.qml modules/lock/Media.qml
+#: services/Players.qml
 msgid "Previous track"
 msgstr "Previous track"
 
-#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml modules/lock/Media.qml ../extensions/pomodoro/Widget.qml
+#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml
+#: modules/dashboard/media/Details.qml modules/lock/Media.qml
+#: ../extensions/pomodoro/Widget.qml
 msgid "Pause"
 msgstr "Pause"
 
-#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml modules/lock/Media.qml
+#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml
+#: modules/dashboard/media/Details.qml modules/lock/Media.qml
 msgid "Play"
 msgstr "Play"
 
-#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml modules/dashboard/media/Details.qml modules/lock/Media.qml services/Players.qml
+#: modules/bar/popouts/Media.qml modules/dashboard/dash/Media.qml
+#: modules/dashboard/media/Details.qml modules/lock/Media.qml
+#: services/Players.qml
 msgid "Next track"
 msgstr "Next track"
 
@@ -677,7 +807,9 @@ msgstr "Connect to %1"
 msgid "Rescan networks"
 msgstr "Rescan networks"
 
-#: modules/bar/popouts/Network.qml modules/nexus/common/EthernetSection.qml modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/popouts/Network.qml modules/nexus/common/EthernetSection.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Ethernet"
 msgstr "Ethernet"
 
@@ -691,7 +823,10 @@ msgctxt "button"
 msgid "Back"
 msgstr "Back"
 
-#: modules/bar/popouts/WirelessPassword.qml modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/popouts/WirelessPassword.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Connect"
 msgstr "Connect"
 
@@ -730,7 +865,9 @@ msgstr "Password for %1"
 msgid "Network password"
 msgstr "Network password"
 
-#: modules/bar/popouts/WirelessPassword.qml modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/bar/popouts/WirelessPassword.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Password"
 msgstr "Password"
 
@@ -863,8 +1000,12 @@ msgid "No clipboard history yet"
 msgstr "No clipboard history yet"
 
 #: modules/clipboard/ClipboardWindow.qml
-msgid "Enable clipboard.enabled in ~/.config/padilha/init.lua, then reload the shell."
-msgstr "Enable clipboard.enabled in ~/.config/padilha/init.lua, then reload the shell."
+msgid ""
+"Enable clipboard.enabled in ~/.config/padilha/init.lua, then reload the "
+"shell."
+msgstr ""
+"Enable clipboard.enabled in ~/.config/padilha/init.lua, then reload the "
+"shell."
 
 #: modules/clipboard/ClipboardWindow.qml
 msgid "Resume history to start recording again."
@@ -882,14 +1023,15 @@ msgstr "Copy something and it will show up here."
 msgid "↑↓ select · Enter copy · Delete remove · Esc close"
 msgstr "↑↓ select · Enter copy · Delete remove · Esc close"
 
-#: modules/clipboard/ClipboardWindow.qml
+#: modules/clipboard/ClipboardWindow.qml ../extensions/dictionary/Widget.qml
 #, qt-plural-format
 msgid "%n entry"
 msgid_plural "%n entries"
 msgstr[0] "%n entry"
 msgstr[1] "%n entries"
 
-#: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Dashboard"
 msgstr "Dashboard"
 
@@ -897,11 +1039,14 @@ msgstr "Dashboard"
 msgid "Use Left and Right to change tabs, Escape to close"
 msgstr "Use Left and Right to change tabs, Escape to close"
 
-#: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/dashboard/Content.qml modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Performance"
 msgstr "Performance"
 
-#: modules/dashboard/Content.qml modules/nexus/pages/LanguageAndRegion.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/dashboard/Content.qml modules/nexus/pages/LanguageAndRegion.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Weather"
 msgstr "Weather"
 
@@ -987,7 +1132,8 @@ msgstr "Selected candidate: %1 | %2 | %3"
 msgid "Offset: %1 ms"
 msgstr "Offset: %1 ms"
 
-#: modules/dashboard/media/LyricsInfo.qml modules/dashboard/WeatherTab.qml modules/lock/center/InputField.qml
+#: modules/dashboard/media/LyricsInfo.qml modules/dashboard/WeatherTab.qml
+#: modules/lock/center/InputField.qml
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -1007,11 +1153,15 @@ msgstr "No widgets enabled"
 msgid "Enable widgets in the dashboard settings"
 msgstr "Enable widgets in the dashboard settings"
 
-#: modules/dashboard/Performance.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml ../extensions/system-monitor/Widget.qml
+#: modules/dashboard/Performance.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml ../extensions/system-monitor/Widget.qml
 msgid "CPU"
 msgstr "CPU"
 
-#: modules/dashboard/Performance.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/ServicesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/dashboard/Performance.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/ServicesPage.qml modules/nexus/SettingsCatalog.qml
 msgid "GPU"
 msgstr "GPU"
 
@@ -1024,7 +1174,11 @@ msgctxt "GPU name"
 msgid "None"
 msgstr "None"
 
-#: modules/dashboard/performance/BatteryTank.qml modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/pages/PowerPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/dashboard/performance/BatteryTank.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/PowerPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Battery"
 msgstr "Battery"
 
@@ -1058,7 +1212,9 @@ msgctxt "resource usage"
 msgid "Usage"
 msgstr "Usage"
 
-#: modules/dashboard/performance/MemoryCard.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml ../extensions/system-monitor/Widget.qml
+#: modules/dashboard/performance/MemoryCard.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml ../extensions/system-monitor/Widget.qml
 msgid "Memory"
 msgstr "Memory"
 
@@ -1067,7 +1223,12 @@ msgctxt "memory used"
 msgid "Used"
 msgstr "Used"
 
-#: modules/dashboard/performance/NetworkCard.qml modules/nexus/PageRegistry.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/pages/NetworkPage.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/SettingsCatalog.qml services/ExtensionManifest.js
+#: modules/dashboard/performance/NetworkCard.qml modules/nexus/PageRegistry.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/NetworkPage.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/SettingsCatalog.qml services/ExtensionManifest.js
 msgid "Network"
 msgstr "Network"
 
@@ -1101,7 +1262,9 @@ msgctxt "storage used"
 msgid "Used"
 msgstr "Used"
 
-#: modules/dashboard/performance/StorageCard.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/dashboard/performance/StorageCard.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Storage"
 msgstr "Storage"
 
@@ -1207,7 +1370,9 @@ msgstr "Launcher results"
 msgid "Use Up and Down to move, Enter to open"
 msgstr "Use Up and Down to move, Enter to open"
 
-#: modules/launcher/Content.qml modules/nexus/pages/apps/AppInfo.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/launcher/Content.qml modules/nexus/pages/apps/AppInfo.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Launcher"
 msgstr "Launcher"
 
@@ -1225,8 +1390,10 @@ msgid "Search applications and actions"
 msgstr "Search applications and actions"
 
 #: modules/launcher/Content.qml
-msgid "Type to search. Up and Down move the selection. Enter opens. Escape closes."
-msgstr "Type to search. Up and Down move the selection. Enter opens. Escape closes."
+msgid ""
+"Type to search. Up and Down move the selection. Enter opens. Escape closes."
+msgstr ""
+"Type to search. Up and Down move the selection. Enter opens. Escape closes."
 
 #: modules/launcher/ContentList.qml
 msgid "No wallpapers found"
@@ -1287,7 +1454,8 @@ msgstr "Tonal Spot"
 
 #: modules/launcher/services/M3Variants.qml
 msgid "Default for Material theme colours. A pastel palette with a low chroma."
-msgstr "Default for Material theme colours. A pastel palette with a low chroma."
+msgstr ""
+"Default for Material theme colours. A pastel palette with a low chroma."
 
 #: modules/launcher/services/M3Variants.qml
 msgctxt "M3 scheme variant name"
@@ -1295,8 +1463,12 @@ msgid "Expressive"
 msgstr "Expressive"
 
 #: modules/launcher/services/M3Variants.qml
-msgid "A medium chroma palette. The primary palette's hue is different from the seed colour, for variety."
-msgstr "A medium chroma palette. The primary palette's hue is different from the seed colour, for variety."
+msgid ""
+"A medium chroma palette. The primary palette's hue is different from the "
+"seed colour, for variety."
+msgstr ""
+"A medium chroma palette. The primary palette's hue is different from the "
+"seed colour, for variety."
 
 #: modules/launcher/services/M3Variants.qml
 msgctxt "M3 scheme variant name"
@@ -1304,8 +1476,12 @@ msgid "Fidelity"
 msgstr "Fidelity"
 
 #: modules/launcher/services/M3Variants.qml
-msgid "Matches the seed colour, even if the seed colour is very bright (high chroma)."
-msgstr "Matches the seed colour, even if the seed colour is very bright (high chroma)."
+msgid ""
+"Matches the seed colour, even if the seed colour is very bright (high "
+"chroma)."
+msgstr ""
+"Matches the seed colour, even if the seed colour is very bright (high "
+"chroma)."
 
 #: modules/launcher/services/M3Variants.qml
 msgctxt "M3 scheme variant name"
@@ -1443,8 +1619,12 @@ msgstr "Maximum face attempts reached. Please use password."
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
 #: modules/lock/center/StateMessage.qml
 #, qt-format
-msgid "Caps lock and Num lock are ON.\nKeyboard layout: %1"
-msgstr "Caps lock and Num lock are ON.\nKeyboard layout: %1"
+msgid ""
+"Caps lock and Num lock are ON.\n"
+"Keyboard layout: %1"
+msgstr ""
+"Caps lock and Num lock are ON.\n"
+"Keyboard layout: %1"
 
 #. TRANSLATORS: %1 = the active keyboard layout name, e.g. "English (US)"
 #: modules/lock/center/StateMessage.qml
@@ -1530,7 +1710,10 @@ msgid_plural "%n notifications"
 msgstr[0] "%n notification"
 msgstr[1] "%n notifications"
 
-#: modules/lock/NotifDock.qml modules/nexus/pages/services/NotificationsPage.qml modules/nexus/pages/ServicesPage.qml modules/nexus/SettingsCatalog.qml modules/sidebar/NotifDock.qml services/ExtensionManifest.js
+#: modules/lock/NotifDock.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/pages/ServicesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/sidebar/NotifDock.qml services/ExtensionManifest.js
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1568,12 +1751,14 @@ msgctxt "unknown audio device"
 msgid "Unknown"
 msgstr "Unknown"
 
-#: modules/nexus/common/EthernetSection.qml modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/common/EthernetSection.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
 msgctxt "ethernet link state"
 msgid "Connected"
 msgstr "Connected"
 
-#: modules/nexus/common/EthernetSection.qml modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/common/EthernetSection.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
 msgctxt "ethernet link state"
 msgid "Not connected"
 msgstr "Not connected"
@@ -1606,15 +1791,19 @@ msgstr "Primary DNS"
 msgid "Unnamed extension"
 msgstr "Unnamed extension"
 
-#: modules/nexus/common/ExtensionCard.qml modules/nexus/pages/ExtensionsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/common/ExtensionCard.qml
+#: modules/nexus/pages/ExtensionsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Enabled"
 msgstr "Enabled"
 
-#: modules/nexus/common/ExtensionCard.qml modules/nexus/pages/ExtensionsPage.qml
+#: modules/nexus/common/ExtensionCard.qml
+#: modules/nexus/pages/ExtensionsPage.qml
 msgid "Needs attention"
 msgstr "Needs attention"
 
-#: modules/nexus/common/ExtensionCard.qml modules/nexus/pages/ExtensionsPage.qml
+#: modules/nexus/common/ExtensionCard.qml
+#: modules/nexus/pages/ExtensionsPage.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
 msgid "Disabled"
 msgstr "Disabled"
 
@@ -1641,8 +1830,12 @@ msgid "Permissions"
 msgstr "Permissions"
 
 #: modules/nexus/common/ExtensionCard.qml
-msgid "No special permissions declared. Extensions still run as your user, so only enable code you trust."
-msgstr "No special permissions declared. Extensions still run as your user, so only enable code you trust."
+msgid ""
+"No special permissions declared. Extensions still run as your user, so only "
+"enable code you trust."
+msgstr ""
+"No special permissions declared. Extensions still run as your user, so only "
+"enable code you trust."
 
 #: modules/nexus/common/ListEditor.qml
 msgid "Remove item"
@@ -1699,7 +1892,8 @@ msgstr "Type to filter pages and settings"
 msgid "No settings found"
 msgstr "No settings found"
 
-#: modules/nexus/Nexus.qml modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/Nexus.qml modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Settings"
 msgstr "Settings"
 
@@ -1715,11 +1909,14 @@ msgstr "Close settings"
 msgid "Open settings in a window"
 msgstr "Open settings in a window"
 
-#: modules/nexus/PageCompRegistry.qml modules/nexus/pages/wallandstyle/ColourSelect.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/PageCompRegistry.qml
+#: modules/nexus/pages/wallandstyle/ColourSelect.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Page under construction"
 msgstr "Page under construction"
 
-#: modules/nexus/PageCompRegistry.qml modules/nexus/pages/wallandstyle/ColourSelect.qml
+#: modules/nexus/PageCompRegistry.qml
+#: modules/nexus/pages/wallandstyle/ColourSelect.qml
 msgid "This page will be available in a future update."
 msgstr "This page will be available in a future update."
 
@@ -1747,7 +1944,8 @@ msgstr "Connected devices"
 msgid "Bluetooth, pairing"
 msgstr "Bluetooth, pairing"
 
-#: modules/nexus/PageRegistry.qml modules/nexus/pages/AudioPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/PageRegistry.qml modules/nexus/pages/AudioPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Audio"
 msgstr "Audio"
 
@@ -1763,7 +1961,8 @@ msgstr "Updates"
 msgid "Pending package upgrades"
 msgstr "Pending package upgrades"
 
-#: modules/nexus/PageRegistry.qml modules/nexus/pages/AboutPage.qml modules/nexus/pages/ExtensionsPage.qml
+#: modules/nexus/PageRegistry.qml modules/nexus/pages/AboutPage.qml
+#: modules/nexus/pages/ExtensionsPage.qml
 msgid "Extensions"
 msgstr "Extensions"
 
@@ -1787,7 +1986,9 @@ msgstr "Panels"
 msgid "Dashboard, taskbar, launcher, sidebar, assistant"
 msgstr "Dashboard, taskbar, launcher, sidebar, assistant"
 
-#: modules/nexus/PageRegistry.qml modules/nexus/pages/AppsPage.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/PageRegistry.qml modules/nexus/pages/AppsPage.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Apps"
 msgstr "Apps"
 
@@ -1874,7 +2075,8 @@ msgstr "Installed extensions"
 msgid "Top panel tabs"
 msgstr "Top panel tabs"
 
-#: modules/nexus/pages/apps/AllApps.qml modules/nexus/pages/AppsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/apps/AllApps.qml modules/nexus/pages/AppsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "All apps"
 msgstr "All apps"
 
@@ -1894,7 +2096,8 @@ msgstr "Matched by a regex in favouriteApps — edit the config file to change"
 msgid "Pin to the top of the launcher"
 msgstr "Pin to the top of the launcher"
 
-#: modules/nexus/pages/apps/AppInfo.qml modules/nexus/SettingsCatalog.qml ../extensions/filemanager/Widget.qml
+#: modules/nexus/pages/apps/AppInfo.qml modules/nexus/SettingsCatalog.qml
+#: ../extensions/filemanager/Widget.qml
 msgid "Hidden"
 msgstr "Hidden"
 
@@ -1951,7 +2154,8 @@ msgstr "Library"
 msgid "Browse installed apps, set favourites and hidden"
 msgstr "Browse installed apps, set favourites and hidden"
 
-#: modules/nexus/pages/audio/AppVolumes.qml modules/nexus/pages/AudioPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/audio/AppVolumes.qml modules/nexus/pages/AudioPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "App volumes"
 msgstr "App volumes"
 
@@ -1959,7 +2163,8 @@ msgstr "App volumes"
 msgid "Adjust the volume of individual apps currently playing audio."
 msgstr "Adjust the volume of individual apps currently playing audio."
 
-#: modules/nexus/pages/audio/AppVolumes.qml modules/nexus/pages/AudioPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/audio/AppVolumes.qml modules/nexus/pages/AudioPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "No apps playing audio"
 msgstr "No apps playing audio"
 
@@ -2000,11 +2205,13 @@ msgid_plural "%n apps playing audio"
 msgstr[0] "%n app playing audio"
 msgstr[1] "%n apps playing audio"
 
-#: modules/nexus/pages/bluetooth/BluetoothPairing.qml modules/nexus/pages/BluetoothPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/bluetooth/BluetoothPairing.qml
+#: modules/nexus/pages/BluetoothPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Pair new device"
 msgstr "Pair new device"
 
-#: modules/nexus/pages/bluetooth/BluetoothPairing.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/bluetooth/BluetoothPairing.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Available devices"
 msgstr "Available devices"
 
@@ -2021,13 +2228,15 @@ msgid "Pairing..."
 msgstr "Pairing..."
 
 #. TRANSLATORS: %1 = battery level, already formatted as a percentage
-#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/pages/BluetoothPage.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/pages/BluetoothPage.qml
 #, qt-format
 msgctxt "bluetooth device state with battery"
 msgid "Connected • %1"
 msgstr "Connected • %1"
 
-#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/pages/BluetoothPage.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/pages/BluetoothPage.qml
 msgctxt "bluetooth device state"
 msgid "Connected"
 msgstr "Connected"
@@ -2067,7 +2276,8 @@ msgctxt "bluetooth device state"
 msgid "Trusted"
 msgstr "Trusted"
 
-#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Allow this device to connect automatically"
 msgstr "Allow this device to connect automatically"
 
@@ -2076,15 +2286,18 @@ msgctxt "bluetooth device state"
 msgid "Blocked"
 msgstr "Blocked"
 
-#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Prevent this device from connecting"
 msgstr "Prevent this device from connecting"
 
-#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Wake allowed"
 msgstr "Wake allowed"
 
-#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/bluetooth/BtDeviceInfo.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Allow this device to wake the system"
 msgstr "Allow this device to wake the system"
 
@@ -2251,14 +2464,28 @@ msgstr "Search by name, id, description, shortcut or permission"
 
 #: modules/nexus/pages/ExtensionsPage.qml
 #, qt-plural-format
-msgid "%n extension needs attention. Problems are shown on its card and it stays listed."
-msgid_plural "%n extensions need attention. Problems are shown on their cards and they stay listed."
-msgstr[0] "%n extension needs attention. Problems are shown on its card and it stays listed."
-msgstr[1] "%n extensions need attention. Problems are shown on their cards and they stay listed."
+msgid ""
+"%n extension needs attention. Problems are shown on its card and it stays "
+"listed."
+msgid_plural ""
+"%n extensions need attention. Problems are shown on their cards and they "
+"stay listed."
+msgstr[0] ""
+"%n extension needs attention. Problems are shown on its card and it stays "
+"listed."
+msgstr[1] ""
+"%n extensions need attention. Problems are shown on their cards and they "
+"stay listed."
 
 #: modules/nexus/pages/ExtensionsPage.qml
-msgid "Enabled extensions appear as tabs in the top panel, after Weather. Toggling one takes effect immediately; nothing is installed or downloaded automatically."
-msgstr "Enabled extensions appear as tabs in the top panel, after Weather. Toggling one takes effect immediately; nothing is installed or downloaded automatically."
+msgid ""
+"Enabled extensions appear as tabs in the top panel, after Weather. Toggling "
+"one takes effect immediately; nothing is installed or downloaded "
+"automatically."
+msgstr ""
+"Enabled extensions appear as tabs in the top panel, after Weather. Toggling "
+"one takes effect immediately; nothing is installed or downloaded "
+"automatically."
 
 #: modules/nexus/pages/ExtensionsPage.qml
 msgid "Matches"
@@ -2269,8 +2496,14 @@ msgid "Installed"
 msgstr "Installed"
 
 #: modules/nexus/pages/ExtensionsPage.qml
-msgid "No extensions installed. An extension is a folder under ~/.config/padilha/extensions with an extension.json manifest and a Tab.qml tab. Add one yourself; the shell never downloads or installs extensions."
-msgstr "No extensions installed. An extension is a folder under ~/.config/padilha/extensions with an extension.json manifest and a Tab.qml tab. Add one yourself; the shell never downloads or installs extensions."
+msgid ""
+"No extensions installed. An extension is a folder under ~/.config/padilha/"
+"extensions with an extension.json manifest and a Tab.qml tab. Add one "
+"yourself; the shell never downloads or installs extensions."
+msgstr ""
+"No extensions installed. An extension is a folder under ~/.config/padilha/"
+"extensions with an extension.json manifest and a Tab.qml tab. Add one "
+"yourself; the shell never downloads or installs extensions."
 
 #: modules/nexus/pages/ExtensionsPage.qml
 msgid "No extensions match this search or filter."
@@ -2361,10 +2594,13 @@ msgid "Saved: %1"
 msgstr "Saved: %1"
 
 #: modules/nexus/pages/LanguageAndRegion.qml
-msgid "Weather follows a location you choose; it never asks the network for your IP"
-msgstr "Weather follows a location you choose; it never asks the network for your IP"
+msgid ""
+"Weather follows a location you choose; it never asks the network for your IP"
+msgstr ""
+"Weather follows a location you choose; it never asks the network for your IP"
 
-#: modules/nexus/pages/LanguageAndRegion.qml services/Weather.qml ../extensions/calculator/Widget.qml
+#: modules/nexus/pages/LanguageAndRegion.qml services/Weather.qml
+#: ../extensions/calculator/Widget.qml
 msgid "Clear"
 msgstr "Clear"
 
@@ -2401,8 +2637,10 @@ msgid "API key"
 msgstr "API key"
 
 #: modules/nexus/pages/LanguageAndRegion.qml
-msgid "Optional; prefer ~/.config/padilha/weather.conf, which is never committed"
-msgstr "Optional; prefer ~/.config/padilha/weather.conf, which is never committed"
+msgid ""
+"Optional; prefer ~/.config/padilha/weather.conf, which is never committed"
+msgstr ""
+"Optional; prefer ~/.config/padilha/weather.conf, which is never committed"
 
 #: modules/nexus/pages/LanguageAndRegion.qml
 msgid "No key"
@@ -2412,7 +2650,8 @@ msgstr "No key"
 msgid "Units"
 msgstr "Units"
 
-#: modules/nexus/pages/LanguageAndRegion.qml modules/nexus/SettingsCatalog.qml ../share/extensions/unit-converter/Widget.qml
+#: modules/nexus/pages/LanguageAndRegion.qml modules/nexus/SettingsCatalog.qml
+#: ../share/extensions/unit-converter/Widget.qml
 msgid "Temperature"
 msgstr "Temperature"
 
@@ -2468,7 +2707,8 @@ msgstr "Clock format"
 msgid "How times are shown across the shell"
 msgstr "How times are shown across the shell"
 
-#: modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/pages/NetworkPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/pages/NetworkPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Add network"
 msgstr "Add network"
 
@@ -2477,7 +2717,8 @@ msgid "Enter the details below to manually connect to a network."
 msgstr "Enter the details below to manually connect to a network."
 
 #. TRANSLATORS: SSID is a protocol term, leave it untranslated
-#: modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Network name (SSID)"
 msgstr "Network name (SSID)"
 
@@ -2490,7 +2731,8 @@ msgstr "e.g. MyHiddenNetwork"
 msgid "Network name is required"
 msgstr "Network name is required"
 
-#: modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Hidden network"
 msgstr "Hidden network"
 
@@ -2498,12 +2740,15 @@ msgstr "Hidden network"
 msgid "Actively probe for a network that doesn't broadcast its name"
 msgstr "Actively probe for a network that doesn't broadcast its name"
 
-#: modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Security"
 msgstr "Security"
 
 #. TRANSLATORS: WPA/WPA2/WPA3 are protocol names, leave them untranslated
-#: modules/nexus/pages/network/AddNetworkPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/AddNetworkPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "WPA/WPA2/WPA3 Personal"
 msgstr "WPA/WPA2/WPA3 Personal"
 
@@ -2525,7 +2770,8 @@ msgstr "Connection failed — check the password"
 msgid "Password must be at least 8 characters"
 msgstr "Password must be at least 8 characters"
 
-#: modules/nexus/pages/network/AddVpnPage.qml modules/nexus/pages/NetworkPage.qml
+#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/NetworkPage.qml
 msgid "Edit VPN provider"
 msgstr "Edit VPN provider"
 
@@ -2535,8 +2781,12 @@ msgstr "Add VPN provider"
 
 #. TRANSLATORS: the four names in brackets are provider identifiers, leave them untranslated
 #: modules/nexus/pages/network/AddVpnPage.qml
-msgid "Built-in names (wireguard, warp, tailscale, netbird) auto-fill their commands. For others, provide the connect/disconnect commands."
-msgstr "Built-in names (wireguard, warp, tailscale, netbird) auto-fill their commands. For others, provide the connect/disconnect commands."
+msgid ""
+"Built-in names (wireguard, warp, tailscale, netbird) auto-fill their "
+"commands. For others, provide the connect/disconnect commands."
+msgstr ""
+"Built-in names (wireguard, warp, tailscale, netbird) auto-fill their "
+"commands. For others, provide the connect/disconnect commands."
 
 #: modules/nexus/pages/network/AddVpnPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Provider name"
@@ -2560,7 +2810,9 @@ msgstr "Display name"
 msgid "Shown in the list"
 msgstr "Shown in the list"
 
-#: modules/nexus/pages/network/AddVpnPage.qml modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/NetworkPage.qml
+#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/NetworkPage.qml
 msgctxt "network interface"
 msgid "Interface"
 msgstr "Interface"
@@ -2585,7 +2837,8 @@ msgstr "Leave empty to use the built-in default"
 msgid "Disconnect command"
 msgstr "Disconnect command"
 
-#: modules/nexus/pages/network/AddVpnPage.qml modules/nexus/SettingsCatalog.qml ../share/extensions/notes/Widget.qml
+#: modules/nexus/pages/network/AddVpnPage.qml modules/nexus/SettingsCatalog.qml
+#: ../extensions/contacts/Widget.qml ../share/extensions/notes/Widget.qml
 msgid "Delete"
 msgstr "Delete"
 
@@ -2594,12 +2847,14 @@ msgctxt "button"
 msgid "Save"
 msgstr "Save"
 
-#: modules/nexus/pages/network/AddVpnPage.qml modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/network/AddVpnPage.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
 msgctxt "button"
 msgid "Add"
 msgstr "Add"
 
-#: modules/nexus/pages/network/AllNetworksPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/AllNetworksPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "All networks"
 msgstr "All networks"
 
@@ -2628,104 +2883,142 @@ msgctxt "network filter"
 msgid "2.4 GHz"
 msgstr "2.4 GHz"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Disconnect"
 msgstr "Disconnect"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Connection"
 msgstr "Connection"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Status"
 msgstr "Status"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Speed"
 msgstr "Speed"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "IP address"
 msgstr "IP address"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Gateway"
 msgstr "Gateway"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "MAC address"
 msgstr "MAC address"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "IPv4"
 msgstr "IPv4"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "IP assignment"
 msgstr "IP assignment"
 
 #. TRANSLATORS: DHCP and DNS are protocol names, leave them untranslated
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Automatic (DHCP)"
 msgstr "Automatic (DHCP)"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Automatic, DNS only"
 msgstr "Automatic, DNS only"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
 msgctxt "ip configuration method"
 msgid "Manual"
 msgstr "Manual"
 
 #. TRANSLATORS: CIDR is a networking term, leave it untranslated
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Address (CIDR)"
 msgstr "Address (CIDR)"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "IP and prefix, e.g. 192.168.1.50/24"
 msgstr "IP and prefix, e.g. 192.168.1.50/24"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter a valid address in CIDR notation"
 msgstr "Enter a valid address in CIDR notation"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter a valid gateway address"
 msgstr "Enter a valid gateway address"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "DNS servers"
 msgstr "DNS servers"
 
 #. TRANSLATORS: describes the DNS servers field above: several addresses separated by commas
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Comma-separated"
 msgstr "Comma-separated"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
 msgid "Enter valid DNS server addresses"
 msgstr "Enter valid DNS server addresses"
 
-#: modules/nexus/pages/network/EthernetDetailPage.qml modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/EthernetDetailPage.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Apply"
 msgstr "Apply"
 
-#: modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Forget"
 msgstr "Forget"
 
-#: modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Signal"
 msgstr "Signal"
 
-#: modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/pages/network/SavedNetworksPage.qml services/Nmcli.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/network/SavedNetworksPage.qml services/Nmcli.qml
 msgctxt "wifi security type"
 msgid "Open"
 msgstr "Open"
 
-#: modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Frequency"
 msgstr "Frequency"
 
@@ -2735,11 +3028,17 @@ msgstr "Frequency"
 msgid "%1 MHz"
 msgstr "%1 MHz"
 
-#: modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Behaviour"
 msgstr "Behaviour"
 
-#: modules/nexus/pages/network/NetworkDetailPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/NetworkDetailPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Connect automatically"
 msgstr "Connect automatically"
 
@@ -2747,7 +3046,8 @@ msgstr "Connect automatically"
 msgid "Join this network when it's in range"
 msgstr "Join this network when it's in range"
 
-#: modules/nexus/pages/network/SavedNetworksPage.qml modules/nexus/pages/NetworkPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/network/SavedNetworksPage.qml
+#: modules/nexus/pages/NetworkPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Saved networks"
 msgstr "Saved networks"
 
@@ -2767,7 +3067,9 @@ msgctxt "network connected with security"
 msgid "Connected • %1"
 msgstr "Connected • %1"
 
-#: modules/nexus/pages/NetworkPage.qml modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: modules/nexus/pages/NetworkPage.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
 
@@ -2777,7 +3079,10 @@ msgstr "Wi-Fi"
 msgid "Show all networks (%1)"
 msgstr "Show all networks (%1)"
 
-#: modules/nexus/pages/NetworkPage.qml modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml services/VPN.qml
+#: modules/nexus/pages/NetworkPage.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: services/VPN.qml
 msgid "VPN"
 msgstr "VPN"
 
@@ -2824,51 +3129,194 @@ msgstr "%1 ms"
 msgid "Add provider"
 msgstr "Add provider"
 
-#: modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/panels/SidebarPanel.qml modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Maria · Dora"
+msgstr "Maria · Dora"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Quarter screen"
+msgstr "Quarter screen"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "One third"
+msgstr "One third"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Two fifths"
+msgstr "Two fifths"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Half screen"
+msgstr "Half screen"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Three fifths"
+msgstr "Three fifths"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Two thirds"
+msgstr "Two thirds"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Three quarters"
+msgstr "Three quarters"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/panels/SidebarPanel.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
 msgid "General"
 msgstr "General"
 
-#: modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show the assistant drawer"
 msgstr "Show the assistant drawer"
 
-#: modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Bar indicator"
 msgstr "Bar indicator"
 
-#: modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show the assistant toggle in the bar"
 msgstr "Show the assistant toggle in the bar"
 
-#: modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Chat width"
+msgstr "Chat width"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#, qt-format
+msgid "Share of the screen occupied by the assistant · %1%"
+msgstr "Share of the screen occupied by the assistant · %1%"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Voice"
+msgstr "Voice"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Spoken replies"
+msgstr "Spoken replies"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Read completed assistant answers aloud"
+msgstr "Read completed assistant answers aloud"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Wake word"
+msgstr "Wake word"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Listen for “Padilha” and open the Assistant with dictation"
+msgstr "Listen for “Padilha” and open the Assistant with dictation"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Wake status"
+msgstr "Wake status"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Local Whisper listener; no audio leaves the machine"
+msgstr "Local Whisper listener; no audio leaves the machine"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Listening"
+msgstr "Listening"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Starting…"
+msgstr "Starting…"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Kokoro local speech"
+msgstr "Kokoro local speech"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Run padilha-voice setup to install the local voice"
+msgstr "Run padilha-voice setup to install the local voice"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Lower is slower and warmer"
+msgstr "Lower is slower and warmer"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Agent"
+msgstr "Agent"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Current session"
+msgstr "Current session"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Select another session from the widget history button"
+msgstr "Select another session from the widget history button"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Permission"
+msgstr "Permission"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Widget sessions run with approvals off"
+msgstr "Widget sessions run with approvals off"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "High · danger-full-access"
+msgstr "High · danger-full-access"
+
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Provider"
 msgstr "Provider"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
-msgid "Configured in ~/.config/padilha/ai.lua"
-msgstr "Configured in ~/.config/padilha/ai.lua"
+msgid "DeepSeek Harness SDK"
+msgstr "DeepSeek Harness SDK"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
 msgid "Not configured"
 msgstr "Not configured"
 
-#: modules/nexus/pages/panels/AssistantPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Access"
 msgstr "Access"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
-msgid "Managed by padilha-ai"
-msgstr "Managed by padilha-ai"
+msgid "Local DSH session history"
+msgstr "Local DSH session history"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/panels/taskbar/BarActiveWindow.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#, qt-plural-format
+msgid "%n session"
+msgid_plural "%n sessions"
+msgstr[0] "%n session"
+msgstr[1] "%n sessions"
+
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show on hover"
 msgstr "Show on hover"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Reveal when the cursor reaches the screen edge"
 msgstr "Reveal when the cursor reaches the screen edge"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show clock seconds"
 msgstr "Show clock seconds"
 
@@ -2876,27 +3324,36 @@ msgstr "Show clock seconds"
 msgid "Display seconds for the clock in the main panel"
 msgstr "Display seconds for the clock in the main panel"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Tabs"
 msgstr "Tabs"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Performance widgets"
 msgstr "Performance widgets"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/panels/SidebarPanel.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/panels/SidebarPanel.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Drag threshold"
 msgstr "Drag threshold"
 
-#: modules/nexus/pages/panels/DashboardPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/DashboardPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Pixels dragged before the dashboard opens"
 msgstr "Pixels dragged before the dashboard opens"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Action prefix"
 msgstr "Action prefix"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Prefix used to run actions in the launcher"
 msgstr "Prefix used to run actions in the launcher"
 
@@ -2904,63 +3361,80 @@ msgstr "Prefix used to run actions in the launcher"
 msgid "Prefix must not be alphanumeric"
 msgstr "Prefix must not be alphanumeric"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Max items shown"
 msgstr "Max items shown"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Max wallpapers"
 msgstr "Max wallpapers"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Pixels dragged before the launcher opens"
 msgstr "Pixels dragged before the launcher opens"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Vim keybinds"
 msgstr "Vim keybinds"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Navigate results with Ctrl+hjkl"
 msgstr "Navigate results with Ctrl+hjkl"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Enable dangerous actions"
 msgstr "Enable dangerous actions"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Allow actions that shut down or log out"
 msgstr "Allow actions that shut down or log out"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Fuzzy search"
 msgstr "Fuzzy search"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Actions"
 msgstr "Actions"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Schemes"
 msgstr "Schemes"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Variants"
 msgstr "Variants"
 
-#: modules/nexus/pages/panels/LauncherPanel.qml modules/nexus/pages/wallandstyle/WallpaperSelect.qml modules/nexus/pages/WallpaperAndStyle.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/LauncherPanel.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/nexus/pages/WallpaperAndStyle.qml modules/nexus/SettingsCatalog.qml
 msgid "Wallpapers"
 msgstr "Wallpapers"
 
-#: modules/nexus/pages/panels/SidebarPanel.qml modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/SidebarPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Sidebar"
 msgstr "Sidebar"
 
-#: modules/nexus/pages/panels/SidebarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/SidebarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Pixels dragged before the sidebar opens"
 msgstr "Pixels dragged before the sidebar opens"
 
-#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Active window"
 msgstr "Active window"
 
@@ -2974,19 +3448,26 @@ msgctxt "taskbar active window: swap the title and class order"
 msgid "Inverted"
 msgstr "Inverted"
 
-#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Only show the active window title while hovering"
 msgstr "Only show the active window title while hovering"
 
-#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/pages/panels/taskbar/BarTray.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/panels/taskbar/BarTray.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Popout on hover"
 msgstr "Popout on hover"
 
-#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarActiveWindow.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show a window details popout when hovering"
 msgstr "Show a window details popout when hovering"
 
-#: modules/nexus/pages/panels/taskbar/BarClock.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarClock.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Clock"
 msgstr "Clock"
 
@@ -2995,15 +3476,18 @@ msgctxt "taskbar clock: draw a background behind the clock"
 msgid "Background"
 msgstr "Background"
 
-#: modules/nexus/pages/panels/taskbar/BarClock.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarClock.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show date"
 msgstr "Show date"
 
-#: modules/nexus/pages/panels/taskbar/BarClock.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarClock.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show icon"
 msgstr "Show icon"
 
-#: modules/nexus/pages/panels/taskbar/BarClock.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarClock.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show seconds"
 msgstr "Show seconds"
 
@@ -3019,7 +3503,10 @@ msgstr "Keyboard layout"
 msgid "Speakers"
 msgstr "Speakers"
 
-#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml services/ExtensionManifest.js
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: services/ExtensionManifest.js
 msgid "Microphone"
 msgstr "Microphone"
 
@@ -3027,15 +3514,19 @@ msgstr "Microphone"
 msgid "Screen recording"
 msgstr "Screen recording"
 
-#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Status icons"
 msgstr "Status icons"
 
-#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Visible icons"
 msgstr "Visible icons"
 
-#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Add entry"
 msgstr "Add entry"
 
@@ -3043,11 +3534,14 @@ msgstr "Add entry"
 msgid "Add new entry"
 msgstr "Add new entry"
 
-#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarStatusIcons.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show a details popout when hovering the status icons"
 msgstr "Show a details popout when hovering the status icons"
 
-#: modules/nexus/pages/panels/taskbar/BarTray.qml modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarTray.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Tray"
 msgstr "Tray"
 
@@ -3057,7 +3551,8 @@ msgid "Background"
 msgstr "Background"
 
 #. TRANSLATORS: tint system tray icons with the theme accent colour
-#: modules/nexus/pages/panels/taskbar/BarTray.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarTray.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Recolour icons"
 msgstr "Recolour icons"
 
@@ -3066,7 +3561,8 @@ msgctxt "taskbar tray layout"
 msgid "Compact"
 msgstr "Compact"
 
-#: modules/nexus/pages/panels/taskbar/BarTray.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarTray.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show the tray menu popout when hovering"
 msgstr "Show the tray menu popout when hovering"
 
@@ -3076,7 +3572,8 @@ msgctxt "bar workspaces"
 msgid "Shown"
 msgstr "Shown"
 
-#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Number of workspaces displayed"
 msgstr "Number of workspaces displayed"
 
@@ -3100,7 +3597,8 @@ msgctxt "bar workspaces"
 msgid "Show unoccupied"
 msgstr "Show unoccupied"
 
-#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show workspaces that are inactive and empty"
 msgstr "Show workspaces that are inactive and empty"
 
@@ -3109,7 +3607,8 @@ msgctxt "bar workspaces"
 msgid "Per monitor"
 msgstr "Per monitor"
 
-#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Hide workspaces not on the current monitor"
 msgstr "Hide workspaces not on the current monitor"
 
@@ -3118,7 +3617,8 @@ msgctxt "bar workspaces"
 msgid "Show windows"
 msgstr "Show windows"
 
-#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/taskbar/BarWorkspaces.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show icons of open windows on each workspace"
 msgstr "Show icons of open windows on each workspace"
 
@@ -3133,35 +3633,43 @@ msgctxt "bar workspaces"
 msgid "Max window icons"
 msgstr "Max window icons"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Taskbar"
 msgstr "Taskbar"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Follow the wallpaper"
 msgstr "Follow the wallpaper"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Fixed matte black"
 msgstr "Fixed matte black"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Persistent"
 msgstr "Persistent"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Keep the bar visible at all times"
 msgstr "Keep the bar visible at all times"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Reveal the bar when the cursor reaches the screen edge"
 msgstr "Reveal the bar when the cursor reaches the screen edge"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Pixels dragged before the bar reveals"
 msgstr "Pixels dragged before the bar reveals"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Palette"
 msgstr "Palette"
 
@@ -3169,7 +3677,8 @@ msgstr "Palette"
 msgid "What the bar's colours follow"
 msgstr "What the bar's colours follow"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Components"
 msgstr "Components"
 
@@ -3181,7 +3690,8 @@ msgstr "Indicators, window icons"
 msgid "Title display, popout"
 msgstr "Title display, popout"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "System tray icons"
 msgstr "System tray icons"
 
@@ -3193,7 +3703,8 @@ msgstr "Visible indicators"
 msgid "Date, icon, background"
 msgstr "Date, icon, background"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Scroll actions"
 msgstr "Scroll actions"
 
@@ -3201,35 +3712,43 @@ msgstr "Scroll actions"
 msgid "Scroll over the workspace indicator to switch workspaces"
 msgstr "Scroll over the workspace indicator to switch workspaces"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Scroll on the top half of the bar to adjust volume"
 msgstr "Scroll on the top half of the bar to adjust volume"
 
-#: modules/nexus/pages/panels/TaskbarPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/TaskbarPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Scroll on the bottom half of the bar to adjust brightness"
 msgstr "Scroll on the bottom half of the bar to adjust brightness"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Utilities"
 msgstr "Utilities"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show the utilities panel"
 msgstr "Show the utilities panel"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Cards"
 msgstr "Cards"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Keep awake"
 msgstr "Keep awake"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show the idle inhibitor card"
 msgstr "Show the idle inhibitor card"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/utilities/cards/Record.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/utilities/cards/Record.qml
 msgid "Screenshots and recording"
 msgstr "Screenshots and recording"
 
@@ -3237,11 +3756,13 @@ msgstr "Screenshots and recording"
 msgid "Show the screenshot and recording card"
 msgstr "Show the screenshot and recording card"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
 msgid "Quick toggles"
 msgstr "Quick toggles"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show the quick toggles card"
 msgstr "Show the quick toggles card"
 
@@ -3281,35 +3802,43 @@ msgstr "Copy screenshots"
 msgid "Off by default; copy only when the panel asks"
 msgstr "Off by default; copy only when the panel asks"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Toggle wireless networking"
 msgstr "Toggle wireless networking"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Toggle the Bluetooth adapter"
 msgstr "Toggle the Bluetooth adapter"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Mute or unmute the default source"
 msgstr "Mute or unmute the default source"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
 msgid "Game mode"
 msgstr "Game mode"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Toggle game mode"
 msgstr "Toggle game mode"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml modules/utilities/cards/Toggles.qml
 msgid "Do not disturb"
 msgstr "Do not disturb"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Silence notifications"
 msgstr "Silence notifications"
 
-#: modules/nexus/pages/panels/UtilitiesPanel.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/panels/UtilitiesPanel.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Connect or disconnect the VPN"
 msgstr "Connect or disconnect the VPN"
 
@@ -3440,31 +3969,38 @@ msgctxt "show toasts over fullscreen apps"
 msgid "On"
 msgstr "On"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show in fullscreen"
 msgstr "Show in fullscreen"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Whether notifications appear over fullscreen apps"
 msgstr "Whether notifications appear over fullscreen apps"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Expire automatically"
 msgstr "Expire automatically"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Dismiss notifications after their timeout"
 msgstr "Dismiss notifications after their timeout"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Open expanded"
 msgstr "Open expanded"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Show notifications expanded by default"
 msgstr "Show notifications expanded by default"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Default timeout"
 msgstr "Default timeout"
 
@@ -3473,15 +4009,18 @@ msgstr "Default timeout"
 msgid "Time before a notification dismisses (ms)"
 msgstr "Time before a notification dismisses (ms)"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Group preview count"
 msgstr "Group preview count"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Notifications shown per group before collapsing"
 msgstr "Notifications shown per group before collapsing"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Toasts"
 msgstr "Toasts"
 
@@ -3489,55 +4028,68 @@ msgstr "Toasts"
 msgid "Whether toasts appear over fullscreen apps"
 msgstr "Whether toasts appear over fullscreen apps"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Visible toasts"
 msgstr "Visible toasts"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Maximum number of toasts shown at once"
 msgstr "Maximum number of toasts shown at once"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Toast events"
 msgstr "Toast events"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Charging changes"
 msgstr "Charging changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Game mode changes"
 msgstr "Game mode changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Do not disturb changes"
 msgstr "Do not disturb changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Audio output changes"
 msgstr "Audio output changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Audio input changes"
 msgstr "Audio input changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Caps lock changes"
 msgstr "Caps lock changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Num lock changes"
 msgstr "Num lock changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Keyboard layout changes"
 msgstr "Keyboard layout changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "VPN changes"
 msgstr "VPN changes"
 
-#: modules/nexus/pages/services/NotificationsPage.qml modules/nexus/SettingsCatalog.qml services/Players.qml
+#: modules/nexus/pages/services/NotificationsPage.qml
+#: modules/nexus/SettingsCatalog.qml services/Players.qml
 msgid "Now playing"
 msgstr "Now playing"
 
@@ -3676,13 +4228,46 @@ msgid "Override for GPU type"
 msgstr "Override for GPU type"
 
 #: modules/nexus/pages/UpdatesPage.qml
+msgid "Update check failed"
+msgstr "Update check failed"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update finished"
+msgstr "Update finished"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Update failed"
+msgstr "Update failed"
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid "Battery is low (%1%). Plug in the charger before applying this update."
+msgstr "Battery is low (%1%). Plug in the charger before applying this update."
+
+#: modules/nexus/pages/UpdatesPage.qml
+#, qt-format
+msgid ""
+"This is a large update (%1 download) and the session is on battery. Plug in "
+"the charger before applying it."
+msgstr ""
+"This is a large update (%1 download) and the session is on battery. Plug in "
+"the charger before applying it."
+
+#: modules/nexus/pages/UpdatesPage.qml
 msgid "Checking for updates…"
 msgstr "Checking for updates…"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Could not check for updates"
+msgstr "Could not check for updates"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "No update check has run yet"
+msgstr "No update check has run yet"
 
 #: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
 msgid "System is up to date"
 msgstr "System is up to date"
-
 
 #: modules/nexus/pages/UpdatesPage.qml
 msgid "1 update available"
@@ -3699,14 +4284,56 @@ msgid "%1 · %2 download · %3 installed"
 msgstr "%1 · %2 download · %3 installed"
 
 #: modules/nexus/pages/UpdatesPage.qml
+msgid "Some package sizes are unknown."
+msgstr "Some package sizes are unknown."
+
+#: modules/nexus/pages/UpdatesPage.qml
 #, qt-format
 msgid "%1 download · %2 installed"
 msgstr "%1 download · %2 installed"
 
 #: modules/nexus/pages/UpdatesPage.qml
+msgid "Check for updates"
+msgstr "Check for updates"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid ""
+"Nothing is downloaded or installed until you review the list and confirm."
+msgstr ""
+"Nothing is downloaded or installed until you review the list and confirm."
+
+#: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
+msgid "Packages"
+msgstr "Packages"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid "Ignored by pacman"
+msgstr "Ignored by pacman"
+
+#: modules/nexus/pages/UpdatesPage.qml
 #, qt-format
 msgid "%1 → %2"
 msgstr "%1 → %2"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid ""
+"Applying needs your confirmation. Maria Padilha never updates or reboots on "
+"its own."
+msgstr ""
+"Applying needs your confirmation. Maria Padilha never updates or reboots on "
+"its own."
+
+#: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
+msgid "Review and apply"
+msgstr "Review and apply"
+
+#: modules/nexus/pages/UpdatesPage.qml
+msgid ""
+"Applying updates… Do not power off the machine. A reboot is never started "
+"automatically."
+msgstr ""
+"Applying updates… Do not power off the machine. A reboot is never started "
+"automatically."
 
 #: modules/nexus/pages/UpdatesPage.qml
 msgid "Apply 1 update?"
@@ -3722,122 +4349,26 @@ msgstr "Apply %1 updates?"
 msgid "%1 download · %2 installed. Nothing is installed until you confirm."
 msgstr "%1 download · %2 installed. Nothing is installed until you confirm."
 
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Applying needs your confirmation. Maria Padilha never updates or reboots on its own."
-msgstr "Applying needs your confirmation. Maria Padilha never updates or reboots on its own."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Applying updates… Do not power off the machine. A reboot is never started automatically."
-msgstr "Applying updates… Do not power off the machine. A reboot is never started automatically."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Battery is low"
-msgstr "Battery is low"
-
-#: modules/nexus/pages/UpdatesPage.qml
-#, qt-format
-msgid "Battery is low (%1%). Plug in the charger before applying this update."
-msgstr "Battery is low (%1%). Plug in the charger before applying this update."
-
-#: modules/nexus/pages/UpdatesPage.qml
+#: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Confirm update"
 msgstr "Confirm update"
 
-#: modules/nexus/pages/UpdatesPage.qml
+#: modules/nexus/pages/UpdatesPage.qml modules/notifications/Notification.qml
+#: ../extensions/colour-picker/Widget.qml
+msgid "Copied"
+msgstr "Copied"
+
+#: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
 msgid "Copy log path"
 msgstr "Copy log path"
 
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Copyable log path after an update"
-msgstr "Copyable log path after an update"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Could not check for updates"
-msgstr "Could not check for updates"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Could not read the update list."
-msgstr "Could not read the update list."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Explicit confirmation before applying updates"
-msgstr "Explicit confirmation before applying updates"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Ignored by pacman"
-msgstr "Ignored by pacman"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Large updates warn when the session is on battery"
-msgstr "Large updates warn when the session is on battery"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "No update check has run yet"
-msgstr "No update check has run yet"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Nothing is downloaded or installed until you review the list and confirm."
-msgstr "Nothing is downloaded or installed until you review the list and confirm."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Refusing to apply updates without confirmation."
-msgstr "Refusing to apply updates without confirmation."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Review and apply"
-msgstr "Review and apply"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Review pending upgrades before installing anything"
-msgstr "Review pending upgrades before installing anything"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Some package sizes are unknown."
-msgstr "Some package sizes are unknown."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "The update check failed."
-msgstr "The update check failed."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "The update command failed."
-msgstr "The update command failed."
-
-#: modules/nexus/pages/UpdatesPage.qml
-#, qt-format
-msgid "The update command returned no result (exit %1)."
-msgstr "The update command returned no result (exit %1)."
-
-#: modules/nexus/pages/UpdatesPage.qml
-#, qt-format
-msgid "This is a large update (%1 download) and the session is on battery. Plug in the charger before applying it."
-msgstr "This is a large update (%1 download) and the session is on battery. Plug in the charger before applying it."
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Update check failed"
-msgstr "Update check failed"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Update failed"
-msgstr "Update failed"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Update finished"
-msgstr "Update finished"
-
-#: modules/nexus/pages/UpdatesPage.qml
-msgid "Check for updates"
-msgstr "Check for updates"
-
-#: modules/nexus/pages/UpdatesPage.qml modules/nexus/SettingsCatalog.qml
-msgid "Packages"
-msgstr "Packages"
-
-#: modules/nexus/pages/wallandstyle/ColourSelect.qml modules/nexus/pages/WallpaperAndStyle.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ColourSelect.qml
+#: modules/nexus/pages/WallpaperAndStyle.qml modules/nexus/SettingsCatalog.qml
 msgid "Colours"
 msgstr "Colours"
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/pages/WallpaperAndStyle.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/pages/WallpaperAndStyle.qml modules/nexus/SettingsCatalog.qml
 msgid "Themes"
 msgstr "Themes"
 
@@ -3854,10 +4385,15 @@ msgid "Adding theme…"
 msgstr "Adding theme…"
 
 #: modules/nexus/pages/wallandstyle/ThemesPage.qml
-msgid "A theme pairs one wallpaper for the day with one for the night. The active theme changes automatically with the palette schedule."
-msgstr "A theme pairs one wallpaper for the day with one for the night. The active theme changes automatically with the palette schedule."
+msgid ""
+"A theme pairs one wallpaper for the day with one for the night. The active "
+"theme changes automatically with the palette schedule."
+msgstr ""
+"A theme pairs one wallpaper for the day with one for the night. The active "
+"theme changes automatically with the palette schedule."
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Installed themes"
 msgstr "Installed themes"
 
@@ -3870,23 +4406,29 @@ msgstr "Day: %1 · Night: %2"
 msgid "No themes yet. Add a pair below."
 msgstr "No themes yet. Add a pair below."
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Add a theme"
 msgstr "Add a theme"
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Theme name"
 msgstr "Theme name"
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Choose day image"
 msgstr "Choose day image"
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Choose night image"
 msgstr "Choose night image"
 
-#: modules/nexus/pages/wallandstyle/ThemesPage.qml modules/nexus/SettingsCatalog.qml ../extensions/calculator/Widget.qml
+#: modules/nexus/pages/wallandstyle/ThemesPage.qml
+#: modules/nexus/SettingsCatalog.qml ../extensions/calculator/Widget.qml
+#: ../extensions/contacts/Widget.qml
 msgid "Add"
 msgstr "Add"
 
@@ -3914,7 +4456,8 @@ msgstr "Theme added"
 msgid "Could not add the theme"
 msgstr "Could not add the theme"
 
-#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Browse"
 msgstr "Browse"
 
@@ -3922,19 +4465,23 @@ msgstr "Browse"
 msgid "Select an image"
 msgstr "Select an image"
 
-#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Random"
 msgstr "Random"
 
-#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Featured wallpaper"
 msgstr "Featured wallpaper"
 
-#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "Local wallpapers"
 msgstr "Local wallpapers"
 
-#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml modules/nexus/SettingsCatalog.qml
+#: modules/nexus/pages/wallandstyle/WallpaperSelect.qml
+#: modules/nexus/SettingsCatalog.qml
 msgid "No local wallpapers found"
 msgstr "No local wallpapers found"
 
@@ -4316,7 +4863,8 @@ msgstr "Optional connect and disconnect commands"
 msgid "Remove this VPN provider"
 msgstr "Remove this VPN provider"
 
-#: modules/nexus/SettingsCatalog.qml ../share/extensions/notes/Widget.qml
+#: modules/nexus/SettingsCatalog.qml ../extensions/contacts/Widget.qml
+#: ../share/extensions/notes/Widget.qml
 msgid "Save"
 msgstr "Save"
 
@@ -4336,7 +4884,8 @@ msgstr "Filters"
 msgid "Filter nearby wireless networks"
 msgstr "Filter nearby wireless networks"
 
-#: modules/nexus/SettingsCatalog.qml ../share/extensions/notes/Widget.qml
+#: modules/nexus/SettingsCatalog.qml ../extensions/contacts/Widget.qml
+#: ../share/extensions/notes/Widget.qml
 msgid "Saved"
 msgstr "Saved"
 
@@ -4491,6 +5040,26 @@ msgstr "Updates available"
 #: modules/nexus/SettingsCatalog.qml
 msgid "Package upgrade list"
 msgstr "Package upgrade list"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Review pending upgrades before installing anything"
+msgstr "Review pending upgrades before installing anything"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Explicit confirmation before applying updates"
+msgstr "Explicit confirmation before applying updates"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Copyable log path after an update"
+msgstr "Copyable log path after an update"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Battery is low"
+msgstr "Battery is low"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Large updates warn when the session is on battery"
+msgstr "Large updates warn when the session is on battery"
 
 #: modules/nexus/SettingsCatalog.qml
 msgid "Installed shell extensions"
@@ -4707,6 +5276,30 @@ msgstr "Screen recorder"
 #: modules/nexus/SettingsCatalog.qml
 msgid "Show the screen recorder card"
 msgstr "Show the screen recorder card"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Share of the screen occupied by the assistant"
+msgstr "Share of the screen occupied by the assistant"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Listen for Padilha and dictate into the assistant"
+msgstr "Listen for Padilha and dictate into the assistant"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Kokoro local speech voice"
+msgstr "Kokoro local speech voice"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Speech speed"
+msgstr "Speech speed"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Active DSH session"
+msgstr "Active DSH session"
+
+#: modules/nexus/SettingsCatalog.qml
+msgid "Widget session permission"
+msgstr "Widget session permission"
 
 #: modules/nexus/SettingsCatalog.qml
 msgid "Assistant status"
@@ -5209,10 +5802,6 @@ msgstr "Congá — %1"
 msgid "Close notification"
 msgstr "Close notification"
 
-#: modules/notifications/Notification.qml ../extensions/colour-picker/Widget.qml
-msgid "Copied"
-msgstr "Copied"
-
 #: modules/notifications/Notification.qml
 msgid "Copy notification text"
 msgstr "Copy notification text"
@@ -5277,6 +5866,14 @@ msgstr "Open dashboard on the files tab"
 #: modules/Shortcuts.qml
 msgid "Open dashboard on the notes tab"
 msgstr "Open dashboard on the notes tab"
+
+#: modules/Shortcuts.qml
+msgid "Open dashboard on the dictionary tab"
+msgstr "Open dashboard on the dictionary tab"
+
+#: modules/Shortcuts.qml
+msgid "Open dashboard on the contacts tab"
+msgstr "Open dashboard on the contacts tab"
 
 #: modules/Shortcuts.qml
 msgid "Open dashboard on the system monitor tab"
@@ -5459,8 +6056,12 @@ msgstr "Include sound"
 
 #: modules/utilities/cards/Record.qml
 #, qt-format
-msgid "Use an empty capture workspace. The command warns when the active workspace is not \"%1\"."
-msgstr "Use an empty capture workspace. The command warns when the active workspace is not \"%1\"."
+msgid ""
+"Use an empty capture workspace. The command warns when the active workspace "
+"is not \"%1\"."
+msgstr ""
+"Use an empty capture workspace. The command warns when the active workspace "
+"is not \"%1\"."
 
 #. TRANSLATORS: %1 = seconds remaining
 #: modules/utilities/cards/Record.qml
@@ -5810,20 +6411,54 @@ msgid "No folders granted"
 msgstr "No folders granted"
 
 #: services/Assistant.qml
-msgid "No model configured"
-msgstr "No model configured"
+#, qt-plural-format
+msgid "%n folder granted"
+msgid_plural "%n folders granted"
+msgstr[0] "%n folder granted"
+msgstr[1] "%n folders granted"
 
 #: services/Assistant.qml
-msgid "No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua."
-msgstr "No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua."
+msgid "No DSH session"
+msgstr "No DSH session"
 
 #: services/Assistant.qml
-msgid "Assistant request failed"
-msgstr "Assistant request failed"
+msgid "DeepSeek Harness"
+msgstr "DeepSeek Harness"
 
 #: services/Assistant.qml
-msgid "Assistant backend exited."
-msgstr "Assistant backend exited."
+msgid "Writing the answer…"
+msgstr "Writing the answer…"
+
+#: services/Assistant.qml
+msgid "DSH request failed"
+msgstr "DSH request failed"
+
+#: services/Assistant.qml
+msgid ""
+"Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /"
+"btw and /compact require dsh-tui."
+msgstr "Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /btw and /compact require dsh-tui."
+
+#: services/Assistant.qml
+msgid "Unknown widget command. Use /help, or run DSH commands in dsh-tui."
+msgstr "Unknown widget command. Use /help, or run DSH commands in dsh-tui."
+
+#: services/Assistant.qml
+msgid "This session is open in dsh-tui. Close it there or start a new chat."
+msgstr "This session is open in dsh-tui. Close it there or start a new chat."
+
+#: services/Assistant.qml
+msgid "DSH is not ready"
+msgstr "DSH is not ready"
+
+#: services/Assistant.qml
+#, qt-format
+msgid "Attached: %1"
+msgstr "Attached: %1"
+
+#: services/Assistant.qml
+msgid "DSH backend exited."
+msgstr "DSH backend exited."
 
 #: services/Audio.qml
 msgctxt "unknown audio stream"
@@ -5989,6 +6624,27 @@ msgstr "Recorder action failed"
 #: services/Screenshot.qml
 msgid "Screenshot failed"
 msgstr "Screenshot failed"
+
+#: services/Updates.qml
+msgid "Refusing to apply updates without confirmation."
+msgstr "Refusing to apply updates without confirmation."
+
+#: services/Updates.qml
+msgid "Could not read the update list."
+msgstr "Could not read the update list."
+
+#: services/Updates.qml
+msgid "The update check failed."
+msgstr "The update check failed."
+
+#: services/Updates.qml
+#, qt-format
+msgid "The update command returned no result (exit %1)."
+msgstr "The update command returned no result (exit %1)."
+
+#: services/Updates.qml
+msgid "The update command failed."
+msgstr "The update command failed."
 
 #: services/VPN.qml
 msgid "VPN connection failed"
@@ -6425,6 +7081,10 @@ msgid "Copy HEX"
 msgstr "Copy HEX"
 
 #: ../extensions/colour-picker/Widget.qml
+msgid "Click the wheel"
+msgstr "Click the wheel"
+
+#: ../extensions/colour-picker/Widget.qml
 #, qt-format
 msgid "Copied %1"
 msgstr "Copied %1"
@@ -6436,6 +7096,210 @@ msgstr "Could not copy to the clipboard"
 #: ../extensions/colour-picker/Widget.qml
 msgid "Copy this value"
 msgstr "Copy this value"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Could not read the contacts file."
+msgstr "Could not read the contacts file."
+
+#: ../extensions/contacts/Widget.qml
+msgid "New contact"
+msgstr "New contact"
+
+#: ../extensions/contacts/Widget.qml
+msgid "A name is required."
+msgstr "A name is required."
+
+#: ../extensions/contacts/Widget.qml
+msgid "Press Delete again to remove this contact"
+msgstr "Press Delete again to remove this contact"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Could not save contacts."
+msgstr "Could not save contacts."
+
+#: ../extensions/contacts/Widget.qml
+msgid "Contacts"
+msgstr "Contacts"
+
+#: ../extensions/contacts/Widget.qml
+#, qt-plural-format
+msgid "%n contact"
+msgid_plural "%n contacts"
+msgstr[0] "%n contact"
+msgstr[1] "%n contacts"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Search contacts"
+msgstr "Search contacts"
+
+#: ../extensions/contacts/Widget.qml
+msgid "No details"
+msgstr "No details"
+
+#: ../extensions/contacts/Widget.qml
+msgid "No contacts yet."
+msgstr "No contacts yet."
+
+#: ../extensions/contacts/Widget.qml
+msgid "No contacts match."
+msgstr "No contacts match."
+
+#: ../extensions/contacts/Widget.qml
+msgid "Name"
+msgstr "Name"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Full name"
+msgstr "Full name"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Email"
+msgstr "Email"
+
+#: ../extensions/contacts/Widget.qml
+msgid "name@example.com"
+msgstr "name@example.com"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Phone"
+msgstr "Phone"
+
+#: ../extensions/contacts/Widget.qml
+msgid "+55 ..."
+msgstr "+55 ..."
+
+#: ../extensions/contacts/Widget.qml ../share/extensions/notes/Widget.qml
+msgid "Notes"
+msgstr "Notes"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Birthdays, addresses, anything..."
+msgstr "Birthdays, addresses, anything..."
+
+#: ../extensions/contacts/Widget.qml
+msgid "Confirm delete"
+msgstr "Confirm delete"
+
+#: ../extensions/contacts/Widget.qml
+msgid "Add a contact to get started."
+msgstr "Add a contact to get started."
+
+#: ../extensions/contacts/Widget.qml
+msgid "Select a contact to edit it."
+msgstr "Select a contact to edit it."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Portuguese"
+msgstr "Portuguese"
+
+#: ../extensions/dictionary/Widget.qml ../extensions/translator/Widget.qml
+msgid "English"
+msgstr "English"
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-format
+msgid "No dictionary pack is installed for %1."
+msgstr "No dictionary pack is installed for %1."
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-format
+msgid "Downloading %1..."
+msgstr "Downloading %1..."
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-format
+msgid "Installed %1."
+msgstr "Installed %1."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "The language pack could not be installed."
+msgstr "The language pack could not be installed."
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-format
+msgid "Removing %1..."
+msgstr "Removing %1..."
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-format
+msgid "Removed %1."
+msgstr "Removed %1."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "The language pack could not be removed."
+msgstr "The language pack could not be removed."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Searching..."
+msgstr "Searching..."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "The dictionary reader (sdcv) is not installed."
+msgstr "The dictionary reader (sdcv) is not installed."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "The dictionary lookup failed."
+msgstr "The dictionary lookup failed."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "No entry found."
+msgstr "No entry found."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Could not read the dictionary output."
+msgstr "Could not read the dictionary output."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Dictionary"
+msgstr "Dictionary"
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-format
+msgid "System language: %1"
+msgstr "System language: %1"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Type a word and press Enter"
+msgstr "Type a word and press Enter"
+
+#: ../extensions/dictionary/Widget.qml ../extensions/maps/Widget.qml
+msgid "Search"
+msgstr "Search"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Look up a word in the installed dictionary."
+msgstr "Look up a word in the installed dictionary."
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Language packs"
+msgstr "Language packs"
+
+#: ../extensions/dictionary/Widget.qml
+#, qt-plural-format
+msgid "%n installed"
+msgid_plural "%n installed"
+msgstr[0] "%n installed"
+msgstr[1] "%n installed"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Hide"
+msgstr "Hide"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Show"
+msgstr "Show"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Remove"
+msgstr "Remove"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "Download"
+msgstr "Download"
+
+#: ../extensions/dictionary/Widget.qml
+msgid "No language packs are available."
+msgstr "No language packs are available."
 
 #: ../extensions/disk-usage/Widget.qml
 msgid "Disk usage"
@@ -6574,10 +7438,6 @@ msgid "Searching…"
 msgstr "Searching…"
 
 #: ../extensions/maps/Widget.qml
-msgid "Search"
-msgstr "Search"
-
-#: ../extensions/maps/Widget.qml
 msgid "Tile unavailable"
 msgstr "Tile unavailable"
 
@@ -6670,7 +7530,8 @@ msgstr "%1 cycles"
 msgid "%1, %2 remaining"
 msgstr "%1, %2 remaining"
 
-#: ../extensions/pomodoro/Widget.qml ../extensions/stopwatch/Widget.qml ../extensions/tuner/Widget.qml
+#: ../extensions/pomodoro/Widget.qml ../extensions/stopwatch/Widget.qml
+#: ../extensions/tuner/Widget.qml
 msgid "Start"
 msgstr "Start"
 
@@ -6739,10 +7600,6 @@ msgstr "5 min"
 #: ../extensions/system-monitor/Widget.qml
 msgid "15 min"
 msgstr "15 min"
-
-#: ../extensions/translator/Widget.qml
-msgid "English"
-msgstr "English"
 
 #: ../extensions/translator/Widget.qml
 msgid "Portuguese (Brazil)"
@@ -6873,7 +7730,8 @@ msgstr "Pasted from the clipboard (truncated to 500 characters)."
 msgid "Pasted from the clipboard."
 msgstr "Pasted from the clipboard."
 
-#: ../extensions/translator/Widget.qml ../share/extensions/unit-converter/Widget.qml
+#: ../extensions/translator/Widget.qml
+#: ../share/extensions/unit-converter/Widget.qml
 msgid "List expanded. Use Up and Down, Enter to choose, Escape to close."
 msgstr "List expanded. Use Up and Down, Enter to choose, Escape to close."
 
@@ -7070,10 +7928,6 @@ msgstr "Note deleted"
 #: ../share/extensions/notes/Widget.qml
 msgid "Could not delete the note."
 msgstr "Could not delete the note."
-
-#: ../share/extensions/notes/Widget.qml
-msgid "Notes"
-msgstr "Notes"
 
 #: ../share/extensions/notes/Widget.qml
 msgid "No notes yet"
@@ -7295,10 +8149,6 @@ msgid "\"%1\" lists \"%2\" more than once."
 msgstr "\"%1\" lists \"%2\" more than once."
 
 #: services/ExtensionManifest.js
-msgid "Files"
-msgstr "Files"
-
-#: services/ExtensionManifest.js
 msgid "Screen"
 msgstr "Screen"
 
@@ -7365,21 +8215,33 @@ msgstr "No shortcut declared; open the tab from the top panel."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "Press %1 to open or close the %2 tab; the shortcut enables it if necessary."
-msgstr "Press %1 to open or close the %2 tab; the shortcut enables it if necessary."
+msgid ""
+"Press %1 to open or close the %2 tab; the shortcut enables it if necessary."
+msgstr ""
+"Press %1 to open or close the %2 tab; the shortcut enables it if necessary."
 
 #: services/ExtensionManifest.js
-msgid "extension.json is empty. Add a JSON object with name, description, version, icon and tab."
-msgstr "extension.json is empty. Add a JSON object with name, description, version, icon and tab."
+msgid ""
+"extension.json is empty. Add a JSON object with name, description, version, "
+"icon and tab."
+msgstr ""
+"extension.json is empty. Add a JSON object with name, description, version, "
+"icon and tab."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "extension.json is not valid JSON: %1. Fix the syntax near the reported problem."
-msgstr "extension.json is not valid JSON: %1. Fix the syntax near the reported problem."
+msgid ""
+"extension.json is not valid JSON: %1. Fix the syntax near the reported "
+"problem."
+msgstr ""
+"extension.json is not valid JSON: %1. Fix the syntax near the reported "
+"problem."
 
 #: services/ExtensionManifest.js
-msgid "extension.json must contain one JSON object, not an array or scalar value."
-msgstr "extension.json must contain one JSON object, not an array or scalar value."
+msgid ""
+"extension.json must contain one JSON object, not an array or scalar value."
+msgstr ""
+"extension.json must contain one JSON object, not an array or scalar value."
 
 #: services/ExtensionManifest.js
 #, qt-format
@@ -7387,8 +8249,10 @@ msgid "\"%1\" is required and must be a non-empty string."
 msgstr "\"%1\" is required and must be a non-empty string."
 
 #: services/ExtensionManifest.js
-msgid "The extension folder name is empty; the folder name is the extension id."
-msgstr "The extension folder name is empty; the folder name is the extension id."
+msgid ""
+"The extension folder name is empty; the folder name is the extension id."
+msgstr ""
+"The extension folder name is empty; the folder name is the extension id."
 
 #: services/ExtensionManifest.js
 msgid "\"shortcut\" must be a string such as \"Super + Alt + X\"."
@@ -7409,8 +8273,12 @@ msgid "\"requires\" cannot name the extension itself (\"%1\")."
 msgstr "\"requires\" cannot name the extension itself (\"%1\")."
 
 #: services/ExtensionManifest.js
-msgid "\"tab\" must be a relative .qml path inside the extension folder, without \"..\" or a leading slash."
-msgstr "\"tab\" must be a relative .qml path inside the extension folder, without \"..\" or a leading slash."
+msgid ""
+"\"tab\" must be a relative .qml path inside the extension folder, without "
+"\"..\" or a leading slash."
+msgstr ""
+"\"tab\" must be a relative .qml path inside the extension folder, without "
+"\"..\" or a leading slash."
 
 #: services/ExtensionManifest.js
 #, qt-format
@@ -7424,13 +8292,21 @@ msgstr "Tab file \"%1\" was not found in %2. Fix \"tab\" or add the file."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "Shadowed by %1: another folder has the same id \"%2\" at a higher priority. Only the higher-priority copy can be enabled."
-msgstr "Shadowed by %1: another folder has the same id \"%2\" at a higher priority. Only the higher-priority copy can be enabled."
+msgid ""
+"Shadowed by %1: another folder has the same id \"%2\" at a higher priority. "
+"Only the higher-priority copy can be enabled."
+msgstr ""
+"Shadowed by %1: another folder has the same id \"%2\" at a higher priority. "
+"Only the higher-priority copy can be enabled."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "Duplicate extension id \"%1\": also found in %2. Rename or remove one folder so the id is unique."
-msgstr "Duplicate extension id \"%1\": also found in %2. Rename or remove one folder so the id is unique."
+msgid ""
+"Duplicate extension id \"%1\": also found in %2. Rename or remove one folder "
+"so the id is unique."
+msgstr ""
+"Duplicate extension id \"%1\": also found in %2. Rename or remove one folder "
+"so the id is unique."
 
 #: services/ExtensionManifest.js
 #, qt-format
@@ -7439,8 +8315,12 @@ msgstr "Overrides the same id \"%1\" in %2. Only this copy is used."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "Shortcut \"%1\" is also used by %2. Change one manifest so the shortcut is unambiguous."
-msgstr "Shortcut \"%1\" is also used by %2. Change one manifest so the shortcut is unambiguous."
+msgid ""
+"Shortcut \"%1\" is also used by %2. Change one manifest so the shortcut is "
+"unambiguous."
+msgstr ""
+"Shortcut \"%1\" is also used by %2. Change one manifest so the shortcut is "
+"unambiguous."
 
 #: services/ExtensionManifest.js
 #, qt-format
@@ -7449,16 +8329,24 @@ msgstr "Dependency \"%1\" is installed but has no usable tab."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "Missing extension dependency: %1. Install it in an extensions folder (nothing is downloaded automatically) or remove it from \"requires\"."
-msgstr "Missing extension dependency: %1. Install it in an extensions folder (nothing is downloaded automatically) or remove it from \"requires\"."
+msgid ""
+"Missing extension dependency: %1. Install it in an extensions folder "
+"(nothing is downloaded automatically) or remove it from \"requires\"."
+msgstr ""
+"Missing extension dependency: %1. Install it in an extensions folder "
+"(nothing is downloaded automatically) or remove it from \"requires\"."
 
 #: services/ExtensionManifest.js
 #, qt-format
-msgid "Missing command \"%1\". Install it with your package manager or remove it from \"commands\"."
-msgstr "Missing command \"%1\". Install it with your package manager or remove it from \"commands\"."
+msgid ""
+"Missing command \"%1\". Install it with your package manager or remove it "
+"from \"commands\"."
+msgstr ""
+"Missing command \"%1\". Install it with your package manager or remove it "
+"from \"commands\"."
 
 #: plugin/src/Caelestia/Config/rootnodes.cpp
-#, qt-plural-format, c-format
+#, c-format, qt-plural-format
 msgid "Config loaded with %n issue."
 msgid_plural "Config loaded with %n issues."
 msgstr[0] "Config loaded with %n issue."
@@ -7832,6 +8720,12 @@ msgstr "Configure the shell"
 
 msgid "qalc front-end"
 msgstr "qalc front-end"
+
+msgid "Local address book"
+msgstr "Local address book"
+
+msgid "Offline Portuguese dictionary"
+msgstr "Offline Portuguese dictionary"
 
 msgid "Read-only usage for mounted filesystems"
 msgstr "Read-only usage for mounted filesystems"

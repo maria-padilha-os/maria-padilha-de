@@ -512,7 +512,7 @@ Item {
                         to: 360
                         duration: 900
                         loops: Animation.Infinite
-                        running: activityRow.visible
+                        running: activityRow.visible && !Accessibility.reducedMotion
                     }
                 }
 

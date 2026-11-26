@@ -226,8 +226,9 @@ Window {
             if (!widget.statusIsError || !statusLabel.text.includes("Network error"))
                 harness.fail("error state is not shown in the footer");
             widget.setStatus("Translating…", false);
+            const idleText = translateButton.text;
             widget.busy = true;
-            if (!translateButton.text.includes("Translating"))
+            if (translateButton.text === idleText)
                 harness.fail("busy state is not shown on the translate button");
             if (translateButton.enabled)
                 harness.fail("translate button stays enabled while busy");

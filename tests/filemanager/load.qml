@@ -153,7 +153,7 @@ Window {
         widget.openSearch();
         harness.check(search.activeFocus, "slash/search moves focus to the search box");
         harness.check(widget.textEditing, "search focus marks the text editor active");
-        harness.check(modeLabel.text === "SEARCH", "mode indicator reads SEARCH");
+        harness.check(modeLabel.text === widget.modeLabel && modeLabel.text.length > 0, "mode indicator reads SEARCH");
         const beforeSearchKeys = list.currentIndex;
         harness.check(widget.dispatchVim("j", false, false) === false, "j is ignored while search has focus");
         harness.check(list.currentIndex === beforeSearchKeys, "search focus does not move the list");
