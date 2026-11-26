@@ -15,6 +15,7 @@ Scope {
         ClipboardHistory;
         Recorder;
         Screenshot;
+        VoiceInput;
 
         if (GlobalConfig.utilities.vpn.enabled)
             VPN;

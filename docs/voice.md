@@ -70,9 +70,13 @@ shows the saved voice and speed; `set-voice` and `set-speed` change them live.
 - `session/systemd/user/padilha-voice.service` runs the daemon at login. The CLI
   can also start it on demand, so a desktop without systemd management still
   works.
-- Speech input will use the same socket and queue contract; clients should
-  treat `listen` as capability detection instead of assuming a microphone is
-  available.
+- `padilha-voice listen --events` is the speech-input/wake loop. It uses a
+  local Whisper tiny model (`padilha-voice setup-wake`), an energy VAD, and a
+  fuzzy Portuguese “Padilha” matcher. On a wake it emits `wake`; the Assistant
+  opens and the next utterance is transcribed into the composer, never
+  auto-sent.
+- The wake listener is opt-in (Assistant → Wake word) and is disabled by
+  default. Audio stays local.
 
 ## Privacy
 

@@ -73,6 +73,11 @@ Item {
 
     Component.onCompleted: {
         Assistant.start();
+        const dictated = VoiceInput.takeTranscript();
+        if (dictated.length > 0) {
+            composer.text = dictated;
+            composer.cursorPosition = composer.text.length;
+        }
         root.focusComposer();
     }
     Component.onDestruction: Assistant.stop()
@@ -262,6 +267,19 @@ Item {
                 wrapMode: Text.Wrap
                 font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3error
+            }
+
+            Connections {
+                function onTranscriptChanged(): void {
+                    const dictated = VoiceInput.takeTranscript();
+                    if (dictated.length === 0)
+                        return;
+                    composer.text = dictated;
+                    composer.cursorPosition = composer.text.length;
+                    root.resetHistory();
+                }
+
+                target: VoiceInput
             }
 
             ListView {

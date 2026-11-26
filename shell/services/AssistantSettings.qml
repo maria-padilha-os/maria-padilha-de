@@ -7,6 +7,7 @@ PersistentProperties {
     property bool enabled: true
     property bool showIndicator: true
     property bool speakReplies: false
+    property bool wakeEnabled: false
     property real widthRatio: 0.5
 
     reloadableId: "assistant"

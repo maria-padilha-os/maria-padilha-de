@@ -391,6 +391,15 @@ Scope {
             }
         }
 
+        function open(drawer: string): void {
+            if (!list().split("\n").includes(drawer))
+                return;
+            if (root.hasFullscreen && ["launcher", "session", "dashboard"].includes(drawer))
+                return;
+            const screenState = ShellState.forActive();
+            screenState[drawer] = true;
+        }
+
         function list(): string {
             const screenState = ShellState.forActive();
             return Object.keys(screenState).filter(k => typeof screenState[k] === "boolean").join("\n");

@@ -103,6 +103,20 @@ PageBase {
             onToggled: AssistantSettings.speakReplies = checked
         }
 
+        ToggleRow {
+            text: Tr.tr("Wake word")
+            subtext: Tr.tr("Listen for “Padilha” and open the Assistant with dictation")
+            checked: AssistantSettings.wakeEnabled
+            onToggled: AssistantSettings.wakeEnabled = checked
+        }
+
+        InfoRow {
+            icon: "mic"
+            label: Tr.tr("Wake status")
+            subtext: Tr.tr("Local Whisper listener; no audio leaves the machine")
+            value: !AssistantSettings.wakeEnabled ? Tr.tr("Disabled") : (VoiceInput.error.length > 0 ? VoiceInput.error : (VoiceInput.ready ? Tr.tr("Listening") : Tr.tr("Starting…")))
+        }
+
         SelectRow {
             label: Tr.tr("Voice")
             subtext: Voice.available ? Tr.tr("Kokoro local speech") : Tr.tr("Run padilha-voice setup to install the local voice")

@@ -51,9 +51,14 @@ button beside Send toggles spoken replies and is persisted with the assistant
 settings; only completed assistant answers are spoken. See
 [Padilha voice service](voice.md).
 
+The native wake listener is available through Assistant → **Wake word**.
+Say “Padilha”; the drawer opens and the next utterance is transcribed into the
+composer as editable text. It is local, opt-in, and disabled by default. See
+[Padilha voice service](voice.md) for `padilha-voice setup-wake`.
+
 The experimental browser voice-input bundle is installed in the DSH **web**
 profile for microphone input there. The native Assistant drawer does not
-consume browser plugins, so it still has no microphone button.
+consume browser plugins.
 
 ## File tools in chat
 
