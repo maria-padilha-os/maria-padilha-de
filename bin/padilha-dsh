@@ -315,24 +315,28 @@ def activity_label(name: str, arguments: Any) -> str:
     return f"Using {name}"
 
 
-MAX_IMAGE_BYTES = 12 * 1024 * 1024
+MAX_ATTACHMENT_BYTES = 12 * 1024 * 1024
 
 
-def image_content_block(path: str) -> dict[str, Any]:
-    """Encode a local image for the SDK's inline image content block."""
+def attachment_content_block(path: str) -> dict[str, Any]:
+    """Encode a local image or small UTF-8 text file as a prompt block."""
     file = Path(path).expanduser()
     if not file.is_file():
         raise SdkError(f"Attachment not found: {path}")
-    if file.stat().st_size > MAX_IMAGE_BYTES:
+    if file.stat().st_size > MAX_ATTACHMENT_BYTES:
         raise SdkError(f"Attachment is too large: {file.name}")
     mime = mimetypes.guess_type(file.name)[0] or "application/octet-stream"
-    if not mime.startswith("image/"):
-        raise SdkError(f"Only image attachments are supported: {file.name}")
-    return {
-        "type": "image",
-        "mimeType": mime,
-        "data": base64.b64encode(file.read_bytes()).decode("ascii"),
-    }
+    if mime.startswith("image/"):
+        return {
+            "type": "image",
+            "mimeType": mime,
+            "data": base64.b64encode(file.read_bytes()).decode("ascii"),
+        }
+    try:
+        body = file.read_text(encoding="utf-8")
+    except UnicodeDecodeError as error:
+        raise SdkError(f"Attachment is neither an image nor UTF-8 text: {file.name}") from error
+    return {"type": "text", "text": f"\n\nAttached file {file.name}:\n{body}"}
 
 
 class SdkError(RuntimeError):
@@ -429,7 +433,7 @@ class DshSdk:
     def prompt(self, session_id: str, text: str, attachments: list[str] | None = None) -> Iterator[dict[str, Any]]:
         blocks: list[dict[str, Any]] = [{"type": "text", "text": text}]
         for path in attachments or []:
-            blocks.append(image_content_block(path))
+            blocks.append(attachment_content_block(path))
         self._request(
             "session/prompt",
             {"sessionId": session_id, "contentBlocks": blocks},

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell.Io
 import Caelestia.Config
 import Caelestia.I18n
 import qs.components
@@ -117,6 +118,13 @@ Item {
         root.attachmentPaths = next;
     }
 
+    function copyMessage(text: string): void {
+        if (!text)
+            return;
+        copyMessageProc.command = ["sh", "-c", "printf '%s' \"$1\" | wl-copy", "sh", text];
+        copyMessageProc.running = true;
+    }
+
     Component.onCompleted: {
         Assistant.start();
         const dictated = VoiceInput.takeTranscript();
@@ -172,12 +180,18 @@ Item {
         target: Assistant
     }
 
+    Process {
+        id: copyMessageProc
+
+        command: ["true"]
+    }
+
     FileDialog {
         id: attachmentDialog
 
-        title: Tr.tr("Attach images")
-        filterLabel: Tr.tr("Images")
-        filters: ["png", "jpg", "jpeg", "webp", "gif"]
+        title: Tr.tr("Attach files")
+        filterLabel: Tr.tr("Files")
+        filters: ["*"]
         onAccepted: path => root.addAttachment(path)
     }
 
@@ -433,6 +447,20 @@ Item {
                         implicitHeight: body.contentHeight + Tokens.padding.medium * 2
                         radius: Tokens.rounding.medium
                         color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
+
+                        HoverHandler {
+                            id: bubbleHover
+                        }
+
+                        IconButton {
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            z: 2
+                            visible: bubbleHover.hovered && modelData.text.length > 0
+                            icon: "content_copy"
+                            accessibleName: Tr.tr("Copy message")
+                            onClicked: root.copyMessage(modelData.text)
+                        }
 
                         TextEdit {
                             id: body
