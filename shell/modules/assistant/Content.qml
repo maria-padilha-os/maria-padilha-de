@@ -16,6 +16,60 @@ Item {
 
     // Slightly smaller than the shell default so the transcript fits more text.
     readonly property real fontScale: 0.92
+    property int historyIndex: -1
+    property string historyDraft: ""
+
+    function questions(): var {
+        const out = [];
+        for (const message of Assistant.messages) {
+            if (message.role === "user" && typeof message.text === "string" && message.text.length > 0)
+                out.push(message.text);
+        }
+        return out;
+    }
+
+    function resetHistory(): void {
+        root.historyIndex = -1;
+        root.historyDraft = "";
+    }
+
+    function recallPrevious(): bool {
+        const entries = root.questions();
+        if (entries.length === 0)
+            return false;
+        if (root.historyIndex < 0) {
+            root.historyDraft = composer.text;
+            root.historyIndex = entries.length - 1;
+        } else if (root.historyIndex > 0) {
+            root.historyIndex--;
+        }
+        composer.text = entries[root.historyIndex];
+        composer.cursorPosition = composer.text.length;
+        return true;
+    }
+
+    function recallNext(): bool {
+        const entries = root.questions();
+        if (root.historyIndex < 0)
+            return false;
+        if (root.historyIndex < entries.length - 1) {
+            root.historyIndex++;
+            composer.text = entries[root.historyIndex];
+        } else {
+            root.historyIndex = -1;
+            composer.text = root.historyDraft;
+        }
+        composer.cursorPosition = composer.text.length;
+        return true;
+    }
+
+    function submitComposer(): void {
+        if (Assistant.streaming || composer.text.trim().length === 0)
+            return;
+        Assistant.send(composer.text);
+        composer.text = "";
+        root.resetHistory();
+    }
 
     Component.onCompleted: {
         Assistant.start();
@@ -43,6 +97,10 @@ Item {
         // scrolling, because ListView grows its estimate as delegates appear.
         function onMessagesChanged(): void {
             Qt.callLater(() => transcript.positionViewAtEnd());
+        }
+
+        function onSessionIdChanged(): void {
+            root.resetHistory();
         }
 
         function onSessionsRequested(): void {
@@ -298,14 +356,20 @@ Item {
                         enabled: Assistant.ready && !Assistant.streaming && !Assistant.sessionOwned
 
                         Keys.onPressed: event => {
-                            if (event.key === Qt.Key_Escape) {
+                            const plain = !(event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
+                            if (event.key === Qt.Key_Up && plain && (composer.text.indexOf("\n") === -1 || composer.cursorPosition === 0)) {
+                                if (root.recallPrevious())
+                                    event.accepted = true;
+                            } else if (event.key === Qt.Key_Down && plain && (composer.text.indexOf("\n") === -1 || composer.cursorPosition === composer.text.length)) {
+                                if (root.recallNext())
+                                    event.accepted = true;
+                            } else if (event.key === Qt.Key_Escape) {
                                 Assistant.cancelOrClose();
                                 event.accepted = true;
                             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                 if (event.modifiers & Qt.ShiftModifier)
                                     return;
-                                Assistant.send(text);
-                                text = "";
+                                root.submitComposer();
                                 event.accepted = true;
                             }
                         }
@@ -322,7 +386,7 @@ Item {
                     icon: Assistant.streaming ? "stop" : "send"
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
                     enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && composer.text.trim().length > 0)
-                    onClicked: Assistant.streaming ? Assistant.cancel() : Assistant.send(composer.text)
+                    onClicked: Assistant.streaming ? Assistant.cancel() : root.submitComposer()
                 }
             }
 
