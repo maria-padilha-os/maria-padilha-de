@@ -238,10 +238,22 @@ Item {
         if (translated.length > 0) {
             resultPanel.text = sourcePanel.text;
             sourcePanel.text = translated;
-            root.setStatus(Tr.tr("Languages and text swapped."), false);
-        } else {
-            root.setStatus(Tr.tr("Languages swapped."), false);
         }
+
+        // Swapping with text in the source is also a translate gesture: run the
+        // request in the new direction instead of making the user press
+        // Translate again. `translate()` keeps its own empty, length and
+        // same-language checks, so a swap that cannot be translated only
+        // updates the status line.
+        if (fromPicker.selectedIndex !== toPicker.selectedIndex && sourcePanel.text.trim().length > 0) {
+            root.translate();
+            return;
+        }
+
+        if (translated.length > 0)
+            root.setStatus(Tr.tr("Languages and text swapped."), false);
+        else
+            root.setStatus(Tr.tr("Languages swapped."), false);
     }
 
     ColumnLayout {
