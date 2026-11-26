@@ -152,19 +152,11 @@ Item {
                 }
 
                 StyledText {
-                    Layout.maximumWidth: 190
-                    text: Assistant.streaming ? (Assistant.activity.length > 0 ? Assistant.activity : Tr.tr("Working…")) : Tr.tr("Ready")
-                    color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
-                    font: Tokens.font.label.builders.small.scale(root.fontScale).build()
-                    elide: Text.ElideRight
-                }
-
-                StyledText {
                     text: Assistant.modelLabel
                     font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                     color: Colours.palette.m3onSurfaceVariant
                     elide: Text.ElideRight
-                    Layout.maximumWidth: 110
+                    Layout.maximumWidth: 150
                 }
 
                 IconButton {
@@ -338,6 +330,7 @@ Item {
                         Layout.maximumWidth: fromUser ? maxBubbleWidth : transcript.width
                         Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.implicitWidth + Tokens.padding.medium * 2) : transcript.width
                         Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
+                        visible: fromUser || !modelData.streaming || modelData.text.length > 0
                         implicitHeight: body.implicitHeight + Tokens.padding.medium * 2
                         radius: Tokens.rounding.medium
                         color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
@@ -348,7 +341,7 @@ Item {
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.medium
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
-                            text: (modelData.text || (modelData.streaming ? Tr.tr("Thinking…") : "")) + (modelData.streaming ? " ▍" : "")
+                            text: modelData.text || ""
                             wrapMode: Text.Wrap
                             textFormat: bubble.fromUser ? Text.PlainText : Text.MarkdownText
                             color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
