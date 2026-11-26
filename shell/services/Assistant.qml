@@ -14,6 +14,9 @@ Singleton {
     property string selectedModel: ""
     property list<var> models: []
     property list<var> roots: []
+    property list<var> sessions: []
+    property string sessionId: ""
+    property string sessionTitle: ""
     property list<var> messages: []
     property int nextId: 1
     property int activeId: -1
@@ -22,9 +25,10 @@ Singleton {
 
     readonly property bool configured: models.length > 0
     readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : Tr.trN("%n folder granted", "%n folders granted", roots.length)
+    readonly property string sessionLabel: sessionTitle.length > 0 ? sessionTitle : Tr.tr("No DSH session")
     readonly property string modelLabel: {
         const model = models.find(m => m.id === selectedModel);
-        return model ? model.name : Tr.tr("No model configured");
+        return model ? model.name : Tr.tr("DeepSeek Harness");
     }
 
     function handle(line: string): void {
@@ -41,12 +45,33 @@ Singleton {
         case "ready":
             root.ready = true;
             root.models = event.models || [];
-            root.roots = event.root_entries || [];
+            root.roots = event.roots || [];
             root.selectedModel = root.selectedModel || (root.models[0]?.id ?? "");
-            root.restoreHistory(event.history);
-            root.error = event.chat ? "" : Tr.tr("No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.");
+            root.sessions = event.sessions || [];
+            root.sessionId = event.sessionId || "";
+            root.sessionTitle = event.sessionTitle || "";
+            root.setHistory(event.history, false);
+            root.error = "";
             break;
-        case "done": {
+        case "history":
+            root.sessionId = event.sessionId || root.sessionId;
+            root.sessionTitle = event.sessionTitle || "";
+            root.messages = [];
+            root.setHistory(event.history, true);
+            root.streaming = false;
+            root.activeId = -1;
+            break;
+        case "new":
+            root.sessionId = event.sessionId || "";
+            root.sessionTitle = "";
+            root.messages = [];
+            root.error = "";
+            break;
+        case "session":
+            root.sessionId = event.sessionId || root.sessionId;
+            root.sessionTitle = event.sessionTitle || root.sessionTitle;
+            break;
+        case "assistant": {
             if (event.id !== root.activeId)
                 return;
             const index = root.messages.findIndex(m => m.id === event.id);
@@ -54,6 +79,20 @@ Singleton {
                 const next = root.messages.slice();
                 next[index] = Object.assign({}, next[index], {
                     text: event.text || "",
+                    streaming: true,
+                });
+                root.messages = next;
+            }
+            break;
+        }
+        case "done": {
+            if (event.id !== root.activeId)
+                return;
+            const index = root.messages.findIndex(m => m.id === event.id);
+            if (index >= 0) {
+                const next = root.messages.slice();
+                next[index] = Object.assign({}, next[index], {
+                    text: event.text || next[index].text || "",
                     streaming: false,
                     cancelled: event.stop === "cancelled",
                 });
@@ -64,9 +103,9 @@ Singleton {
             break;
         }
         case "error": {
-            if (event.id !== root.activeId && event.id !== undefined)
+            if (event.id !== undefined && event.id !== root.activeId)
                 return;
-            root.error = event.message || Tr.tr("Assistant request failed");
+            root.error = event.message || Tr.tr("DSH request failed");
             const index = root.messages.findIndex(m => m.id === root.activeId);
             if (index >= 0) {
                 const next = root.messages.slice();
@@ -84,8 +123,10 @@ Singleton {
         }
     }
 
-    function restoreHistory(entries: var): void {
-        if (root.messages.length > 0 || !Array.isArray(entries) || entries.length === 0)
+    function setHistory(entries: var, replace: bool): void {
+        if (!replace && root.messages.length > 0)
+            return;
+        if (!Array.isArray(entries))
             return;
         const restored = entries
             .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
@@ -95,8 +136,7 @@ Singleton {
                 text: entry.text,
                 streaming: false,
             }));
-        if (restored.length > 0)
-            root.messages = restored;
+        root.messages = restored;
     }
 
     function send(text: string): void {
@@ -104,16 +144,11 @@ Singleton {
         if (!text || root.streaming || !root.ready)
             return;
         if (!root.configured) {
-            root.error = Tr.tr("No chat provider configured. Add models and providers to ~/.config/padilha/ai.lua.");
+            root.error = Tr.tr("DSH is not ready");
             return;
         }
 
         const id = root.nextId++;
-        const history = root.messages
-            .filter(m => !m.streaming && !m.error && m.role !== "notice")
-            .map(m => ({ role: m.role, content: m.text }));
-        history.push({ role: "user", content: text });
-
         root.messages = root.messages.concat([
             { id: id + "-user", role: "user", text: text, streaming: false },
             { id: id, role: "assistant", text: "", streaming: true },
@@ -124,8 +159,8 @@ Singleton {
         process.write(JSON.stringify({
             cmd: "chat",
             id: id,
-            model: root.selectedModel,
-            messages: history,
+            sessionId: root.sessionId,
+            text: text,
         }) + "\n");
     }
 
@@ -149,11 +184,25 @@ Singleton {
     }
 
     function newChat(): void {
-        root.cancel();
+        if (root.streaming)
+            root.cancel();
         if (root.started)
             process.write(JSON.stringify({ cmd: "new_chat" }) + "\n");
+        root.sessionId = "";
+        root.sessionTitle = "";
         root.messages = [];
         root.error = "";
+    }
+
+    function selectSession(id: string): void {
+        if (!id || root.streaming || id === root.sessionId)
+            return;
+        root.sessionId = id;
+        root.sessionTitle = "";
+        root.messages = [];
+        root.error = "";
+        if (root.started)
+            process.write(JSON.stringify({ cmd: "load", sessionId: id }) + "\n");
     }
 
     function selectModel(id: string): void {
@@ -183,7 +232,7 @@ Singleton {
     Process {
         id: process
 
-        command: ["padilha-ai", "--stdio"]
+        command: ["padilha-dsh", "--stdio"]
         running: root.started
         stdinEnabled: true
 
@@ -194,7 +243,7 @@ Singleton {
         stderr: SplitParser {
             onRead: line => {
                 if (line.trim().length > 0)
-                    console.warn("padilha-ai:", line);
+                    console.warn("padilha-dsh:", line);
             }
         }
 
@@ -206,7 +255,7 @@ Singleton {
                 root.stopping = false;
                 return;
             }
-            root.error = Tr.tr("Assistant backend exited.");
+            root.error = Tr.tr("DSH backend exited.");
         }
     }
 }

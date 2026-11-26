@@ -9,7 +9,6 @@ set -u
 
 [ "${PADILHA_SKIP_ICONS:-0}" = 1 ] && exit 0
 
-bin_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd) || exit 1
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/caelestia"
 scheme="$state_dir/scheme.json"
 wallpaper_file="$state_dir/wallpaper/path.txt"
@@ -53,7 +52,6 @@ PY
 esac
 
 source_theme="/usr/share/icons/$theme"
-target_theme="$icons_dir/$theme"
 [ -d "$source_theme" ] || exit 0
 
 mkdir -p "$icons_dir"

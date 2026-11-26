@@ -48,15 +48,15 @@ PageBase {
         InfoRow {
             icon: "hub"
             label: Tr.tr("Provider")
-            subtext: Tr.tr("Configured in ~/.config/padilha/ai.lua")
+            subtext: Tr.tr("DeepSeek Harness SDK")
             value: Assistant.configured ? Assistant.modelLabel : Tr.tr("Not configured")
         }
 
         InfoRow {
             icon: "folder"
             label: Tr.tr("Access")
-            subtext: Tr.tr("Managed by padilha-ai")
-            value: Assistant.rootsLabel
+            subtext: Tr.tr("Local DSH session history")
+            value: Tr.trN("%n session", "%n sessions", Assistant.sessions.length)
         }
     }
 }

@@ -89,8 +89,16 @@ Item {
                 }
 
                 IconButton {
+                    id: historyButton
+
+                    icon: "history"
+                    accessibleName: Tr.tr("DSH sessions")
+                    onClicked: sessionsPopup.open()
+                }
+
+                IconButton {
                     icon: "add_comment"
-                    accessibleName: Tr.tr("New assistant chat")
+                    accessibleName: Tr.tr("New DSH session")
                     onClicked: Assistant.newChat()
                 }
 
@@ -103,10 +111,82 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: Assistant.rootsLabel
+                text: Assistant.sessionLabel
                 font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
+            }
+
+            Popup {
+                id: sessionsPopup
+
+                parent: historyButton
+                x: historyButton.width - width
+                y: historyButton.height + 6
+                width: 360
+                height: 360
+                padding: 8
+                modal: false
+                focus: true
+                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+                background: StyledRect {
+                    radius: Tokens.rounding.medium
+                    color: Colours.tPalette.m3surfaceContainerHigh
+                }
+
+                contentItem: ListView {
+                    id: sessionsList
+
+                    anchors.fill: parent
+                    clip: true
+                    model: Assistant.sessions
+                    spacing: 2
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    delegate: ItemDelegate {
+                        id: sessionDelegate
+
+                        required property var modelData
+
+                        width: sessionsList.width
+                        height: 56
+                        padding: 0
+                        onClicked: {
+                            Assistant.selectSession(modelData.id);
+                            sessionsPopup.close();
+                        }
+
+                        background: StyledRect {
+                            radius: Tokens.rounding.small
+                            color: sessionDelegate.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent"
+                        }
+
+                        contentItem: StyledText {
+                            anchors.fill: parent
+                            anchors.leftMargin: Tokens.padding.small
+                            anchors.rightMargin: Tokens.padding.small
+                            verticalAlignment: Text.AlignVCenter
+                            text: sessionDelegate.modelData.title
+                            elide: Text.ElideRight
+                            font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                            color: Colours.palette.m3onSurface
+                        }
+
+                        StyledText {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.leftMargin: Tokens.padding.small
+                            anchors.rightMargin: Tokens.padding.small
+                            anchors.bottomMargin: Tokens.padding.extraSmall
+                            text: Qt.formatDateTime(new Date(sessionDelegate.modelData.updated), "dd/MM HH:mm")
+                            elide: Text.ElideRight
+                            font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                            color: Colours.palette.m3onSurfaceVariant
+                        }
+                    }
+                }
             }
 
             StyledText {
@@ -233,7 +313,7 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: Assistant.configured ? Tr.tr("Read-only · grants are managed by padilha-ai") : Tr.tr("Configure a provider in ~/.config/padilha/ai.lua")
+                text: Assistant.configured ? Tr.tr("Local DeepSeek Harness session · one writer per session") : Tr.tr("DeepSeek Harness is not ready")
                 font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight

@@ -1,21 +1,31 @@
 ---
 layout: default
-title: Assistant home access
+title: Assistant and DSH
 ---
 
-# Assistant home access
+The **Assistant** drawer is now a native front-end to DeepSeek Harness. It
+reads DSH session history from `~/.dsh/sessions`, lets you switch between
+sessions, and sends new prompts through `dsh sdk`. It does not see the DSH
+provider key. Toggle it with `Super + A` or the sparkle button in the bar.
 
-The assistant's home-folder broker, `padilha-ai`, is the permission boundary
-from [ADR 0001](adr/0001-built-in-ai-assistant.md). It exposes only the
-directories the user approves, reads text files by default, redacts
-secret-shaped content before returning it, and writes only after a separate
-one-operation confirmation. It is not a shell.
+The older home-folder broker, `padilha-ai`, remains available as a CLI
+permission boundary from [ADR 0001](adr/0001-built-in-ai-assistant.md). It
+exposes only the directories the user approves, reads text files by default,
+redacts secret-shaped content before returning it, and writes only after a
+separate one-operation confirmation. It is not a shell, and it is no longer
+the drawer's chat backend.
 
-The companion **Assistant** drawer talks to the same process over
-newline-delimited JSON (`padilha-ai --stdio`). The panel never receives the
-provider key or raw filesystem access; it sends messages and model metadata to
-the child and renders redacted replies. Toggle it with `Super + A` or the
-sparkle button in the bar.
+## DSH sessions and the single-writer rule
+
+History is read directly from the compressed DSH session logs; the widget's
+session button lists recent sessions with their timestamps. A live DSH session
+has one writer: while `dsh-tui` owns a session, the widget can display its
+history but a prompt returns “already owned by an active write handle.” Close
+the TUI session or start a new chat in the widget to send.
+
+DSH needs its own model credential. Store it through the DSH web Models page or
+export `DEEPSEEK_API_KEY` in the environment that launches `padilha-dsh`; the
+widget and this repository never contain the key.
 
 ## File tools in chat
 
@@ -28,16 +38,13 @@ instead of an error.
 Writes are not part of the chat loop yet: `write_file` stays behind the CLI's
 two-step `write`/`confirm` flow until the panel has its confirmation card.
 
-## Persistent transcript
+## Session history
 
-`history = "off"` is the default. Set `history = "persist"` in `ai.lua` to keep
-the conversation across shell restarts and reboots: the backend writes a JSONL
-transcript under the broker's state directory
-(`~/.local/state/padilha/ai/transcript.jsonl`) with mode `0600` and no automatic
-pruning. The next panel session restores it from the `ready` event. "New chat"
-clears the file; deleting it is equivalent. The user's message is written
-before the provider request, so a failed or interrupted turn still keeps the
-conversation up to that point.
+The drawer's history is DSH's own session log, so it survives shell restarts,
+TUI restarts and reboots without a separate transcript. The old
+`padilha-ai` opt-in transcript (`history = "persist"` in `ai.lua`,
+`~/.local/state/padilha/ai/transcript.jsonl`) still belongs to the broker CLI;
+the panel no longer writes or restores it.
 
 ## No roots approved
 
@@ -132,7 +139,11 @@ Declare a model and provider in `ai.lua`:
 return {
     default_model = "local",
     models = {
-        ["local"] = { provider = "local", model = "qwen2.5-coder:7b", context = 32768 },
+        ["local"] = {
+            provider = "local",
+            model = "qwen2.5-coder:7b",
+            context = 32768,
+        },
     },
     providers = {
         ["local"] = {
@@ -150,7 +161,10 @@ file (also `0600`). The `secret-service` and `pass` stores are not implemented
 in this build; the request fails with `credential_unavailable` instead of
 falling back to an insecure source.
 
-`padilha-ai --stdio` emits a `ready` event with the configured models. A
-`chat` command returns a single `done` event with the answer; the current
-transport is non-streaming. The panel shows the configured roots and a
-`chat_not_configured` notice when no provider is available.
+`padilha-dsh --stdio` emits a `ready` event with recent DSH sessions and the
+latest session history. `load` switches sessions, `new_chat` creates a fresh
+DSH id, and `chat` forwards the prompt to `dsh sdk`; its session events are
+translated back to the panel as assistant text and a final `done`.
+
+The old `padilha-ai --stdio` chat transport remains for the broker CLI. It is
+non-streaming and returns a single `done` event.

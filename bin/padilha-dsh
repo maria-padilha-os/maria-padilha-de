@@ -1,0 +1,459 @@
+#!/usr/bin/python3
+"""Small stdio adapter that lets the desktop widget drive DeepSeek Harness.
+
+The widget speaks one JSON object per line. History and the session list come
+from DSH's on-disk session logs; prompts are forwarded to `dsh sdk`, whose
+JSON-RPC notifications are translated back into the widget's message events.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+import threading
+import time
+import uuid
+from pathlib import Path
+from typing import Any, Iterator
+
+DSH_HOME = Path(os.environ.get("DSH_HOME", Path.home() / ".dsh")).expanduser()
+PROVIDER = os.environ.get("PADILHA_DSH_PROVIDER", "deepseek-official")
+MODEL = os.environ.get("PADILHA_DSH_MODEL", "deepseek-flash")
+MAX_HISTORY = 80
+MAX_LIST = 30
+PROMPT_TIMEOUT = 60 * 15
+
+
+def emit(payload: dict[str, Any]) -> None:
+    sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def session_dirs() -> list[Path]:
+    root = DSH_HOME / "sessions"
+    if not root.is_dir():
+        return []
+    out: list[Path] = []
+    try:
+        projects = [p for p in root.iterdir() if p.is_dir()]
+    except OSError:
+        return []
+    for project in projects:
+        try:
+            out.extend(p for p in project.iterdir() if p.is_dir())
+        except OSError:
+            continue
+    def modified(session: Path) -> float:
+        log = log_path(session)
+        try:
+            return log.stat().st_mtime if log is not None else session.stat().st_mtime
+        except OSError:
+            return 0
+
+    return sorted(out, key=modified, reverse=True)
+
+
+def log_path(session: Path) -> Path | None:
+    for candidate in (session / "session.v4.jsonl.zstd", session / "session.jsonl.zstd"):
+        if candidate.is_file():
+            return candidate
+    return None
+
+
+def events(path: Path, limit: int | None = None) -> Iterator[dict[str, Any]]:
+    proc = subprocess.Popen(
+        ["zstd", "-dc", str(path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+    assert proc.stdout is not None
+    try:
+        for line in proc.stdout:
+            if limit is not None and limit <= 0:
+                break
+            if limit is not None:
+                limit -= 1
+            try:
+                event = json.loads(line)
+            except ValueError:
+                continue
+            if isinstance(event, dict):
+                yield event
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=1)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
+
+def text_blocks(content: Any) -> str:
+    if not isinstance(content, list):
+        return ""
+    parts: list[str] = []
+    for block in content:
+        if isinstance(block, dict) and block.get("type") == "text":
+            text = block.get("text")
+            if isinstance(text, str) and text.strip():
+                parts.append(text)
+    return "\n\n".join(parts).strip()
+
+
+def history(path: Path, max_messages: int = MAX_HISTORY) -> list[dict[str, str]]:
+    out: list[dict[str, str]] = []
+    for event in events(path):
+        kind = event.get("type")
+        data = event.get("data")
+        if not isinstance(data, dict):
+            continue
+        if kind == "user/message":
+            source = data.get("source")
+            if not isinstance(source, dict) or source.get("kind") != "user":
+                continue
+            text = text_blocks(data.get("content"))
+            if text:
+                out.append({"role": "user", "text": text})
+        elif kind == "assistant/message":
+            message = data.get("message")
+            if not isinstance(message, dict):
+                continue
+            text = text_blocks(message.get("content"))
+            if text:
+                out.append({"role": "assistant", "text": text})
+    return out[-max_messages:]
+
+
+def command_like(text: str) -> bool:
+    text = text.strip()
+    return (
+        text.startswith(("DSH_", "(", "cd ", "exec ", "bash ", "zsh ", "fish "))
+        or "dsh --profile" in text
+    )
+
+
+def first_user(path: Path) -> tuple[str, str]:
+    """Return (title, cwd) using the first real user prompt in a session."""
+    title = ""
+    fallback = ""
+    cwd = ""
+    for event in events(path, limit=600):
+        if not cwd and event.get("type") == "session":
+            candidate = event.get("cwd")
+            if isinstance(candidate, str):
+                cwd = candidate
+        if event.get("type") == "user/message":
+            data = event.get("data")
+            if not isinstance(data, dict):
+                continue
+            source = data.get("source")
+            if not isinstance(source, dict) or source.get("kind") != "user":
+                continue
+            text = text_blocks(data.get("content")).strip()
+            if not text or text in (".", "..", "/", "?"):
+                continue
+            if not fallback:
+                fallback = " ".join(text.split())[:72]
+            if command_like(text):
+                continue
+            title = " ".join(text.split())[:72]
+            break
+    return title or fallback, cwd
+
+
+def session_summary(session: Path) -> dict[str, Any] | None:
+    path = log_path(session)
+    if path is None:
+        return None
+    title, cwd = first_user(path)
+    if not title:
+        return None
+    try:
+        updated = path.stat().st_mtime
+    except OSError:
+        updated = 0
+    if command_like(title):
+        title = Path(cwd).name if cwd else "DSH session"
+    return {
+        "id": session.name,
+        "title": title,
+        "cwd": cwd,
+        "updated": int(updated * 1000),
+    }
+
+
+def list_sessions() -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for session in session_dirs():
+        item = session_summary(session)
+        if item is not None:
+            out.append(item)
+        if len(out) >= MAX_LIST:
+            break
+    return out
+
+
+def find_session(session_id: str) -> Path | None:
+    for session in session_dirs():
+        if session.name == session_id:
+            return session
+    return None
+
+
+def resolve_session(session_id: str | None) -> tuple[str, Path | None]:
+    if session_id:
+        path = find_session(session_id)
+        if path is not None:
+            return session_id, path
+        return session_id, None
+    return str(uuid.uuid4()), None
+
+
+class SdkError(RuntimeError):
+    pass
+
+
+class Cancelled(RuntimeError):
+    pass
+
+
+class DshSdk:
+    def __init__(self) -> None:
+        self.proc: subprocess.Popen[str] | None = None
+        self.next_id = 1
+        self.initialized = False
+        self.cancel = threading.Event()
+        self.lock = threading.Lock()
+
+    def _ensure(self, cwd: str) -> None:
+        if self.proc is not None and self.proc.poll() is None:
+            return
+        self.proc = subprocess.Popen(
+            ["dsh", "sdk"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+        )
+        self.initialized = False
+        self.next_id = 1
+        self._request(
+            "initialize",
+            {
+                "cwd": cwd,
+                "provider": PROVIDER,
+                "model": MODEL,
+            },
+        )
+        self.initialized = True
+
+    def _write(self, payload: dict[str, Any]) -> None:
+        if self.proc is None or self.proc.stdin is None:
+            raise SdkError("DSH SDK process is not running")
+        with self.lock:
+            self.proc.stdin.write(json.dumps(payload) + "\n")
+            self.proc.stdin.flush()
+
+    def _read(self) -> dict[str, Any]:
+        if self.proc is None or self.proc.stdout is None:
+            raise SdkError("DSH SDK process is not running")
+        line = self.proc.stdout.readline()
+        if not line:
+            raise SdkError("DSH SDK process exited")
+        try:
+            message = json.loads(line)
+        except ValueError as error:
+            raise SdkError(f"invalid DSH SDK frame: {error}") from error
+        if not isinstance(message, dict):
+            raise SdkError("invalid DSH SDK frame")
+        return message
+
+    def _request(self, method: str, params: dict[str, Any] | None = None) -> Any:
+        request_id = self.next_id
+        self.next_id += 1
+        payload: dict[str, Any] = {"jsonrpc": "2.0", "id": request_id, "method": method}
+        if params is not None:
+            payload["params"] = params
+        self._write(payload)
+        while True:
+            if self.cancel.is_set():
+                raise Cancelled()
+            message = self._read()
+            if message.get("id") != request_id:
+                continue
+            if "error" in message:
+                error = message["error"]
+                raise SdkError(error.get("message", str(error)) if isinstance(error, dict) else str(error))
+            return message.get("result")
+
+    def resume(self, session_id: str, cwd: str) -> None:
+        self._ensure(cwd)
+        self._request("session/resume", {"sessionId": session_id})
+
+    def prompt(self, session_id: str, text: str) -> Iterator[dict[str, Any]]:
+        self._request(
+            "session/prompt",
+            {"sessionId": session_id, "contentBlocks": [{"type": "text", "text": text}]},
+        )
+        deadline = time.monotonic() + PROMPT_TIMEOUT
+        saw_assistant = False
+        while True:
+            if self.cancel.is_set():
+                raise Cancelled()
+            if time.monotonic() > deadline:
+                raise SdkError("DSH turn timed out")
+            message = self._read()
+            if message.get("method") != "session.event":
+                continue
+            params = message.get("params") or {}
+            if params.get("sessionId") != session_id:
+                continue
+            event = params.get("event") or {}
+            kind = event.get("type")
+            data = event.get("data")
+            if kind == "assistant/message" and isinstance(data, dict):
+                content = data.get("message", {}).get("content") if isinstance(data.get("message"), dict) else None
+                body = text_blocks(content)
+                if body:
+                    saw_assistant = True
+                    yield {"kind": "assistant", "text": body}
+            elif kind == "turn/end":
+                reason = data.get("reason") if isinstance(data, dict) else None
+                if isinstance(reason, dict) and reason.get("kind") == "error":
+                    error = reason.get("error")
+                    if isinstance(error, dict):
+                        raise SdkError(str(error.get("message") or "DSH turn failed"))
+                    raise SdkError("DSH turn failed")
+                yield {"kind": "done"}
+                return
+            elif kind == "session/status" and isinstance(data, dict) and data.get("status") == "idle" and saw_assistant:
+                yield {"kind": "done"}
+                return
+
+    def stop(self) -> None:
+        self.cancel.set()
+        proc = self.proc
+        if proc is None:
+            return
+        if proc.poll() is None:
+            try:
+                proc.terminate()
+                proc.wait(timeout=2)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+        self.proc = None
+        self.initialized = False
+
+
+def main() -> int:
+    sdk = DshSdk()
+    sessions = list_sessions()
+
+    def default_session(item: dict[str, Any]) -> bool:
+        return "/agents/worktrees/" not in str(item.get("cwd") or "")
+
+    active = next((item for item in sessions if default_session(item)), sessions[0] if sessions else None)
+    active_id = active["id"] if active else ""
+    active_path = find_session(active_id) if active_id else None
+    active_log = log_path(active_path) if active_path else None
+    active_history = history(active_log) if active_log else []
+    emit(
+        {
+            "type": "ready",
+            "backend": "padilha-dsh",
+            "models": [{"id": MODEL, "name": "DeepSeek Flash"}],
+            "roots": [],
+            "history": active_history,
+            "sessionId": active_id,
+            "sessionTitle": active["title"] if active else "",
+            "sessions": sessions,
+        }
+    )
+
+    for raw in sys.stdin:
+        try:
+            request = json.loads(raw)
+        except ValueError:
+            continue
+        if not isinstance(request, dict):
+            continue
+        command = request.get("cmd")
+        if command == "load":
+            session_id = str(request.get("sessionId") or "")
+            path = find_session(session_id)
+            if path is None:
+                emit({"type": "error", "message": "DSH session not found"})
+                continue
+            summary = session_summary(path)
+            log = log_path(path)
+            emit(
+                {
+                    "type": "history",
+                    "sessionId": session_id,
+                    "sessionTitle": summary["title"] if summary else "",
+                    "history": history(log) if log else [],
+                }
+            )
+        elif command == "new_chat":
+            emit({"type": "new", "sessionId": str(uuid.uuid4()), "sessionTitle": ""})
+        elif command == "chat":
+            session_id = str(request.get("sessionId") or "")
+            text = str(request.get("text") or "").strip()
+            if not text:
+                continue
+            session_id, path = resolve_session(session_id or None)
+            if not path:
+                emit({"type": "session", "sessionId": session_id, "sessionTitle": ""})
+
+            def worker(session_id: str = session_id, path: Path | None = path, text: str = text) -> None:
+                try:
+                    cwd = ""
+                    if path is not None:
+                        log = log_path(path)
+                        if log is not None:
+                            _title, cwd = first_user(log)
+                    sdk.cancel.clear()
+                    if path is not None:
+                        sdk.resume(session_id, cwd or str(Path.home()))
+                    else:
+                        sdk._ensure(cwd or str(Path.home()))
+                    last = ""
+                    for item in sdk.prompt(session_id, text):
+                        if item["kind"] == "assistant":
+                            last = item["text"]
+                            emit({"type": "assistant", "id": request.get("id"), "text": last})
+                        elif item["kind"] == "done":
+                            emit({"type": "done", "id": request.get("id"), "text": last, "stop": "complete"})
+                            break
+                except Cancelled:
+                    emit({"type": "done", "id": request.get("id"), "text": "", "stop": "cancelled"})
+                except Exception as error:
+                    message = str(error)
+                    if "already owned by an active write handle" in message:
+                        message = "This session is open in dsh-tui. Close it there or start a new session."
+                    emit({"type": "error", "id": request.get("id"), "message": message})
+                finally:
+                    pass
+
+            threading.Thread(target=worker, daemon=True).start()
+        elif command == "cancel":
+            sdk.stop()
+        elif command == "shutdown":
+            sdk.stop()
+            return 0
+    sdk.stop()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
