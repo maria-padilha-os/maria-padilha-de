@@ -38,6 +38,7 @@ Singleton {
         preload: true
         watchChanges: true
         atomicWrites: true
+        printErrors: false
 
         onLoaded: root.read()
         onTextChanged: root.read()

@@ -378,7 +378,10 @@ def main() -> int:
 
     measurements = []
     for index in range(args.repetitions):
-        with tempfile.TemporaryDirectory(prefix="padilha-perf-") as temporary:
+        # Quickshell can leave a child writer settling for a moment after its
+        # process group is stopped; a cleanup race must not turn a load result
+        # into a false performance failure.
+        with tempfile.TemporaryDirectory(prefix="padilha-perf-", ignore_cleanup_errors=True) as temporary:
             scratch = Path(temporary)
             measurement = measure_once(root, scratch, args.settle, args.sample)
             measurements.append(measurement)

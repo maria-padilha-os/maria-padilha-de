@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maria-padilha-de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 16:49-0300\n"
+"POT-Creation-Date: 2026-11-26 17:09-0300\n"
 "PO-Revision-Date: 2026-11-18 07:59-0300\n"
 "Last-Translator: Maria Padilha contributors\n"
 "Language-Team: Portuguese (Brazil)\n"
@@ -152,6 +152,19 @@ msgid "Screenshot copied to clipboard"
 msgstr "Captura de tela copiada para a área de transferência"
 
 #: modules/assistant/Content.qml
+msgid "Rename session"
+msgstr "Renomear sessão"
+
+#: modules/assistant/Content.qml modules/nexus/SettingsCatalog.qml
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: modules/assistant/Content.qml modules/nexus/SettingsCatalog.qml
+#: ../extensions/contacts/Widget.qml ../share/extensions/notes/Widget.qml
+msgid "Save"
+msgstr "Salvar"
+
+#: modules/assistant/Content.qml
 msgid "Attach files"
 msgstr "Anexar arquivos"
 
@@ -182,12 +195,32 @@ msgid "Search sessions"
 msgstr "Pesquisar sessões"
 
 #: modules/assistant/Content.qml
+msgid "Unarchive session"
+msgstr "Desarquivar sessão"
+
+#: modules/assistant/Content.qml
+msgid "Archive session"
+msgstr "Arquivar sessão"
+
+#: modules/assistant/Content.qml
 msgid "Unpin session"
 msgstr "Desafixar sessão"
 
 #: modules/assistant/Content.qml
 msgid "Pin session"
 msgstr "Fixar sessão"
+
+#: modules/assistant/Content.qml
+msgid "Hide archived sessions"
+msgstr "Ocultar sessões arquivadas"
+
+#: modules/assistant/Content.qml
+msgid "Show archived sessions"
+msgstr "Mostrar sessões arquivadas"
+
+#: modules/assistant/Content.qml
+msgid "Archived sessions shown"
+msgstr "Sessões arquivadas exibidas"
 
 #: modules/assistant/Content.qml
 msgid "Copy message"
@@ -4820,10 +4853,6 @@ msgid "Join this network"
 msgstr "Conectar-se a esta rede"
 
 #: modules/nexus/SettingsCatalog.qml
-msgid "Cancel"
-msgstr "Cancelar"
-
-#: modules/nexus/SettingsCatalog.qml
 msgid "Cancel adding a network"
 msgstr "Cancelar a adição de uma rede"
 
@@ -4878,11 +4907,6 @@ msgstr "Comandos opcionais de conectar e desconectar"
 #: modules/nexus/SettingsCatalog.qml
 msgid "Remove this VPN provider"
 msgstr "Remover este provedor VPN"
-
-#: modules/nexus/SettingsCatalog.qml ../extensions/contacts/Widget.qml
-#: ../share/extensions/notes/Widget.qml
-msgid "Save"
-msgstr "Salvar"
 
 #: modules/nexus/SettingsCatalog.qml
 msgid "Save this VPN provider"
@@ -6456,7 +6480,9 @@ msgstr "DSH request failed"
 msgid ""
 "Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /"
 "btw and /compact require dsh-tui."
-msgstr "Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /btw and /compact require dsh-tui."
+msgstr ""
+"Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /"
+"btw and /compact require dsh-tui."
 
 #: services/Assistant.qml
 msgid "Unknown widget command. Use /help, or run DSH commands in dsh-tui."

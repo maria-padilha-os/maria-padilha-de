@@ -27,15 +27,25 @@ Singleton {
     property int activeId: -1
     property bool started: false
     property bool stopping: false
-    readonly property string pinsPath: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/padilha/dsh-pinned.json"
+    readonly property string configDir: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/padilha"
+    readonly property string pinsPath: configDir + "/dsh-pinned.json"
+    readonly property string aliasesPath: configDir + "/dsh-session-aliases.json"
+    readonly property string archivedPath: configDir + "/dsh-session-archived.json"
     property var pinned: []
+    property var aliases: ({})
+    property var archived: []
 
     signal sessionsRequested()
     signal closeRequested()
 
     readonly property bool configured: models.length > 0
     readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : Tr.trN("%n folder granted", "%n folders granted", roots.length)
-    readonly property string sessionLabel: sessionTitle.length > 0 ? sessionTitle : Tr.tr("No DSH session")
+    readonly property string sessionLabel: {
+        const alias = root.aliases[root.sessionId];
+        if (typeof alias === "string" && alias.length > 0)
+            return alias;
+        return sessionTitle.length > 0 ? sessionTitle : Tr.tr("No DSH session");
+    }
     readonly property string modelLabel: {
         const model = models.find(m => m.id === selectedModel);
         return model ? model.name : Tr.tr("DeepSeek Harness");
@@ -181,6 +191,58 @@ Singleton {
         return root.pinned.indexOf(id) !== -1;
     }
 
+    function isArchived(id: string): bool {
+        return root.archived.indexOf(id) !== -1;
+    }
+
+    function sessionTitleFor(id: string, fallback: string): string {
+        const alias = root.aliases[id];
+        if (typeof alias === "string" && alias.length > 0)
+            return alias;
+        return fallback || "";
+    }
+
+    function loadSessionMeta(): void {
+        try {
+            const parsed = JSON.parse(aliasesFile.text());
+            root.aliases = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : ({});
+        } catch (e) {
+            root.aliases = ({});
+        }
+        try {
+            const parsed = JSON.parse(archivedFile.text());
+            root.archived = Array.isArray(parsed) ? parsed.filter(id => typeof id === "string") : [];
+        } catch (e) {
+            root.archived = [];
+        }
+    }
+
+    function renameSession(id: string, title: string): void {
+        if (!id)
+            return;
+        const next = Object.assign({}, root.aliases);
+        const value = String(title || "").trim();
+        if (value.length > 0)
+            next[id] = value;
+        else
+            delete next[id];
+        root.aliases = next;
+        aliasesFile.setText(JSON.stringify(next) + "\n");
+    }
+
+    function toggleArchived(id: string): void {
+        if (!id)
+            return;
+        const next = root.archived.slice();
+        const index = next.indexOf(id);
+        if (index >= 0)
+            next.splice(index, 1);
+        else
+            next.push(id);
+        root.archived = next;
+        archivedFile.setText(JSON.stringify(next) + "\n");
+    }
+
     function loadPins(): void {
         let ids = [];
         try {
@@ -216,6 +278,30 @@ Singleton {
         printErrors: false
         onLoaded: root.loadPins()
         onTextChanged: root.loadPins()
+    }
+
+    FileView {
+        id: aliasesFile
+
+        path: root.aliasesPath
+        preload: true
+        watchChanges: true
+        atomicWrites: true
+        printErrors: false
+        onLoaded: root.loadSessionMeta()
+        onTextChanged: root.loadSessionMeta()
+    }
+
+    FileView {
+        id: archivedFile
+
+        path: root.archivedPath
+        preload: true
+        watchChanges: true
+        atomicWrites: true
+        printErrors: false
+        onLoaded: root.loadSessionMeta()
+        onTextChanged: root.loadSessionMeta()
     }
 
     function setHistory(entries: var, replace: bool): void {

@@ -24,6 +24,8 @@ Item {
     property var queuedAttachments: []
     property var attachmentPaths: []
     property bool activityExpanded: false
+    property bool showArchived: false
+    property string renameTargetId: ""
 
     function questions(): var {
         const out = [];
@@ -67,6 +69,20 @@ Item {
         }
         composer.cursorPosition = composer.text.length;
         return true;
+    }
+
+    function openRename(id: string, title: string): void {
+        root.renameTargetId = id;
+        renameField.text = title;
+        renamePopup.open();
+    }
+
+    function saveRename(): void {
+        if (root.renameTargetId.length === 0)
+            return;
+        Assistant.renameSession(root.renameTargetId, renameField.text);
+        root.renameTargetId = "";
+        renamePopup.close();
     }
 
     function submitComposer(): void {
@@ -184,6 +200,68 @@ Item {
         id: copyMessageProc
 
         command: ["true"]
+    }
+
+    Popup {
+        id: renamePopup
+
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: 340
+        padding: 12
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        onOpened: Qt.callLater(() => renameField.forceActiveFocus())
+
+        background: StyledRect {
+            radius: Tokens.rounding.medium
+            color: Colours.tPalette.m3surfaceContainerHigh
+        }
+
+        contentItem: ColumnLayout {
+            spacing: Tokens.spacing.small
+
+            StyledText {
+                Layout.fillWidth: true
+                text: Tr.tr("Rename session")
+                color: Colours.palette.m3onSurface
+                font: Tokens.font.title.builders.small.scale(root.fontScale).build()
+            }
+
+            TextField {
+                id: renameField
+
+                Layout.fillWidth: true
+                color: Colours.palette.m3onSurface
+                placeholderTextColor: Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                background: StyledRect {
+                    radius: Tokens.rounding.small
+                    color: Colours.tPalette.m3surfaceContainerHighest
+                }
+                onAccepted: root.saveRename()
+                Keys.onEscapePressed: renamePopup.close()
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Tokens.spacing.small
+                Item { Layout.fillWidth: true }
+
+                IconTextButton {
+                    icon: "close"
+                    text: Tr.tr("Cancel")
+                    onClicked: renamePopup.close()
+                }
+
+                IconTextButton {
+                    icon: "check"
+                    text: Tr.tr("Save")
+                    onClicked: root.saveRename()
+                }
+            }
+        }
     }
 
     FileDialog {
@@ -313,7 +391,8 @@ Item {
                     model: {
                         Assistant.pinned; // Re-sort when a pin changes.
                         const query = sessionSearch.text.trim().toLowerCase();
-                        const filtered = query.length === 0 ? Assistant.sessions : Assistant.sessions.filter(session => String(session.title || "").toLowerCase().includes(query));
+                        const visible = Assistant.sessions.filter(session => root.showArchived || !Assistant.isArchived(session.id));
+                        const filtered = query.length === 0 ? visible : visible.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
                         return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
                     }
                     spacing: 2
@@ -340,20 +419,36 @@ Item {
                         contentItem: StyledText {
                             anchors.fill: parent
                             anchors.leftMargin: Tokens.padding.small
-                            anchors.rightMargin: Tokens.padding.large
+                            anchors.rightMargin: 128
                             verticalAlignment: Text.AlignVCenter
-                            text: sessionDelegate.modelData.title + (sessionDelegate.modelData.owned ? " · live" : "")
+                            text: Assistant.sessionTitleFor(sessionDelegate.modelData.id, sessionDelegate.modelData.title) + (sessionDelegate.modelData.owned ? " · live" : "")
                             elide: Text.ElideRight
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             color: Colours.palette.m3onSurface
                         }
 
-                        IconButton {
+                        RowLayout {
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            icon: Assistant.isPinned(sessionDelegate.modelData.id) ? "star" : "star_border"
-                            accessibleName: Assistant.isPinned(sessionDelegate.modelData.id) ? Tr.tr("Unpin session") : Tr.tr("Pin session")
-                            onClicked: Assistant.togglePin(sessionDelegate.modelData.id)
+                            spacing: 0
+
+                            IconButton {
+                                icon: "edit"
+                                accessibleName: Tr.tr("Rename session")
+                                onClicked: root.openRename(sessionDelegate.modelData.id, Assistant.sessionTitleFor(sessionDelegate.modelData.id, sessionDelegate.modelData.title))
+                            }
+
+                            IconButton {
+                                icon: Assistant.isArchived(sessionDelegate.modelData.id) ? "unarchive" : "archive"
+                                accessibleName: Assistant.isArchived(sessionDelegate.modelData.id) ? Tr.tr("Unarchive session") : Tr.tr("Archive session")
+                                onClicked: Assistant.toggleArchived(sessionDelegate.modelData.id)
+                            }
+
+                            IconButton {
+                                icon: Assistant.isPinned(sessionDelegate.modelData.id) ? "star" : "star_border"
+                                accessibleName: Assistant.isPinned(sessionDelegate.modelData.id) ? Tr.tr("Unpin session") : Tr.tr("Pin session")
+                                onClicked: Assistant.togglePin(sessionDelegate.modelData.id)
+                            }
                         }
 
                         StyledText {
@@ -368,6 +463,25 @@ Item {
                             font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                             color: Colours.palette.m3onSurfaceVariant
                         }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Tokens.spacing.small
+
+                    IconButton {
+                        icon: root.showArchived ? "visibility_off" : "visibility"
+                        accessibleName: root.showArchived ? Tr.tr("Hide archived sessions") : Tr.tr("Show archived sessions")
+                        onClicked: root.showArchived = !root.showArchived
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: root.showArchived ? Tr.tr("Archived sessions shown") : Tr.tr("Show archived sessions")
+                        color: Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                        elide: Text.ElideRight
                     }
                 }
                 }
