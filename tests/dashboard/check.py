@@ -62,7 +62,7 @@ def main() -> int:
         "minimumWidth:",
     ))
     require("Content.qml", (
-        "Math.max(view.implicitWidth, tabs.naturalWidth)",
+        "Math.max(view.implicitWidth, tabs.minimumWidth)",
     ))
     require("ExtensionTab.qml", (
         "minimumWidth",

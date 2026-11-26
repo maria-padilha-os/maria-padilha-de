@@ -19,9 +19,6 @@ Item {
 
     readonly property alias count: bar.count
     readonly property real minimumWidth: Math.max(Tokens.sizes.bar.innerWidth, 0) * count
-    // Natural width keeps every tab at its icon + label size instead of
-    // squeezing the strip when an extension pane becomes narrow.
-    readonly property real naturalWidth: bar.contentItem ? bar.contentItem.implicitWidth : minimumWidth
 
     implicitHeight: bar.implicitHeight + bar.anchors.topMargin + indicator.implicitHeight + indicator.anchors.topMargin
 
@@ -132,7 +129,8 @@ Item {
             radius: Tokens.rounding.medium
         }
 
-        Layout.preferredWidth: implicitWidth
+        Layout.fillWidth: true
+        Layout.preferredWidth: 1 // Uniform width across all tabs
         Layout.minimumWidth: Tokens.sizes.bar.innerWidth
         implicitWidth: implicitContentWidth
         implicitHeight: implicitContentHeight

@@ -86,7 +86,7 @@ Item {
         return allTabs.filter(tab => tab.enabled).concat(extensionTabs);
     }
 
-    readonly property real nonAnimWidth: Math.max(view.implicitWidth, tabs.naturalWidth) + viewWrapper.anchors.margins * 2
+    readonly property real nonAnimWidth: Math.max(view.implicitWidth, tabs.minimumWidth) + viewWrapper.anchors.margins * 2
     readonly property real nonAnimHeight: tabs.implicitHeight + tabs.anchors.topMargin + view.implicitHeight + viewWrapper.anchors.margins * 2
 
     implicitWidth: nonAnimWidth
@@ -95,16 +95,13 @@ Item {
     Tabs {
         id: tabs
 
-        // The tab strip keeps its minimum width; only the tab content below
-        // follows the extension's own width. A narrow Translator tab therefore
-        // does not squeeze the tab buttons into a different size.
         anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.topMargin: CUtils.clamp(anchors.margins - Config.border.thickness, 0, anchors.margins)
         anchors.margins: Tokens.padding.large
-        width: naturalWidth
 
-        nonAnimWidth: width
+        nonAnimWidth: root.nonAnimWidth - anchors.margins * 2
         screenState: root.screenState
         tabs: root.dashboardTabs
     }
@@ -136,11 +133,39 @@ Item {
 
             readonly property bool extensionSelected: currentItem?.modelData?.extension !== undefined
 
-            // Every pane owns its size. Extensions can therefore be wider or
-            // taller than their neighbours and the panel eases between them
-            // instead of forcing every tab into the last built-in size.
-            implicitWidth: currentItem?.implicitWidth ?? 0
-            implicitHeight: currentItem?.implicitHeight ?? 0
+            // Remember the last built-in tab size. Extension tabs borrow it,
+            // so switching to one neither shrinks nor grows the panel.
+            property real stableWidth: 0
+            property real stableHeight: 0
+
+            Binding {
+                target: view
+                property: "stableWidth"
+                value: view.currentItem?.implicitWidth ?? 0
+                when: !view.extensionSelected && view.currentItem !== null
+                restoreMode: Binding.RestoreNone
+            }
+            Binding {
+                target: view
+                property: "stableHeight"
+                value: view.currentItem?.implicitHeight ?? 0
+                when: !view.extensionSelected && view.currentItem !== null
+                restoreMode: Binding.RestoreNone
+            }
+
+            implicitWidth: extensionSelected ? Math.max(currentItem?.implicitWidth ?? 0, stableWidth) : currentItem?.implicitWidth ?? 0
+            implicitHeight: extensionSelected ? Math.max(currentItem?.implicitHeight ?? 0, stableHeight) : currentItem?.implicitHeight ?? 0
+
+            Component.onCompleted: {
+                for (let i = 0; i < repeater.count; i++) {
+                    const loader = repeater.itemAt(i);
+                    if (loader && loader.modelData?.extension === undefined) {
+                        stableWidth = loader.implicitWidth;
+                        stableHeight = loader.implicitHeight;
+                        break;
+                    }
+                }
+            }
 
             contentX: currentItem?.x ?? 0
             contentWidth: row.implicitWidth
@@ -193,8 +218,8 @@ Item {
                         onLoaded: {
                             if (modelData.extension) {
                                 item.extension = modelData.extension;
-                                item.panelWidth = 0;
-                                item.panelHeight = 0;
+                                item.panelWidth = Qt.binding(() => view.stableWidth);
+                                item.panelHeight = Qt.binding(() => view.stableHeight);
                                 item.active = Qt.binding(() => index === view.currentIndex);
                             }
                         }
