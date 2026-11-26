@@ -352,6 +352,29 @@ Item {
                 }
             }
 
+            StyledRect {
+                Layout.fillWidth: true
+                implicitHeight: 2
+                radius: 1
+                clip: true
+                visible: Assistant.ready
+                color: Colours.tPalette.m3surfaceContainerHighest
+
+                Accessible.role: Accessible.ProgressBar
+                Accessible.name: Assistant.contextLabel
+
+                StyledRect {
+                    width: parent.width * Assistant.contextRatio
+                    height: parent.height
+                    radius: 1
+                    color: Assistant.contextRatio >= 0.9 ? Colours.palette.m3error : Colours.palette.m3primary
+
+                    Behavior on width {
+                        Anim {}
+                    }
+                }
+            }
+
             StyledText {
                 Layout.fillWidth: true
                 text: Assistant.sessionLabel

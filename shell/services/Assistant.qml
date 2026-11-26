@@ -51,6 +51,21 @@ Singleton {
         return model ? model.name : Tr.tr("DeepSeek Harness");
     }
     readonly property bool speakReplies: AssistantSettings.speakReplies
+    // DSH does not expose token usage, so this is the visible-transcript
+    // estimate, not a billing/context counter. The env knob lets a future
+    // model route change the budget without touching the UI.
+    readonly property int contextLimit: {
+        const value = Number(Quickshell.env("PADILHA_DSH_CONTEXT_LIMIT") || 128000);
+        return Number.isFinite(value) && value > 0 ? value : 128000;
+    }
+    readonly property int estimatedContextTokens: {
+        let chars = 0;
+        for (const message of root.messages)
+            chars += String(message.text || "").length;
+        return Math.ceil(chars / 4);
+    }
+    readonly property real contextRatio: Math.max(0, Math.min(1, root.estimatedContextTokens / root.contextLimit))
+    readonly property string contextLabel: Tr.tr("Estimated context: %1%").arg(Math.round(root.contextRatio * 100))
 
     function handle(line: string): void {
         let event;

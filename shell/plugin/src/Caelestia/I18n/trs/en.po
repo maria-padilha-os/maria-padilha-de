@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maria-padilha-de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 17:09-0300\n"
+"POT-Creation-Date: 2026-11-26 17:51-0300\n"
 "PO-Revision-Date: 2026-11-18 00:00+0000\n"
 "Last-Translator: Maria Padilha contributors\n"
 "Language-Team: English\n"
@@ -6448,6 +6448,11 @@ msgstr "No DSH session"
 #: services/Assistant.qml
 msgid "DeepSeek Harness"
 msgstr "DeepSeek Harness"
+
+#: services/Assistant.qml
+#, qt-format
+msgid "Estimated context: %1%"
+msgstr "Estimated context: %1%"
 
 #: services/Assistant.qml
 msgid "Writing the answer…"
