@@ -14,7 +14,7 @@ Environment=XDG_STATE_HOME=%h/.local/state
 Environment=XDG_RUNTIME_DIR=%t
 Environment=XDG_CURRENT_DESKTOP=Hyprland
 Environment=XDG_SESSION_TYPE=wayland
-Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PATH=%h/.local/bin:%h/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
 # The settings UI spawns this exact compiler when it saves.
 Environment=PADILHA_CONFIG=/usr/bin/padilha-config
 # The settings module still reads the old name during the transition.

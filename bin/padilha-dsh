@@ -11,6 +11,7 @@ from __future__ import annotations
 import fcntl
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -266,6 +267,22 @@ def resolve_session(session_id: str | None) -> tuple[str, Path | None]:
     return str(uuid.uuid4()), None
 
 
+def dsh_binary() -> str | None:
+    """Find dsh even when the desktop service has a minimal PATH."""
+    override = os.environ.get("DSH_BIN")
+    candidates = [
+        Path(override).expanduser() if override else None,
+        Path(shutil.which("dsh")) if shutil.which("dsh") else None,
+        Path.home() / ".npm-global/bin/dsh",
+        Path("/usr/local/bin/dsh"),
+        Path("/usr/bin/dsh"),
+    ]
+    for candidate in candidates:
+        if candidate is not None and candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
 class SdkError(RuntimeError):
     pass
 
@@ -286,8 +303,11 @@ class DshSdk:
     def _ensure(self, cwd: str) -> None:
         if self.proc is not None and self.proc.poll() is None:
             return
+        binary = dsh_binary()
+        if binary is None:
+            raise SdkError("dsh not found; install DeepSeek Harness or set DSH_BIN")
         self.proc = subprocess.Popen(
-            ["dsh", "sdk"],
+            [binary, "sdk"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
