@@ -236,18 +236,19 @@ Item {
                     width: transcript.width
                     spacing: Tokens.spacing.extraSmall
 
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: modelData.role === "user" ? Tr.trCtx("You", "chat message author") : (modelData.cancelled ? Tr.trCtx("Assistant · cancelled", "chat message author and state") : Tr.trCtx("Assistant", "chat message author"))
-                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
-                        color: Colours.palette.m3onSurfaceVariant
-                    }
-
                     StyledRect {
-                        Layout.fillWidth: true
+                        id: bubble
+
+                        readonly property bool fromUser: modelData.role === "user"
+                        readonly property real maxBubbleWidth: transcript.width * 0.82
+
+                        Layout.fillWidth: !fromUser
+                        Layout.maximumWidth: fromUser ? maxBubbleWidth : transcript.width
+                        Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.implicitWidth + Tokens.padding.medium * 2) : transcript.width
+                        Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
                         implicitHeight: body.implicitHeight + Tokens.padding.medium * 2
                         radius: Tokens.rounding.medium
-                        color: modelData.role === "user" ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
+                        color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
 
                         StyledText {
                             id: body
@@ -257,8 +258,8 @@ Item {
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             text: (modelData.text || (modelData.streaming ? Tr.tr("Thinking…") : "")) + (modelData.streaming ? " ▍" : "")
                             wrapMode: Text.Wrap
-                            textFormat: modelData.role === "user" ? Text.PlainText : Text.MarkdownText
-                            color: modelData.role === "user" ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                            textFormat: bubble.fromUser ? Text.PlainText : Text.MarkdownText
+                            color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
                         }
                     }
                 }
