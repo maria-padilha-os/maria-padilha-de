@@ -8,8 +8,10 @@ JSON-RPC notifications are translated back into the widget's message events.
 
 from __future__ import annotations
 
+import base64
 import fcntl
 import json
+import mimetypes
 import os
 import shutil
 import subprocess
@@ -313,6 +315,26 @@ def activity_label(name: str, arguments: Any) -> str:
     return f"Using {name}"
 
 
+MAX_IMAGE_BYTES = 12 * 1024 * 1024
+
+
+def image_content_block(path: str) -> dict[str, Any]:
+    """Encode a local image for the SDK's inline image content block."""
+    file = Path(path).expanduser()
+    if not file.is_file():
+        raise SdkError(f"Attachment not found: {path}")
+    if file.stat().st_size > MAX_IMAGE_BYTES:
+        raise SdkError(f"Attachment is too large: {file.name}")
+    mime = mimetypes.guess_type(file.name)[0] or "application/octet-stream"
+    if not mime.startswith("image/"):
+        raise SdkError(f"Only image attachments are supported: {file.name}")
+    return {
+        "type": "image",
+        "mimeType": mime,
+        "data": base64.b64encode(file.read_bytes()).decode("ascii"),
+    }
+
+
 class SdkError(RuntimeError):
     pass
 
@@ -404,10 +426,13 @@ class DshSdk:
         self._request("session/resume", {"sessionId": session_id})
         self.owned.add(session_id)
 
-    def prompt(self, session_id: str, text: str) -> Iterator[dict[str, Any]]:
+    def prompt(self, session_id: str, text: str, attachments: list[str] | None = None) -> Iterator[dict[str, Any]]:
+        blocks: list[dict[str, Any]] = [{"type": "text", "text": text}]
+        for path in attachments or []:
+            blocks.append(image_content_block(path))
         self._request(
             "session/prompt",
-            {"sessionId": session_id, "contentBlocks": [{"type": "text", "text": text}]},
+            {"sessionId": session_id, "contentBlocks": blocks},
         )
         self.owned.add(session_id)
         deadline = time.monotonic() + PROMPT_TIMEOUT
@@ -540,13 +565,14 @@ def main() -> int:
         elif command == "chat":
             session_id = str(request.get("sessionId") or "")
             text = str(request.get("text") or "").strip()
-            if not text:
+            attachments = [str(path) for path in (request.get("attachments") or []) if str(path).strip()]
+            if not text and not attachments:
                 continue
             session_id, path = resolve_session(session_id or None)
             if not path:
                 emit({"type": "session", "sessionId": session_id, "sessionTitle": text[:72], "sessionOwned": False})
 
-            def worker(session_id: str = session_id, path: Path | None = path, text: str = text) -> None:
+            def worker(session_id: str = session_id, path: Path | None = path, text: str = text, attachments: list[str] = attachments) -> None:
                 try:
                     cwd = ""
                     if path is not None:
@@ -559,7 +585,7 @@ def main() -> int:
                     else:
                         sdk._ensure(cwd or str(Path.home()))
                     last = ""
-                    for item in sdk.prompt(session_id, text):
+                    for item in sdk.prompt(session_id, text, attachments):
                         if item["kind"] == "assistant":
                             last = item["text"]
                             emit({"type": "assistant", "id": request.get("id"), "text": last})

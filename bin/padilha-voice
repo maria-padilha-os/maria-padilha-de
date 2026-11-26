@@ -577,8 +577,8 @@ def rms_level(chunk: bytes) -> float:
     return (sum(value * value for value in samples) / len(samples)) ** 0.5
 
 
-def listen(events: bool, wav_path: str | None = None) -> int:
-    """Listen for the wake phrase and then one command utterance."""
+def listen(events: bool, wav_path: str | None = None, once: bool = False) -> int:
+    """Listen for the wake phrase and then one command utterance, or capture one utterance."""
     if not whisper_available():
         print("padilha-voice: Whisper wake model is missing; run padilha-voice setup-wake", file=sys.stderr)
         return 1
@@ -615,7 +615,7 @@ def listen(events: bool, wav_path: str | None = None) -> int:
         start_new_session=True,
     )
     assert process.stdout is not None
-    state = "wake"
+    state = "command" if once else "wake"
     in_speech = False
     silence_chunks = 0
     utterance = bytearray()
@@ -675,6 +675,8 @@ def listen(events: bool, wav_path: str | None = None) -> int:
                     state = "command"
             elif state == "command":
                 emit({"event": "final", "text": text})
+                if once:
+                    break
                 state = "wake"
     finally:
         try:
@@ -819,6 +821,7 @@ def main(argv: list[str] | None = None) -> int:
     listen_parser = sub.add_parser("listen", help="listen for the Padilha wake phrase")
     listen_parser.add_argument("--events", action="store_true", help="emit JSON events")
     listen_parser.add_argument("--wav", help="test one WAV file instead of the microphone")
+    listen_parser.add_argument("--once", action="store_true", help="capture one utterance without the wake phrase")
     setup_wake_parser = sub.add_parser("setup-wake", help="build Whisper and fetch the tiny wake model")
     setup_wake_parser.add_argument("--force", action="store_true")
     set_voice_parser = sub.add_parser("set-voice", help="select the Kokoro voice id")
@@ -840,7 +843,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "setup-wake":
         return setup_wake(args.force)
     if args.command == "listen":
-        return listen(args.events, args.wav)
+        return listen(args.events, args.wav, args.once)
     if args.command == "voices":
         info = voice_model()
         print(json.dumps({

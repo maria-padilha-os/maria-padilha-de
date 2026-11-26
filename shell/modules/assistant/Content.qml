@@ -7,6 +7,7 @@ import Caelestia.Config
 import Caelestia.I18n
 import qs.components
 import qs.components.controls
+import qs.components.filedialog
 import qs.services
 
 Item {
@@ -19,6 +20,8 @@ Item {
     property int historyIndex: -1
     property string historyDraft: ""
     property string queuedText: ""
+    property var queuedAttachments: []
+    property var attachmentPaths: []
     property bool activityExpanded: false
 
     function questions(): var {
@@ -67,7 +70,7 @@ Item {
 
     function submitComposer(): void {
         const text = composer.text.trim();
-        if (text.length === 0)
+        if (text.length === 0 && root.attachmentPaths.length === 0)
             return;
         if (Assistant.streaming) {
             root.queueComposer();
@@ -75,26 +78,43 @@ Item {
         }
         if (!Assistant.ready || Assistant.sessionOwned)
             return;
-        Assistant.send(text);
+        Assistant.send(text, root.attachmentPaths.slice());
         composer.text = "";
+        root.attachmentPaths = [];
         root.resetHistory();
     }
 
     function queueComposer(): void {
         const text = composer.text.trim();
-        if (text.length === 0)
+        if (text.length === 0 && root.attachmentPaths.length === 0)
             return;
         root.queuedText = text;
+        root.queuedAttachments = root.attachmentPaths.slice();
         composer.text = "";
+        root.attachmentPaths = [];
         root.resetHistory();
     }
 
     function sendQueued(): void {
-        if (root.queuedText.length === 0 || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned)
+        if ((root.queuedText.length === 0 && root.queuedAttachments.length === 0) || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned)
             return;
         const text = root.queuedText;
+        const attachments = root.queuedAttachments.slice();
         root.queuedText = "";
-        Assistant.send(text);
+        root.queuedAttachments = [];
+        Assistant.send(text, attachments);
+    }
+
+    function addAttachment(path: string): void {
+        if (root.attachmentPaths.length >= 4 || root.attachmentPaths.indexOf(path) !== -1)
+            return;
+        root.attachmentPaths = root.attachmentPaths.concat([path]);
+    }
+
+    function removeAttachment(index: int): void {
+        const next = root.attachmentPaths.slice();
+        next.splice(index, 1);
+        root.attachmentPaths = next;
     }
 
     Component.onCompleted: {
@@ -136,6 +156,8 @@ Item {
         function onSessionIdChanged(): void {
             root.resetHistory();
             root.queuedText = "";
+            root.queuedAttachments = [];
+            root.attachmentPaths = [];
             root.activityExpanded = false;
         }
 
@@ -148,6 +170,15 @@ Item {
         }
 
         target: Assistant
+    }
+
+    FileDialog {
+        id: attachmentDialog
+
+        title: Tr.tr("Attach images")
+        filterLabel: Tr.tr("Images")
+        filters: ["png", "jpg", "jpeg", "webp", "gif"]
+        onAccepted: path => root.addAttachment(path)
     }
 
     ColumnLayout {
@@ -266,8 +297,10 @@ Item {
                     Layout.fillHeight: true
                     clip: true
                     model: {
+                        Assistant.pinned; // Re-sort when a pin changes.
                         const query = sessionSearch.text.trim().toLowerCase();
-                        return query.length === 0 ? Assistant.sessions : Assistant.sessions.filter(session => String(session.title || "").toLowerCase().includes(query));
+                        const filtered = query.length === 0 ? Assistant.sessions : Assistant.sessions.filter(session => String(session.title || "").toLowerCase().includes(query));
+                        return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
                     }
                     spacing: 2
                     boundsBehavior: Flickable.StopAtBounds
@@ -293,12 +326,20 @@ Item {
                         contentItem: StyledText {
                             anchors.fill: parent
                             anchors.leftMargin: Tokens.padding.small
-                            anchors.rightMargin: Tokens.padding.small
+                            anchors.rightMargin: Tokens.padding.large
                             verticalAlignment: Text.AlignVCenter
                             text: sessionDelegate.modelData.title + (sessionDelegate.modelData.owned ? " · live" : "")
                             elide: Text.ElideRight
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             color: Colours.palette.m3onSurface
+                        }
+
+                        IconButton {
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            icon: Assistant.isPinned(sessionDelegate.modelData.id) ? "star" : "star_border"
+                            accessibleName: Assistant.isPinned(sessionDelegate.modelData.id) ? Tr.tr("Unpin session") : Tr.tr("Pin session")
+                            onClicked: Assistant.togglePin(sessionDelegate.modelData.id)
                         }
 
                         StyledText {
@@ -484,6 +525,53 @@ Item {
             }
 
             RowLayout {
+                id: attachmentRow
+
+                Layout.fillWidth: true
+                visible: root.attachmentPaths.length > 0
+                spacing: Tokens.spacing.extraSmall
+
+                Repeater {
+                    model: root.attachmentPaths
+
+                    delegate: StyledRect {
+                        id: attachmentChip
+
+                        required property string modelData
+                        required property int index
+
+                        Layout.preferredWidth: attachmentChipContent.implicitWidth + Tokens.padding.small * 2
+                        Layout.preferredHeight: 32
+                        radius: Tokens.rounding.small
+                        color: Colours.tPalette.m3surfaceContainerHigh
+
+                        RowLayout {
+                            id: attachmentChipContent
+
+                            anchors.fill: parent
+                            anchors.leftMargin: Tokens.padding.small
+                            anchors.rightMargin: Tokens.padding.extraSmall
+                            spacing: Tokens.spacing.extraSmall
+
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: modelData.split("/").pop()
+                                color: Colours.palette.m3onSurface
+                                font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                                elide: Text.ElideMiddle
+                            }
+
+                            IconButton {
+                                icon: "close"
+                                accessibleName: Tr.tr("Remove attachment")
+                                onClicked: root.removeAttachment(index)
+                            }
+                        }
+                    }
+                }
+            }
+
+            RowLayout {
                 id: queuedRow
 
                 Layout.fillWidth: true
@@ -498,7 +586,7 @@ Item {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Tr.tr("Queued · sends after this turn: %1").arg(root.queuedText)
+                    text: Tr.tr("Queued · sends after this turn: %1").arg(root.queuedText + (root.queuedAttachments.length > 0 ? (root.queuedText.length > 0 ? " " : "") + Tr.trN("[%n image]", "[%n images]", root.queuedAttachments.length) : ""))
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                     elide: Text.ElideRight
@@ -534,7 +622,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant"))
+                        placeholderText: VoiceInput.dictating ? Tr.tr("Listening… speak now") : (Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant")))
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
@@ -565,7 +653,21 @@ Item {
                 }
 
                 IconButton {
-                    visible: Assistant.streaming && composer.text.trim().length > 0
+                    icon: "attach_file"
+                    accessibleName: Tr.tr("Attach images")
+                    enabled: !Assistant.sessionOwned
+                    onClicked: attachmentDialog.open()
+                }
+
+                IconButton {
+                    icon: VoiceInput.dictating ? "stop_circle" : "mic"
+                    accessibleName: VoiceInput.dictating ? Tr.tr("Stop dictation") : Tr.tr("Dictate a message")
+                    enabled: Assistant.ready && !Assistant.sessionOwned
+                    onClicked: VoiceInput.dictate()
+                }
+
+                IconButton {
+                    visible: Assistant.streaming && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0)
                     icon: "schedule"
                     accessibleName: Tr.tr("Queue this message for after the current turn")
                     onClicked: root.queueComposer()
@@ -580,7 +682,7 @@ Item {
                 IconTextButton {
                     icon: Assistant.streaming ? "stop" : "send"
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
-                    enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && composer.text.trim().length > 0)
+                    enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0))
                     onClicked: Assistant.streaming ? Assistant.cancel() : root.submitComposer()
                 }
             }

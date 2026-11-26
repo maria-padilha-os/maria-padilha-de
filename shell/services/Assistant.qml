@@ -27,6 +27,8 @@ Singleton {
     property int activeId: -1
     property bool started: false
     property bool stopping: false
+    readonly property string pinsPath: (Quickshell.env("XDG_CONFIG_HOME") || (Quickshell.env("HOME") + "/.config")) + "/padilha/dsh-pinned.json"
+    property var pinned: []
 
     signal sessionsRequested()
     signal closeRequested()
@@ -175,6 +177,47 @@ Singleton {
         }
     }
 
+    function isPinned(id: string): bool {
+        return root.pinned.indexOf(id) !== -1;
+    }
+
+    function loadPins(): void {
+        let ids = [];
+        try {
+            const parsed = JSON.parse(pinsFile.text());
+            if (Array.isArray(parsed))
+                ids = parsed.filter(id => typeof id === "string");
+        } catch (e) {
+            ids = [];
+        }
+        root.pinned = ids;
+    }
+
+    function togglePin(id: string): void {
+        if (!id)
+            return;
+        const next = root.pinned.slice();
+        const index = next.indexOf(id);
+        if (index >= 0)
+            next.splice(index, 1);
+        else
+            next.push(id);
+        root.pinned = next;
+        pinsFile.setText(JSON.stringify(next) + "\n");
+    }
+
+    FileView {
+        id: pinsFile
+
+        path: root.pinsPath
+        preload: true
+        watchChanges: true
+        atomicWrites: true
+        printErrors: false
+        onLoaded: root.loadPins()
+        onTextChanged: root.loadPins()
+    }
+
     function setHistory(entries: var, replace: bool): void {
         if (!replace && root.messages.length > 0)
             return;
@@ -222,13 +265,15 @@ Singleton {
         }
     }
 
-    function send(text: string): void {
+    function send(text, attachments) {
+        if (!attachments)
+            attachments = [];
         text = text.trim();
         if (text.startsWith("/")) {
             root.handleCommand(text);
             return;
         }
-        if (!text || root.streaming || !root.ready)
+        if ((!text && attachments.length === 0) || root.streaming || !root.ready)
             return;
         if (root.sessionOwned) {
             root.error = Tr.tr("This session is open in dsh-tui. Close it there or start a new chat.");
@@ -240,8 +285,10 @@ Singleton {
         }
 
         const id = root.nextId++;
+        const names = attachments.map(path => String(path).split("/").pop());
+        const shown = text + (names.length > 0 ? (text.length > 0 ? "\n\n" : "") + Tr.tr("Attached: %1").arg(names.join(", ")) : "");
         root.messages = root.messages.concat([
-            { id: id + "-user", role: "user", text: text, streaming: false },
+            { id: id + "-user", role: "user", text: shown, streaming: false, attachments: attachments },
             { id: id, role: "assistant", text: "", streaming: true },
         ]);
         root.activeId = id;
@@ -255,6 +302,7 @@ Singleton {
             id: id,
             sessionId: root.sessionId,
             text: text,
+            attachments: attachments,
         }) + "\n");
     }
 

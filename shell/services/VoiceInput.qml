@@ -10,8 +10,19 @@ Singleton {
 
     property bool ready: false
     property bool listening: false
+    property bool dictating: false
     property string transcript: ""
     property string error: ""
+
+    function dictate(): void {
+        if (root.dictating) {
+            root.dictating = false;
+            return;
+        }
+        root.transcript = "";
+        root.error = "";
+        root.dictating = true;
+    }
 
     function takeTranscript(): string {
         const value = root.transcript;
@@ -23,7 +34,7 @@ Singleton {
         id: listener
 
         command: ["padilha-voice", "listen", "--events"]
-        running: AssistantSettings.wakeEnabled
+        running: AssistantSettings.wakeEnabled && !root.dictating
 
         stdout: SplitParser {
             onRead: line => {
@@ -66,5 +77,42 @@ Singleton {
             root.ready = false;
             root.listening = false;
         }
+    }
+
+    Process {
+        id: dictator
+
+        command: ["padilha-voice", "listen", "--once", "--events"]
+        running: root.dictating
+
+        stdout: SplitParser {
+            onRead: line => {
+                let event;
+                try {
+                    event = JSON.parse(line);
+                } catch (e) {
+                    return;
+                }
+                switch (event.event) {
+                case "final":
+                    root.dictating = false;
+                    root.transcript = event.text || "";
+                    break;
+                case "error":
+                    root.dictating = false;
+                    root.error = event.message || "Microphone capture failed";
+                    break;
+                }
+            }
+        }
+
+        stderr: SplitParser {
+            onRead: line => {
+                if (line.trim().length > 0)
+                    console.warn("padilha-voice dictate:", line);
+            }
+        }
+
+        onExited: root.dictating = false
     }
 }
