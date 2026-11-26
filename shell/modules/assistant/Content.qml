@@ -25,6 +25,7 @@ Item {
     property var attachmentPaths: []
     property bool activityExpanded: false
     property bool showArchived: false
+    property bool dropActive: false
     property string renameTargetId: ""
 
     function questions(): var {
@@ -200,6 +201,23 @@ Item {
         id: copyMessageProc
 
         command: ["true"]
+    }
+
+    DropArea {
+        anchors.fill: parent
+        keys: ["text/uri-list"]
+        onEntered: root.dropActive = true
+        onExited: root.dropActive = false
+        onDropped: drop => {
+            for (let i = 0; i < drop.urls.length; i++) {
+                let path = String(drop.urls[i]);
+                if (path.startsWith("file://"))
+                    path = decodeURIComponent(path.slice(7));
+                root.addAttachment(path);
+            }
+            root.dropActive = false;
+            drop.acceptProposedAction();
+        }
     }
 
     Popup {
@@ -681,11 +699,13 @@ Item {
 
                         required property string modelData
                         required property int index
+                        readonly property bool isImage: /\.(png|jpe?g|webp|gif)$/i.test(modelData)
 
                         Layout.preferredWidth: attachmentChipContent.implicitWidth + Tokens.padding.small * 2
                         Layout.preferredHeight: 32
                         radius: Tokens.rounding.small
                         color: Colours.tPalette.m3surfaceContainerHigh
+                        clip: true
 
                         RowLayout {
                             id: attachmentChipContent
@@ -694,6 +714,15 @@ Item {
                             anchors.leftMargin: Tokens.padding.small
                             anchors.rightMargin: Tokens.padding.extraSmall
                             spacing: Tokens.spacing.extraSmall
+
+                            Image {
+                                visible: attachmentChip.isImage
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 24
+                                source: visible ? encodeURI("file://" + attachmentChip.modelData) : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                            }
 
                             StyledText {
                                 Layout.fillWidth: true
@@ -757,6 +786,8 @@ Item {
                     implicitHeight: composer.implicitHeight + Tokens.padding.medium * 2
                     radius: Tokens.rounding.medium
                     color: Colours.tPalette.m3surfaceContainerHigh
+                    border.width: root.dropActive ? 2 : 0
+                    border.color: Colours.palette.m3primary
 
                     TextArea {
                         id: composer
