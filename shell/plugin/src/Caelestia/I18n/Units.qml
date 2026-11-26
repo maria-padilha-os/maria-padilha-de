@@ -7,7 +7,12 @@ import Caelestia.I18n
 QtObject {
     // The UI language controls dates, times and the Auto unit guesses. An
     // empty language means the shell has no catalog for the system locale.
-    readonly property var locale: Qt.locale(Tr.language.length > 0 ? Tr.language : Qt.locale().name)
+    readonly property var locale: {
+        const systemLocale = Qt.locale();
+        const language = Tr.language ?? "";
+        const name = language.length > 0 ? language : systemLocale.name;
+        return Qt.locale(name) ?? systemLocale;
+    }
 
     // Whether to show a 12-hour clock, guessing from the locale when Auto
     readonly property bool twelveHourClock: {
