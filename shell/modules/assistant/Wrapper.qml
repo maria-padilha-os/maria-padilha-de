@@ -15,7 +15,7 @@ Item {
     readonly property real screenWidth: root.screenState.modelData ? root.screenState.modelData.width : 1920
     // Share of the current screen, clamped so the drawer remains usable on
     // small outputs and never covers the whole desktop.
-    readonly property real panelWidth: Math.round(Math.max(360, Math.min(root.screenWidth * AssistantSettings.widthRatio, root.screenWidth - 48)))
+    readonly property real panelWidth: Math.round(Math.max(360, Math.min(root.screenWidth * AssistantWidth.ratio, root.screenWidth - 48)))
     property real offsetScale: shouldBeActive ? 0 : 1
 
     visible: offsetScale < 1

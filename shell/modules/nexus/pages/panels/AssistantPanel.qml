@@ -85,10 +85,10 @@ PageBase {
         SelectRow {
             last: true
             label: Tr.tr("Chat width")
-            subtext: Tr.tr("Share of the screen occupied by the assistant · %1%").arg(Math.round(AssistantSettings.widthRatio * 100))
+            subtext: Tr.tr("Share of the screen occupied by the assistant · %1%").arg(Math.round(AssistantWidth.ratio * 100))
             menuItems: root.widthItems
-            active: root.widthItems.find(item => Math.abs(item.value - AssistantSettings.widthRatio) < 0.01) ?? root.widthItems[3]
-            onSelected: item => AssistantSettings.widthRatio = item.value
+            active: root.widthItems.find(item => Math.abs(item.value - AssistantWidth.ratio) < 0.01) ?? root.widthItems[3]
+            onSelected: item => AssistantWidth.setRatio(item.value)
         }
 
         SectionHeader {
