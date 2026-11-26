@@ -11,11 +11,13 @@ by the Assistant drawer, another shell, a TUI or a settings panel.
 ## Commands
 
 ```sh
-padilha-voice setup                      # download Piper + pt-BR voice
+padilha-voice setup                      # Kokoro + Piper fallback + voice
 padilha-voice speak "Olá, Maria Padilha"  # queue speech
 padilha-voice speak --wait "..."         # wait for this utterance
 padilha-voice speak --no-interrupt "..." # append instead of replacing
 padilha-voice stop                       # stop playback and clear the queue
+padilha-voice config                     # voice, speed and engine
+padilha-voice set-speed 0.82             # warmer/slower
 padilha-voice status
 padilha-voice voices
 ```
@@ -44,14 +46,21 @@ than opening the microphone.
 
 ## Engines
 
-- **Piper** (default): local VITS voice, currently `pt_BR-faber-medium` at
-  22050 Hz, run from a private venv under
-  `~/.local/share/padilha/voice`. Runtime memory is roughly 150–300 MB.
+- **Kokoro** (default): local Brazilian Portuguese female voice `pf_dora`,
+  tuned to speed `0.82`. The int8 model is not used because the current
+  Kokoro ONNX package feeds its `speed` tensor with the wrong dtype; the
+  service applies the local float32 input fix when loading the voice.
+- **Piper**: local fallback voice, `pt_BR-faber-medium` at 22050 Hz.
 - **espeak-ng**: low-memory fallback if installed.
 
-`padilha-voice setup` downloads the Piper wheel and voice model into the user's
-data directory; it needs network access on first use but no root. Existing
-assets are reused.
+Kokoro adds roughly 0.8–1.2 GB resident memory when loaded. The service keeps
+it loaded for low-latency answers; the machine has enough headroom for the
+assistant, but not for several heavy tool jobs at once.
+
+`padilha-voice setup` downloads the Kokoro runtime/model, the Piper fallback
+and the voice data into the user's data directory; it needs network access on
+first use but no root. Existing assets are reused. `padilha-voice config`
+shows the saved voice and speed; `set-voice` and `set-speed` change them live.
 
 ## Desktop integration
 

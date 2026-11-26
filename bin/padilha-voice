@@ -35,6 +35,19 @@ STATE = Path(os.environ.get("XDG_STATE_HOME", HOME / ".local/state")) / "padilha
 RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "padilha"
 SOCKET = RUNTIME / "voice.sock"
 MAX_TEXT = 12000
+KOKORO_MODEL = DATA / "kokoro/kokoro-v1.0.onnx"
+KOKORO_VOICES = DATA / "kokoro/voices-v1.0.bin"
+KOKORO_VOICE = os.environ.get("PADILHA_VOICE_KOKORO_VOICE", "pf_dora")
+KOKORO_SPEED = float(os.environ.get("PADILHA_VOICE_KOKORO_SPEED", "0.85"))
+VOICE_CONFIG = CONFIG
+KOKORO_MODEL_URL = (
+    "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/"
+    "kokoro-v1.0.onnx"
+)
+KOKORO_VOICES_URL = (
+    "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/"
+    "voices-v1.0.bin"
+)
 PIPER_WHEEL = (
     "https://github.com/OHF-Voice/piper1-gpl/releases/download/v1.8.0/"
     "piper_tts-1.8.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64."
@@ -47,6 +60,45 @@ PIPER_MODEL = (
 PIPER_MODEL_CONFIG = PIPER_MODEL + ".json"
 
 
+def voice_settings() -> dict[str, Any]:
+    data: dict[str, Any] = {}
+    try:
+        loaded = json.loads(VOICE_CONFIG.read_text(encoding="utf-8"))
+        if isinstance(loaded, dict):
+            data = loaded
+    except (OSError, ValueError):
+        pass
+    voice = data.get("voice")
+    if not isinstance(voice, str) or not voice:
+        voice = KOKORO_VOICE
+    try:
+        speed = float(data.get("speed", KOKORO_SPEED))
+    except (TypeError, ValueError):
+        speed = KOKORO_SPEED
+    speed = max(0.5, min(1.5, speed))
+    return {"voice": voice, "speed": speed}
+
+
+def save_voice_settings(voice: str | None = None, speed: float | None = None) -> dict[str, Any]:
+    current = voice_settings()
+    if voice is not None:
+        current["voice"] = voice
+    if speed is not None:
+        current["speed"] = max(0.5, min(1.5, speed))
+    VOICE_CONFIG.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    tmp = VOICE_CONFIG.with_suffix(".tmp")
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(current, handle, ensure_ascii=False)
+            handle.write("\n")
+    finally:
+        pass
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, VOICE_CONFIG)
+    return current
+
+
 def plain_text(value: str) -> str:
     value = re.sub(r"```.*?```", " ", value, flags=re.S)
     value = re.sub(r"`([^`]*)`", r"\1", value)
@@ -57,6 +109,30 @@ def plain_text(value: str) -> str:
     value = re.sub(r"[*_~>#|]", " ", value)
     value = re.sub(r"\s+", " ", value)
     return value.strip()[:MAX_TEXT]
+
+
+def reexec_venv() -> None:
+    """Use the voice venv so the optional Kokoro Python runtime is importable."""
+    if os.environ.get("PADILHA_VOICE_VENV") == "1":
+        return
+    python = DATA / "venv/bin/python"
+    if not python.is_file():
+        return
+    try:
+        if Path(sys.prefix).resolve() == (DATA / "venv").resolve():
+            return
+    except OSError:
+        return
+    os.environ["PADILHA_VOICE_VENV"] = "1"
+    os.execv(str(python), [str(python), os.path.realpath(__file__), *sys.argv[1:]])
+
+
+def kokoro_ready() -> bool:
+    return (
+        KOKORO_MODEL.is_file()
+        and KOKORO_VOICES.is_file()
+        and (DATA / "venv/bin/python").is_file()
+    )
 
 
 def piper_binary() -> Path | None:
@@ -106,10 +182,13 @@ class SpeechQueue:
         self.procs: list[subprocess.Popen[bytes]] = []
         self.lock = threading.Lock()
         self.next_id = 1
+        self.kokoro = None
         self.worker = threading.Thread(target=self._work, daemon=True)
         self.worker.start()
 
     def engine(self) -> str:
+        if kokoro_ready():
+            return "kokoro"
         if piper_binary() and voice_model():
             return "piper"
         if shutil.which("espeak-ng"):
@@ -162,12 +241,73 @@ class SpeechQueue:
 
     def _play(self, text: str) -> None:
         engine = self.engine()
-        if engine == "piper":
+        if engine == "kokoro":
+            self._play_kokoro(text)
+        elif engine == "piper":
             self._play_piper(text)
         elif engine == "espeak-ng":
             self._play_espeak(text)
         else:
             raise EngineError("no speech engine installed")
+
+    def _load_kokoro(self):
+        import types
+
+        import numpy as np
+        from kokoro_onnx import Kokoro
+        from kokoro_onnx.config import MAX_PHONEME_LENGTH, SAMPLE_RATE
+
+        if self.kokoro is not None:
+            return self.kokoro
+
+        def create_audio(self, phonemes, voice, speed):
+            if len(phonemes) > MAX_PHONEME_LENGTH:
+                phonemes = phonemes[:MAX_PHONEME_LENGTH]
+            tokens = np.array(self.tokenizer.tokenize(phonemes), dtype=np.int64)
+            tokens = tokens[:MAX_PHONEME_LENGTH]
+            voice = voice[len(tokens)]
+            inputs = {
+                "input_ids": [[0, *tokens, 0]],
+                "style": np.array(voice, dtype=np.float32),
+                "speed": np.array([speed], dtype=np.float32),
+            }
+            return self.sess.run(None, inputs)[0], SAMPLE_RATE
+
+        instance = Kokoro(str(KOKORO_MODEL), str(KOKORO_VOICES))
+        instance._create_audio = types.MethodType(create_audio, instance)
+        self.kokoro = instance
+        return instance
+
+    def _play_kokoro(self, text: str) -> None:
+        import numpy as np
+
+        kokoro = self._load_kokoro()
+        settings = voice_settings()
+        samples, rate = kokoro.create(
+            text,
+            voice=settings["voice"],
+            speed=settings["speed"],
+            lang="pt-br",
+        )
+        if self.cancel.is_set():
+            return
+        player = player_command(rate)
+        if player is None:
+            raise EngineError("PipeWire playback command is missing")
+        proc = subprocess.Popen(
+            player,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        with self.lock:
+            self.procs = [proc]
+        assert proc.stdin is not None
+        raw = (np.clip(samples, -1.0, 1.0) * 32767).astype("<i2").tobytes()
+        proc.stdin.write(raw)
+        proc.stdin.close()
+        proc.wait()
 
     def _play_piper(self, text: str) -> None:
         binary = piper_binary()
@@ -363,8 +503,14 @@ def setup(force: bool = False) -> int:
     """Install the local Piper runtime and PT-BR voice under the user's data."""
     binary = DATA / "venv/bin/piper"
     model = DATA / "models/pt_BR-faber-medium.onnx"
-    if not force and binary.is_file() and model.is_file():
-        print(f"padilha-voice: ready ({binary}, {model})")
+    if (
+        not force
+        and binary.is_file()
+        and model.is_file()
+        and KOKORO_MODEL.is_file()
+        and KOKORO_VOICES.is_file()
+    ):
+        print("padilha-voice: ready (Kokoro + Piper fallback)")
         return 0
     DATA.mkdir(mode=0o700, parents=True, exist_ok=True)
     (DATA / "models").mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -378,12 +524,20 @@ def setup(force: bool = False) -> int:
     print("padilha-voice: installing Piper", flush=True)
     subprocess.run([str(venv / "bin/pip"), "install", "--quiet", str(wheel)], check=True)
     if force or not model.is_file():
-        print("padilha-voice: downloading pt-BR voice", flush=True)
+        print("padilha-voice: downloading pt-BR fallback voice", flush=True)
         subprocess.run(["curl", "-L", "--fail", "--max-time", "300", "-o", str(model), PIPER_MODEL], check=True)
         subprocess.run(
             ["curl", "-L", "--fail", "--max-time", "60", "-o", str(model) + ".json", PIPER_MODEL_CONFIG],
             check=True,
         )
+    print("padilha-voice: installing Kokoro", flush=True)
+    subprocess.run([str(venv / "bin/pip"), "install", "--quiet", "kokoro-onnx"], check=True)
+    KOKORO_MODEL.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if force or not KOKORO_MODEL.is_file():
+        print("padilha-voice: downloading Maria voice", flush=True)
+        subprocess.run(["curl", "-L", "--fail", "--max-time", "600", "-o", str(KOKORO_MODEL), KOKORO_MODEL_URL], check=True)
+    if force or not KOKORO_VOICES.is_file():
+        subprocess.run(["curl", "-L", "--fail", "--max-time", "300", "-o", str(KOKORO_VOICES), KOKORO_VOICES_URL], check=True)
     print("padilha-voice: ready")
     return 0
 
@@ -445,10 +599,18 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("stop", help="stop speech and clear the queue")
     sub.add_parser("status", help="show daemon state")
     sub.add_parser("voices", help="show the selected engine and model")
+    sub.add_parser("config", help="print the saved voice preferences")
+    set_voice_parser = sub.add_parser("set-voice", help="select the Kokoro voice id")
+    set_voice_parser.add_argument("voice")
+    set_speed_parser = sub.add_parser("set-speed", help="set Kokoro speech speed (0.5-1.5)")
+    set_speed_parser.add_argument("speed", type=float)
     setup_parser = sub.add_parser("setup", help="download the local Piper runtime and voice")
     setup_parser.add_argument("--force", action="store_true")
     sub.add_parser("daemon", help="run the service in the foreground")
     args = parser.parse_args(argv)
+
+    if args.command != "setup":
+        reexec_venv()
 
     if args.command == "daemon":
         return daemon()
@@ -459,10 +621,27 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({
             "engine": SPEECH.engine(),
             "piper": str(piper_binary()) if piper_binary() else None,
-            "model": str(info[0]) if info else None,
-            "sample_rate": info[1] if info else None,
+            "model": str(KOKORO_MODEL) if kokoro_ready() else (str(info[0]) if info else None),
+            "sample_rate": 24000 if kokoro_ready() else (info[1] if info else None),
+            "piper_model": str(info[0]) if info else None,
+            "kokoro_voice": voice_settings()["voice"] if kokoro_ready() else None,
+            "kokoro_speed": voice_settings()["speed"] if kokoro_ready() else None,
             "espeak_ng": shutil.which("espeak-ng"),
         }, indent=2, ensure_ascii=False))
+        return 0
+
+    if args.command == "config":
+        print(json.dumps({
+            **voice_settings(),
+            "engine": SPEECH.engine(),
+            "voice_available": kokoro_ready(),
+        }, ensure_ascii=False))
+        return 0
+    if args.command == "set-voice":
+        print(json.dumps(save_voice_settings(voice=args.voice), ensure_ascii=False))
+        return 0
+    if args.command == "set-speed":
+        print(json.dumps(save_voice_settings(speed=args.speed), ensure_ascii=False))
         return 0
 
     ensure_daemon()
