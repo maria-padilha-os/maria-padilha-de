@@ -282,7 +282,30 @@ class SpeechQueue:
             }
             return self.sess.run(None, inputs)[0], SAMPLE_RATE
 
-        instance = Kokoro(str(KOKORO_MODEL), str(KOKORO_VOICES))
+        import onnxruntime as ort
+
+        original_session = ort.InferenceSession
+
+        def no_spin_session(*args, **kwargs):
+            # ONNX Runtime's CPU thread pool busy-waits after inference by
+            # default (four threads spinning at ~25% each while idle). Disable
+            # spinning for this session; it does not change the audio.
+            options = kwargs.get("sess_options")
+            if options is None:
+                options = ort.SessionOptions()
+                kwargs["sess_options"] = options
+            for key in ("session.intra_op.allow_spinning", "session.inter_op.allow_spinning"):
+                try:
+                    options.add_session_config_entry(key, "0")
+                except Exception:
+                    pass
+            return original_session(*args, **kwargs)
+
+        ort.InferenceSession = no_spin_session
+        try:
+            instance = Kokoro(str(KOKORO_MODEL), str(KOKORO_VOICES))
+        finally:
+            ort.InferenceSession = original_session
         instance._create_audio = types.MethodType(create_audio, instance)
         self.kokoro = instance
         return instance
