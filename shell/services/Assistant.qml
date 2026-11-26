@@ -102,7 +102,7 @@ Singleton {
             root.sessions = event.sessions || [];
             break;
         case "subagents":
-            root.agentSessions = event.agents || [];
+            root.handleSubagents(event.agents || []);
             break;
         case "history":
             root.activity = "";
@@ -488,6 +488,12 @@ Singleton {
             if (parent.length > 0)
                 process.write(JSON.stringify({ cmd: "subagents", parent }) + "\n");
         }
+    }
+
+    function handleSubagents(agents: var): void {
+        root.agentSessions = agents || [];
+        if (root.viewingAgent && !root.agentSessions.some(agent => agent.id === root.sessionId))
+            root.viewHome();
     }
 
     function viewAgent(id: string): void {

@@ -250,7 +250,7 @@ def list_sessions(limit: int = MAX_LIST) -> list[dict[str, Any]]:
 
 
 def list_subagents(parent_id: str, limit: int = 12) -> list[dict[str, Any]]:
-    """Recent DSH subagent sessions spawned by the given parent session."""
+    """Active DSH subagent sessions spawned by the given parent session."""
     if not parent_id:
         return []
     out: list[dict[str, Any]] = []
@@ -282,18 +282,21 @@ def list_subagents(parent_id: str, limit: int = 12) -> list[dict[str, Any]]:
                         label = str(data.get("label") or "")
         except Exception:
             continue
-        if origin == "subagent" and parent == parent_id:
-            out.append(
-                {
-                    "id": session.name,
-                    "label": label or "Agent",
-                    "cwd": cwd,
-                    "updated": int(mtime * 1000),
-                    "owned": session_owned(session),
-                }
-            )
-            if len(out) >= limit:
-                break
+        if origin != "subagent" or parent != parent_id:
+            continue
+        if not session_owned(session):
+            continue
+        out.append(
+            {
+                "id": session.name,
+                "label": label or "Agent",
+                "cwd": cwd,
+                "updated": int(mtime * 1000),
+                "owned": True,
+            }
+        )
+        if len(out) >= limit:
+            break
     out.sort(key=lambda item: item["updated"], reverse=True)
     return out
 

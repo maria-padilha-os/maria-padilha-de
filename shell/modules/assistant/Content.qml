@@ -1071,7 +1071,7 @@ Item {
     }
 
     Timer {
-        interval: 8000
+        interval: (Assistant.agentSessions.length > 0 || Assistant.viewingAgent) ? 2000 : 4000
         running: Assistant.ready
         repeat: true
         onTriggered: Assistant.refreshAgents()
