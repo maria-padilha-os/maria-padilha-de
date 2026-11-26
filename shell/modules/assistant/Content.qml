@@ -18,6 +18,8 @@ Item {
     readonly property real fontScale: 0.92
     property int historyIndex: -1
     property string historyDraft: ""
+    property string queuedText: ""
+    property bool activityExpanded: false
 
     function questions(): var {
         const out = [];
@@ -64,11 +66,35 @@ Item {
     }
 
     function submitComposer(): void {
-        if (Assistant.streaming || composer.text.trim().length === 0)
+        const text = composer.text.trim();
+        if (text.length === 0)
             return;
-        Assistant.send(composer.text);
+        if (Assistant.streaming) {
+            root.queueComposer();
+            return;
+        }
+        if (!Assistant.ready || Assistant.sessionOwned)
+            return;
+        Assistant.send(text);
         composer.text = "";
         root.resetHistory();
+    }
+
+    function queueComposer(): void {
+        const text = composer.text.trim();
+        if (text.length === 0)
+            return;
+        root.queuedText = text;
+        composer.text = "";
+        root.resetHistory();
+    }
+
+    function sendQueued(): void {
+        if (root.queuedText.length === 0 || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned)
+            return;
+        const text = root.queuedText;
+        root.queuedText = "";
+        Assistant.send(text);
     }
 
     Component.onCompleted: {
@@ -93,8 +119,11 @@ Item {
         }
 
         function onStreamingChanged(): void {
-            if (!Assistant.streaming)
-                root.focusComposer();
+            if (Assistant.streaming)
+                return;
+            root.focusComposer();
+            if (Assistant.lastStop === "complete" && root.queuedText.length > 0)
+                Qt.callLater(() => root.sendQueued());
         }
 
         // Follow the conversation only when its content changes (send, reply,
@@ -106,6 +135,8 @@ Item {
 
         function onSessionIdChanged(): void {
             root.resetHistory();
+            root.queuedText = "";
+            root.activityExpanded = false;
         }
 
         function onSessionsRequested(): void {
@@ -200,18 +231,44 @@ Item {
                 modal: false
                 focus: true
                 closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                onOpened: {
+                    sessionSearch.text = "";
+                    Qt.callLater(() => sessionSearch.forceActiveFocus());
+                }
 
                 background: StyledRect {
                     radius: Tokens.rounding.medium
                     color: Colours.tPalette.m3surfaceContainerHigh
                 }
 
-                contentItem: ListView {
+                contentItem: ColumnLayout {
+                    spacing: Tokens.spacing.extraSmall
+
+                    TextField {
+                        id: sessionSearch
+
+                        Layout.fillWidth: true
+                        focus: true
+                        placeholderText: Tr.tr("Search sessions")
+                        color: Colours.palette.m3onSurface
+                        placeholderTextColor: Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                        background: StyledRect {
+                            radius: Tokens.rounding.small
+                            color: Colours.tPalette.m3surfaceContainerHighest
+                        }
+                    }
+
+                    ListView {
                     id: sessionsList
 
-                    anchors.fill: parent
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
                     clip: true
-                    model: Assistant.sessions
+                    model: {
+                        const query = sessionSearch.text.trim().toLowerCase();
+                        return query.length === 0 ? Assistant.sessions : Assistant.sessions.filter(session => String(session.title || "").toLowerCase().includes(query));
+                    }
                     spacing: 2
                     boundsBehavior: Flickable.StopAtBounds
 
@@ -257,6 +314,7 @@ Item {
                             color: Colours.palette.m3onSurfaceVariant
                         }
                     }
+                }
                 }
             }
 
@@ -328,23 +386,28 @@ Item {
 
                         Layout.fillWidth: !fromUser
                         Layout.maximumWidth: fromUser ? maxBubbleWidth : transcript.width
-                        Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.implicitWidth + Tokens.padding.medium * 2) : transcript.width
+                        Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.contentWidth + Tokens.padding.medium * 2) : transcript.width
                         Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
                         visible: fromUser || !modelData.streaming || modelData.text.length > 0
-                        implicitHeight: body.implicitHeight + Tokens.padding.medium * 2
+                        implicitHeight: body.contentHeight + Tokens.padding.medium * 2
                         radius: Tokens.rounding.medium
                         color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
 
-                        StyledText {
+                        TextEdit {
                             id: body
 
                             anchors.fill: parent
                             anchors.margins: Tokens.padding.medium
+                            readOnly: true
+                            selectByMouse: true
+                            persistentSelection: true
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             text: modelData.text || ""
-                            wrapMode: Text.Wrap
-                            textFormat: bubble.fromUser ? Text.PlainText : Text.MarkdownText
+                            wrapMode: TextEdit.Wrap
+                            textFormat: bubble.fromUser ? TextEdit.PlainText : TextEdit.MarkdownText
                             color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                            selectionColor: Colours.palette.m3primary
+                            selectedTextColor: Colours.palette.m3onPrimary
                         }
                     }
                 }
@@ -358,6 +421,14 @@ Item {
                 Layout.fillWidth: true
                 visible: Assistant.streaming
                 spacing: Tokens.spacing.small
+
+                TapHandler {
+                    onTapped: root.activityExpanded = !root.activityExpanded
+                }
+
+                HoverHandler {
+                    cursorShape: Qt.PointingHandCursor
+                }
 
                 MaterialIcon {
                     id: activityIcon
@@ -383,6 +454,68 @@ Item {
                     font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                     elide: Text.ElideRight
                 }
+
+                MaterialIcon {
+                    visible: Assistant.activityLog.length > 1
+                    text: root.activityExpanded ? "expand_less" : "expand_more"
+                    color: Colours.palette.m3onSurfaceVariant
+                    fontStyle: Tokens.font.icon.small
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                visible: root.activityExpanded && Assistant.activityLog.length > 1
+                spacing: 0
+
+                Repeater {
+                    model: Assistant.activityLog.slice(-8)
+
+                    delegate: StyledText {
+                        required property string modelData
+
+                        Layout.fillWidth: true
+                        text: "• " + modelData
+                        color: Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+
+            RowLayout {
+                id: queuedRow
+
+                Layout.fillWidth: true
+                visible: root.queuedText.length > 0
+                spacing: Tokens.spacing.small
+
+                MaterialIcon {
+                    text: "schedule"
+                    color: Colours.palette.m3primary
+                    fontStyle: Tokens.font.icon.small
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Tr.tr("Queued · sends after this turn: %1").arg(root.queuedText)
+                    color: Colours.palette.m3onSurfaceVariant
+                    font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                    elide: Text.ElideRight
+                }
+
+                IconButton {
+                    visible: !Assistant.streaming
+                    icon: "send"
+                    accessibleName: Tr.tr("Send queued message")
+                    onClicked: root.sendQueued()
+                }
+
+                IconButton {
+                    icon: "close"
+                    accessibleName: Tr.tr("Discard queued message")
+                    onClicked: root.queuedText = ""
+                }
             }
 
             RowLayout {
@@ -401,7 +534,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works…") : Tr.tr("Ask the assistant"))
+                        placeholderText: Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant"))
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
@@ -429,6 +562,13 @@ Item {
                             }
                         }
                     }
+                }
+
+                IconButton {
+                    visible: Assistant.streaming && composer.text.trim().length > 0
+                    icon: "schedule"
+                    accessibleName: Tr.tr("Queue this message for after the current turn")
+                    onClicked: root.queueComposer()
                 }
 
                 IconButton {

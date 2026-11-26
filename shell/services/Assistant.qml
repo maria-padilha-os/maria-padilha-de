@@ -13,6 +13,8 @@ Singleton {
     property bool streaming: false
     property string error: ""
     property string activity: ""
+    property var activityLog: []
+    property string lastStop: ""
     property string selectedModel: ""
     property list<var> models: []
     property list<var> roots: []
@@ -52,6 +54,8 @@ Singleton {
         case "ready":
             root.ready = true;
             root.activity = "";
+            root.activityLog = [];
+            root.lastStop = "";
             root.models = event.models || [];
             root.roots = event.roots || [];
             root.selectedModel = root.selectedModel || (root.models[0]?.id ?? "");
@@ -64,6 +68,8 @@ Singleton {
             break;
         case "history":
             root.activity = "";
+            root.activityLog = [];
+            root.lastStop = "";
             root.sessionId = event.sessionId || root.sessionId;
             root.sessionTitle = event.sessionTitle || "";
             root.sessionOwned = !!event.sessionOwned;
@@ -74,6 +80,8 @@ Singleton {
             break;
         case "new":
             root.activity = "";
+            root.activityLog = [];
+            root.lastStop = "";
             root.sessionId = event.sessionId || "";
             root.sessionTitle = "";
             root.sessionOwned = false;
@@ -96,8 +104,17 @@ Singleton {
             }
             break;
         case "activity":
-            if (event.id === root.activeId)
-                root.activity = event.text || "";
+            if (event.id === root.activeId) {
+                const text = event.text || "";
+                root.activity = text;
+                if (text.length > 0 && root.activityLog[root.activityLog.length - 1] !== text) {
+                    const log = root.activityLog.slice();
+                    log.push(text);
+                    if (log.length > 30)
+                        log.shift();
+                    root.activityLog = log;
+                }
+            }
             break;
         case "assistant": {
             if (event.id !== root.activeId)
@@ -127,6 +144,7 @@ Singleton {
                 });
                 root.messages = next;
             }
+            root.lastStop = event.stop || "complete";
             root.streaming = false;
             root.activeId = -1;
             root.activity = "";
@@ -148,6 +166,7 @@ Singleton {
                 });
                 root.messages = next;
             }
+            root.lastStop = "error";
             root.streaming = false;
             root.activeId = -1;
             root.activity = "";
@@ -228,6 +247,8 @@ Singleton {
         root.activeId = id;
         root.streaming = true;
         root.activity = Tr.tr("Thinking…");
+        root.activityLog = [root.activity];
+        root.lastStop = "";
         root.error = "";
         process.write(JSON.stringify({
             cmd: "chat",
@@ -247,6 +268,7 @@ Singleton {
             next[index] = Object.assign({}, next[index], { streaming: false, cancelled: true });
             root.messages = next;
         }
+        root.lastStop = "cancelled";
         root.streaming = false;
         root.activeId = -1;
         root.activity = "";
@@ -268,6 +290,9 @@ Singleton {
         root.sessionOwned = false;
         root.messages = [];
         root.error = "";
+        root.activityLog = [];
+        root.activity = "";
+        root.lastStop = "";
     }
 
     function selectSession(id: string): void {
