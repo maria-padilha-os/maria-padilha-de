@@ -17,6 +17,7 @@ Singleton {
     property list<var> sessions: []
     property string sessionId: ""
     property string sessionTitle: ""
+    property bool sessionOwned: false
     property list<var> messages: []
     property int nextId: 1
     property int activeId: -1
@@ -50,12 +51,14 @@ Singleton {
             root.sessions = event.sessions || [];
             root.sessionId = event.sessionId || "";
             root.sessionTitle = event.sessionTitle || "";
+            root.sessionOwned = !!event.sessionOwned;
             root.setHistory(event.history, false);
             root.error = "";
             break;
         case "history":
             root.sessionId = event.sessionId || root.sessionId;
             root.sessionTitle = event.sessionTitle || "";
+            root.sessionOwned = !!event.sessionOwned;
             root.messages = [];
             root.setHistory(event.history, true);
             root.streaming = false;
@@ -64,12 +67,14 @@ Singleton {
         case "new":
             root.sessionId = event.sessionId || "";
             root.sessionTitle = "";
+            root.sessionOwned = false;
             root.messages = [];
             root.error = "";
             break;
         case "session":
             root.sessionId = event.sessionId || root.sessionId;
             root.sessionTitle = event.sessionTitle || root.sessionTitle;
+            root.sessionOwned = !!event.sessionOwned;
             break;
         case "assistant": {
             if (event.id !== root.activeId)
@@ -143,6 +148,10 @@ Singleton {
         text = text.trim();
         if (!text || root.streaming || !root.ready)
             return;
+        if (root.sessionOwned) {
+            root.error = Tr.tr("This session is open in dsh-tui. Close it there or start a new chat.");
+            return;
+        }
         if (!root.configured) {
             root.error = Tr.tr("DSH is not ready");
             return;
@@ -190,6 +199,7 @@ Singleton {
             process.write(JSON.stringify({ cmd: "new_chat" }) + "\n");
         root.sessionId = "";
         root.sessionTitle = "";
+        root.sessionOwned = false;
         root.messages = [];
         root.error = "";
     }
@@ -199,6 +209,7 @@ Singleton {
             return;
         root.sessionId = id;
         root.sessionTitle = "";
+        root.sessionOwned = false;
         root.messages = [];
         root.error = "";
         if (root.started)

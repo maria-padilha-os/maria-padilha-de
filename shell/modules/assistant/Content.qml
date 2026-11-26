@@ -167,7 +167,7 @@ Item {
                             anchors.leftMargin: Tokens.padding.small
                             anchors.rightMargin: Tokens.padding.small
                             verticalAlignment: Text.AlignVCenter
-                            text: sessionDelegate.modelData.title
+                            text: sessionDelegate.modelData.title + (sessionDelegate.modelData.owned ? " · live" : "")
                             elide: Text.ElideRight
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                             color: Colours.palette.m3onSurface
@@ -282,11 +282,11 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: Tr.tr("Ask the assistant")
+                        placeholderText: Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : Tr.tr("Ask the assistant")
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
-                        enabled: Assistant.ready && !Assistant.streaming
+                        enabled: Assistant.ready && !Assistant.streaming && !Assistant.sessionOwned
 
                         Keys.onPressed: event => {
                             if (event.key === Qt.Key_Escape) {
@@ -306,14 +306,14 @@ Item {
                 IconTextButton {
                     icon: Assistant.streaming ? "stop" : "send"
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
-                    enabled: Assistant.streaming || (Assistant.ready && composer.text.trim().length > 0)
+                    enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && composer.text.trim().length > 0)
                     onClicked: Assistant.streaming ? Assistant.cancel() : Assistant.send(composer.text)
                 }
             }
 
             StyledText {
                 Layout.fillWidth: true
-                text: Assistant.configured ? Tr.tr("Local DeepSeek Harness session · one writer per session") : Tr.tr("DeepSeek Harness is not ready")
+                text: Assistant.sessionOwned ? Tr.tr("Read-only · this session is open in dsh-tui") : (Assistant.configured ? Tr.tr("Local DeepSeek Harness session") : Tr.tr("DeepSeek Harness is not ready"))
                 font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight

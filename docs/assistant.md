@@ -23,9 +23,11 @@ has one writer: while `dsh-tui` owns a session, the widget can display its
 history but a prompt returns “already owned by an active write handle.” Close
 the TUI session or start a new chat in the widget to send.
 
-DSH needs its own model credential. Store it through the DSH web Models page or
-export `DEEPSEEK_API_KEY` in the environment that launches `padilha-dsh`; the
-widget and this repository never contain the key.
+DSH needs its own model credential. Store it through the DSH web Models page,
+or keep it in a private `~/.config/padilha/dsh-key` file (mode `0600`).
+`padilha-dsh` loads that file only into its SDK child; the value is never
+printed, passed on a command line, or committed. Exporting
+`DEEPSEEK_API_KEY` in the launching environment also works.
 
 ## File tools in chat
 

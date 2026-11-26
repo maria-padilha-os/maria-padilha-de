@@ -8,6 +8,7 @@ JSON-RPC notifications are translated back into the widget's message events.
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import subprocess
@@ -29,6 +30,30 @@ PROMPT_TIMEOUT = 60 * 15
 def emit(payload: dict[str, Any]) -> None:
     sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
     sys.stdout.flush()
+
+
+def load_credential() -> None:
+    """Load the DSH key from its private file if the launcher lacks it.
+
+    The widget runs under the desktop session, which does not inherit the
+    terminal's DEEPSEEK_API_KEY. The file is intentionally outside the repo and
+    must stay mode 0600; the value is never logged or passed on a command line.
+    """
+    if os.environ.get("DEEPSEEK_API_KEY"):
+        return
+    path = Path(os.environ.get("PADILHA_DSH_KEY_FILE", Path.home() / ".config/padilha/dsh-key"))
+    try:
+        info = path.stat()
+    except OSError:
+        return
+    if info.st_mode & 0o077:
+        return
+    try:
+        key = path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return
+    if key:
+        os.environ["DEEPSEEK_API_KEY"] = key
 
 
 def session_dirs() -> list[Path]:
@@ -60,6 +85,24 @@ def log_path(session: Path) -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+
+def session_owned(session: Path) -> bool:
+    """Whether another DSH process currently holds the session's writer lock."""
+    lock = session / "session.lock"
+    try:
+        fd = os.open(lock, os.O_RDWR)
+    except OSError:
+        return False
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        return False
+    finally:
+        os.close(fd)
 
 
 def events(path: Path, limit: int | None = None) -> Iterator[dict[str, Any]]:
@@ -183,6 +226,7 @@ def session_summary(session: Path) -> dict[str, Any] | None:
         "title": title,
         "cwd": cwd,
         "updated": int(updated * 1000),
+        "owned": session_owned(session),
     }
 
 
@@ -228,6 +272,7 @@ class DshSdk:
         self.initialized = False
         self.cancel = threading.Event()
         self.lock = threading.Lock()
+        self.owned: set[str] = set()
 
     def _ensure(self, cwd: str) -> None:
         if self.proc is not None and self.proc.poll() is None:
@@ -295,13 +340,17 @@ class DshSdk:
 
     def resume(self, session_id: str, cwd: str) -> None:
         self._ensure(cwd)
+        if session_id in self.owned:
+            return
         self._request("session/resume", {"sessionId": session_id})
+        self.owned.add(session_id)
 
     def prompt(self, session_id: str, text: str) -> Iterator[dict[str, Any]]:
         self._request(
             "session/prompt",
             {"sessionId": session_id, "contentBlocks": [{"type": "text", "text": text}]},
         )
+        self.owned.add(session_id)
         deadline = time.monotonic() + PROMPT_TIMEOUT
         saw_assistant = False
         while True:
@@ -353,9 +402,11 @@ class DshSdk:
                     pass
         self.proc = None
         self.initialized = False
+        self.owned.clear()
 
 
 def main() -> int:
+    load_credential()
     sdk = DshSdk()
     sessions = list_sessions()
 
@@ -376,6 +427,7 @@ def main() -> int:
             "history": active_history,
             "sessionId": active_id,
             "sessionTitle": active["title"] if active else "",
+            "sessionOwned": bool(active and active.get("owned")),
             "sessions": sessions,
         }
     )
@@ -401,11 +453,12 @@ def main() -> int:
                     "type": "history",
                     "sessionId": session_id,
                     "sessionTitle": summary["title"] if summary else "",
+                    "sessionOwned": summary["owned"] if summary else False,
                     "history": history(log) if log else [],
                 }
             )
         elif command == "new_chat":
-            emit({"type": "new", "sessionId": str(uuid.uuid4()), "sessionTitle": ""})
+            emit({"type": "new", "sessionId": str(uuid.uuid4()), "sessionTitle": "", "sessionOwned": False})
         elif command == "chat":
             session_id = str(request.get("sessionId") or "")
             text = str(request.get("text") or "").strip()
@@ -413,7 +466,7 @@ def main() -> int:
                 continue
             session_id, path = resolve_session(session_id or None)
             if not path:
-                emit({"type": "session", "sessionId": session_id, "sessionTitle": ""})
+                emit({"type": "session", "sessionId": session_id, "sessionTitle": text[:72], "sessionOwned": False})
 
             def worker(session_id: str = session_id, path: Path | None = path, text: str = text) -> None:
                 try:
