@@ -304,6 +304,12 @@ Item {
                     }
                 }
 
+                IconButton {
+                    icon: AssistantSettings.speakReplies ? "volume_up" : "volume_off"
+                    accessibleName: AssistantSettings.speakReplies ? Tr.tr("Disable spoken replies") : Tr.tr("Speak replies")
+                    onClicked: AssistantSettings.speakReplies = !AssistantSettings.speakReplies
+                }
+
                 IconTextButton {
                     icon: Assistant.streaming ? "stop" : "send"
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")

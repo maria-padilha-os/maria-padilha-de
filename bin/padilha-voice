@@ -1,0 +1,496 @@
+#!/usr/bin/python3
+"""Desktop-neutral Padilha voice service.
+
+The daemon owns a Unix socket and a single serialized speech queue. Any desktop
+or toolkit can call it through the line-delimited JSON protocol below; PipeWire
+does the playback, so there is no Qt, GTK or compositor dependency.
+
+Output is implemented with Piper (or espeak-ng as a low-memory fallback).
+Input is reserved for a later recognizer; `listen` deliberately reports that it
+is not implemented yet instead of pretending to record.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import queue
+import re
+import shutil
+import signal
+import socket
+import socketserver
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+from typing import Any
+
+HOME = Path.home()
+DATA = Path(os.environ.get("PADILHA_VOICE_HOME", HOME / ".local/share/padilha/voice"))
+CONFIG = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "padilha/voice.json"
+STATE = Path(os.environ.get("XDG_STATE_HOME", HOME / ".local/state")) / "padilha/voice.log"
+RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "padilha"
+SOCKET = RUNTIME / "voice.sock"
+MAX_TEXT = 12000
+PIPER_WHEEL = (
+    "https://github.com/OHF-Voice/piper1-gpl/releases/download/v1.8.0/"
+    "piper_tts-1.8.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64."
+    "manylinux_2_28_x86_64.whl"
+)
+PIPER_MODEL = (
+    "https://huggingface.co/rhasspy/piper-voices/resolve/main/pt/pt_BR/faber/medium/"
+    "pt_BR-faber-medium.onnx"
+)
+PIPER_MODEL_CONFIG = PIPER_MODEL + ".json"
+
+
+def plain_text(value: str) -> str:
+    value = re.sub(r"```.*?```", " ", value, flags=re.S)
+    value = re.sub(r"`([^`]*)`", r"\1", value)
+    value = re.sub(r"!\[[^]]*\]\([^)]*\)", " ", value)
+    value = re.sub(r"\[([^]]+)\]\([^)]*\)", r"\1", value)
+    value = re.sub(r"https?://\S+", " ", value)
+    value = re.sub(r"^\s{0,3}#{1,6}\s*", "", value, flags=re.M)
+    value = re.sub(r"[*_~>#|]", " ", value)
+    value = re.sub(r"\s+", " ", value)
+    return value.strip()[:MAX_TEXT]
+
+
+def piper_binary() -> Path | None:
+    for candidate in (DATA / "venv/bin/piper", DATA / "piper/piper"):
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    found = shutil.which("piper")
+    return Path(found) if found else None
+
+
+def voice_model() -> tuple[Path, int] | None:
+    override = os.environ.get("PADILHA_VOICE_MODEL")
+    candidates: list[Path] = []
+    if override:
+        candidates.append(Path(override).expanduser())
+    candidates.extend(sorted((DATA / "models").glob("*.onnx")))
+    for model in candidates:
+        if not model.is_file():
+            continue
+        rate = 22050
+        try:
+            config = json.loads(model.with_suffix(model.suffix + ".json").read_text())
+            rate = int(config.get("audio", {}).get("sample_rate", rate))
+        except (OSError, ValueError, TypeError):
+            pass
+        return model, rate
+    return None
+
+
+def player_command(rate: int) -> list[str] | None:
+    if shutil.which("pw-play"):
+        return ["pw-play", "--raw", "--rate", str(rate), "--channels", "1", "--format", "s16", "-"]
+    if shutil.which("paplay"):
+        return ["paplay", "--raw", f"--rate={rate}", "--channels=1", "--format=s16le"]
+    return None
+
+
+class EngineError(RuntimeError):
+    pass
+
+
+class SpeechQueue:
+    def __init__(self) -> None:
+        self.jobs: queue.Queue[dict[str, Any]] = queue.Queue()
+        self.cancel = threading.Event()
+        self.current: dict[str, Any] | None = None
+        self.procs: list[subprocess.Popen[bytes]] = []
+        self.lock = threading.Lock()
+        self.next_id = 1
+        self.worker = threading.Thread(target=self._work, daemon=True)
+        self.worker.start()
+
+    def engine(self) -> str:
+        if piper_binary() and voice_model():
+            return "piper"
+        if shutil.which("espeak-ng"):
+            return "espeak-ng"
+        return "unavailable"
+
+    def speak(self, text: str, interrupt: bool = True) -> int:
+        text = plain_text(text)
+        if not text:
+            raise EngineError("text is empty")
+        if self.engine() == "unavailable":
+            raise EngineError("no speech engine installed")
+        with self.lock:
+            job_id = self.next_id
+            self.next_id += 1
+            if interrupt:
+                self._stop_locked()
+                self._drain_locked()
+            self.jobs.put({"id": job_id, "text": text})
+        threading.Thread(target=self._wake, daemon=True).start()
+        return job_id
+
+    def _wake(self) -> None:
+        # The worker blocks on the queue; nothing else is required, but keeping
+        # this hook makes an interrupted queue wake immediately if a future
+        # implementation replaces Queue with a condition.
+        return
+
+    def _drain_locked(self) -> None:
+        while True:
+            try:
+                self.jobs.get_nowait()
+            except queue.Empty:
+                break
+
+    def _work(self) -> None:
+        while True:
+            job = self.jobs.get()
+            with self.lock:
+                self.current = job
+                self.cancel.clear()
+            try:
+                self._play(job["text"])
+            except Exception as error:
+                log(f"speech {job['id']} failed: {error}")
+            finally:
+                with self.lock:
+                    self.current = None
+                    self.procs = []
+
+    def _play(self, text: str) -> None:
+        engine = self.engine()
+        if engine == "piper":
+            self._play_piper(text)
+        elif engine == "espeak-ng":
+            self._play_espeak(text)
+        else:
+            raise EngineError("no speech engine installed")
+
+    def _play_piper(self, text: str) -> None:
+        binary = piper_binary()
+        model_info = voice_model()
+        if binary is None or model_info is None:
+            raise EngineError("Piper or its voice model is missing")
+        model, rate = model_info
+        player = player_command(rate)
+        if player is None:
+            raise EngineError("PipeWire playback command is missing")
+        help_text = ""
+        try:
+            help_text = subprocess.run([str(binary), "--help"], capture_output=True, text=True, timeout=5).stdout
+        except Exception:
+            pass
+        raw_flag = "--output-raw" if "--output-raw" in help_text else "--output_raw"
+        piper = subprocess.Popen(
+            [str(binary), "-m", str(model), raw_flag],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        assert piper.stdin is not None and piper.stdout is not None
+        player_proc = subprocess.Popen(
+            player,
+            stdin=piper.stdout,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        piper.stdout.close()
+        with self.lock:
+            self.procs = [piper, player_proc]
+        try:
+            piper.stdin.write(text.encode("utf-8"))
+            piper.stdin.close()
+        except BrokenPipeError:
+            pass
+        piper.wait()
+        player_proc.wait()
+
+    def _play_espeak(self, text: str) -> None:
+        espeak = shutil.which("espeak-ng")
+        player = shutil.which("pw-play")
+        if not espeak or not player:
+            raise EngineError("espeak-ng or pw-play is missing")
+        espeak_proc = subprocess.Popen(
+            [espeak, "--stdout", "-v", "pt-br", text],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        assert espeak_proc.stdout is not None
+        player_proc = subprocess.Popen(
+            [player, "-"],
+            stdin=espeak_proc.stdout,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        espeak_proc.stdout.close()
+        with self.lock:
+            self.procs = [espeak_proc, player_proc]
+        espeak_proc.wait()
+        player_proc.wait()
+
+    def _stop_locked(self) -> None:
+        self.cancel.set()
+        for proc in list(self.procs):
+            if proc.poll() is None:
+                try:
+                    os.killpg(proc.pid, signal.SIGTERM)
+                except OSError:
+                    try:
+                        proc.terminate()
+                    except OSError:
+                        pass
+        for proc in list(self.procs):
+            try:
+                proc.wait(timeout=1)
+            except Exception:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+    def stop(self) -> None:
+        with self.lock:
+            self._stop_locked()
+            self._drain_locked()
+
+    def status(self) -> dict[str, Any]:
+        with self.lock:
+            return {
+                "engine": self.engine(),
+                "speaking": self.current is not None,
+                "current": self.current["id"] if self.current else None,
+                "queued": self.jobs.qsize(),
+                "socket": str(SOCKET),
+            }
+
+
+SPEECH = SpeechQueue()
+
+
+def log(message: str) -> None:
+    try:
+        STATE.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        with STATE.open("a", encoding="utf-8") as handle:
+            handle.write(f"{time.strftime('%Y-%m-%dT%H:%M:%S')} {message}\n")
+    except OSError:
+        pass
+
+
+def send(conn: socket.socket, payload: dict[str, Any]) -> None:
+    conn.sendall((json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8"))
+
+
+class Handler(socketserver.StreamRequestHandler):
+    def handle(self) -> None:
+        for raw in self.rfile:
+            try:
+                request = json.loads(raw)
+            except ValueError:
+                send(self.request, {"ok": False, "error": "invalid_json"})
+                continue
+            if not isinstance(request, dict):
+                send(self.request, {"ok": False, "error": "invalid_request"})
+                continue
+            command = request.get("cmd")
+            try:
+                if command == "speak":
+                    text = str(request.get("text") or "")
+                    job_id = SPEECH.speak(text, interrupt=bool(request.get("interrupt", True)))
+                    send(self.request, {"ok": True, "id": job_id, **SPEECH.status()})
+                elif command == "stop":
+                    SPEECH.stop()
+                    send(self.request, {"ok": True, **SPEECH.status()})
+                elif command == "status":
+                    send(self.request, {"ok": True, **SPEECH.status()})
+                elif command == "listen":
+                    send(self.request, {"ok": False, "error": "stt_not_implemented", "message": "Speech input is reserved for a later recognizer."})
+                elif command == "shutdown":
+                    send(self.request, {"ok": True})
+                    threading.Thread(target=self.server.shutdown, daemon=True).start()
+                    return
+                else:
+                    send(self.request, {"ok": False, "error": "unknown_command"})
+            except EngineError as error:
+                send(self.request, {"ok": False, "error": str(error)})
+            except Exception as error:
+                log(f"request failed: {error}")
+                send(self.request, {"ok": False, "error": "internal_error"})
+
+
+class Server(socketserver.ThreadingUnixStreamServer):
+    daemon_threads = True
+
+
+def daemon() -> int:
+    RUNTIME.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if SOCKET.exists():
+        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            probe.settimeout(0.3)
+            probe.connect(str(SOCKET))
+            probe.close()
+            print("padilha-voice: daemon already running", file=sys.stderr)
+            return 0
+        except OSError:
+            SOCKET.unlink(missing_ok=True)
+    server = Server(str(SOCKET), Handler)
+    os.chmod(SOCKET, 0o600)
+    log(f"daemon started engine={SPEECH.engine()}")
+
+    def stop(_signum: int, _frame: Any) -> None:
+        SPEECH.stop()
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    try:
+        server.serve_forever(poll_interval=0.25)
+    finally:
+        SPEECH.stop()
+        server.server_close()
+        SOCKET.unlink(missing_ok=True)
+    return 0
+
+
+def setup(force: bool = False) -> int:
+    """Install the local Piper runtime and PT-BR voice under the user's data."""
+    binary = DATA / "venv/bin/piper"
+    model = DATA / "models/pt_BR-faber-medium.onnx"
+    if not force and binary.is_file() and model.is_file():
+        print(f"padilha-voice: ready ({binary}, {model})")
+        return 0
+    DATA.mkdir(mode=0o700, parents=True, exist_ok=True)
+    (DATA / "models").mkdir(mode=0o700, parents=True, exist_ok=True)
+    venv = DATA / "venv"
+    if force or not (venv / "bin/python").is_file():
+        subprocess.run([sys.executable, "-m", "venv", str(venv)], check=True)
+    wheel = DATA / "piper.whl"
+    if force or not wheel.is_file():
+        print("padilha-voice: downloading Piper runtime", flush=True)
+        subprocess.run(["curl", "-L", "--fail", "--max-time", "300", "-o", str(wheel), PIPER_WHEEL], check=True)
+    print("padilha-voice: installing Piper", flush=True)
+    subprocess.run([str(venv / "bin/pip"), "install", "--quiet", str(wheel)], check=True)
+    if force or not model.is_file():
+        print("padilha-voice: downloading pt-BR voice", flush=True)
+        subprocess.run(["curl", "-L", "--fail", "--max-time", "300", "-o", str(model), PIPER_MODEL], check=True)
+        subprocess.run(
+            ["curl", "-L", "--fail", "--max-time", "60", "-o", str(model) + ".json", PIPER_MODEL_CONFIG],
+            check=True,
+        )
+    print("padilha-voice: ready")
+    return 0
+
+
+def request(payload: dict[str, Any], timeout: float = 5.0) -> dict[str, Any]:
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+        client.settimeout(timeout)
+        client.connect(str(SOCKET))
+        client.sendall((json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8"))
+        data = b""
+        while b"\n" not in data:
+            chunk = client.recv(65536)
+            if not chunk:
+                break
+            data += chunk
+    try:
+        return json.loads(data.split(b"\n", 1)[0])
+    except ValueError as error:
+        raise SystemExit(f"padilha-voice: invalid daemon reply: {error}")
+
+
+def ensure_daemon() -> None:
+    if SOCKET.exists():
+        try:
+            request({"cmd": "status"}, timeout=0.5)
+            return
+        except (OSError, SystemExit):
+            pass
+    if os.environ.get("PADILHA_VOICE_NO_AUTOSTART") == "1":
+        raise SystemExit("padilha-voice: daemon is not running")
+    RUNTIME.mkdir(mode=0o700, parents=True, exist_ok=True)
+    log_file = STATE
+    log_file.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    subprocess.Popen(
+        [sys.executable, os.path.realpath(__file__), "daemon"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    for _ in range(30):
+        time.sleep(0.1)
+        if SOCKET.exists():
+            try:
+                request({"cmd": "status"}, timeout=0.5)
+                return
+            except (OSError, SystemExit):
+                pass
+    raise SystemExit("padilha-voice: daemon did not start")
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="padilha-voice", description="Padilha desktop voice service")
+    sub = parser.add_subparsers(dest="command", required=True)
+    speak = sub.add_parser("speak", help="queue text for speech")
+    speak.add_argument("text", nargs="?", help="text to speak; use - or omit to read stdin")
+    speak.add_argument("--no-interrupt", action="store_true", help="append instead of interrupting")
+    speak.add_argument("--wait", action="store_true", help="wait until this utterance is spoken")
+    sub.add_parser("stop", help="stop speech and clear the queue")
+    sub.add_parser("status", help="show daemon state")
+    sub.add_parser("voices", help="show the selected engine and model")
+    setup_parser = sub.add_parser("setup", help="download the local Piper runtime and voice")
+    setup_parser.add_argument("--force", action="store_true")
+    sub.add_parser("daemon", help="run the service in the foreground")
+    args = parser.parse_args(argv)
+
+    if args.command == "daemon":
+        return daemon()
+    if args.command == "setup":
+        return setup(args.force)
+    if args.command == "voices":
+        info = voice_model()
+        print(json.dumps({
+            "engine": SPEECH.engine(),
+            "piper": str(piper_binary()) if piper_binary() else None,
+            "model": str(info[0]) if info else None,
+            "sample_rate": info[1] if info else None,
+            "espeak_ng": shutil.which("espeak-ng"),
+        }, indent=2, ensure_ascii=False))
+        return 0
+
+    ensure_daemon()
+    if args.command == "status":
+        print(json.dumps(request({"cmd": "status"}), indent=2, ensure_ascii=False))
+        return 0
+    if args.command == "stop":
+        print(json.dumps(request({"cmd": "stop"}), ensure_ascii=False))
+        return 0
+    if args.command == "speak":
+        if args.text and args.text != "-":
+            text = args.text
+        else:
+            text = sys.stdin.read()
+        response = request({"cmd": "speak", "text": text, "interrupt": not args.no_interrupt})
+        if not response.get("ok"):
+            raise SystemExit(f"padilha-voice: {response.get('error', 'speech failed')}")
+        if args.wait:
+            deadline = time.monotonic() + 120
+            while time.monotonic() < deadline:
+                time.sleep(0.2)
+                status = request({"cmd": "status"})
+                if status.get("current") != response.get("id") and status.get("queued", 0) == 0:
+                    break
+        print(json.dumps(response, ensure_ascii=False))
+        return 0
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

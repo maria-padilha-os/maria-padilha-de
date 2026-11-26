@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Caelestia.I18n
+import qs.services
 
 Singleton {
     id: root
@@ -31,6 +32,7 @@ Singleton {
         const model = models.find(m => m.id === selectedModel);
         return model ? model.name : Tr.tr("DeepSeek Harness");
     }
+    readonly property bool speakReplies: AssistantSettings.speakReplies
 
     function handle(line: string): void {
         let event;
@@ -105,6 +107,8 @@ Singleton {
             }
             root.streaming = false;
             root.activeId = -1;
+            if (root.speakReplies && (event.text || "").trim().length > 0)
+                Quickshell.execDetached(["padilha-voice", "speak", "--", event.text]);
             break;
         }
         case "error": {

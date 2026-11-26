@@ -44,12 +44,16 @@ or keep it in a private `~/.config/padilha/dsh-key` file (mode `0600`).
 printed, passed on a command line, or committed. Exporting
 `DEEPSEEK_API_KEY` in the launching environment also works.
 
-## Voice input
+## Voice
 
-The experimental voice-input bundle is installed in the DSH **web** profile
-and composed by `dsh web`; its microphone lives in the browser UI. The native
-Assistant drawer does not consume browser plugins, so it has no microphone
-button from that bundle yet.
+Spoken output uses the desktop-neutral `padilha-voice` service. The speaker
+button beside Send toggles spoken replies and is persisted with the assistant
+settings; only completed assistant answers are spoken. See
+[Padilha voice service](voice.md).
+
+The experimental browser voice-input bundle is installed in the DSH **web**
+profile for microphone input there. The native Assistant drawer does not
+consume browser plugins, so it still has no microphone button.
 
 ## File tools in chat
 

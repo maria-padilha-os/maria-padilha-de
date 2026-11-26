@@ -1,0 +1,14 @@
+[Unit]
+Description=Padilha desktop voice service
+After=pipewire.service
+PartOf=padilha-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/padilha-voice daemon
+Restart=on-failure
+RestartSec=2
+KillMode=control-group
+
+[Install]
+WantedBy=padilha-session.target

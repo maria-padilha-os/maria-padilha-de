@@ -167,6 +167,7 @@ runtime_deps=(
     cliphist
     fuzzel
     papirus-icon-theme
+    curl
 )
 
 if [ "$editor" = nvim ]; then
@@ -220,6 +221,7 @@ commands=(
     padilha-greeter
     padilha-greeter-qs
     padilha-icons
+    padilha-voice
     padilha-dsh
     padilha-transparency
     padilha-config
