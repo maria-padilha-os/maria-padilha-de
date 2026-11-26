@@ -200,7 +200,9 @@ StyledWindow {
             panel: panels.sessionWrapper
             deformAmount: 0.2
             x: panels.sessionWrapper.x + panels.session.x + bar.implicitWidth
+            y: panels.sessionWrapper.y + panels.session.y
             implicitWidth: panels.session.width
+            implicitHeight: panels.session.height
             visible: panels.session.visible
             group: panels.session.visible ? blobGroup : null
         }

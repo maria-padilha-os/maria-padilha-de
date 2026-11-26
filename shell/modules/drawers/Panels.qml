@@ -91,10 +91,10 @@ Item {
     Item {
         id: sessionWrapper
 
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        anchors.rightMargin: root.rightDrawer.width * (1 - root.rightDrawer.offsetScale)
-        clip: root.rightDrawer.visible
+        // The session/power panel lives at the bottom-left, next to the bar,
+        // rather than on the right edge.
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
 
         implicitWidth: session.implicitWidth * (1 - session.offsetScale)
         implicitHeight: session.implicitHeight
@@ -105,8 +105,8 @@ Item {
             screenState: root.screenState
             sidebarVisible: sidebar.visible
 
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.right: parent.right
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
         }
     }
 
