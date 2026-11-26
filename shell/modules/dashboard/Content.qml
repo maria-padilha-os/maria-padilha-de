@@ -133,39 +133,11 @@ Item {
 
             readonly property bool extensionSelected: currentItem?.modelData?.extension !== undefined
 
-            // Remember the last built-in tab size. Extension tabs borrow it,
-            // so switching to one neither shrinks nor grows the panel.
-            property real stableWidth: 0
-            property real stableHeight: 0
-
-            Binding {
-                target: view
-                property: "stableWidth"
-                value: view.currentItem?.implicitWidth ?? 0
-                when: !view.extensionSelected && view.currentItem !== null
-                restoreMode: Binding.RestoreNone
-            }
-            Binding {
-                target: view
-                property: "stableHeight"
-                value: view.currentItem?.implicitHeight ?? 0
-                when: !view.extensionSelected && view.currentItem !== null
-                restoreMode: Binding.RestoreNone
-            }
-
-            implicitWidth: extensionSelected ? Math.max(currentItem?.implicitWidth ?? 0, stableWidth) : currentItem?.implicitWidth ?? 0
-            implicitHeight: extensionSelected ? Math.max(currentItem?.implicitHeight ?? 0, stableHeight) : currentItem?.implicitHeight ?? 0
-
-            Component.onCompleted: {
-                for (let i = 0; i < repeater.count; i++) {
-                    const loader = repeater.itemAt(i);
-                    if (loader && loader.modelData?.extension === undefined) {
-                        stableWidth = loader.implicitWidth;
-                        stableHeight = loader.implicitHeight;
-                        break;
-                    }
-                }
-            }
+            // Every pane owns its size. Extensions can therefore be wider or
+            // taller than their neighbours and the panel eases between them
+            // instead of forcing every tab into the last built-in size.
+            implicitWidth: currentItem?.implicitWidth ?? 0
+            implicitHeight: currentItem?.implicitHeight ?? 0
 
             contentX: currentItem?.x ?? 0
             contentWidth: row.implicitWidth
@@ -218,8 +190,8 @@ Item {
                         onLoaded: {
                             if (modelData.extension) {
                                 item.extension = modelData.extension;
-                                item.panelWidth = Qt.binding(() => view.stableWidth);
-                                item.panelHeight = Qt.binding(() => view.stableHeight);
+                                item.panelWidth = 0;
+                                item.panelHeight = 0;
                                 item.active = Qt.binding(() => index === view.currentIndex);
                             }
                         }

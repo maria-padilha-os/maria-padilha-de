@@ -401,6 +401,8 @@ Item {
             accentColour: root.accent
             accentTextColour: root.onAccent
             placeholderText: Tr.tr("Translation")
+            copyable: true
+            onCopyRequested: root.copyResult()
         }
 
         RowLayout {
@@ -537,8 +539,10 @@ Item {
         property color accentColour: "transparent"
         property color accentTextColour: "transparent"
         property bool compact: false
+        property bool copyable: false
 
         signal submit()
+        signal copyRequested()
 
         radius: Tokens.rounding.medium
         color: panel.surfaceColour
@@ -558,18 +562,53 @@ Item {
             anchors.margins: Tokens.padding.small
             spacing: Tokens.spacing.extraSmall
 
-            Text {
-                id: panelLabel
-                objectName: "panelLabel"
-
+            RowLayout {
                 Layout.fillWidth: true
-                Layout.minimumWidth: 0
-                visible: panel.labelText.length > 0
-                text: panel.labelText
-                color: area.activeFocus ? panel.accentColour : panel.mutedColour
-                font: Tokens.font.label.small
-                elide: Text.ElideRight
-                maximumLineCount: 1
+                spacing: Tokens.spacing.extraSmall
+
+                Text {
+                    id: panelLabel
+                    objectName: "panelLabel"
+
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    visible: panel.labelText.length > 0
+                    text: panel.labelText
+                    color: area.activeFocus ? panel.accentColour : panel.mutedColour
+                    font: Tokens.font.label.small
+                    elide: Text.ElideRight
+                    maximumLineCount: 1
+                }
+
+                Rectangle {
+                    id: copyChip
+
+                    visible: panel.copyable && area.text.length > 0
+                    implicitWidth: copyText.implicitWidth + Tokens.padding.small * 2
+                    implicitHeight: copyText.implicitHeight + Tokens.padding.extraSmall
+                    radius: Tokens.rounding.full
+                    color: copyMouse.containsMouse ? panel.surfaceColour : "transparent"
+                    border.width: 1
+                    border.color: panel.outlineColour
+
+                    Text {
+                        id: copyText
+
+                        anchors.centerIn: parent
+                        text: Tr.tr("Copy")
+                        color: panel.accentColour
+                        font: Tokens.font.label.small
+                    }
+
+                    MouseArea {
+                        id: copyMouse
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: panel.copyRequested()
+                    }
+                }
             }
 
             ScrollView {

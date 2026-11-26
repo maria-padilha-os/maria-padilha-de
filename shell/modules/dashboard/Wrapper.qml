@@ -43,6 +43,12 @@ Item {
     Behavior on offsetScale {
         Anim {}
     }
+    Behavior on implicitWidth {
+        Anim {}
+    }
+    Behavior on implicitHeight {
+        Anim {}
+    }
 
     Loader {
         id: content
