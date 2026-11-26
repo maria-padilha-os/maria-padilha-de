@@ -25,6 +25,9 @@ Singleton {
     property bool started: false
     property bool stopping: false
 
+    signal sessionsRequested()
+    signal closeRequested()
+
     readonly property bool configured: models.length > 0
     readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : Tr.trN("%n folder granted", "%n folders granted", roots.length)
     readonly property string sessionLabel: sessionTitle.length > 0 ? sessionTitle : Tr.tr("No DSH session")
@@ -77,6 +80,16 @@ Singleton {
             root.sessionId = event.sessionId || root.sessionId;
             root.sessionTitle = event.sessionTitle || root.sessionTitle;
             root.sessionOwned = !!event.sessionOwned;
+            if (root.sessionTitle.length > 0 && root.sessionId.length > 0) {
+                const current = { id: root.sessionId, title: root.sessionTitle, updated: Date.now(), owned: root.sessionOwned };
+                const index = root.sessions.findIndex(s => s.id === root.sessionId);
+                const next = root.sessions.slice();
+                if (index >= 0)
+                    next[index] = Object.assign({}, next[index], current);
+                else
+                    next.unshift(current);
+                root.sessions = next;
+            }
             break;
         case "assistant": {
             if (event.id !== root.activeId)
@@ -148,8 +161,43 @@ Singleton {
         root.messages = restored;
     }
 
+    function appendNotice(text: string): void {
+        root.messages = root.messages.concat([
+            { id: "notice-" + root.nextId++, role: "notice", text: text, streaming: false },
+        ]);
+    }
+
+    function handleCommand(command: string): void {
+        const name = command.split(/\s+/, 1)[0].toLowerCase();
+        switch (name) {
+        case "/new":
+        case "/clear":
+            root.newChat();
+            break;
+        case "/resume":
+            root.sessionsRequested();
+            break;
+        case "/stop":
+            root.cancel();
+            break;
+        case "/quit":
+            root.closeRequested();
+            break;
+        case "/help":
+            root.appendNotice(Tr.tr("Widget commands: /new, /clear, /resume, /stop, /quit. DSH commands such as /btw and /compact require dsh-tui."));
+            break;
+        default:
+            root.error = Tr.tr("Unknown widget command. Use /help, or run DSH commands in dsh-tui.");
+            break;
+        }
+    }
+
     function send(text: string): void {
         text = text.trim();
+        if (text.startsWith("/")) {
+            root.handleCommand(text);
+            return;
+        }
         if (!text || root.streaming || !root.ready)
             return;
         if (root.sessionOwned) {
@@ -197,6 +245,7 @@ Singleton {
     }
 
     function newChat(): void {
+        Quickshell.execDetached(["padilha-voice", "stop"]);
         if (root.streaming)
             root.cancel();
         if (root.started)
@@ -242,6 +291,15 @@ Singleton {
         root.stopping = true;
         root.started = false;
         root.ready = false;
+    }
+
+    Connections {
+        function onSpeakRepliesChanged(): void {
+            if (!AssistantSettings.speakReplies)
+                Quickshell.execDetached(["padilha-voice", "stop"]);
+        }
+
+        target: AssistantSettings
     }
 
     Process {

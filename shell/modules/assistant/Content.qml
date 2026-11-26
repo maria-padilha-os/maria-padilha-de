@@ -45,6 +45,14 @@ Item {
             Qt.callLater(() => transcript.positionViewAtEnd());
         }
 
+        function onSessionsRequested(): void {
+            sessionsPopup.open();
+        }
+
+        function onCloseRequested(): void {
+            root.screenState.assistant = false;
+        }
+
         target: Assistant
     }
 
