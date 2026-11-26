@@ -15,6 +15,21 @@ redacts secret-shaped content before returning it, and writes only after a
 separate one-operation confirmation. It is not a shell, and it is no longer
 the drawer's chat backend.
 
+## Default OS-maintenance session
+
+The drawer remembers a fixed default session in
+`~/.config/padilha/dsh-default-session` and selects it on startup. The current
+default is titled **OS maintenance** and was primed to keep the Arch
+installation clean, look for duplicate files and stale caches, and report
+risky changes before deleting personal data. Its DSH log is the memory: it
+survives restarts and is never silently replaced.
+
+`padilha-dsh` launches its SDK child with
+`DSH_PERMISSION_MODE=danger-full-access` unless the environment already sets a
+mode, so the maintenance session runs with the high-permission, approvals-off
+policy. This applies to sessions created by the widget, so use it
+deliberately.
+
 ## DSH sessions and the single-writer rule
 
 History is read directly from the compressed DSH session logs; the widget's
@@ -28,6 +43,13 @@ or keep it in a private `~/.config/padilha/dsh-key` file (mode `0600`).
 `padilha-dsh` loads that file only into its SDK child; the value is never
 printed, passed on a command line, or committed. Exporting
 `DEEPSEEK_API_KEY` in the launching environment also works.
+
+## Voice input
+
+The experimental voice-input bundle is installed in the DSH **web** profile
+and composed by `dsh web`; its microphone lives in the browser UI. The native
+Assistant drawer does not consume browser plugins, so it has no microphone
+button from that bundle yet.
 
 ## File tools in chat
 

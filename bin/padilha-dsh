@@ -20,11 +20,13 @@ from pathlib import Path
 from typing import Any, Iterator
 
 DSH_HOME = Path(os.environ.get("DSH_HOME", Path.home() / ".dsh")).expanduser()
+os.environ.setdefault("DSH_PERMISSION_MODE", "danger-full-access")
 PROVIDER = os.environ.get("PADILHA_DSH_PROVIDER", "deepseek-official")
 MODEL = os.environ.get("PADILHA_DSH_MODEL", "deepseek-flash")
 MAX_HISTORY = 80
 MAX_LIST = 30
 PROMPT_TIMEOUT = 60 * 15
+DEFAULT_SESSION_FILE = Path(os.environ.get("PADILHA_DSH_DEFAULT_FILE", Path.home() / ".config/padilha/dsh-default-session"))
 
 
 def emit(payload: dict[str, Any]) -> None:
@@ -248,6 +250,13 @@ def find_session(session_id: str) -> Path | None:
     return None
 
 
+def default_session_id() -> str:
+    try:
+        return DEFAULT_SESSION_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
 def resolve_session(session_id: str | None) -> tuple[str, Path | None]:
     if session_id:
         path = find_session(session_id)
@@ -409,11 +418,20 @@ def main() -> int:
     load_credential()
     sdk = DshSdk()
     sessions = list_sessions()
+    fixed_default = default_session_id()
+    active = next((item for item in sessions if item["id"] == fixed_default), None)
 
     def default_session(item: dict[str, Any]) -> bool:
         return "/agents/worktrees/" not in str(item.get("cwd") or "")
 
-    active = next((item for item in sessions if default_session(item)), sessions[0] if sessions else None)
+    if active is None:
+        active = next((item for item in sessions if default_session(item)), sessions[0] if sessions else None)
+    for item in sessions:
+        if item["id"] == fixed_default:
+            item["title"] = "OS maintenance"
+    if active is not None and active["id"] == fixed_default:
+        active["title"] = "OS maintenance"
+        sessions.sort(key=lambda item: item["id"] != fixed_default)
     active_id = active["id"] if active else ""
     active_path = find_session(active_id) if active_id else None
     active_log = log_path(active_path) if active_path else None
@@ -448,11 +466,15 @@ def main() -> int:
                 continue
             summary = session_summary(path)
             log = log_path(path)
+            if session_id == default_session_id():
+                title = "OS maintenance"
+            else:
+                title = summary["title"] if summary else ""
             emit(
                 {
                     "type": "history",
                     "sessionId": session_id,
-                    "sessionTitle": summary["title"] if summary else "",
+                    "sessionTitle": title,
                     "sessionOwned": summary["owned"] if summary else False,
                     "history": history(log) if log else [],
                 }
