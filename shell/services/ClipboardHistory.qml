@@ -9,13 +9,13 @@ import Caelestia.I18n
 Singleton {
     id: root
 
-    readonly property bool enabled: GlobalConfig.clipboard.enabled
-    readonly property int maxEntries: GlobalConfig.clipboard.maxEntries
-    readonly property int privateWindowDelay: GlobalConfig.clipboard.privateWindowDelay
-    readonly property int maxEntryBytes: GlobalConfig.clipboard.maxEntryBytes
-    readonly property bool showIndicator: GlobalConfig.clipboard.showIndicator
-    readonly property var denyClasses: GlobalConfig.clipboard.denyClasses
-    readonly property var denyTitles: GlobalConfig.clipboard.denyTitles
+    readonly property bool enabled: GlobalConfig.clipboard?.enabled ?? false
+    readonly property int maxEntries: GlobalConfig.clipboard?.maxEntries ?? 0
+    readonly property int privateWindowDelay: GlobalConfig.clipboard?.privateWindowDelay ?? 0
+    readonly property int maxEntryBytes: GlobalConfig.clipboard?.maxEntryBytes ?? 0
+    readonly property bool showIndicator: GlobalConfig.clipboard?.showIndicator ?? true
+    readonly property var denyClasses: GlobalConfig.clipboard?.denyClasses ?? []
+    readonly property var denyTitles: GlobalConfig.clipboard?.denyTitles ?? []
 
     readonly property string stateDir: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/padilha/clipboard`
     readonly property string helper: Quickshell.env("PADILHA_CLIPBOARD") || "padilha-clipboard"

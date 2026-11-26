@@ -11,7 +11,7 @@ Scope {
 
     property bool opened: false
 
-    readonly property bool enabled: GlobalConfig.clipboard.enabled
+    readonly property bool enabled: GlobalConfig.clipboard?.enabled ?? false
 
     function screenForPalette(): ShellScreen {
         return ShellState.forActive()?.modelData ?? Screens.primary;

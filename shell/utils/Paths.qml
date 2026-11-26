@@ -19,9 +19,9 @@ Singleton {
 
     readonly property string imagecache: `${cache}/imagecache`
     readonly property string notifimagecache: `${imagecache}/notifs`
-    readonly property string wallsdir: Quickshell.env("CAELESTIA_WALLPAPERS_DIR") || absolutePath(GlobalConfig.paths.wallpaperDir)
-    readonly property string shotsdir: Quickshell.env("PADILHA_SCREENSHOT_DIR") || GlobalConfig.utilities.capture.screenshotDir || `${pictures}/Screenshots`
-    readonly property string recsdir: Quickshell.env("PADILHA_RECORDINGS_DIR") || Quickshell.env("PADILHA_RECORD_DIR") || Quickshell.env("CAELESTIA_RECORDINGS_DIR") || GlobalConfig.utilities.capture.recordingDir || `${videos}/Recordings`
+    readonly property string wallsdir: Quickshell.env("CAELESTIA_WALLPAPERS_DIR") || absolutePath(GlobalConfig.paths?.wallpaperDir ?? "")
+    readonly property string shotsdir: Quickshell.env("PADILHA_SCREENSHOT_DIR") || GlobalConfig.utilities?.capture?.screenshotDir || `${pictures}/Screenshots`
+    readonly property string recsdir: Quickshell.env("PADILHA_RECORDINGS_DIR") || Quickshell.env("PADILHA_RECORD_DIR") || Quickshell.env("CAELESTIA_RECORDINGS_DIR") || GlobalConfig.utilities?.capture?.recordingDir || `${videos}/Recordings`
     readonly property string libdir: Quickshell.env("CAELESTIA_LIB_DIR") || "/usr/lib/caelestia"
 
     function toLocalFile(path: url): string {
