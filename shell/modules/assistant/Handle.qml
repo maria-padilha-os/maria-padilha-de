@@ -44,13 +44,8 @@ PanelWindow {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        width: hover.hovered || Assistant.streaming ? Tokens.sizes.session.button : 14
+        width: Tokens.sizes.session.button
         height: Tokens.sizes.session.button
-
-        Behavior on width {
-            Anim {}
-        }
-
         StyledRect {
             id: pill
 
@@ -73,7 +68,7 @@ PanelWindow {
             asynchronous: true
             playing: hover.hovered || Assistant.streaming
             visible: status === Image.Ready
-            opacity: hover.hovered || Assistant.streaming ? 1 : 0
+            opacity: 1
 
             Behavior on opacity {
                 Anim {}
@@ -87,7 +82,7 @@ PanelWindow {
             color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3onSurface
             font: Tokens.font.icon.builders.large.scale(1.3).build()
             fill: 1
-            opacity: hover.hovered || Assistant.streaming ? 1 : 0
+            opacity: 1
 
             Behavior on opacity {
                 Anim {}
