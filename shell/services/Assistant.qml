@@ -102,7 +102,7 @@ Singleton {
             root.sessionOwned = !!event.sessionOwned;
             root.contextTokens = Number(event.context?.tokens || 0);
             root.contextWindow = Number(event.context?.window || 0);
-            root.setHistory(event.history, false);
+            root.setHistory(event.history, true);
             root.error = "";
             break;
         case "sessions":

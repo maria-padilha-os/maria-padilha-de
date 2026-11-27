@@ -78,6 +78,11 @@ Item {
         transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
     }
 
+    function scheduleScroll(): void {
+        root.scrollToEnd();
+        Qt.callLater(() => root.scrollToEnd());
+    }
+
     function ensureTab(id: string, title: string, persistent: bool): void {
         if (!id)
             return;
@@ -324,8 +329,7 @@ Item {
         function onMessagesChanged(): void {
             if (Assistant.streaming)
                 streamWatchdog.restart();
-            if (root.follow)
-                Qt.callLater(() => root.scrollToEnd());
+            root.scheduleScroll();
         }
 
         function onActivityChanged(): void {
@@ -839,14 +843,13 @@ Item {
                     }
                 }
 
-                onContentYChanged: root.follow = root.atBottom
                 onContentHeightChanged: {
-                    if (root.follow)
-                        Qt.callLater(() => root.scrollToEnd());
+                    root.scrollToEnd();
+                    Qt.callLater(() => root.scrollToEnd());
                 }
                 onCountChanged: {
-                    if (root.follow)
-                        Qt.callLater(() => root.scrollToEnd());
+                    root.scrollToEnd();
+                    Qt.callLater(() => root.scrollToEnd());
                 }
             }
 
@@ -1034,7 +1037,7 @@ Item {
 
                 StyledRect {
                     Layout.fillWidth: true
-                    implicitHeight: composer.implicitHeight + Tokens.padding.medium * 2
+                    implicitHeight: Math.max(composer.implicitHeight, 40) + Tokens.padding.medium * 2
                     radius: Tokens.rounding.medium
                     color: Colours.tPalette.m3surfaceContainerHigh
                     border.width: root.dropActive ? 2 : 0
