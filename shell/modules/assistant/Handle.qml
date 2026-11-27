@@ -42,7 +42,7 @@ PanelWindow {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        width: hover.hovered || Assistant.streaming ? 52 : 14
+        width: hover.hovered || Assistant.streaming ? 56 : 14
         height: 96
 
         Behavior on width {
@@ -55,8 +55,8 @@ PanelWindow {
             property real pulseOpacity: 1
 
             anchors.fill: parent
-            radius: Tokens.rounding.large
-            color: Qt.alpha(Colours.palette.m3surface, 0.94)
+            radius: Tokens.rounding.largeIncreased
+            color: Colours.tPalette.m3surfaceContainer
             opacity: Assistant.streaming ? pulseOpacity : 1
 
             SequentialAnimation {
@@ -85,8 +85,9 @@ PanelWindow {
         MaterialIcon {
             anchors.centerIn: parent
             text: Assistant.streaming ? "graphic_eq" : "auto_awesome"
-            color: Colours.palette.m3primary
-            fontStyle: Tokens.font.icon.medium
+            color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3onSurface
+            font: Tokens.font.icon.builders.large.scale(1.3).build()
+            fill: 1
             opacity: hover.hovered || Assistant.streaming ? 1 : 0
 
             Behavior on opacity {
