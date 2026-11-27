@@ -944,11 +944,37 @@ Item {
                     onClicked: attachmentDialog.open()
                 }
 
-                IconButton {
-                    icon: VoiceInput.dictating ? "stop_circle" : "mic"
-                    accessibleName: VoiceInput.dictating ? Tr.tr("Stop dictation") : Tr.tr("Dictate a message")
-                    enabled: Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent
-                    onClicked: VoiceInput.dictate()
+                Item {
+                    implicitWidth: micButton.implicitWidth
+                    implicitHeight: micButton.implicitHeight
+
+                    IconButton {
+                        id: micButton
+
+                        icon: VoiceInput.dictating ? "stop_circle" : (AssistantSettings.wakeEnabled ? "graphic_eq" : "mic")
+                        accessibleName: VoiceInput.dictating ? Tr.tr("Stop dictation") : (AssistantSettings.wakeEnabled ? Tr.tr("Disable wake mode") : Tr.tr("Dictate a message"))
+                        enabled: Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent
+                        onClicked: VoiceInput.dictate()
+                    }
+
+                    StyledRect {
+                        visible: AssistantSettings.wakeEnabled
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        anchors.margins: 3
+                        implicitWidth: 7
+                        implicitHeight: 7
+                        radius: 3.5
+                        color: Colours.palette.m3primary
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.RightButton
+                        enabled: micButton.enabled
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: AssistantSettings.wakeEnabled = !AssistantSettings.wakeEnabled
+                    }
                 }
 
                 IconButton {
