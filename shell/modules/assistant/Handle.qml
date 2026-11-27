@@ -54,34 +54,10 @@ PanelWindow {
         StyledRect {
             id: pill
 
-            property real pulseOpacity: 1
-
             anchors.fill: parent
             radius: Tokens.rounding.largeIncreased
-            color: Colours.tPalette.m3surfaceContainer
-            opacity: Assistant.streaming ? pulseOpacity : 1
-
-            SequentialAnimation {
-                running: Assistant.streaming
-                loops: Animation.Infinite
-
-                NumberAnimation {
-                    target: pill
-                    property: "pulseOpacity"
-                    from: 1
-                    to: 0.5
-                    duration: 700
-                    easing.type: Easing.InOutSine
-                }
-                NumberAnimation {
-                    target: pill
-                    property: "pulseOpacity"
-                    from: 0.5
-                    to: 1
-                    duration: 700
-                    easing.type: Easing.InOutSine
-                }
-            }
+            color: Qt.alpha(Colours.tPalette.m3surfaceContainer, 1)
+            opacity: 1
         }
 
         AnimatedImage {
