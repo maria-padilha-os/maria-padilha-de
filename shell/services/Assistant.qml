@@ -135,6 +135,8 @@ Singleton {
             root.activityLog = [];
             root.lastStop = "";
             root.sessionId = event.sessionId || "";
+            if (root.sessionId.length > 0)
+                AssistantSettings.lastSessionId = root.sessionId;
             root.sessionTitle = "";
             root.sessionOwned = false;
             root.messages = [];
@@ -144,6 +146,8 @@ Singleton {
             break;
         case "session":
             root.sessionId = event.sessionId || root.sessionId;
+            if (root.sessionId.length > 0)
+                AssistantSettings.lastSessionId = root.sessionId;
             root.sessionTitle = event.sessionTitle || root.sessionTitle;
             root.sessionOwned = !!event.sessionOwned;
             if (root.sessionTitle.length > 0 && root.sessionId.length > 0) {
@@ -435,6 +439,8 @@ Singleton {
         ]);
         root.activeId = id;
         root.streaming = true;
+        if (root.sessionId.length > 0)
+            AssistantSettings.lastSessionId = root.sessionId;
         root.activity = Tr.tr("Thinking…");
         root.activityLog = [root.activity];
         root.lastStop = "";

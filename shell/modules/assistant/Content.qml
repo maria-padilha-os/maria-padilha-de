@@ -79,7 +79,7 @@ Item {
     }
 
     function scheduleScroll(): void {
-        root.scrollToEnd();
+        scrollSettle.restart();
     }
 
     function ensureTab(id: string, title: string, persistent: bool): void {
@@ -370,6 +370,14 @@ Item {
         id: copyMessageProc
 
         command: ["true"]
+    }
+
+    Timer {
+        id: scrollSettle
+
+        interval: 120
+        repeat: false
+        onTriggered: root.scrollToEnd()
     }
 
     Timer {
@@ -842,8 +850,14 @@ Item {
                     }
                 }
 
-                onContentHeightChanged: root.scrollToEnd()
-                onCountChanged: root.scrollToEnd()
+                onContentHeightChanged: {
+                    if (!scrollSettle.running)
+                        scrollSettle.start();
+                }
+                onCountChanged: {
+                    if (!scrollSettle.running)
+                        scrollSettle.start();
+                }
             }
 
             IconButton {
