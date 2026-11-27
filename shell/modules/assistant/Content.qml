@@ -28,8 +28,6 @@ Item {
     property bool dropActive: false
     property string renameTargetId: ""
     property bool sidebarOpen: false
-    property bool follow: true
-    property bool autoScroll: false
     property var openTabs: []
     property string maintenanceSessionId: ""
     readonly property real sidebarWidth: {
@@ -71,23 +69,6 @@ Item {
         const agent = Assistant.agentSessions[index - 1];
         if (agent)
             Assistant.viewAgent(agent.id);
-    }
-
-    readonly property bool atBottom: transcript.contentY >= Math.max(0, transcript.contentHeight - transcript.height) - 2
-
-    function scrollToEnd(): void {
-        transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
-    }
-
-    function clampScroll(): void {
-        const max = Math.max(0, transcript.contentHeight - transcript.height);
-        if (transcript.contentY > max)
-            transcript.contentY = max;
-    }
-
-    function scheduleScroll(): void {
-        if (root.follow)
-            revealTimer.restart();
     }
 
     function ensureTab(id: string, title: string, persistent: bool): void {
@@ -239,7 +220,6 @@ Item {
         }
         if (!Assistant.ready || Assistant.sessionOwned || root.viewingAgent)
             return;
-        root.follow = true;
         Assistant.send(text, root.attachmentPaths.slice());
         composer.text = "";
         root.attachmentPaths = [];
@@ -266,7 +246,6 @@ Item {
         const attachments = root.queuedAttachments.slice();
         root.queuedText = "";
         root.queuedAttachments = [];
-        root.follow = true;
         Assistant.send(text, attachments);
     }
 
@@ -326,7 +305,6 @@ Item {
                 streamWatchdog.stop();
             if (Assistant.streaming)
                 return;
-            root.scheduleScroll();
             root.focusComposer();
             if (Assistant.lastStop === "complete" && root.queuedText.length > 0)
                 Qt.callLater(() => root.sendQueued());
@@ -337,7 +315,6 @@ Item {
         function onMessagesChanged(): void {
             if (Assistant.streaming)
                 streamWatchdog.restart();
-            root.scheduleScroll();
         }
 
         function onActivityChanged(): void {
@@ -351,7 +328,8 @@ Item {
             root.queuedAttachments = [];
             root.attachmentPaths = [];
             root.activityExpanded = false;
-            root.follow = true;
+            transcript.follow = true;
+            transcript.scheduleFollow();
             if (Assistant.sessionId.length > 0)
                 root.ensureTab(Assistant.sessionId, Assistant.sessionTitle || Tr.tr("Chat"), Assistant.sessionId === root.maintenanceSessionId);
         }
@@ -379,19 +357,6 @@ Item {
         id: copyMessageProc
 
         command: ["true"]
-    }
-
-    Timer {
-        id: revealTimer
-
-        interval: 300
-        repeat: false
-        onTriggered: {
-            root.autoScroll = true;
-            transcript.positionViewAtEnd();
-            transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
-            root.autoScroll = false;
-        }
     }
 
     Timer {
@@ -776,134 +741,16 @@ Item {
                 target: VoiceInput
             }
 
-            Item {
+            Transcript {
+                id: transcript
+                objectName: "transcript"
+
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                messages: Assistant.messages
+                fontScale: root.fontScale
 
-            ListView {
-                id: transcript
-
-                anchors.fill: parent
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                spacing: Tokens.spacing.small
-                model: Assistant.messages
-
-                StyledScrollBar.vertical: StyledScrollBar {
-                    flickable: transcript
-                }
-
-                maximumFlickVelocity: 3000
-
-                WheelHandler {
-                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-
-                    onWheel: event => {
-                        const up = event.angleDelta.y > 0 || event.pixelDelta.y > 0;
-                        if (up)
-                            root.follow = false;
-                    }
-                }
-
-                delegate: ColumnLayout {
-                    required property var modelData
-
-                    width: transcript.width
-                    spacing: Tokens.spacing.extraSmall
-
-                    StyledRect {
-                        id: bubble
-
-                        readonly property bool fromUser: modelData.role === "user"
-                        readonly property bool hasCode: !fromUser && (modelData.text || "").indexOf("```") !== -1
-                        readonly property real maxBubbleWidth: transcript.width * 0.82
-
-                        Layout.fillWidth: !fromUser
-                        Layout.maximumWidth: fromUser ? maxBubbleWidth : transcript.width
-                        Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.contentWidth + Tokens.padding.medium * 2) : transcript.width
-                        Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
-                        visible: fromUser || !modelData.streaming || modelData.text.length > 0
-                        implicitHeight: (hasCode ? richBody.implicitHeight : body.contentHeight) + Tokens.padding.medium * 2
-                        radius: Tokens.rounding.medium
-                        color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
-
-                        HoverHandler {
-                            id: bubbleHover
-                        }
-
-                        IconButton {
-                            anchors.top: parent.top
-                            anchors.right: parent.right
-                            z: 2
-                            visible: bubbleHover.hovered && modelData.text.length > 0
-                            icon: "content_copy"
-                            accessibleName: Tr.tr("Copy message")
-                            onClicked: root.copyMessage(modelData.text)
-                        }
-
-                        TextEdit {
-                            id: body
-
-                            anchors.fill: parent
-                            anchors.margins: Tokens.padding.medium
-                            visible: !bubble.hasCode
-                            readOnly: true
-                            selectByMouse: true
-                            persistentSelection: true
-                            font: Tokens.font.body.builders.small.scale(root.fontScale).build()
-                            text: modelData.text || ""
-                            wrapMode: TextEdit.Wrap
-                            textFormat: bubble.fromUser ? TextEdit.PlainText : TextEdit.MarkdownText
-                            color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
-                            selectionColor: Colours.palette.m3primary
-                            selectedTextColor: Colours.palette.m3onPrimary
-                        }
-
-                        MarkdownBody {
-                            id: richBody
-
-                            anchors.fill: parent
-                            anchors.margins: Tokens.padding.medium
-                            visible: bubble.hasCode
-                            text: modelData.text || ""
-                            streaming: modelData.streaming === true
-                            fontScale: root.fontScale
-
-                            onCopyRequested: text => root.copyMessage(text)
-                        }
-                    }
-                }
-
-                onCountChanged: root.scheduleScroll()
-                onMovementStarted: {
-                    if (!root.autoScroll)
-                        root.follow = false;
-                }
-                onMovementEnded: {
-                    if (!root.autoScroll)
-                        root.follow = root.atBottom;
-                }
-                onContentYChanged: {
-                    if (root.atBottom)
-                        root.follow = true;
-                }
-            }
-
-            IconButton {
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                anchors.margins: Tokens.padding.medium
-                z: 2
-                visible: !root.follow && transcript.contentHeight > transcript.height + 1
-                icon: "arrow_downward"
-                type: IconButton.Filled
-                isRound: true
-                accessibleName: Tr.tr("Scroll to bottom")
-                onClicked: {
-                    root.follow = true;
-                    root.scheduleScroll();
-                }
-            }
+                onCopyRequested: text => root.copyMessage(text)
             }
 
             RowLayout {

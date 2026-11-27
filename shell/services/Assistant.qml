@@ -378,7 +378,7 @@ Singleton {
         // The drawer is opened synchronously; rendering every archived message
         // with rich Markdown blocks makes that first open several seconds long.
         // Keep the recent working set and let the rest stay in the session log.
-        const restored = entries.slice(-30)
+        const restored = entries.slice(-15)
             .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
             .map((entry, index) => ({
                 id: "history-" + index,
