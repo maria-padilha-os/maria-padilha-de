@@ -28,6 +28,7 @@ Item {
     property bool dropActive: false
     property string renameTargetId: ""
     property bool sidebarOpen: false
+    property bool follow: true
     property var openTabs: []
     property string maintenanceSessionId: ""
     readonly property real sidebarWidth: {
@@ -69,6 +70,12 @@ Item {
         const agent = Assistant.agentSessions[index - 1];
         if (agent)
             Assistant.viewAgent(agent.id);
+    }
+
+    readonly property bool atBottom: transcript.contentY >= Math.max(0, transcript.contentHeight - transcript.height) - 2
+
+    function scrollToEnd(): void {
+        transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
     }
 
     function ensureTab(id: string, title: string, persistent: bool): void {
@@ -220,6 +227,7 @@ Item {
         }
         if (!Assistant.ready || Assistant.sessionOwned || root.viewingAgent)
             return;
+        root.follow = true;
         Assistant.send(text, root.attachmentPaths.slice());
         composer.text = "";
         root.attachmentPaths = [];
@@ -246,6 +254,7 @@ Item {
         const attachments = root.queuedAttachments.slice();
         root.queuedText = "";
         root.queuedAttachments = [];
+        root.follow = true;
         Assistant.send(text, attachments);
     }
 
@@ -310,13 +319,13 @@ Item {
                 Qt.callLater(() => root.sendQueued());
         }
 
-        // Follow the conversation only when its content changes (send, reply,
-        // restore). Following contentHeight also snapped the view back while
-        // scrolling, because ListView grows its estimate as delegates appear.
+        // Follow the conversation only while the user is at the bottom. Once
+        // they scroll up to read history, new turns must not yank them down.
         function onMessagesChanged(): void {
             if (Assistant.streaming)
                 streamWatchdog.restart();
-            Qt.callLater(() => transcript.positionViewAtEnd());
+            if (root.follow)
+                Qt.callLater(() => root.scrollToEnd());
         }
 
         function onActivityChanged(): void {
@@ -330,6 +339,7 @@ Item {
             root.queuedAttachments = [];
             root.attachmentPaths = [];
             root.activityExpanded = false;
+            root.follow = true;
             if (Assistant.sessionId.length > 0)
                 root.ensureTab(Assistant.sessionId, Assistant.sessionTitle || Tr.tr("Chat"), Assistant.sessionId === root.maintenanceSessionId);
         }
@@ -741,12 +751,16 @@ Item {
                 target: VoiceInput
             }
 
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
             ListView {
                 id: transcript
 
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                anchors.fill: parent
                 clip: true
+                boundsBehavior: Flickable.StopAtBounds
                 spacing: Tokens.spacing.small
                 model: Assistant.messages
 
@@ -755,23 +769,6 @@ Item {
                 }
 
                 maximumFlickVelocity: 3000
-
-                // Qt follows wheel deltas almost 1:1, which feels sluggish;
-                // scale them like the shell's other flickables.
-                WheelHandler {
-                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-
-                    onWheel: event => {
-                        const pixel = event.pixelDelta;
-                        const angle = event.angleDelta;
-                        const delta = pixel.y !== 0 ? pixel.y : angle.y / 120 * 90;
-                        if (delta === 0)
-                            return;
-                        const maxY = Math.max(0, transcript.contentHeight - transcript.height);
-                        transcript.contentY = Math.max(0, Math.min(maxY, transcript.contentY - delta * 4));
-                        event.accepted = true;
-                    }
-                }
 
                 delegate: ColumnLayout {
                     required property var modelData
@@ -842,7 +839,32 @@ Item {
                     }
                 }
 
-                onCountChanged: Qt.callLater(() => positionViewAtEnd())
+                onContentYChanged: root.follow = root.atBottom
+                onContentHeightChanged: {
+                    if (root.follow)
+                        Qt.callLater(() => root.scrollToEnd());
+                }
+                onCountChanged: {
+                    if (root.follow)
+                        Qt.callLater(() => root.scrollToEnd());
+                }
+            }
+
+            IconButton {
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: Tokens.padding.medium
+                z: 2
+                visible: !root.atBottom && transcript.contentHeight > transcript.height + 1
+                icon: "arrow_downward"
+                type: IconButton.Filled
+                isRound: true
+                accessibleName: Tr.tr("Scroll to bottom")
+                onClicked: {
+                    root.follow = true;
+                    root.scrollToEnd();
+                }
+            }
             }
 
             RowLayout {
