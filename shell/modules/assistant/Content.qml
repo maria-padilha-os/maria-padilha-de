@@ -85,7 +85,7 @@ Item {
     }
 
     function scheduleScroll(): void {
-        scrollSettle.restart();
+        revealTimer.restart();
     }
 
     function ensureTab(id: string, title: string, persistent: bool): void {
@@ -324,6 +324,7 @@ Item {
                 streamWatchdog.stop();
             if (Assistant.streaming)
                 return;
+            root.scheduleScroll();
             root.focusComposer();
             if (Assistant.lastStop === "complete" && root.queuedText.length > 0)
                 Qt.callLater(() => root.sendQueued());
@@ -379,11 +380,11 @@ Item {
     }
 
     Timer {
-        id: scrollSettle
+        id: revealTimer
 
-        interval: 120
+        interval: 300
         repeat: false
-        onTriggered: root.scrollToEnd()
+        onTriggered: transcript.positionViewAtEnd()
     }
 
     Timer {
@@ -856,16 +857,7 @@ Item {
                     }
                 }
 
-                onContentHeightChanged: {
-                    root.clampScroll();
-                    if (!scrollSettle.running)
-                        scrollSettle.start();
-                }
-                onCountChanged: {
-                    root.clampScroll();
-                    if (!scrollSettle.running)
-                        scrollSettle.start();
-                }
+                onCountChanged: root.scheduleScroll()
             }
 
             IconButton {
