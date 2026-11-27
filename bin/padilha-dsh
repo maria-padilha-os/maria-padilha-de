@@ -634,10 +634,11 @@ def main() -> int:
             if not text and not attachments:
                 continue
             session_id, path = resolve_session(session_id or None)
+            request_id = request.get("id")
             if not path:
                 emit({"type": "session", "sessionId": session_id, "sessionTitle": text[:72], "sessionOwned": False})
 
-            def worker(session_id: str = session_id, path: Path | None = path, text: str = text, attachments: list[str] = attachments) -> None:
+            def worker(session_id: str = session_id, path: Path | None = path, text: str = text, attachments: list[str] = attachments, request_id: Any = request_id) -> None:
                 try:
                     cwd = ""
                     if path is not None:
@@ -650,22 +651,26 @@ def main() -> int:
                     else:
                         sdk._ensure(cwd or str(Path.home()))
                     last = ""
+                    completed = False
                     for item in sdk.prompt(session_id, text, attachments):
                         if item["kind"] == "assistant":
                             last = item["text"]
-                            emit({"type": "assistant", "id": request.get("id"), "text": last})
+                            emit({"type": "assistant", "id": request_id, "text": last})
                         elif item["kind"] == "activity":
-                            emit({"type": "activity", "id": request.get("id"), "text": item["text"]})
+                            emit({"type": "activity", "id": request_id, "text": item["text"]})
                         elif item["kind"] == "done":
-                            emit({"type": "done", "id": request.get("id"), "text": last, "stop": "complete"})
+                            completed = True
+                            emit({"type": "done", "id": request_id, "text": last, "stop": "complete"})
                             break
+                    if not completed:
+                        emit({"type": "done", "id": request_id, "text": last, "stop": "complete"})
                 except Cancelled:
-                    emit({"type": "done", "id": request.get("id"), "text": "", "stop": "cancelled"})
+                    emit({"type": "done", "id": request_id, "text": "", "stop": "cancelled"})
                 except Exception as error:
                     message = str(error)
                     if "already owned by an active write handle" in message:
                         message = "This session is open in dsh-tui. Close it there or start a new session."
-                    emit({"type": "error", "id": request.get("id"), "message": message})
+                    emit({"type": "error", "id": request_id, "message": message})
                 finally:
                     pass
 

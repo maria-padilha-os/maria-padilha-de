@@ -362,7 +362,7 @@ Item {
     Timer {
         id: streamWatchdog
 
-        interval: 180000
+        interval: 60000
         repeat: false
         running: Assistant.streaming
         onTriggered: root.recoverStuckTurn()
