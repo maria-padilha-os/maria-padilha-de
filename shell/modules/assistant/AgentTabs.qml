@@ -37,20 +37,21 @@ Item {
     }
 
     visible: true
-    readonly property int tabBarHeight: 40
-    implicitHeight: tabBarHeight + Tokens.sizes.dashboard.tabIndicatorSpacing + Tokens.sizes.dashboard.tabIndicatorHeight
+    readonly property int tabBarHeight: 55
+    implicitHeight: tabBarHeight + Tokens.sizes.dashboard.tabIndicatorSpacing * 2 + Tokens.sizes.dashboard.tabIndicatorHeight
     property Item activeTabItem: null
 
     ListView {
         id: list
 
         anchors.top: parent.top
+        anchors.topMargin: Tokens.sizes.dashboard.tabIndicatorSpacing
         anchors.left: parent.left
         anchors.right: parent.right
         height: root.tabBarHeight
         orientation: ListView.Horizontal
-        spacing: Tokens.spacing.extraSmall
-        clip: true
+        spacing: 0
+        clip: false
         model: root.tabsModel
         boundsBehavior: Flickable.StopAtBounds
 
@@ -61,7 +62,7 @@ Item {
 
             readonly property bool active: modelData.home ? (!root.viewingAgent && modelData.id === root.activeId) : (root.viewingAgent && modelData.id === root.activeId)
 
-            width: Math.min(190, Math.max(120, label.implicitWidth + 36))
+            width: list.width / Math.max(1, root.tabsModel.length)
             height: list.height
             padding: 0
             hoverEnabled: true
@@ -88,6 +89,9 @@ Item {
             Keys.onSpacePressed: activate()
 
             background: StyledRect {
+                anchors.fill: parent
+                anchors.topMargin: -Tokens.sizes.dashboard.tabIndicatorSpacing
+                anchors.bottomMargin: -Tokens.sizes.dashboard.tabIndicatorSpacing
                 radius: Tokens.rounding.medium
                 color: tab.active ? Qt.alpha(Colours.palette.m3primary, 0.08) : (tab.hovered ? Qt.alpha(Colours.palette.m3onSurface, 0.08) : "transparent")
             }
@@ -95,7 +99,7 @@ Item {
             contentItem: Item {
                 ColumnLayout {
                     anchors.centerIn: parent
-                    spacing: 1
+                    spacing: Tokens.spacing.extraSmall
 
                     MaterialIcon {
                         Layout.alignment: Qt.AlignHCenter
