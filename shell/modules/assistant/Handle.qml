@@ -30,19 +30,20 @@ PanelWindow {
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-    // Only the small centre strip takes input. The rest of the right edge is
-    // transparent to the browser/editor scrollbar underneath.
+    // Only the bottom-right corner strip takes input. The rest of the edge
+    // stays transparent to the browser/editor scrollbar underneath.
     mask: Region {
         x: 0
-        y: Math.round((root.height - (Tokens.sizes.session.button + 12)) / 2)
+        y: root.height - Tokens.sizes.session.button - 48
         width: root.width
-        height: Tokens.sizes.session.button + 12
+        height: Tokens.sizes.session.button + 48
     }
 
     Item {
         id: handle
 
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 24
         anchors.right: parent.right
         width: Tokens.sizes.session.button
         height: Tokens.sizes.session.button
