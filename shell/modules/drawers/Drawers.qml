@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import qs.services
+import qs.modules.assistant as AssistantPanel
 
 Variants {
     model: Screens.screens
@@ -21,6 +22,11 @@ Variants {
             id: content
 
             screen: scope.modelData
+        }
+
+        AssistantPanel.Handle {
+            screen: scope.modelData
+            screenState: ShellState.forScreen(scope.modelData)
         }
     }
 }
