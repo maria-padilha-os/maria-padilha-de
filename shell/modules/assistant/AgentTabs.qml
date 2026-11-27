@@ -13,6 +13,7 @@ Item {
     property var agents: []
     property string homeId: ""
     property string activeId: ""
+    property string activeTitle: ""
     property bool viewingAgent: false
 
     signal homeRequested()
@@ -35,6 +36,14 @@ Item {
                 title: agent.label || ("Agent " + String(agent.id).substring(0, 8)),
                 home: false,
                 owned: !!agent.owned
+            });
+        }
+        if (!root.viewingAgent && root.activeId.length > 0 && root.activeId !== root.homeId && !out.some(item => item.id === root.activeId)) {
+            out.push({
+                id: root.activeId,
+                title: root.activeTitle || Tr.tr("Chat"),
+                home: false,
+                owned: false
             });
         }
         return out;
@@ -90,6 +99,12 @@ Item {
             function closeTab(id: string): void {
                 if (id === root.homeId) {
                     root.closeRequested(id);
+                    return;
+                }
+                const isAgent = root.agents.some(agent => agent.id === id);
+                if (!isAgent) {
+                    if (root.activeId === id)
+                        root.homeRequested();
                     return;
                 }
                 if (root.closedIds.indexOf(id) < 0)

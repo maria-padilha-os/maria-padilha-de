@@ -518,6 +518,7 @@ Item {
                     agents: Assistant.agentSessions
                     homeId: Assistant.defaultSessionId
                     activeId: Assistant.sessionId
+                    activeTitle: Assistant.sessionTitle || Assistant.sessionLabel
                     viewingAgent: Assistant.viewingAgent
 
                     onHomeRequested: Assistant.viewHome()
@@ -540,9 +541,11 @@ Item {
                 }
 
                 IconButton {
+                    id: sessionButton
+
                     icon: "add_comment"
-                    accessibleName: Tr.tr("New DSH session")
-                    onClicked: Assistant.newChat()
+                    accessibleName: Tr.tr("New or resume DSH session")
+                    onClicked: sessionsPopup.open()
                 }
             }
 
@@ -550,9 +553,9 @@ Item {
             Popup {
                 id: sessionsPopup
 
-                parent: historyButton
-                x: historyButton.width - width
-                y: historyButton.height + 6
+                parent: sessionButton
+                x: sessionButton.width - width
+                y: sessionButton.height + 6
                 width: 360
                 height: 360
                 padding: 8
@@ -571,6 +574,16 @@ Item {
 
                 contentItem: ColumnLayout {
                     spacing: Tokens.spacing.extraSmall
+
+                    IconTextButton {
+                        Layout.fillWidth: true
+                        icon: "add"
+                        text: Tr.tr("New session")
+                        onClicked: {
+                            Assistant.newChat();
+                            sessionsPopup.close();
+                        }
+                    }
 
                     TextField {
                         id: sessionSearch
