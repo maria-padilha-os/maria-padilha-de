@@ -155,18 +155,6 @@ Item {
             }
         }
 
-        WheelHandler {
-            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-
-            onWheel: event => {
-                const up = event.angleDelta.y > 0 || event.pixelDelta.y > 0;
-                if (up)
-                    root.breakFollow();
-                else if (root.atBottom)
-                    root.follow = true;
-            }
-        }
-
         onMovementStarted: {
             if (!root.positioning)
                 root.breakFollow();
@@ -174,6 +162,14 @@ Item {
         onMovementEnded: {
             if (!root.positioning)
                 root.follow = root.atBottom;
+        }
+        onContentYChanged: {
+            if (root.positioning)
+                return;
+            if (root.atBottom)
+                root.follow = true;
+            else
+                root.breakFollow();
         }
         onContentHeightChanged: root.scheduleFollow()
         onHeightChanged: root.scheduleFollow()
