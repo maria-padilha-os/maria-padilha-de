@@ -524,6 +524,10 @@ Item {
                     onAgentRequested: function (id) {
                         Assistant.viewAgent(id);
                     }
+                    onCloseRequested: function (id) {
+                        if (id === Assistant.defaultSessionId)
+                            root.screenState.assistant = false;
+                    }
                 }
 
                 IconButton {
@@ -539,12 +543,6 @@ Item {
                     icon: "add_comment"
                     accessibleName: Tr.tr("New DSH session")
                     onClicked: Assistant.newChat()
-                }
-
-                IconButton {
-                    icon: "close"
-                    accessibleName: Tr.tr("Close assistant")
-                    onClicked: root.screenState.assistant = false
                 }
             }
 

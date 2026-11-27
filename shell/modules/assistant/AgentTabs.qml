@@ -17,6 +17,8 @@ Item {
 
     signal homeRequested()
     signal agentRequested(string id)
+    signal closeRequested(string id)
+    property var closedIds: []
 
     readonly property var tabsModel: {
         const out = [{
@@ -26,6 +28,8 @@ Item {
                 owned: false
             }];
         for (const agent of root.agents) {
+            if (root.closedIds.indexOf(agent.id) >= 0)
+                continue;
             out.push({
                 id: agent.id,
                 title: agent.label || ("Agent " + String(agent.id).substring(0, 8)),
@@ -83,6 +87,17 @@ Item {
                     root.agentRequested(modelData.id);
             }
 
+            function closeTab(id: string): void {
+                if (id === root.homeId) {
+                    root.closeRequested(id);
+                    return;
+                }
+                if (root.closedIds.indexOf(id) < 0)
+                    root.closedIds = root.closedIds.concat(id);
+                if (root.activeId === id)
+                    root.homeRequested();
+            }
+
             onClicked: activate()
             Keys.onReturnPressed: activate()
             Keys.onEnterPressed: activate()
@@ -131,6 +146,34 @@ Item {
                     implicitHeight: 7
                     radius: 3.5
                     color: Colours.palette.m3primary
+                }
+
+                Item {
+                    visible: tab.hovered || tab.active
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 4
+                    implicitWidth: 22
+                    implicitHeight: 22
+                    z: 3
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: Tr.tr("Close tab")
+                    Accessible.onPressAction: tab.closeTab(modelData.id)
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        text: "close"
+                        color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                        fontStyle: Tokens.font.icon.small
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: tab.closeTab(modelData.id)
+                    }
                 }
             }
         }
