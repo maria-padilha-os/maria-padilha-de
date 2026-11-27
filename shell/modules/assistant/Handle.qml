@@ -4,8 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Caelestia.Config
+import Caelestia.I18n
 import qs.components
 import qs.services
+import qs.utils
 
 PanelWindow {
     id: root
@@ -82,8 +84,29 @@ PanelWindow {
             }
         }
 
+        AnimatedImage {
+            id: avatar
+
+            anchors.centerIn: parent
+            width: 64
+            height: 64
+            source: Paths.absolutePath(Config.paths.sessionGif)
+            sourceSize.width: width
+            sourceSize.height: height
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+            playing: hover.hovered || Assistant.streaming
+            visible: status === Image.Ready
+            opacity: hover.hovered || Assistant.streaming ? 1 : 0
+
+            Behavior on opacity {
+                Anim {}
+            }
+        }
+
         MaterialIcon {
             anchors.centerIn: parent
+            visible: avatar.status !== Image.Ready
             text: Assistant.streaming ? "graphic_eq" : "auto_awesome"
             color: Assistant.streaming ? Colours.palette.m3primary : Colours.palette.m3onSurface
             font: Tokens.font.icon.builders.large.scale(1.3).build()
@@ -103,6 +126,9 @@ PanelWindow {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            Accessible.role: Accessible.Button
+            Accessible.name: Tr.tr("Open Padilha")
+            Accessible.onPressAction: root.screenState.assistant = true
             onClicked: root.screenState.assistant = true
         }
     }
