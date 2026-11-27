@@ -37,7 +37,7 @@ Item {
     }
 
     visible: agents.length > 0 || viewingAgent
-    implicitHeight: 40
+    implicitHeight: 58
 
     ListView {
         id: list
@@ -56,53 +56,111 @@ Item {
 
             readonly property bool active: modelData.home ? (!root.viewingAgent && modelData.id === root.activeId) : (root.viewingAgent && modelData.id === root.activeId)
 
-            width: Math.min(190, Math.max(108, label.implicitWidth + 44))
+            width: Math.min(190, Math.max(94, label.implicitWidth + 36))
             height: list.height
             padding: 0
+            hoverEnabled: true
+            focusPolicy: Qt.StrongFocus
+            activeFocusOnTab: true
 
-            onClicked: modelData.home ? root.homeRequested() : root.agentRequested(modelData.id)
+            Accessible.role: Accessible.PageTab
+            Accessible.name: modelData.title
+            Accessible.selected: tab.active
+            Accessible.focusable: true
+            Accessible.focused: activeFocus
+            Accessible.onPressAction: tab.activate()
 
-            background: StyledRect {
-                radius: Tokens.rounding.small
-                color: tab.active ? Colours.tPalette.m3secondaryContainer : (tab.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
+            function activate(): void {
+                if (modelData.home)
+                    root.homeRequested();
+                else
+                    root.agentRequested(modelData.id);
             }
 
-            contentItem: RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: Tokens.padding.small
-                anchors.rightMargin: Tokens.padding.small
-                spacing: Tokens.spacing.extraSmall
+            onClicked: activate()
+            Keys.onReturnPressed: activate()
+            Keys.onEnterPressed: activate()
+            Keys.onSpacePressed: activate()
 
-                MaterialIcon {
-                    text: modelData.home ? "home" : "smart_toy"
-                    color: tab.active ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurfaceVariant
-                    fontStyle: Tokens.font.icon.small
+            background: StyledRect {
+                radius: Tokens.rounding.medium
+                color: tab.active ? Qt.alpha(Colours.palette.m3primary, 0.10) : (tab.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
+
+                Behavior on color {
+                    Anim {}
                 }
+            }
 
-                StyledText {
-                    id: label
+            contentItem: Item {
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 1
 
-                    Layout.fillWidth: true
-                    text: modelData.title
-                    color: tab.active ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
-                    font: Tokens.font.label.builders.small.scale(0.9).build()
-                    elide: Text.ElideRight
+                    MaterialIcon {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: modelData.home ? "home" : "smart_toy"
+                        color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                        fill: tab.active ? 1 : 0
+                        fontStyle: Tokens.font.icon.medium
+
+                        Behavior on color {
+                            Anim {}
+                        }
+                        Behavior on fill {
+                            Anim {}
+                        }
+                    }
+
+                    StyledText {
+                        id: label
+
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.maximumWidth: tab.width - 12
+                        text: modelData.title
+                        color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                        font: Tokens.font.label.builders.small.scale(0.9).build()
+                        elide: Text.ElideRight
+                        maximumLineCount: 1
+
+                        ToolTip.visible: tab.hovered && label.truncated
+                        ToolTip.text: modelData.title
+                        ToolTip.delay: 450
+                    }
                 }
 
                 StyledRect {
                     visible: modelData.owned
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 6
                     implicitWidth: 7
                     implicitHeight: 7
                     radius: 3.5
                     color: Colours.palette.m3primary
                 }
+
+                StyledRect {
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: tab.active ? Math.min(46, tab.width * 0.6) : 0
+                    height: 3
+                    radius: 1.5
+                    color: Colours.palette.m3primary
+
+                    Behavior on width {
+                        Anim {}
+                    }
+                }
             }
         }
     }
 
-    onActiveIdChanged: {
-        const index = root.tabsModel.findIndex(tab => tab.id === root.activeId && (root.viewingAgent ? !tab.home : tab.home));
+    function syncPosition(): void {
+        const index = root.tabsModel.findIndex(item => item.id === root.activeId && (root.viewingAgent ? !item.home : item.home));
         if (index >= 0)
             Qt.callLater(() => list.positionViewAtIndex(index, ListView.Contain));
     }
+
+    onActiveIdChanged: syncPosition()
+    onViewingAgentChanged: syncPosition()
 }

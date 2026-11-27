@@ -71,6 +71,17 @@ Item {
             Assistant.viewAgent(agent.id);
     }
 
+    function cycleAgent(delta: int): void {
+        const count = 1 + Assistant.agentSessions.length;
+        if (count <= 1) {
+            Assistant.viewHome();
+            return;
+        }
+        const index = Assistant.agentSessions.findIndex(agent => agent.id === Assistant.sessionId);
+        const current = Assistant.viewingAgent && index >= 0 ? index + 1 : 0;
+        root.selectAgentAt((current + delta + count) % count);
+    }
+
     function ensureTab(id: string, title: string, persistent: bool): void {
         if (!id)
             return;
@@ -1047,58 +1058,68 @@ Item {
     }
 
     Shortcut {
-        sequence: "Ctrl+N"
+        sequence: "Alt+N"
         onActivated: Assistant.newChat()
     }
 
     Shortcut {
-        sequence: "Ctrl+L"
+        sequence: "Alt+L"
         onActivated: root.focusComposer()
     }
 
     Shortcut {
-        sequence: "Ctrl+1"
+        sequence: "Alt+1"
         onActivated: root.selectAgentAt(0)
     }
 
     Shortcut {
-        sequence: "Ctrl+2"
+        sequence: "Alt+2"
         onActivated: root.selectAgentAt(1)
     }
 
     Shortcut {
-        sequence: "Ctrl+3"
+        sequence: "Alt+3"
         onActivated: root.selectAgentAt(2)
     }
 
     Shortcut {
-        sequence: "Ctrl+4"
+        sequence: "Alt+4"
         onActivated: root.selectAgentAt(3)
     }
 
     Shortcut {
-        sequence: "Ctrl+5"
+        sequence: "Alt+5"
         onActivated: root.selectAgentAt(4)
     }
 
     Shortcut {
-        sequence: "Ctrl+6"
+        sequence: "Alt+6"
         onActivated: root.selectAgentAt(5)
     }
 
     Shortcut {
-        sequence: "Ctrl+7"
+        sequence: "Alt+7"
         onActivated: root.selectAgentAt(6)
     }
 
     Shortcut {
-        sequence: "Ctrl+8"
+        sequence: "Alt+8"
         onActivated: root.selectAgentAt(7)
     }
 
     Shortcut {
-        sequence: "Ctrl+9"
+        sequence: "Alt+9"
         onActivated: root.selectAgentAt(8)
+    }
+
+    Shortcut {
+        sequence: "Alt+Left"
+        onActivated: root.cycleAgent(-1)
+    }
+
+    Shortcut {
+        sequence: "Alt+Right"
+        onActivated: root.cycleAgent(1)
     }
 
     Keys.onEscapePressed: Assistant.cancelOrClose()

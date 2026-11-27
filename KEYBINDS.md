@@ -102,10 +102,11 @@ reachable with `Tab` from an open panel. See the
 
 | keys | action |
 | --- | --- |
-| `Ctrl + N` | new chat / new session |
-| `Ctrl + L` | focus the composer |
-| `Ctrl + 1` | return to the OS-maintenance tab |
-| `Ctrl + 2…9` | open the corresponding agent tab |
+| `Alt + N` | new chat / new session |
+| `Alt + L` | focus the composer |
+| `Alt + 1` | return to the OS-maintenance tab |
+| `Alt + 2…9` | open the corresponding agent tab |
+| `Alt + Left` / `Right` | previous / next section |
 | `Esc` | cancel the current stream / close the assistant |
 
 Agent tabs appear only for subagents spawned by the current session; they are
