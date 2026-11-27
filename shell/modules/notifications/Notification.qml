@@ -122,7 +122,7 @@ StyledRect {
                     implicitWidth: TokenConfig.sizes.notifs.image
                     implicitHeight: TokenConfig.sizes.notifs.image
 
-                    Image {
+                    AnimatedImage {
                         anchors.fill: parent
                         source: Qt.resolvedUrl(root.modelData.image)
                         fillMode: Image.PreserveAspectCrop
@@ -132,6 +132,7 @@ StyledRect {
                         }
                         cache: false
                         asynchronous: true
+                        playing: true
                     }
                 }
             }

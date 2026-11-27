@@ -171,12 +171,8 @@ QtObject {
 
         function onActionsChanged(): void {
             // qmllint disable unresolved-type
-            notif.actions = notif.notification.actions.map(a => ({
-                        // qmllint enable unresolved-type
-                        identifier: a.identifier,
-                        text: a.text,
-                        invoke: () => a.invoke()
-                    }));
+            notif.actions = notif.notification.actions.map(notif.bindAction);
+            // qmllint enable unresolved-type
         }
 
         function onHintsChanged(): void {
@@ -207,8 +203,25 @@ QtObject {
     }
 
     function maybeTriggerDummyImageLoader(): void {
-        if (image && !image.startsWith("image://icon/") && !image.startsWith(Paths.notifimagecache))
+        const base = String(image || "").split(/[?#]/)[0].toLowerCase();
+        if (image && !image.startsWith("image://icon/") && !image.startsWith(Paths.notifimagecache) && !base.endsWith(".gif"))
             dummyImageLoader.active = true;
+    }
+
+    function bindAction(action): var {
+        return {
+            identifier: action.identifier,
+            text: action.text,
+            invoke: () => {
+                if (action.identifier === "assistant-open") {
+                    const screen = ShellState.forActive();
+                    if (screen)
+                        screen.assistant = true;
+                } else {
+                    action.invoke();
+                }
+            }
+        };
     }
 
     function lock(item: Item): void {
@@ -247,11 +260,7 @@ QtObject {
         resident = notification.resident;
         hasActionIcons = notification.hasActionIcons;
         // qmllint disable unresolved-type
-        actions = notification.actions.map(a => ({
-                    // qmllint enable unresolved-type
-                    identifier: a.identifier,
-                    text: a.text,
-                    invoke: () => a.invoke()
-                }));
+        actions = notification.actions.map(bindAction);
+        // qmllint enable unresolved-type
     }
 }

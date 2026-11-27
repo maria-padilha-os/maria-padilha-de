@@ -4,7 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Caelestia.I18n
+import Caelestia.Config
 import qs.services
+import qs.utils
 
 Singleton {
     id: root
@@ -84,6 +86,28 @@ Singleton {
         return total > 0 ? Math.round(cacheRead / total * 100) : -1;
     }
     readonly property string cacheLabel: root.cachePercent >= 0 ? Tr.tr("cache %1%").arg(root.cachePercent) : ""
+
+    function notifyReply(title: string, body: string, urgent: bool): void {
+        const screen = ShellState.forActive();
+        if (!screen || screen.assistant)
+            return;
+        const gif = Paths.absolutePath(Config.paths.sessionGif);
+        const preview = String(body || "").replace(/\s+/g, " ").trim().slice(0, 180);
+        const args = [
+            "notify-send",
+            "--app-name=Padilha",
+            "--icon=" + gif,
+            "--hint=string:image-path:" + gif,
+            "--action=assistant-open=Open",
+            "--expire-time=8000",
+            urgent ? "--urgency=critical" : "--urgency=normal",
+            "Padilha",
+            title
+        ];
+        if (preview.length > 0)
+            args.push(preview);
+        Quickshell.execDetached(args);
+    }
 
     function handle(line: string): void {
         let event;
@@ -242,6 +266,8 @@ Singleton {
             root.activity = "";
             root.refreshSessions();
             root.refreshAgents();
+            if (event.stop !== "cancelled" && (event.text || "").trim().length > 0)
+                root.notifyReply(Tr.tr("Resposta pronta"), event.text, false);
             if (root.speakReplies && (event.text || "").trim().length > 0)
                 Quickshell.execDetached(["padilha-voice", "speak", "--", event.text]);
             break;
@@ -264,6 +290,7 @@ Singleton {
             root.streaming = false;
             root.activeId = -1;
             root.activity = "";
+            root.notifyReply(Tr.tr("Padilha precisa de atenção"), root.error, true);
             break;
         }
         }
