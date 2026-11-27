@@ -161,6 +161,12 @@ Item {
                     Accessible.name: Tr.tr("Close tab")
                     Accessible.onPressAction: tab.closeTab(modelData.id)
 
+                    StyledRect {
+                        anchors.fill: parent
+                        radius: Tokens.rounding.full
+                        color: closeMouse.containsMouse ? Qt.alpha(Colours.palette.m3onSurface, closeMouse.pressed ? 0.2 : 0.12) : "transparent"
+                    }
+
                     MaterialIcon {
                         anchors.centerIn: parent
                         text: "close"
@@ -169,6 +175,7 @@ Item {
                     }
 
                     MouseArea {
+                        id: closeMouse
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
