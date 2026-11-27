@@ -548,13 +548,6 @@ Item {
                 }
             }
 
-            StyledText {
-                Layout.fillWidth: true
-                text: Assistant.sessionLabel
-                font: Tokens.font.label.builders.small.scale(root.fontScale).build()
-                color: Colours.palette.m3onSurfaceVariant
-                elide: Text.ElideRight
-            }
 
             Popup {
                 id: sessionsPopup
