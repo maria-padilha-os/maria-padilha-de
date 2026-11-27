@@ -1,4 +1,5 @@
 import Quickshell
+import qs.services
 import "../services/ScreenModel.js" as ScreenModel
 
 PersistentProperties {
@@ -32,6 +33,7 @@ PersistentProperties {
     // The launcher is the same class of surface: opening it must dismiss the
     // assistant, and opening the assistant must dismiss the launcher.
     onAssistantChanged: {
+        AssistantSettings.open = assistant;
         if (!assistant)
             return;
         sidebar = false;

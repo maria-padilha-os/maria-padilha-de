@@ -61,7 +61,25 @@ Singleton {
         return focused ? componentsFor(focused) : null;
     }
 
-    Component.onCompleted: PanelLayout.reconcile(Screens.screens)
+    function restoreAssistant(): void {
+        if (!AssistantSettings.open)
+            return;
+        const state = root.forActive();
+        if (state && !state.assistant)
+            state.assistant = true;
+    }
+
+    Component.onCompleted: {
+        PanelLayout.reconcile(Screens.screens);
+        Qt.callLater(root.restoreAssistant);
+    }
+
+    Timer {
+        interval: 500
+        repeat: false
+        running: true
+        onTriggered: root.restoreAssistant()
+    }
 
     Variants {
         id: states
