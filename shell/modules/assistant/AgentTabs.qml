@@ -37,7 +37,7 @@ Item {
     }
 
     visible: true
-    implicitHeight: 40
+    implicitHeight: 48
 
     ListView {
         id: list

@@ -513,8 +513,8 @@ Item {
 
                 AgentTabs {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 40
-                    Layout.maximumHeight: 40
+                    Layout.preferredHeight: 48
+                    Layout.maximumHeight: 48
                     agents: Assistant.agentSessions
                     homeId: Assistant.defaultSessionId
                     activeId: Assistant.sessionId
