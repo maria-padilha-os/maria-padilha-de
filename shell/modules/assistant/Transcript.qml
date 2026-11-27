@@ -111,7 +111,7 @@ Item {
                         }
 
                         Item {
-                            anchors.top: parent.top
+                            anchors.bottom: parent.bottom
                             anchors.right: parent.right
                             anchors.margins: 4
                             implicitWidth: 22
