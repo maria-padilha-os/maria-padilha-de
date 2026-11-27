@@ -289,7 +289,7 @@ def list_sessions(limit: int = MAX_LIST) -> list[dict[str, Any]]:
         item = session_summary(session)
         if item is not None:
             if item["id"] == default_id:
-                item["title"] = "OS maintenance"
+                item["title"] = "Padilha"
             out.append(item)
         if len(out) >= limit:
             break
@@ -626,9 +626,9 @@ def main() -> int:
         active = next((item for item in sessions if default_session(item)), sessions[0] if sessions else None)
     for item in sessions:
         if item["id"] == fixed_default:
-            item["title"] = "OS maintenance"
+            item["title"] = "Padilha"
     if active is not None and active["id"] == fixed_default:
-        active["title"] = "OS maintenance"
+        active["title"] = "Padilha"
         sessions.sort(key=lambda item: item["id"] != fixed_default)
     active_id = active["id"] if active else ""
     active_path = find_session(active_id) if active_id else None
@@ -674,7 +674,7 @@ def main() -> int:
             summary = session_summary(path)
             log = log_path(path)
             if session_id == default_session_id():
-                title = "OS maintenance"
+                title = "Padilha"
             else:
                 title = summary["title"] if summary else ""
             emit(

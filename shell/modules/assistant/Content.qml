@@ -129,16 +129,14 @@ Item {
     }
 
     function seedTabs(): void {
-        const maintenance = Assistant.sessions.find(session => session.title === "OS maintenance");
-        if (maintenance)
-            root.maintenanceSessionId = maintenance.id;
+        root.maintenanceSessionId = Assistant.defaultSessionId;
         for (const session of Assistant.sessions) {
             const tab = root.openTabs.find(item => item.id === session.id);
             if (tab)
                 root.updateTabTitle(session.id, Assistant.sessionTitleFor(session.id, session.title));
         }
         if (root.maintenanceSessionId.length > 0)
-            root.ensureTab(root.maintenanceSessionId, "OS maintenance", true);
+            root.ensureTab(root.maintenanceSessionId, Tr.tr("Padilha"), true);
         if (Assistant.sessionId.length > 0)
             root.ensureTab(Assistant.sessionId, Assistant.sessionTitle || Tr.tr("Chat"), Assistant.sessionId === root.maintenanceSessionId);
     }

@@ -24,7 +24,7 @@ Item {
     readonly property var tabsModel: {
         const out = [{
                 id: root.homeId,
-                title: Tr.tr("OS maintenance"),
+                title: Tr.tr("Padilha"),
                 home: true,
                 owned: false
             }];

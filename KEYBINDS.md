@@ -109,9 +109,9 @@ reachable with `Tab` from an open panel. See the
 | `Alt + Left` / `Right` | previous / next section |
 | `Esc` | cancel the current stream / close the assistant |
 
-The **OS maintenance** tab is always visible; agent tabs appear only for
-subagents spawned by the current session. Agent tabs are read-only and refresh
-while the agent is running.
+The **Padilha** tab is always visible; agent tabs appear only for subagents
+spawned by the current session. Agent tabs are read-only and refresh while the
+agent is running.
 
 ## Applications
 

@@ -15,11 +15,11 @@ redacts secret-shaped content before returning it, and writes only after a
 separate one-operation confirmation. It is not a shell, and it is no longer
 the drawer's chat backend.
 
-## Default OS-maintenance session
+## Default Padilha session
 
 The drawer remembers a fixed default session in
 `~/.config/padilha/dsh-default-session` and selects it on startup. The current
-default is titled **OS maintenance** and was primed to keep the Arch
+default is titled **Padilha** and was primed to keep the Arch
 installation clean, look for duplicate files and stale caches, and report
 risky changes before deleting personal data. Its DSH log is the memory: it
 survives restarts and is never silently replaced.
