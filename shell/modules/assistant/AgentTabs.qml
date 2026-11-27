@@ -87,7 +87,10 @@ Item {
             Keys.onEnterPressed: activate()
             Keys.onSpacePressed: activate()
 
-            background: null
+            background: StyledRect {
+                radius: Tokens.rounding.medium
+                color: tab.active ? Qt.alpha(Colours.palette.m3primary, 0.08) : (tab.hovered ? Qt.alpha(Colours.palette.m3onSurface, 0.08) : "transparent")
+            }
 
             contentItem: Item {
                 ColumnLayout {
