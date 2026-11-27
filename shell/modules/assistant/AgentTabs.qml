@@ -56,7 +56,7 @@ Item {
 
             readonly property bool active: modelData.home ? (!root.viewingAgent && modelData.id === root.activeId) : (root.viewingAgent && modelData.id === root.activeId)
 
-            width: Math.min(190, Math.max(94, label.implicitWidth + 36))
+            width: Math.min(190, Math.max(120, label.implicitWidth + 36))
             height: list.height
             padding: 0
             hoverEnabled: true
@@ -121,10 +121,6 @@ Item {
                         font: Tokens.font.label.builders.small.scale(0.9).build()
                         elide: Text.ElideRight
                         maximumLineCount: 1
-
-                        ToolTip.visible: tab.hovered && label.truncated
-                        ToolTip.text: modelData.title
-                        ToolTip.delay: 450
                     }
                 }
 
