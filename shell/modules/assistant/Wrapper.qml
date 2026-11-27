@@ -38,6 +38,7 @@ Item {
         anchors.bottomMargin: 0
 
         active: root.shouldBeActive || root.visible
+        asynchronous: true
         sourceComponent: Content {
             implicitWidth: root.panelWidth - content.anchors.leftMargin - content.anchors.margins
             screenState: root.screenState

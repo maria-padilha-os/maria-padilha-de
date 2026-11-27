@@ -78,6 +78,12 @@ Item {
         transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
     }
 
+    function clampScroll(): void {
+        const max = Math.max(0, transcript.contentHeight - transcript.height);
+        if (transcript.contentY > max)
+            transcript.contentY = max;
+    }
+
     function scheduleScroll(): void {
         scrollSettle.restart();
     }
@@ -851,10 +857,12 @@ Item {
                 }
 
                 onContentHeightChanged: {
+                    root.clampScroll();
                     if (!scrollSettle.running)
                         scrollSettle.start();
                 }
                 onCountChanged: {
+                    root.clampScroll();
                     if (!scrollSettle.running)
                         scrollSettle.start();
                 }
