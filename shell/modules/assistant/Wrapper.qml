@@ -33,6 +33,12 @@ Item {
         Anim {}
     }
 
+    StyledRect {
+        anchors.fill: parent
+        radius: Tokens.rounding.large
+        color: Qt.alpha(Colours.palette.m3surface, 0.74)
+    }
+
     Loader {
         id: content
 

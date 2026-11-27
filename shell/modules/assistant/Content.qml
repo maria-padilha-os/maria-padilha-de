@@ -501,7 +501,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: Tokens.rounding.large
-            color: Colours.tPalette.m3surfaceContainerLow
+            color: "transparent"
 
         ColumnLayout {
             anchors.fill: parent
