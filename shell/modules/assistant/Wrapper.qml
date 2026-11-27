@@ -17,6 +17,12 @@ Item {
     // small outputs and never covers the whole desktop.
     readonly property real panelWidth: Math.round(Math.max(360, Math.min(root.screenWidth * AssistantWidth.ratio, root.screenWidth - 48)))
     property real offsetScale: shouldBeActive ? 0 : 1
+    // Keep the chat instance alive after its first open. Recreating Content on
+    // every close made the composer lose its layout and visibly jump.
+    property bool everOpened: false
+
+    Component.onCompleted: root.everOpened = root.shouldBeActive
+    onShouldBeActiveChanged: if (root.shouldBeActive) root.everOpened = true
 
     visible: offsetScale < 1
     anchors.rightMargin: (-implicitWidth - 5) * offsetScale
@@ -37,7 +43,7 @@ Item {
         anchors.margins: CUtils.clamp(anchors.leftMargin - Config.border.thickness, 0, anchors.leftMargin)
         anchors.bottomMargin: 0
 
-        active: root.shouldBeActive || root.visible
+        active: root.shouldBeActive || root.visible || root.everOpened
         sourceComponent: Content {
             implicitWidth: root.panelWidth - content.anchors.leftMargin - content.anchors.margins
             screenState: root.screenState
