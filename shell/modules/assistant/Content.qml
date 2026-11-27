@@ -513,11 +513,8 @@ Item {
                     fontStyle: Tokens.font.icon.medium
                 }
 
-                StyledText {
+                Item {
                     Layout.fillWidth: true
-                    text: Tr.tr("Assistant")
-                    font: Tokens.font.title.builders.medium.scale(root.fontScale).build()
-                    color: Colours.palette.m3onSurface
                 }
 
                 StyledText {

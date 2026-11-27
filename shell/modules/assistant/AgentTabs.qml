@@ -36,7 +36,7 @@ Item {
         return out;
     }
 
-    visible: agents.length > 0 || viewingAgent
+    visible: true
     implicitHeight: 58
 
     ListView {
