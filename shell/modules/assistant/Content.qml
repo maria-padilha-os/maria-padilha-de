@@ -28,6 +28,7 @@ Item {
     property bool dropActive: false
     property string renameTargetId: ""
     property bool sidebarOpen: false
+    property bool sessionPickerOpen: false
     property var openTabs: []
     property string maintenanceSessionId: ""
     readonly property real sidebarWidth: {
@@ -497,6 +498,8 @@ Item {
         spacing: Tokens.spacing.medium
 
         StyledRect {
+            id: chatPanel
+
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: Tokens.rounding.large
@@ -545,7 +548,7 @@ Item {
 
                     icon: "add_comment"
                     accessibleName: Tr.tr("New or resume DSH session")
-                    onClicked: sessionsPopup.open()
+                    onClicked: root.sessionPickerOpen = !root.sessionPickerOpen
                 }
             }
 
@@ -1050,6 +1053,135 @@ Item {
             Layout.fillWidth: true
             implicitHeight: 1
             color: Colours.tPalette.m3outlineVariant
+        }
+    }
+
+    // The session picker is a page inside the panel, not a floating popup.
+    Item {
+        id: sessionsPage
+
+        anchors.fill: parent
+        z: 30
+        visible: root.sessionPickerOpen
+
+        StyledRect {
+            anchors.fill: parent
+            radius: Tokens.rounding.large
+            color: Colours.tPalette.m3surfaceContainerLow
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Tokens.padding.medium
+            spacing: Tokens.spacing.small
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Tokens.spacing.small
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Tr.tr("Sessions")
+                    font: Tokens.font.title.builders.medium.scale(root.fontScale).build()
+                    color: Colours.palette.m3onSurface
+                    elide: Text.ElideRight
+                }
+
+                IconButton {
+                    icon: "add"
+                    accessibleName: Tr.tr("New session")
+                    onClicked: {
+                        Assistant.newChat();
+                        root.sessionPickerOpen = false;
+                    }
+                }
+
+                IconButton {
+                    icon: "close"
+                    accessibleName: Tr.tr("Close session picker")
+                    onClicked: root.sessionPickerOpen = false
+                }
+            }
+
+            TextField {
+                id: pickerSearch
+
+                Layout.fillWidth: true
+                placeholderText: Tr.tr("Search sessions")
+                color: Colours.palette.m3onSurface
+                placeholderTextColor: Colours.palette.m3onSurfaceVariant
+                font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                background: StyledRect {
+                    radius: Tokens.rounding.small
+                    color: Colours.tPalette.m3surfaceContainerHighest
+                }
+            }
+
+            ListView {
+                id: pickerList
+
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                spacing: 2
+                boundsBehavior: Flickable.StopAtBounds
+                model: {
+                    Assistant.pinned;
+                    const query = pickerSearch.text.trim().toLowerCase();
+                    const filtered = query.length === 0 ? Assistant.sessions : Assistant.sessions.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
+                    return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
+                }
+
+                delegate: ItemDelegate {
+                    id: pickerRow
+
+                    required property var modelData
+
+                    width: pickerList.width
+                    height: 54
+                    padding: 0
+                    onClicked: {
+                        Assistant.selectSession(modelData.id);
+                        root.sessionPickerOpen = false;
+                    }
+
+                    background: StyledRect {
+                        radius: Tokens.rounding.small
+                        color: pickerRow.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent"
+                    }
+
+                    contentItem: StyledText {
+                        anchors.fill: parent
+                        anchors.leftMargin: Tokens.padding.small
+                        anchors.rightMargin: Tokens.padding.small
+                        verticalAlignment: Text.AlignVCenter
+                        text: Assistant.sessionTitleFor(pickerRow.modelData.id, pickerRow.modelData.title) + (pickerRow.modelData.owned ? " · live" : "")
+                        elide: Text.ElideRight
+                        font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                        color: Colours.palette.m3onSurface
+                    }
+
+                    StyledText {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.bottom: parent.bottom
+                        anchors.leftMargin: Tokens.padding.small
+                        anchors.rightMargin: Tokens.padding.small
+                        anchors.bottomMargin: Tokens.padding.extraSmall
+                        text: Qt.formatDateTime(new Date(pickerRow.modelData.updated), "dd/MM HH:mm")
+                        elide: Text.ElideRight
+                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                        color: Colours.palette.m3onSurfaceVariant
+                    }
+                }
+            }
+        }
+
+        onVisibleChanged: {
+            if (visible) {
+                pickerSearch.text = "";
+                Qt.callLater(() => pickerSearch.forceActiveFocus());
+            }
         }
     }
 
