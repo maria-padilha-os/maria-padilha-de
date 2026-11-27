@@ -12,10 +12,26 @@ PageBase {
 
     property string query: ""
     property string filterMode: "all"
+    property real pendingScrollY: -1
 
     readonly property var filteredExtensions: Extensions.filtered(root.query, root.filterMode)
     readonly property bool hasInstalled: Extensions.list.length > 0
     readonly property bool hasVisible: root.filteredExtensions.length > 0
+
+    function holdScroll(): void {
+        root.pendingScrollY = root.flickable.contentY;
+    }
+
+    function restoreScroll(): void {
+        const y = root.pendingScrollY;
+        if (y < 0)
+            return;
+        root.pendingScrollY = -1;
+        Qt.callLater(() => {
+            const maxY = Math.max(-root.flickable.topMargin, root.flickable.contentHeight + root.flickable.bottomMargin - root.flickable.height);
+            root.flickable.contentY = Math.max(-root.flickable.topMargin, Math.min(y, maxY));
+        });
+    }
     readonly property var filterModes: [
         {
             key: "all",
@@ -142,7 +158,11 @@ PageBase {
                 required property int index
 
                 extension: modelData
-                onToggleRequested: enabled => Extensions.setTabEnabled(modelData.id, enabled)
+                onToggleRequested: enabled => {
+                    root.holdScroll();
+                    Extensions.setTabEnabled(modelData.id, enabled);
+                    root.restoreScroll();
+                }
             }
         }
 
