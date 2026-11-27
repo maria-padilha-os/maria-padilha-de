@@ -30,15 +30,17 @@ PersistentProperties {
 
     // The sidebar and assistant share the right drawer. Keep the invariant
     // here too, so the IPC `drawers toggle` path cannot open both.
-    // The launcher is the same class of surface: opening it must dismiss the
-    // assistant, and opening the assistant must dismiss the launcher.
+    // The launcher and dashboard are the same class of surface: opening one
+    // must dismiss the assistant, and opening the assistant must dismiss them.
     onAssistantChanged: {
         AssistantSettings.open = assistant;
         if (!assistant)
             return;
         sidebar = false;
         launcher = false;
+        dashboard = false;
     }
+    onDashboardChanged: if (dashboard && assistant) assistant = false
     onSidebarChanged: if (sidebar && assistant) assistant = false
     onLauncherChanged: {
         if (!launcher)
