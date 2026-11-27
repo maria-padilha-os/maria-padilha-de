@@ -80,7 +80,6 @@ Item {
 
     function scheduleScroll(): void {
         root.scrollToEnd();
-        Qt.callLater(() => root.scrollToEnd());
     }
 
     function ensureTab(id: string, title: string, persistent: bool): void {
@@ -843,14 +842,8 @@ Item {
                     }
                 }
 
-                onContentHeightChanged: {
-                    root.scrollToEnd();
-                    Qt.callLater(() => root.scrollToEnd());
-                }
-                onCountChanged: {
-                    root.scrollToEnd();
-                    Qt.callLater(() => root.scrollToEnd());
-                }
+                onContentHeightChanged: root.scrollToEnd()
+                onCountChanged: root.scrollToEnd()
             }
 
             IconButton {
