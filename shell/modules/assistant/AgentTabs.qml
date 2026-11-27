@@ -82,14 +82,7 @@ Item {
             Keys.onEnterPressed: activate()
             Keys.onSpacePressed: activate()
 
-            background: StyledRect {
-                radius: Tokens.rounding.medium
-                color: tab.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent"
-
-                Behavior on color {
-                    Anim {}
-                }
-            }
+            background: null
 
             contentItem: Item {
                 ColumnLayout {
