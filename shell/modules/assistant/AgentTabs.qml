@@ -37,12 +37,17 @@ Item {
     }
 
     visible: true
-    implicitHeight: 48
+    readonly property int tabBarHeight: 40
+    implicitHeight: tabBarHeight + Tokens.sizes.dashboard.tabIndicatorSpacing + Tokens.sizes.dashboard.tabIndicatorHeight
+    property Item activeTabItem: null
 
     ListView {
         id: list
 
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: root.tabBarHeight
         orientation: ListView.Horizontal
         spacing: Tokens.spacing.extraSmall
         clip: true
@@ -127,29 +132,57 @@ Item {
                     radius: 3.5
                     color: Colours.palette.m3primary
                 }
-
-                StyledRect {
-                    anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: tab.active ? Math.max(64, tab.width - 24) : 0
-                    height: 3
-                    radius: 1.5
-                    color: Colours.palette.m3primary
-
-                    Behavior on width {
-                        Anim {}
-                    }
-                }
             }
         }
     }
 
-    function syncPosition(): void {
-        const index = root.tabsModel.findIndex(item => item.id === root.activeId && (root.viewingAgent ? !item.home : item.home));
-        if (index >= 0)
-            Qt.callLater(() => list.positionViewAtIndex(index, ListView.Contain));
+    // Same gap and height as the dashboard: the indicator lives below the
+    // tab bar, not inside the tab content where it reads as an underline.
+    Item {
+        id: indicator
+
+        anchors.top: list.bottom
+        anchors.topMargin: Tokens.sizes.dashboard.tabIndicatorSpacing
+        height: Tokens.sizes.dashboard.tabIndicatorHeight
+        visible: root.activeTabItem !== null
+        width: root.activeTabItem ? Math.max(64, root.activeTabItem.width - 24) : 0
+        x: root.activeTabItem ? root.activeTabItem.x - list.contentX + (root.activeTabItem.width - width) / 2 : 0
+
+        StyledRect {
+            anchors.fill: parent
+            color: Colours.palette.m3primary
+            radius: Tokens.rounding.full
+        }
+
+        Behavior on x {
+            Anim {}
+        }
+
+        Behavior on width {
+            Anim {}
+        }
     }
 
-    onActiveIdChanged: syncPosition()
-    onViewingAgentChanged: syncPosition()
+    readonly property int activeIndex: tabsModel.findIndex(item => item.id === root.activeId && (root.viewingAgent ? !item.home : item.home))
+
+    function syncIndicator(): void {
+        root.activeTabItem = root.activeIndex >= 0 ? list.itemAtIndex(root.activeIndex) : null;
+    }
+
+    function syncPosition(): void {
+        if (root.activeIndex >= 0)
+            Qt.callLater(() => list.positionViewAtIndex(root.activeIndex, ListView.Contain));
+    }
+
+    Component.onCompleted: Qt.callLater(syncIndicator)
+    onActiveIdChanged: {
+        syncPosition();
+        Qt.callLater(syncIndicator);
+    }
+    onViewingAgentChanged: {
+        syncPosition();
+        Qt.callLater(syncIndicator);
+    }
+    onTabsModelChanged: Qt.callLater(syncIndicator)
+    onWidthChanged: Qt.callLater(syncIndicator)
 }
