@@ -19,7 +19,7 @@ PanelWindow {
     anchors.top: true
     anchors.bottom: true
     anchors.right: true
-    implicitWidth: 56
+    implicitWidth: Tokens.sizes.session.button
 
     visible: AssistantSettings.enabled && !screenState.assistant && !screenState.launcher && !screenState.sidebar && !screenState.dashboard
 
@@ -32,9 +32,9 @@ PanelWindow {
     // transparent to the browser/editor scrollbar underneath.
     mask: Region {
         x: 0
-        y: Math.round((root.height - 108) / 2)
+        y: Math.round((root.height - (Tokens.sizes.session.button + 12)) / 2)
         width: root.width
-        height: 108
+        height: Tokens.sizes.session.button + 12
     }
 
     Item {
@@ -42,8 +42,8 @@ PanelWindow {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        width: hover.hovered || Assistant.streaming ? 56 : 14
-        height: 96
+        width: hover.hovered || Assistant.streaming ? Tokens.sizes.session.button : 14
+        height: Tokens.sizes.session.button
 
         Behavior on width {
             Anim {}
