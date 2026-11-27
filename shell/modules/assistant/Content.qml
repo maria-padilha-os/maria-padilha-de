@@ -39,6 +39,23 @@ Item {
         root.sidebarOpen = !root.sidebarOpen;
     }
 
+    function statusText(): string {
+        if (!Assistant.configured)
+            return Tr.tr("DeepSeek Harness is not ready");
+        const parts = [Assistant.modelLabel];
+        if (Assistant.reasoningEffort.length > 0)
+            parts.push(Tr.tr("thinking %1").arg(Assistant.reasoningEffort));
+        parts.push(Tr.tr("ctx %1%").arg(Math.round(Assistant.contextRatio * 100)));
+        if (Assistant.cachePercent >= 0)
+            parts.push(Assistant.cacheLabel);
+        parts.push(Assistant.streaming ? Tr.tr("working") : Tr.tr("idle"));
+        if (root.viewingAgent)
+            parts.push(Tr.tr("read-only"));
+        else if (Assistant.sessionOwned)
+            parts.push(Tr.tr("owned by dsh-tui"));
+        return parts.join(" · ");
+    }
+
     function focusSessionSearch(): void {
         root.sidebarOpen = true;
         Qt.callLater(() => sidebar.focusSearch());
@@ -507,14 +524,6 @@ Item {
                     onAgentRequested: function (id) {
                         Assistant.viewAgent(id);
                     }
-                }
-
-                StyledText {
-                    text: Assistant.modelLabel
-                    font: Tokens.font.label.builders.small.scale(root.fontScale).build()
-                    color: Colours.palette.m3onSurfaceVariant
-                    elide: Text.ElideRight
-                    Layout.maximumWidth: 150
                 }
 
                 IconButton {
@@ -1006,10 +1015,11 @@ Item {
 
             StyledText {
                 Layout.fillWidth: true
-                text: root.viewingAgent ? Tr.tr("Agent session · read-only") : (Assistant.sessionOwned ? Tr.tr("Read-only · this session is open in dsh-tui") : (Assistant.configured ? Tr.tr("Local DeepSeek Harness session") : Tr.tr("DeepSeek Harness is not ready")))
+                text: root.statusText()
                 font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                 color: Colours.palette.m3onSurfaceVariant
                 elide: Text.ElideRight
+                objectName: "assistantStatus"
             }
         }
         }

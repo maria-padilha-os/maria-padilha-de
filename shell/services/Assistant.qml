@@ -16,6 +16,8 @@ Singleton {
     property var activityLog: []
     property string lastStop: ""
     property string selectedModel: ""
+    property string reasoningEffort: ""
+    property var lastUsage: ({})
     property list<var> models: []
     property list<var> roots: []
     property list<var> sessions: []
@@ -75,6 +77,13 @@ Singleton {
     }
     readonly property real contextRatio: Math.max(0, Math.min(1, root.estimatedContextTokens / root.contextLimit))
     readonly property string contextLabel: Tr.tr("Estimated context: %1%").arg(Math.round(root.contextRatio * 100))
+    readonly property int cachePercent: {
+        const usage = root.lastUsage || {};
+        const cacheRead = Number(usage.cacheReadTokens || 0);
+        const total = Number(usage.inputTokens || 0) + cacheRead + Number(usage.cacheWriteTokens || 0);
+        return total > 0 ? Math.round(cacheRead / total * 100) : -1;
+    }
+    readonly property string cacheLabel: root.cachePercent >= 0 ? Tr.tr("cache %1%").arg(root.cachePercent) : ""
 
     function handle(line: string): void {
         let event;
@@ -108,6 +117,8 @@ Singleton {
             root.sessionOwned = !!event.sessionOwned;
             root.contextTokens = Number(event.context?.tokens || 0);
             root.contextWindow = Number(event.context?.window || 0);
+            root.reasoningEffort = event.reasoningEffort || root.reasoningEffort;
+            root.lastUsage = event.context?.usage || ({});
             root.setHistory(event.history, true);
             const savedSession = AssistantSettings.lastSessionId;
             if (savedSession.length > 0 && savedSession !== root.sessionId && root.sessions.some(session => session.id === savedSession)) {
@@ -136,6 +147,8 @@ Singleton {
             root.messages = [];
             root.contextTokens = Number(event.context?.tokens || 0);
             root.contextWindow = Number(event.context?.window || 0);
+            root.reasoningEffort = event.reasoningEffort || root.reasoningEffort;
+            root.lastUsage = event.context?.usage || ({});
             root.setHistory(event.history, true);
             root.streaming = false;
             root.activeId = -1;
@@ -160,6 +173,7 @@ Singleton {
                 AssistantSettings.lastSessionId = root.sessionId;
             root.sessionTitle = event.sessionTitle || root.sessionTitle;
             root.sessionOwned = !!event.sessionOwned;
+            root.reasoningEffort = event.reasoningEffort || root.reasoningEffort;
             if (root.sessionTitle.length > 0 && root.sessionId.length > 0) {
                 const current = { id: root.sessionId, title: root.sessionTitle, updated: Date.now(), owned: root.sessionOwned };
                 const index = root.sessions.findIndex(s => s.id === root.sessionId);
@@ -172,6 +186,7 @@ Singleton {
             }
             break;
         case "usage":
+            root.lastUsage = event.usage || ({});
             root.contextTokens = Number(event.usage?.inputTokens || 0) + Number(event.usage?.cacheReadTokens || 0) + Number(event.usage?.cacheWriteTokens || 0);
             if (Number(event.contextWindow || 0) > 0)
                 root.contextWindow = Number(event.contextWindow);

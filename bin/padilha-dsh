@@ -30,6 +30,19 @@ MAX_HISTORY = 80
 MAX_LIST = 200
 PROMPT_TIMEOUT = 60 * 15
 DEFAULT_SESSION_FILE = Path(os.environ.get("PADILHA_DSH_DEFAULT_FILE", Path.home() / ".config/padilha/dsh-default-session"))
+EFFORT_FILE = Path(os.environ.get("PADILHA_DSH_EFFORT_FILE", Path.home() / ".dsh-tui/effort.json"))
+
+
+def reasoning_effort() -> str:
+    """Last /effort choice used by dsh-tui, or empty when unset."""
+    try:
+        parsed = json.loads(EFFORT_FILE.read_text())
+    except (OSError, ValueError):
+        return ""
+    if not isinstance(parsed, dict):
+        return ""
+    effort = parsed.get("effort")
+    return effort if isinstance(effort, str) else ""
 
 
 def emit(payload: dict[str, Any]) -> None:
@@ -635,6 +648,7 @@ def main() -> int:
             "sessions": sessions,
             "defaultSessionId": fixed_default,
             "context": active_context,
+            "reasoningEffort": reasoning_effort(),
         }
     )
 
@@ -671,6 +685,7 @@ def main() -> int:
                     "sessionOwned": summary["owned"] if summary else False,
                     "history": history(log) if log else [],
                     "context": session_context(log),
+                    "reasoningEffort": reasoning_effort(),
                 }
             )
         elif command == "new_chat":
