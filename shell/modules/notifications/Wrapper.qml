@@ -20,7 +20,7 @@ Item {
     visible: height > 0
     x: root.anchorHorizontal === "left" ? root.placementX : root.anchorHorizontal === "right" ? parent.width - implicitWidth - root.placementX : (parent.width - implicitWidth) / 2 + root.placementX
     y: root.anchorVertical === "top" ? root.placementY : root.anchorVertical === "bottom" ? parent.height - implicitHeight - root.placementY : (parent.height - implicitHeight) / 2 + root.placementY
-    implicitWidth: Math.max(sidebarPanel.width, assistantPanel.width, content.implicitWidth)
+    implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
 
     Content {

@@ -7,6 +7,7 @@ import Caelestia.I18n
 import qs.components.misc
 import qs.services
 import qs.modules.nexus
+import qs.utils
 
 Scope {
     id: root
@@ -363,6 +364,31 @@ Scope {
             if (!screenState.assistant)
                 screenState.sidebar = false;
             screenState.assistant = !screenState.assistant;
+        }
+    }
+
+    // qmllint disable unresolved-type
+    CustomShortcut {
+        // qmllint enable unresolved-type
+        name: "assistantNotifyTest"
+        description: Tr.tr("Send a test Padilha notification")
+        onPressed: {
+            if (!AssistantSettings.enabled)
+                return;
+            const screenState = ShellState.forActive();
+            if (screenState)
+                screenState.assistant = false;
+            const gif = Paths.absolutePath(Config.paths.sessionGif);
+            Quickshell.execDetached([
+                "notify-send",
+                "--app-name=Padilha",
+                "--icon=" + gif,
+                "--hint=string:image-path:" + gif,
+                "--action=assistant-open=Open",
+                "--expire-time=15000",
+                "Padilha",
+                "Teste de notificação"
+            ]);
         }
     }
 
