@@ -42,7 +42,7 @@ PanelWindow {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        width: hover.hovered ? 52 : 14
+        width: hover.hovered || Assistant.streaming ? 52 : 14
         height: 96
 
         Behavior on width {
@@ -50,17 +50,44 @@ PanelWindow {
         }
 
         StyledRect {
+            id: pill
+
+            property real pulseOpacity: 1
+
             anchors.fill: parent
             radius: Tokens.rounding.large
             color: Qt.alpha(Colours.palette.m3surface, 0.94)
+            opacity: Assistant.streaming ? pulseOpacity : 1
+
+            SequentialAnimation {
+                running: Assistant.streaming
+                loops: Animation.Infinite
+
+                NumberAnimation {
+                    target: pill
+                    property: "pulseOpacity"
+                    from: 1
+                    to: 0.5
+                    duration: 700
+                    easing.type: Easing.InOutSine
+                }
+                NumberAnimation {
+                    target: pill
+                    property: "pulseOpacity"
+                    from: 0.5
+                    to: 1
+                    duration: 700
+                    easing.type: Easing.InOutSine
+                }
+            }
         }
 
         MaterialIcon {
             anchors.centerIn: parent
-            text: "auto_awesome"
+            text: Assistant.streaming ? "graphic_eq" : "auto_awesome"
             color: Colours.palette.m3primary
             fontStyle: Tokens.font.icon.medium
-            opacity: hover.hovered ? 1 : 0
+            opacity: hover.hovered || Assistant.streaming ? 1 : 0
 
             Behavior on opacity {
                 Anim {}
