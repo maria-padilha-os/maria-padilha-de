@@ -29,6 +29,7 @@ Item {
     property string renameTargetId: ""
     property bool sidebarOpen: false
     property bool follow: true
+    property bool autoScroll: false
     property var openTabs: []
     property string maintenanceSessionId: ""
     readonly property real sidebarWidth: {
@@ -85,7 +86,8 @@ Item {
     }
 
     function scheduleScroll(): void {
-        revealTimer.restart();
+        if (root.follow)
+            revealTimer.restart();
     }
 
     function ensureTab(id: string, title: string, persistent: bool): void {
@@ -384,7 +386,12 @@ Item {
 
         interval: 300
         repeat: false
-        onTriggered: transcript.positionViewAtEnd()
+        onTriggered: {
+            root.autoScroll = true;
+            transcript.positionViewAtEnd();
+            transcript.contentY = Math.max(0, transcript.contentHeight - transcript.height);
+            root.autoScroll = false;
+        }
     }
 
     Timer {
@@ -788,6 +795,16 @@ Item {
 
                 maximumFlickVelocity: 3000
 
+                WheelHandler {
+                    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+
+                    onWheel: event => {
+                        const up = event.angleDelta.y > 0 || event.pixelDelta.y > 0;
+                        if (up)
+                            root.follow = false;
+                    }
+                }
+
                 delegate: ColumnLayout {
                     required property var modelData
 
@@ -858,6 +875,18 @@ Item {
                 }
 
                 onCountChanged: root.scheduleScroll()
+                onMovementStarted: {
+                    if (!root.autoScroll)
+                        root.follow = false;
+                }
+                onMovementEnded: {
+                    if (!root.autoScroll)
+                        root.follow = root.atBottom;
+                }
+                onContentYChanged: {
+                    if (root.atBottom)
+                        root.follow = true;
+                }
             }
 
             IconButton {
