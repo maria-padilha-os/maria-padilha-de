@@ -110,14 +110,39 @@ Item {
                             id: bubbleHover
                         }
 
-                        IconButton {
+                        Item {
                             anchors.top: parent.top
                             anchors.right: parent.right
+                            anchors.margins: 4
+                            implicitWidth: 22
+                            implicitHeight: 22
                             z: 2
                             visible: bubbleHover.hovered && message.modelData.text.length > 0
-                            icon: "content_copy"
-                            accessibleName: Tr.tr("Copy message")
-                            onClicked: root.copyRequested(message.modelData.text)
+
+                            Accessible.role: Accessible.Button
+                            Accessible.name: Tr.tr("Copy message")
+                            Accessible.onPressAction: root.copyRequested(message.modelData.text)
+
+                            StyledRect {
+                                anchors.fill: parent
+                                radius: Tokens.rounding.full
+                                color: copyMouse.containsMouse ? Qt.alpha(Colours.palette.m3onSurface, copyMouse.pressed ? 0.2 : 0.12) : "transparent"
+                            }
+
+                            MaterialIcon {
+                                anchors.centerIn: parent
+                                text: "content_copy"
+                                color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                                fontStyle: Tokens.font.icon.small
+                            }
+
+                            MouseArea {
+                                id: copyMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.copyRequested(message.modelData.text)
+                            }
                         }
 
                         TextEdit {
