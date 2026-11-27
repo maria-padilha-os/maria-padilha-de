@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Templates
+import Quickshell
 import Caelestia.Config
 import Caelestia.I18n
 import qs.components
@@ -23,133 +25,94 @@ Item {
                 id: root.homeId,
                 title: Tr.tr("OS maintenance"),
                 home: true,
-                owned: false
+                owned: false,
+                iconName: "home"
             }];
         for (const agent of root.agents) {
             out.push({
                 id: agent.id,
                 title: agent.label || ("Agent " + String(agent.id).substring(0, 8)),
                 home: false,
-                owned: !!agent.owned
+                owned: !!agent.owned,
+                iconName: "smart_toy"
             });
         }
         return out;
     }
 
+    readonly property int currentIndex: {
+        const index = root.tabsModel.findIndex(item => item.id === root.activeId && (root.viewingAgent ? !item.home : item.home));
+        return index >= 0 ? index : 0;
+    }
+
     visible: true
-    readonly property int tabBarHeight: 40
-    implicitHeight: tabBarHeight + Tokens.sizes.dashboard.tabIndicatorSpacing + Tokens.sizes.dashboard.tabIndicatorHeight
-    property Item activeTabItem: null
+    implicitHeight: bar.implicitHeight + bar.anchors.topMargin + indicator.implicitHeight + indicator.anchors.topMargin
 
-    ListView {
-        id: list
+    TabBar {
+        id: bar
 
-        anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: root.tabBarHeight
-        orientation: ListView.Horizontal
-        spacing: Tokens.spacing.extraSmall
-        clip: true
-        model: root.tabsModel
-        boundsBehavior: Flickable.StopAtBounds
+        anchors.top: parent.top
+        anchors.topMargin: Tokens.sizes.dashboard.tabIndicatorSpacing
 
-        delegate: ItemDelegate {
-            id: tab
+        currentIndex: root.currentIndex
+        onCurrentIndexChanged: {
+            if (currentIndex !== root.currentIndex)
+                root.activate(currentIndex);
+        }
 
-            required property var modelData
+        implicitHeight: contentHeight
+        background: null
+        contentItem: RowLayout {
+            spacing: 0
 
-            readonly property bool active: modelData.home ? (!root.viewingAgent && modelData.id === root.activeId) : (root.viewingAgent && modelData.id === root.activeId)
+            Repeater {
+                model: bar.contentModel
+            }
+        }
 
-            width: Math.min(190, Math.max(120, label.implicitWidth + 36))
-            height: list.height
-            padding: 0
-            hoverEnabled: true
-            focusPolicy: Qt.StrongFocus
-            activeFocusOnTab: true
-
-            Accessible.role: Accessible.PageTab
-            Accessible.name: modelData.title
-            Accessible.selected: tab.active
-            Accessible.focusable: true
-            Accessible.focused: activeFocus
-            Accessible.onPressAction: tab.activate()
-
-            function activate(): void {
-                if (modelData.home)
-                    root.homeRequested();
-                else
-                    root.agentRequested(modelData.id);
+        Repeater {
+            model: ScriptModel {
+                values: root.tabsModel
             }
 
-            onClicked: activate()
-            Keys.onReturnPressed: activate()
-            Keys.onEnterPressed: activate()
-            Keys.onSpacePressed: activate()
+            delegate: Tab {
+                required property var modelData
 
-            background: null
-
-            contentItem: Item {
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: 1
-
-                    MaterialIcon {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: modelData.home ? "home" : "smart_toy"
-                        color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
-                        fill: tab.active ? 1 : 0
-                        fontStyle: Tokens.font.icon.medium
-
-                        Behavior on color {
-                            Anim {}
-                        }
-                        Behavior on fill {
-                            Anim {}
-                        }
-                    }
-
-                    StyledText {
-                        id: label
-
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.maximumWidth: tab.width - 12
-                        text: modelData.title
-                        color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
-                        font: Tokens.font.label.builders.small.scale(0.9).build()
-                        elide: Text.ElideRight
-                        maximumLineCount: 1
-                    }
-                }
-
-                StyledRect {
-                    visible: modelData.owned
-                    anchors.top: parent.top
-                    anchors.right: parent.right
-                    anchors.margins: 6
-                    implicitWidth: 7
-                    implicitHeight: 7
-                    radius: 3.5
-                    color: Colours.palette.m3primary
-                }
+                iconName: modelData.iconName
+                text: modelData.title
             }
         }
     }
 
-    // Same gap and height as the dashboard: the indicator lives below the
-    // tab bar, not inside the tab content where it reads as an underline.
     Item {
         id: indicator
 
-        anchors.top: list.bottom
+        anchors.top: bar.bottom
         anchors.topMargin: Tokens.sizes.dashboard.tabIndicatorSpacing
-        height: Tokens.sizes.dashboard.tabIndicatorHeight
-        visible: root.activeTabItem !== null
-        width: root.activeTabItem ? Math.max(64, root.activeTabItem.width - 24) : 0
-        x: root.activeTabItem ? root.activeTabItem.x - list.contentX + (root.activeTabItem.width - width) / 2 : 0
+
+        readonly property Item currentTab: bar.currentItem
+        readonly property real fallbackWidth: bar.count > 0 ? root.width / bar.count : root.width
+
+        implicitWidth: currentTab?.width ?? fallbackWidth
+        implicitHeight: Tokens.sizes.dashboard.tabIndicatorHeight
+
+        x: {
+            if (!currentTab)
+                return fallbackWidth * bar.currentIndex;
+            const origin = currentTab.mapToItem(root, 0, 0);
+            return origin.x + (currentTab.width - implicitWidth) / 2;
+        }
+
+        clip: true
 
         StyledRect {
-            anchors.fill: parent
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            implicitHeight: parent.implicitHeight * 2
+
             color: Colours.palette.m3primary
             radius: Tokens.rounding.full
         }
@@ -158,31 +121,100 @@ Item {
             Anim {}
         }
 
-        Behavior on width {
+        Behavior on implicitWidth {
             Anim {}
         }
     }
 
-    readonly property int activeIndex: tabsModel.findIndex(item => item.id === root.activeId && (root.viewingAgent ? !item.home : item.home))
-
-    function syncIndicator(): void {
-        root.activeTabItem = root.activeIndex >= 0 ? list.itemAtIndex(root.activeIndex) : null;
+    function activate(index: int): void {
+        const tab = root.tabsModel[index];
+        if (!tab)
+            return;
+        if (tab.home)
+            root.homeRequested();
+        else
+            root.agentRequested(tab.id);
     }
 
-    function syncPosition(): void {
-        if (root.activeIndex >= 0)
-            Qt.callLater(() => list.positionViewAtIndex(root.activeIndex, ListView.Contain));
-    }
+    component Tab: TabButton {
+        id: tab
 
-    Component.onCompleted: Qt.callLater(syncIndicator)
-    onActiveIdChanged: {
-        syncPosition();
-        Qt.callLater(syncIndicator);
+        required property string iconName
+        readonly property bool current: TabBar.tabBar.currentItem === this
+
+        focusPolicy: Qt.StrongFocus
+        activeFocusOnTab: true
+
+        Accessible.role: Accessible.PageTab
+        Accessible.name: tab.text
+        Accessible.selected: tab.current
+        Accessible.focusable: true
+        Accessible.focused: activeFocus
+        Accessible.onPressAction: root.activate(tab.TabBar.index)
+
+        Keys.onReturnPressed: root.activate(tab.TabBar.index)
+        Keys.onEnterPressed: root.activate(tab.TabBar.index)
+        Keys.onSpacePressed: root.activate(tab.TabBar.index)
+
+        Layout.fillWidth: root.tabsModel.length > 1
+        Layout.preferredWidth: root.tabsModel.length > 1 ? 1 : implicitWidth
+        Layout.minimumWidth: Tokens.sizes.bar.innerWidth
+        implicitWidth: implicitContentWidth
+        implicitHeight: implicitContentHeight
+        background: null
+
+        contentItem: Item {
+            id: content
+
+            implicitWidth: Math.max(icon.implicitWidth, label.implicitWidth) + Tokens.padding.extraSmall * 2
+            implicitHeight: icon.implicitHeight + label.implicitHeight + Tokens.spacing.extraSmall
+
+            StateLayer {
+                anchors.fill: undefined
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                implicitHeight: parent.height + Tokens.sizes.dashboard.tabIndicatorSpacing * 2
+
+                radius: Tokens.rounding.medium
+                color: tab.current ? Colours.palette.m3primary : Colours.palette.m3onSurface
+                onClicked: root.activate(tab.TabBar.index)
+            }
+
+            MaterialIcon {
+                id: icon
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: label.top
+                anchors.bottomMargin: Tokens.spacing.extraSmall
+
+                text: tab.iconName
+                color: tab.current ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                fill: tab.current ? 1 : 0
+                fontStyle: Tokens.font.icon.medium
+
+                Behavior on fill {
+                    Anim {
+                        type: Anim.DefaultEffects
+                    }
+                }
+            }
+
+            StyledText {
+                id: label
+
+                readonly property real availableWidth: Math.max(0, tab.width - Tokens.padding.small * 2)
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+
+                width: Math.min(implicitWidth, availableWidth)
+                text: tab.text
+                color: tab.current ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                maximumLineCount: 1
+            }
+        }
     }
-    onViewingAgentChanged: {
-        syncPosition();
-        Qt.callLater(syncIndicator);
-    }
-    onTabsModelChanged: Qt.callLater(syncIndicator)
-    onWidthChanged: Qt.callLater(syncIndicator)
 }
