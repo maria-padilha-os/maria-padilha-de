@@ -131,7 +131,7 @@ Item {
                 StyledRect {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: tab.active ? Math.min(46, tab.width * 0.6) : 0
+                    width: tab.active ? Math.max(64, tab.width - 24) : 0
                     height: 3
                     radius: 1.5
                     color: Colours.palette.m3primary
