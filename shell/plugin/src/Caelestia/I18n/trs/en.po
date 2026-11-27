@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maria-padilha-de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 17:51-0300\n"
+"POT-Creation-Date: 2026-11-26 21:15-0300\n"
 "PO-Revision-Date: 2026-11-18 00:00+0000\n"
 "Last-Translator: Maria Padilha contributors\n"
 "Language-Team: English\n"
@@ -149,13 +149,77 @@ msgstr "Screenshot taken"
 msgid "Screenshot copied to clipboard"
 msgstr "Screenshot copied to clipboard"
 
+#: modules/assistant/AgentTabs.qml
+msgid "OS maintenance"
+msgstr "OS maintenance"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Waiting for authentication…"
+msgstr "Waiting for authentication…"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Run as root"
+msgstr "Run as root"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Copy code"
+msgstr "Copy code"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Copy output"
+msgstr "Copy output"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Run as root?"
+msgstr "Run as root?"
+
+#: modules/assistant/CodeBlock.qml
+msgid ""
+"This command runs with administrator privileges. Review it carefully. The "
+"password is requested by polkit and is never stored by Maria Padilha."
+msgstr "This command runs with administrator privileges. Review it carefully. The password is requested by polkit and is never stored by Maria Padilha."
+
+#: modules/assistant/CodeBlock.qml modules/assistant/Content.qml
+#: modules/nexus/SettingsCatalog.qml
+msgid "Cancel"
+msgstr "Cancel"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Running as root…"
+msgstr "Running as root…"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Finished · exit 0"
+msgstr "Finished · exit 0"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Authentication cancelled"
+msgstr "Authentication cancelled"
+
+#: modules/assistant/CodeBlock.qml
+msgid "Not authorized"
+msgstr "Not authorized"
+
+#: modules/assistant/CodeBlock.qml
+#, qt-format
+msgid "Failed · exit %1"
+msgstr "Failed · exit %1"
+
+#: modules/assistant/Content.qml
+msgid "New chat"
+msgstr "New chat"
+
+#: modules/assistant/Content.qml
+msgid "Chat"
+msgstr "Chat"
+
+#: modules/assistant/Content.qml
+msgid "DSH stopped responding; the turn was cancelled."
+msgstr "DSH stopped responding; the turn was cancelled."
+
 #: modules/assistant/Content.qml
 msgid "Rename session"
 msgstr "Rename session"
-
-#: modules/assistant/Content.qml modules/nexus/SettingsCatalog.qml
-msgid "Cancel"
-msgstr "Cancel"
 
 #: modules/assistant/Content.qml modules/nexus/SettingsCatalog.qml
 #: ../extensions/contacts/Widget.qml ../share/extensions/notes/Widget.qml
@@ -257,6 +321,10 @@ msgid "Listening… speak now"
 msgstr "Listening… speak now"
 
 #: modules/assistant/Content.qml
+msgid "Agent session — read-only"
+msgstr "Agent session — read-only"
+
+#: modules/assistant/Content.qml
 msgid "Read-only session — start a new chat"
 msgstr "Read-only session — start a new chat"
 
@@ -300,6 +368,10 @@ msgstr "Stop"
 #: modules/assistant/Content.qml
 msgid "Send"
 msgstr "Send"
+
+#: modules/assistant/Content.qml
+msgid "Agent session · read-only"
+msgstr "Agent session · read-only"
 
 #: modules/assistant/Content.qml
 msgid "Read-only · this session is open in dsh-tui"

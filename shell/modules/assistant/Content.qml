@@ -261,6 +261,14 @@ Item {
         root.attachmentPaths = next;
     }
 
+    function recoverStuckTurn(): void {
+        if (!Assistant.streaming)
+            return;
+        root.error = Tr.tr("DSH stopped responding; the turn was cancelled.");
+        Assistant.cancel();
+        root.focusComposer();
+    }
+
     function copyMessage(text: string): void {
         if (!text)
             return;
@@ -292,6 +300,10 @@ Item {
 
         function onStreamingChanged(): void {
             if (Assistant.streaming)
+                streamWatchdog.restart();
+            else
+                streamWatchdog.stop();
+            if (Assistant.streaming)
                 return;
             root.focusComposer();
             if (Assistant.lastStop === "complete" && root.queuedText.length > 0)
@@ -302,7 +314,14 @@ Item {
         // restore). Following contentHeight also snapped the view back while
         // scrolling, because ListView grows its estimate as delegates appear.
         function onMessagesChanged(): void {
+            if (Assistant.streaming)
+                streamWatchdog.restart();
             Qt.callLater(() => transcript.positionViewAtEnd());
+        }
+
+        function onActivityChanged(): void {
+            if (Assistant.streaming)
+                streamWatchdog.restart();
         }
 
         function onSessionIdChanged(): void {
@@ -338,6 +357,15 @@ Item {
         id: copyMessageProc
 
         command: ["true"]
+    }
+
+    Timer {
+        id: streamWatchdog
+
+        interval: 180000
+        repeat: false
+        running: Assistant.streaming
+        onTriggered: root.recoverStuckTurn()
     }
 
     DropArea {
