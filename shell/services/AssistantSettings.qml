@@ -11,6 +11,10 @@ PersistentProperties {
     // Remember whether the drawer was open, so a shell restart does not
     // silently cut the user off from the conversation.
     property bool open: false
+    // Last session/agent tab selected in the widget. Restored after the
+    // backend reports its default session so the conversation does not
+    // silently jump back to OS maintenance on a shell restart.
+    property string lastSessionId: ""
 
     reloadableId: "assistant"
 }

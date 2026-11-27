@@ -103,6 +103,11 @@ Singleton {
             root.contextTokens = Number(event.context?.tokens || 0);
             root.contextWindow = Number(event.context?.window || 0);
             root.setHistory(event.history, true);
+            const savedSession = AssistantSettings.lastSessionId;
+            if (savedSession.length > 0 && savedSession !== root.sessionId && root.sessions.some(session => session.id === savedSession)) {
+                root.viewingAgent = savedSession !== root.defaultSessionId;
+                Qt.callLater(() => root.selectSession(savedSession));
+            }
             root.error = "";
             break;
         case "sessions":
@@ -474,6 +479,7 @@ Singleton {
         root.sessionTitle = "";
         root.sessionOwned = false;
         root.messages = [];
+        AssistantSettings.lastSessionId = "";
         root.contextTokens = 0;
         root.contextWindow = 0;
         root.error = "";
@@ -484,7 +490,10 @@ Singleton {
     }
 
     function selectSession(id: string): void {
-        if (!id || root.streaming || id === root.sessionId)
+        if (!id)
+            return;
+        AssistantSettings.lastSessionId = id;
+        if (root.streaming || id === root.sessionId)
             return;
         if (id === root.defaultSessionId)
             root.viewingAgent = false;
