@@ -34,16 +34,16 @@ PanelWindow {
     // stays transparent to the browser/editor scrollbar underneath.
     mask: Region {
         x: 0
-        y: root.height - Tokens.sizes.session.button - 48
+        y: root.height - Tokens.sizes.session.button
         width: root.width
-        height: Tokens.sizes.session.button + 48
+        height: Tokens.sizes.session.button
     }
 
     Item {
         id: handle
 
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 24
+        anchors.bottomMargin: 0
         anchors.right: parent.right
         width: Tokens.sizes.session.button
         height: Tokens.sizes.session.button
