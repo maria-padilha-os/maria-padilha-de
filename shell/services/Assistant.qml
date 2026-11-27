@@ -88,6 +88,11 @@ Singleton {
         switch (event.type) {
         case "ready":
             root.ready = true;
+            // A backend can finish starting while the user has already sent
+            // into the restored session. Never replace that in-flight message
+            // list with a late default history snapshot.
+            if (root.streaming)
+                break;
             root.activity = "";
             root.activityLog = [];
             root.lastStop = "";
@@ -117,6 +122,10 @@ Singleton {
             root.handleSubagents(event.agents || []);
             break;
         case "history":
+            // A session load can be slower than the user's next prompt. Its
+            // snapshot must not wipe the user message that is already streaming.
+            if (root.streaming)
+                break;
             root.activity = "";
             root.activityLog = [];
             root.lastStop = "";
