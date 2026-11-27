@@ -548,38 +548,6 @@ Item {
                 }
             }
 
-            StyledRect {
-                Layout.fillWidth: true
-                implicitHeight: 2
-                radius: 1
-                clip: true
-                visible: Assistant.ready
-                color: Colours.tPalette.m3surfaceContainerHighest
-
-                Accessible.role: Accessible.ProgressBar
-                Accessible.name: Assistant.contextLabel
-
-                StyledRect {
-                    width: parent.width * Assistant.contextRatio
-                    height: parent.height
-                    radius: 1
-                    color: Assistant.contextRatio >= 0.9 ? Colours.palette.m3error : Colours.palette.m3primary
-
-                    Behavior on width {
-                        Anim {}
-                    }
-                }
-            }
-
-            StyledText {
-                Layout.fillWidth: true
-                visible: Assistant.ready
-                text: Assistant.contextLabel
-                font: Tokens.font.label.builders.small.scale(root.fontScale).build()
-                color: Assistant.contextRatio >= 0.9 ? Colours.palette.m3error : Colours.palette.m3onSurfaceVariant
-                elide: Text.ElideRight
-            }
-
             StyledText {
                 Layout.fillWidth: true
                 text: Assistant.sessionLabel
@@ -1010,6 +978,29 @@ Item {
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
                     enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0))
                     onClicked: Assistant.streaming ? Assistant.cancel() : root.submitComposer()
+                }
+            }
+
+            StyledRect {
+                Layout.fillWidth: true
+                implicitHeight: 2
+                radius: 1
+                clip: true
+                visible: Assistant.ready
+                color: Colours.tPalette.m3surfaceContainerHighest
+
+                Accessible.role: Accessible.ProgressBar
+                Accessible.name: Assistant.contextLabel
+
+                StyledRect {
+                    width: parent.width * Assistant.contextRatio
+                    height: parent.height
+                    radius: 1
+                    color: Assistant.contextRatio >= 0.9 ? Colours.palette.m3error : Colours.palette.m3primary
+
+                    Behavior on width {
+                        Anim {}
+                    }
                 }
             }
 
