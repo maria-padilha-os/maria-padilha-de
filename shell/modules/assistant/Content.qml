@@ -479,19 +479,6 @@ Item {
         anchors.leftMargin: root.sidebarOpen ? root.sidebarWidth + Tokens.spacing.small : 0
         spacing: Tokens.spacing.medium
 
-        AgentTabs {
-            Layout.fillWidth: true
-            agents: Assistant.agentSessions
-            homeId: Assistant.defaultSessionId
-            activeId: Assistant.sessionId
-            viewingAgent: Assistant.viewingAgent
-
-            onHomeRequested: Assistant.viewHome()
-            onAgentRequested: function (id) {
-                Assistant.viewAgent(id);
-            }
-        }
-
         StyledRect {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -513,8 +500,19 @@ Item {
                     fontStyle: Tokens.font.icon.medium
                 }
 
-                Item {
+                AgentTabs {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 40
+                    Layout.maximumHeight: 40
+                    agents: Assistant.agentSessions
+                    homeId: Assistant.defaultSessionId
+                    activeId: Assistant.sessionId
+                    viewingAgent: Assistant.viewingAgent
+
+                    onHomeRequested: Assistant.viewHome()
+                    onAgentRequested: function (id) {
+                        Assistant.viewAgent(id);
+                    }
                 }
 
                 StyledText {

@@ -37,7 +37,7 @@ Item {
     }
 
     visible: true
-    implicitHeight: 58
+    implicitHeight: 40
 
     ListView {
         id: list
@@ -84,7 +84,7 @@ Item {
 
             background: StyledRect {
                 radius: Tokens.rounding.medium
-                color: tab.active ? Qt.alpha(Colours.palette.m3primary, 0.10) : (tab.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
+                color: tab.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent"
 
                 Behavior on color {
                     Anim {}
