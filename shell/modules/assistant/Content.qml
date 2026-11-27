@@ -494,12 +494,6 @@ Item {
                 Layout.fillWidth: true
                 spacing: Tokens.spacing.small
 
-                MaterialIcon {
-                    text: "auto_awesome"
-                    color: Colours.palette.m3primary
-                    fontStyle: Tokens.font.icon.medium
-                }
-
                 AgentTabs {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
