@@ -100,13 +100,6 @@ Item {
                         color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                         fill: tab.active ? 1 : 0
                         fontStyle: Tokens.font.icon.medium
-
-                        Behavior on color {
-                            Anim {}
-                        }
-                        Behavior on fill {
-                            Anim {}
-                        }
                     }
 
                     StyledText {
