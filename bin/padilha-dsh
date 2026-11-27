@@ -176,6 +176,40 @@ def history(path: Path, max_messages: int = MAX_HISTORY) -> list[dict[str, str]]
     return out[-max_messages:]
 
 
+def context_pressure(usage: Any) -> int:
+    if not isinstance(usage, dict):
+        return 0
+    return sum(
+        int(usage.get(key) or 0)
+        for key in ("inputTokens", "cacheReadTokens", "cacheWriteTokens")
+    )
+
+
+def session_context(path: Path | None) -> dict[str, Any]:
+    """Latest provider-reported prompt size and the route's context window."""
+    if path is None:
+        return {"tokens": 0, "window": 0, "usage": {}}
+    window = 0
+    usage: Any = None
+    for event in events(path):
+        kind = event.get("type")
+        data = event.get("data")
+        if not isinstance(data, dict):
+            continue
+        if kind == "request/context":
+            try:
+                window = int(data.get("contextWindow") or 0)
+            except (TypeError, ValueError):
+                window = 0
+        elif kind == "assistant/message" and isinstance(data.get("usage"), dict):
+            usage = data.get("usage")
+    return {
+        "tokens": context_pressure(usage),
+        "window": window,
+        "usage": usage if isinstance(usage, dict) else {},
+    }
+
+
 def command_like(text: str) -> bool:
     text = text.strip()
     return (
@@ -496,6 +530,7 @@ class DshSdk:
         self.owned.add(session_id)
         deadline = time.monotonic() + PROMPT_TIMEOUT
         saw_assistant = False
+        context_window = 0
         while True:
             if self.cancel.is_set():
                 raise Cancelled()
@@ -512,11 +547,21 @@ class DshSdk:
             data = event.get("data")
             if kind == "step/start":
                 yield {"kind": "activity", "text": "Thinking…"}
+            elif kind == "request/context" and isinstance(data, dict):
+                try:
+                    context_window = int(data.get("contextWindow") or 0)
+                except (TypeError, ValueError):
+                    context_window = 0
+                if context_window > 0:
+                    yield {"kind": "context", "contextWindow": context_window}
             elif kind == "tool/call" and isinstance(data, dict):
                 yield {"kind": "activity", "text": activity_label(str(data.get("name") or "tool"), data.get("arguments"))}
             elif kind == "tool/result":
                 yield {"kind": "activity", "text": "Processing the result…"}
             elif kind == "assistant/message" and isinstance(data, dict):
+                usage = data.get("usage")
+                if isinstance(usage, dict):
+                    yield {"kind": "usage", "usage": usage, "contextWindow": context_window}
                 content = data.get("message", {}).get("content") if isinstance(data.get("message"), dict) else None
                 body = text_blocks(content)
                 if body:
@@ -576,6 +621,7 @@ def main() -> int:
     active_path = find_session(active_id) if active_id else None
     active_log = log_path(active_path) if active_path else None
     active_history = history(active_log) if active_log else []
+    active_context = session_context(active_log)
     emit(
         {
             "type": "ready",
@@ -588,6 +634,7 @@ def main() -> int:
             "sessionOwned": bool(active and active.get("owned")),
             "sessions": sessions,
             "defaultSessionId": fixed_default,
+            "context": active_context,
         }
     )
 
@@ -623,6 +670,7 @@ def main() -> int:
                     "sessionTitle": title,
                     "sessionOwned": summary["owned"] if summary else False,
                     "history": history(log) if log else [],
+                    "context": session_context(log),
                 }
             )
         elif command == "new_chat":
@@ -656,6 +704,10 @@ def main() -> int:
                         if item["kind"] == "assistant":
                             last = item["text"]
                             emit({"type": "assistant", "id": request_id, "text": last})
+                        elif item["kind"] == "usage":
+                            emit({"type": "usage", "id": request_id, "usage": item.get("usage") or {}, "contextWindow": item.get("contextWindow") or 0})
+                        elif item["kind"] == "context":
+                            emit({"type": "context", "id": request_id, "contextWindow": item.get("contextWindow") or 0})
                         elif item["kind"] == "activity":
                             emit({"type": "activity", "id": request_id, "text": item["text"]})
                         elif item["kind"] == "done":

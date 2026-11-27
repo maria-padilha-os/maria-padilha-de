@@ -54,14 +54,19 @@ Singleton {
         return model ? model.name : Tr.tr("DeepSeek Harness");
     }
     readonly property bool speakReplies: AssistantSettings.speakReplies
-    // DSH does not expose token usage, so this is the visible-transcript
-    // estimate, not a billing/context counter. The env knob lets a future
-    // model route change the budget without touching the UI.
+    // DSH records provider usage and the route's context window. Until the
+    // first turn reports them, fall back to the visible-transcript estimate.
+    property int contextTokens: 0
+    property int contextWindow: 0
     readonly property int contextLimit: {
+        if (root.contextWindow > 0)
+            return root.contextWindow;
         const value = Number(Quickshell.env("PADILHA_DSH_CONTEXT_LIMIT") || 128000);
         return Number.isFinite(value) && value > 0 ? value : 128000;
     }
     readonly property int estimatedContextTokens: {
+        if (root.contextTokens > 0)
+            return root.contextTokens;
         let chars = 0;
         for (const message of root.messages)
             chars += String(message.text || "").length;
@@ -95,6 +100,8 @@ Singleton {
             root.sessionId = event.sessionId || "";
             root.sessionTitle = event.sessionTitle || "";
             root.sessionOwned = !!event.sessionOwned;
+            root.contextTokens = Number(event.context?.tokens || 0);
+            root.contextWindow = Number(event.context?.window || 0);
             root.setHistory(event.history, false);
             root.error = "";
             break;
@@ -112,6 +119,8 @@ Singleton {
             root.sessionTitle = event.sessionTitle || "";
             root.sessionOwned = !!event.sessionOwned;
             root.messages = [];
+            root.contextTokens = Number(event.context?.tokens || 0);
+            root.contextWindow = Number(event.context?.window || 0);
             root.setHistory(event.history, true);
             root.streaming = false;
             root.activeId = -1;
@@ -124,6 +133,8 @@ Singleton {
             root.sessionTitle = "";
             root.sessionOwned = false;
             root.messages = [];
+            root.contextTokens = 0;
+            root.contextWindow = 0;
             root.error = "";
             break;
         case "session":
@@ -140,6 +151,15 @@ Singleton {
                     next.unshift(current);
                 root.sessions = next;
             }
+            break;
+        case "usage":
+            root.contextTokens = Number(event.usage?.inputTokens || 0) + Number(event.usage?.cacheReadTokens || 0) + Number(event.usage?.cacheWriteTokens || 0);
+            if (Number(event.contextWindow || 0) > 0)
+                root.contextWindow = Number(event.contextWindow);
+            break;
+        case "context":
+            if (Number(event.contextWindow || 0) > 0)
+                root.contextWindow = Number(event.contextWindow);
             break;
         case "activity":
             if (event.id === root.activeId) {
@@ -451,6 +471,8 @@ Singleton {
         root.sessionTitle = "";
         root.sessionOwned = false;
         root.messages = [];
+        root.contextTokens = 0;
+        root.contextWindow = 0;
         root.error = "";
         root.activityLog = [];
         root.activity = "";
@@ -467,6 +489,8 @@ Singleton {
         root.sessionTitle = "";
         root.sessionOwned = false;
         root.messages = [];
+        root.contextTokens = 0;
+        root.contextWindow = 0;
         root.error = "";
         if (root.started)
             process.write(JSON.stringify({ cmd: "load", sessionId: id }) + "\n");
