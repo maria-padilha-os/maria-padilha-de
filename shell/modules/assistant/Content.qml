@@ -894,14 +894,14 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.margins: Tokens.padding.medium
                 z: 2
-                visible: !root.atBottom && transcript.contentHeight > transcript.height + 1
+                visible: !root.follow && transcript.contentHeight > transcript.height + 1
                 icon: "arrow_downward"
                 type: IconButton.Filled
                 isRound: true
                 accessibleName: Tr.tr("Scroll to bottom")
                 onClicked: {
                     root.follow = true;
-                    root.scrollToEnd();
+                    root.scheduleScroll();
                 }
             }
             }
