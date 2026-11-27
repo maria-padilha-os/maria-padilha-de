@@ -25,6 +25,7 @@ Singleton {
     property string sessionId: ""
     property string sessionTitle: ""
     property bool sessionOwned: false
+    property string draft: ""
     property list<var> messages: []
     property int nextId: 1
     property int activeId: -1

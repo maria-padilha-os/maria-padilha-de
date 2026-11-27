@@ -282,10 +282,15 @@ Item {
         if (dictated.length > 0) {
             composer.text = dictated;
             composer.cursorPosition = composer.text.length;
+        } else if (Assistant.draft.length > 0) {
+            composer.text = Assistant.draft;
+            composer.cursorPosition = composer.text.length;
         }
         root.focusComposer();
     }
-    Component.onDestruction: Assistant.stop()
+    Component.onDestruction: {
+        Assistant.stop();
+    }
 
     function focusComposer(): void {
         if (root.screenState.assistant && Assistant.ready && !Assistant.streaming)
@@ -929,6 +934,7 @@ Item {
                     TextArea {
                         id: composer
 
+                        objectName: "assistantComposer"
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
@@ -940,6 +946,7 @@ Item {
                         // Enter waits for the current turn to finish instead of
                         // sending a second prompt into an active turn.
                         enabled: Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent
+                        onTextChanged: Assistant.draft = text
 
                         Keys.onPressed: event => {
                             const plain = !(event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
