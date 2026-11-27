@@ -19,7 +19,7 @@ PanelWindow {
     anchors.top: true
     anchors.bottom: true
     anchors.right: true
-    implicitWidth: 40
+    implicitWidth: 56
 
     visible: AssistantSettings.enabled && !screenState.assistant && !screenState.launcher && !screenState.sidebar && !screenState.dashboard
 
@@ -32,9 +32,9 @@ PanelWindow {
     // transparent to the browser/editor scrollbar underneath.
     mask: Region {
         x: 0
-        y: Math.round((root.height - 80) / 2)
+        y: Math.round((root.height - 108) / 2)
         width: root.width
-        height: 80
+        height: 108
     }
 
     Item {
@@ -42,8 +42,8 @@ PanelWindow {
 
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
-        width: hover.hovered ? 34 : 8
-        height: 72
+        width: hover.hovered ? 52 : 14
+        height: 96
 
         Behavior on width {
             Anim {}
@@ -59,7 +59,7 @@ PanelWindow {
             anchors.centerIn: parent
             text: "auto_awesome"
             color: Colours.palette.m3primary
-            fontStyle: Tokens.font.icon.small
+            fontStyle: Tokens.font.icon.medium
             opacity: hover.hovered ? 1 : 0
 
             Behavior on opacity {
