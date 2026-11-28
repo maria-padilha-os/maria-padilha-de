@@ -15,6 +15,7 @@ Singleton {
     property bool streaming: false
     property string error: ""
     property string activity: ""
+    property string pendingQuestion: ""
     property var activityLog: []
     property string lastStop: ""
     property string selectedModel: ""
@@ -131,6 +132,7 @@ Singleton {
                 break;
             root.activity = "";
             root.activityLog = [];
+            root.pendingQuestion = "";
             root.lastStop = "";
             root.models = event.models || [];
             root.roots = event.roots || [];
@@ -170,6 +172,7 @@ Singleton {
                 break;
             root.activity = "";
             root.activityLog = [];
+            root.pendingQuestion = "";
             root.lastStop = "";
             root.sessionId = event.sessionId || root.sessionId;
             root.sessionTitle = event.sessionTitle || "";
@@ -187,6 +190,7 @@ Singleton {
         case "new":
             root.activity = "";
             root.activityLog = [];
+            root.pendingQuestion = "";
             root.lastStop = "";
             root.sessionId = event.sessionId || "";
             if (root.sessionId.length > 0)
@@ -238,6 +242,10 @@ Singleton {
                     root.activityLog = log;
                 }
             }
+            break;
+        case "question":
+            if (event.id === root.activeId)
+                root.pendingQuestion = String(event.text || "").trim();
             break;
         case "assistant": {
             if (event.id !== root.activeId)
@@ -546,6 +554,7 @@ Singleton {
             AssistantSettings.lastSessionId = root.sessionId;
         root.activity = Tr.tr("Thinking…");
         root.activityLog = [root.activity];
+        root.pendingQuestion = "";
         root.lastStop = "";
         root.error = "";
         process.write(JSON.stringify({
@@ -588,6 +597,7 @@ Singleton {
         root.sessionId = "";
         root.sessionTitle = "";
         root.sessionOwned = false;
+        root.pendingQuestion = "";
         root.messages = [];
         AssistantSettings.lastSessionId = "";
         root.contextTokens = 0;
@@ -613,6 +623,7 @@ Singleton {
         root.sessionId = id;
         root.sessionTitle = "";
         root.sessionOwned = false;
+        root.pendingQuestion = "";
         root.messages = [];
         root.contextTokens = 0;
         root.contextWindow = 0;

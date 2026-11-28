@@ -165,6 +165,18 @@ def text_blocks(content: Any) -> str:
     return "\n\n".join(parts).strip()
 
 
+def split_question(text: str) -> tuple[str, str]:
+    """Split the explicit agent question marker from the visible answer."""
+    start = text.find("[[question]]")
+    end = text.find("[[/question]]", start + 12) if start >= 0 else -1
+    if start < 0 or end < 0:
+        return text, ""
+    question = text[start + 12:end].strip()
+    clean = (text[:start] + text[end + 13:]).strip()
+    return clean, question
+
+
+
 def history(path: Path, max_messages: int = MAX_HISTORY) -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
     for event in events(path):
@@ -727,10 +739,16 @@ def main() -> int:
                             emit({"type": "activity", "id": request_id, "text": item["text"]})
                         elif item["kind"] == "done":
                             completed = True
-                            emit({"type": "done", "id": request_id, "text": last, "stop": "complete"})
+                            clean, question = split_question(last)
+                            if question:
+                                emit({"type": "question", "id": request_id, "text": question})
+                            emit({"type": "done", "id": request_id, "text": clean, "stop": "complete"})
                             break
                     if not completed:
-                        emit({"type": "done", "id": request_id, "text": last, "stop": "complete"})
+                        clean, question = split_question(last)
+                        if question:
+                            emit({"type": "question", "id": request_id, "text": question})
+                        emit({"type": "done", "id": request_id, "text": clean, "stop": "complete"})
                 except Cancelled:
                     emit({"type": "done", "id": request_id, "text": "", "stop": "cancelled"})
                 except Exception as error:

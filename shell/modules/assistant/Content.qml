@@ -445,6 +445,11 @@ Item {
                 streamWatchdog.restart();
         }
 
+        function onPendingQuestionChanged(): void {
+            if (Assistant.pendingQuestion.length > 0 && root.screenState.assistant)
+                Qt.callLater(() => composer.forceActiveFocus());
+        }
+
         function onSessionIdChanged(): void {
             root.resetHistory();
             root.queuedText = "";
@@ -670,15 +675,15 @@ Item {
             Popup {
                 id: sessionsPopup
 
-                parent: sessionButton
-                x: sessionButton.width - width
-                y: sessionButton.height + 6
-                width: 460
-                height: 520
+                parent: root
+                x: Math.max(8, root.width - width - 8)
+                y: 56
+                width: Math.min(460, root.width - 16)
+                height: Math.min(520, root.height - 64)
                 padding: 8
                 modal: false
                 focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
+                closePolicy: Popup.CloseOnEscape
                 onOpened: {
                     sessionSearch.text = "";
                     root.sessionPickId = Assistant.sessionId;
@@ -1067,6 +1072,39 @@ Item {
                 }
             }
 
+            StyledRect {
+                visible: Assistant.pendingQuestion.length > 0
+                Layout.fillWidth: true
+                implicitHeight: questionColumn.implicitHeight + Tokens.padding.small * 2
+                radius: Tokens.rounding.medium
+                color: Colours.palette.m3secondaryContainer
+                border.width: 1
+                border.color: Colours.palette.m3primary
+
+                ColumnLayout {
+                    id: questionColumn
+
+                    anchors.fill: parent
+                    anchors.margins: Tokens.padding.small
+                    spacing: 2
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Tr.tr("Pergunta do agente")
+                        color: Colours.palette.m3onSecondaryContainer
+                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Assistant.pendingQuestion
+                        color: Colours.palette.m3onSecondaryContainer
+                        font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.spacing.small
@@ -1086,7 +1124,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: Tokens.padding.medium
                         wrapMode: TextArea.Wrap
-                        placeholderText: VoiceInput.dictating ? Tr.tr("Listening… speak now") : (root.viewingAgent ? Tr.tr("Agent session — read-only") : (Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant"))))
+                        placeholderText: Assistant.pendingQuestion.length > 0 ? Tr.tr("Responda para retomar o agente") : (VoiceInput.dictating ? Tr.tr("Listening… speak now") : (root.viewingAgent ? Tr.tr("Agent session — read-only") : (Assistant.sessionOwned ? Tr.tr("Read-only session — start a new chat") : (Assistant.streaming ? Tr.tr("Type while the assistant works — Enter queues") : Tr.tr("Ask the assistant")))))
                         color: Colours.palette.m3onSurface
                         font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
                         background: null
