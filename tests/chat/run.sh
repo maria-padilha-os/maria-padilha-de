@@ -25,6 +25,12 @@ contains "$transcript" 'cacheBuffer:' && ok 'transcript uses delegate caching' |
 contains "$transcript" 'Loader {' && ok 'rich code is lazy' || bad 'rich code is lazy'
 contains "$transcript" 'expandRequested' && ok 'historical code expansion exists' || bad 'historical code expansion exists'
 contains "$transcript" 'preserveIndex' && ok 'older-history scroll preservation exists' || bad 'older-history scroll preservation exists'
+contains "$transcript" 'list.contentY = Math.max(0, list.contentHeight - list.height)' && ok 'jump-to-bottom uses the exact content end' || bad 'jump-to-bottom uses the exact content end'
+if contains "$transcript" 'positionViewAtEnd'; then
+    bad 'jump-to-bottom avoids estimated ListView positioning'
+else
+    ok 'jump-to-bottom avoids estimated ListView positioning'
+fi
 if contains "$transcript" 'Repeater {' || contains "$transcript" 'contentHeight: column.implicitHeight'; then
     bad 'transcript is not rebuilding every row'
 else

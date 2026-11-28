@@ -39,17 +39,26 @@ Item {
             list.contentY = 0;
     }
 
+    function lastVisibleIndex(): int {
+        for (let index = root.messages.length - 1; index >= 0; index--) {
+            if (String(root.messages[index].text || "").trim().length > 0)
+                return index;
+        }
+        return Math.max(0, list.count - 1);
+    }
+
     function forceEnd(): void {
-        list.positionViewAtEnd();
-        const max = Math.max(0, list.contentHeight - list.height);
-        if (list.contentY < max)
-            list.contentY = max;
+        if (list.count === 0)
+            return;
+        // The estimated positioning modes can leave contentY in the middle
+        // while contentHeight is still wrong. Setting the exact end after the
+        // layout pass is the reliable operation.
+        list.contentY = Math.max(0, list.contentHeight - list.height);
     }
 
     function scrollToBottom(): void {
         root.positioning = true;
-        list.positionViewAtEnd();
-        Qt.callLater(root.clampBottom);
+        root.forceEnd();
         settle.restart();
     }
 
@@ -61,7 +70,6 @@ Item {
         onTriggered: {
             if (root.follow) {
                 root.forceEnd();
-                Qt.callLater(root.clampBottom);
             }
         }
     }
@@ -75,7 +83,6 @@ Item {
             if (!root.follow)
                 return;
             root.forceEnd();
-            root.clampBottom();
         }
     }
 
@@ -87,7 +94,6 @@ Item {
         onTriggered: {
             if (root.follow) {
                 root.forceEnd();
-                Qt.callLater(root.clampBottom);
             }
             root.positioning = false;
         }
