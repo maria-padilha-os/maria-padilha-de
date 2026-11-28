@@ -27,6 +27,38 @@ commands with play and copy directly in the conversation.
 Captured from the assistant drawer during a working turn. No terminal, browser
 or private window is included.
 
+### What a turn looks like
+
+**You:** organize the morning and tell me what needs attention.
+
+**Padilha:** the shell is up, the update queue is small, and one service needs a
+decision:
+
+| Check | State |
+| --- | --- |
+| Shell | running |
+| Updates | 3 packages |
+| numeric-lua | working |
+
+```bash
+padilha update check
+systemctl --user status padilha-shell.service
+```
+
+When a choice is genuinely needed, the agent pauses the turn and the app turns
+the options into buttons:
+
+1. Install now
+2. Prepare only
+3. Cancel
+
+Root blocks get a play button, a confirmation with the full command, and a
+password field in the same popup:
+
+```root
+pacman -Syu
+```
+
 ## Support
 
 Maria Padilha is free software under GPL-3.0-only. Donations are optional and
