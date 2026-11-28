@@ -396,7 +396,7 @@ Item {
     function recoverStuckTurn(): void {
         if (!Assistant.streaming)
             return;
-        root.error = Tr.tr("DSH stopped responding; the turn was cancelled.");
+        Assistant.error = Tr.tr("DSH stopped responding; the turn was cancelled.");
         Assistant.cancel();
         root.focusComposer();
     }
