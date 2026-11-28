@@ -33,6 +33,8 @@ Singleton {
     property bool sessionOwned: false
     property string draft: ""
     property list<var> messages: []
+    property var allMessages: []
+    property int visibleHistory: 8
     property var sessionCache: ({})
     property var sessionCacheOrder: []
     property int nextId: 1
@@ -199,6 +201,8 @@ Singleton {
             root.sessionTitle = "";
             root.sessionOwned = false;
             root.messages = [];
+            root.allMessages = [];
+            root.visibleHistory = 8;
             root.contextTokens = 0;
             root.contextWindow = 0;
             root.error = "";
@@ -253,31 +257,22 @@ Singleton {
         case "assistant": {
             if (event.id !== root.activeId)
                 return;
-            const index = root.messages.findIndex(m => m.id === event.id);
-            if (index >= 0) {
-                const next = root.messages.slice();
-                next[index] = Object.assign({}, next[index], {
-                    text: event.text || "",
-                    streaming: true,
-                });
-                root.messages = next;
-            }
+            root.updateMessage(event.id, {
+                text: event.text || "",
+                streaming: true,
+            });
             root.activity = Tr.tr("Writing the answer…");
             break;
         }
         case "done": {
             if (event.id !== root.activeId)
                 return;
-            const index = root.messages.findIndex(m => m.id === event.id);
-            if (index >= 0) {
-                const next = root.messages.slice();
-                next[index] = Object.assign({}, next[index], {
-                    text: event.text || next[index].text || "",
-                    streaming: false,
-                    cancelled: event.stop === "cancelled",
-                });
-                root.messages = next;
-            }
+            const previous = root.allMessages.find(m => m.id === event.id);
+            root.updateMessage(event.id, {
+                text: event.text || (previous ? previous.text : ""),
+                streaming: false,
+                cancelled: event.stop === "cancelled",
+            });
             root.lastStop = event.stop || "complete";
             root.streaming = false;
             root.activeId = -1;
@@ -295,16 +290,11 @@ Singleton {
             if (event.id !== undefined && event.id !== root.activeId)
                 return;
             root.error = event.message || Tr.tr("DSH request failed");
-            const index = root.messages.findIndex(m => m.id === root.activeId);
-            if (index >= 0) {
-                const next = root.messages.slice();
-                next[index] = Object.assign({}, next[index], {
-                    text: root.error,
-                    streaming: false,
-                    error: true,
-                });
-                root.messages = next;
-            }
+            root.updateMessage(root.activeId, {
+                text: root.error,
+                streaming: false,
+                error: true,
+            });
             root.lastStop = "error";
             root.streaming = false;
             root.activeId = -1;
@@ -432,12 +422,37 @@ Singleton {
         onTextChanged: root.loadSessionMeta()
     }
 
+    function syncVisibleMessages(): void {
+        const count = Math.max(8, Math.min(root.visibleHistory, root.allMessages.length));
+        root.visibleHistory = count;
+        root.messages = root.allMessages.slice(-count);
+    }
+
+    function updateMessage(id, patch): void {
+        const index = root.allMessages.findIndex(message => message.id === id);
+        if (index < 0)
+            return;
+        const all = root.allMessages.slice();
+        all[index] = Object.assign({}, all[index], patch);
+        root.allMessages = all;
+        root.messages = all.slice(-root.visibleHistory);
+    }
+
+    function loadEarlier(): void {
+        if (root.visibleHistory >= root.allMessages.length)
+            return;
+        root.visibleHistory = Math.min(root.allMessages.length, root.visibleHistory + 8);
+        root.messages = root.allMessages.slice(-root.visibleHistory);
+    }
+
     function snapshotSession(): void {
         if (root.sessionId.length === 0)
             return;
         const cache = Object.assign({}, root.sessionCache);
         cache[root.sessionId] = {
             messages: root.messages,
+            allMessages: root.allMessages,
+            visibleHistory: root.visibleHistory,
             sessionTitle: root.sessionTitle,
             sessionOwned: root.sessionOwned,
             contextTokens: root.contextTokens,
@@ -461,7 +476,9 @@ Singleton {
         root.sessionId = id;
         root.sessionTitle = entry.sessionTitle || "";
         root.sessionOwned = !!entry.sessionOwned;
-        root.messages = entry.messages ? entry.messages : [];
+        root.allMessages = entry.allMessages ? entry.allMessages : (entry.messages ? entry.messages : []);
+        root.visibleHistory = Number(entry.visibleHistory || Math.max(8, root.allMessages.length));
+        root.messages = root.allMessages.slice(-root.visibleHistory);
         root.contextTokens = Number(entry.contextTokens || 0);
         root.contextWindow = Number(entry.contextWindow || 0);
         root.lastUsage = entry.lastUsage || ({});
@@ -480,10 +497,9 @@ Singleton {
             return;
         if (!Array.isArray(entries))
             return;
-        // The drawer is opened synchronously; rendering every archived message
-        // with rich Markdown blocks makes that first open several seconds long.
-        // Keep the recent working set and let the rest stay in the session log.
-        const restored = entries.slice(-8)
+        // Keep the whole stack in memory, but render only the recent window.
+        // "Carregar anteriores" expands the window in batches.
+        const restored = entries
             .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
             .map((entry, index) => ({
                 id: "history-" + index,
@@ -491,13 +507,17 @@ Singleton {
                 text: entry.text,
                 streaming: false,
             }));
-        root.messages = restored;
+        root.allMessages = restored;
+        root.visibleHistory = Math.min(8, restored.length);
+        root.syncVisibleMessages();
     }
 
     function appendNotice(text: string): void {
-        root.messages = root.messages.concat([
+        root.allMessages = root.allMessages.concat([
             { id: "notice-" + root.nextId++, role: "notice", text: text, streaming: false },
         ]);
+        root.visibleHistory = Math.max(root.visibleHistory, 8);
+        root.syncVisibleMessages();
     }
 
     function handleCommand(command: string): void {
@@ -547,10 +567,12 @@ Singleton {
         const id = root.nextId++;
         const names = attachments.map(path => String(path).split("/").pop());
         const shown = text + (names.length > 0 ? (text.length > 0 ? "\n\n" : "") + Tr.tr("Attached: %1").arg(names.join(", ")) : "");
-        root.messages = root.messages.concat([
+        root.allMessages = root.allMessages.concat([
             { id: id + "-user", role: "user", text: shown, streaming: false, attachments: attachments },
             { id: id, role: "assistant", text: "", streaming: true },
         ]);
+        root.visibleHistory = Math.max(root.visibleHistory, 8);
+        root.syncVisibleMessages();
         root.activeId = id;
         root.streaming = true;
         if (root.sessionId.length > 0)
@@ -574,12 +596,7 @@ Singleton {
         if (!root.streaming)
             return;
         process.write(JSON.stringify({ cmd: "cancel", id: root.activeId }) + "\n");
-        const index = root.messages.findIndex(m => m.id === root.activeId);
-        if (index >= 0) {
-            const next = root.messages.slice();
-            next[index] = Object.assign({}, next[index], { streaming: false, cancelled: true });
-            root.messages = next;
-        }
+        root.updateMessage(root.activeId, { streaming: false, cancelled: true });
         root.lastStop = "cancelled";
         root.streaming = false;
         root.activeId = -1;
@@ -603,6 +620,8 @@ Singleton {
         root.sessionOwned = false;
         root.pendingQuestion = "";
         root.messages = [];
+        root.allMessages = [];
+        root.visibleHistory = 8;
         AssistantSettings.lastSessionId = "";
         root.contextTokens = 0;
         root.contextWindow = 0;
@@ -629,6 +648,8 @@ Singleton {
         root.sessionOwned = false;
         root.pendingQuestion = "";
         root.messages = [];
+        root.allMessages = [];
+        root.visibleHistory = 8;
         root.contextTokens = 0;
         root.contextWindow = 0;
         root.error = "";
