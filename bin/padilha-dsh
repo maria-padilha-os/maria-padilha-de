@@ -611,9 +611,6 @@ class DshSdk:
                     raise SdkError("DSH turn failed")
                 yield {"kind": "done"}
                 return
-            elif kind == "session/status" and isinstance(data, dict) and data.get("status") == "idle" and saw_assistant:
-                yield {"kind": "done"}
-                return
 
     def stop(self) -> None:
         self.cancel.set()
