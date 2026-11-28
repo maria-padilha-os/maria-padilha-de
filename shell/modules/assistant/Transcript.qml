@@ -43,7 +43,7 @@ Item {
     Timer {
         id: settle
 
-        interval: 500
+        interval: 80
         repeat: false
         onTriggered: {
             if (root.follow)

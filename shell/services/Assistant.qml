@@ -561,13 +561,13 @@ Singleton {
         root.pendingQuestionOptions = [];
         root.lastStop = "";
         root.error = "";
-        process.write(JSON.stringify({
+        Qt.callLater(() => process.write(JSON.stringify({
             cmd: "chat",
             id: id,
             sessionId: root.sessionId,
             text: text,
             attachments: attachments,
-        }) + "\n");
+        }) + "\n"));
     }
 
     function cancel(): void {
