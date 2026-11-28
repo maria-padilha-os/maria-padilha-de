@@ -23,6 +23,18 @@ Item {
     property string historyDraft: ""
     property var queuedMessages: []
     property var attachmentPaths: []
+    property int statusTick: 0
+    readonly property bool working: {
+        root.statusTick;
+        return Assistant.streaming;
+    }
+
+    Timer {
+        interval: 250
+        repeat: true
+        running: true
+        onTriggered: root.statusTick++
+    }
     property bool activityExpanded: false
     property bool showArchived: false
     property bool dropActive: false
@@ -31,6 +43,21 @@ Item {
     property bool sessionPickerOpen: false
     property int sessionPickIndex: 0
     property string sessionPickId: ""
+
+    IpcHandler {
+        target: "assistant"
+
+        function state(): string {
+            return JSON.stringify({
+                streaming: Assistant.streaming,
+                activeId: Assistant.activeId,
+                sessionId: Assistant.sessionId,
+                configured: Assistant.configured,
+                messages: Assistant.messages.length,
+                activity: Assistant.activity
+            });
+        }
+    }
 
     onSessionPickIndexChanged: {
         if (sessionsList && sessionsList.currentIndex !== sessionPickIndex)
@@ -108,6 +135,7 @@ Item {
     }
 
     function statusText(): string {
+        root.statusTick;
         if (!Assistant.configured)
             return Tr.tr("DeepSeek Harness is not ready");
         const parts = [Assistant.modelLabel];
@@ -116,7 +144,7 @@ Item {
         parts.push(Tr.tr("ctx %1%").arg(Math.round(Assistant.contextRatio * 100)));
         if (Assistant.cachePercent >= 0)
             parts.push(Assistant.cacheLabel);
-        parts.push(Assistant.streaming ? Tr.tr("working") : Tr.tr("idle"));
+        parts.push(root.working ? Tr.tr("working") : Tr.tr("idle"));
         if (root.viewingAgent)
             parts.push(Tr.tr("read-only"));
         else if (Assistant.sessionOwned)
@@ -922,7 +950,7 @@ Item {
                 id: activityRow
 
                 Layout.fillWidth: true
-                visible: Assistant.streaming
+                visible: root.working
                 spacing: Tokens.spacing.small
 
                 TapHandler {
