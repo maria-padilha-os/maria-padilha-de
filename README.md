@@ -15,6 +15,18 @@ The name comes from Maria Padilha, a figure in Brazilian folk religion.
 > package are usable; the settings application and greeter integration are
 > still in progress.
 
+## The assistant is the desktop
+
+The Padilha assistant is the flagship surface of Maria Padilha, not a chat
+window bolted onto the side of a desktop. It keeps DSH sessions, streams tool
+activity, queues messages, asks numbered questions, and runs reviewed root
+commands with play and copy directly in the conversation.
+
+![The Padilha assistant drawer during a working turn, with session tabs, conversation, composer and status line](docs/assets/screenshots/assistant.webp)
+
+Captured from the assistant drawer during a working turn. No terminal, browser
+or private window is included.
+
 ## Support
 
 Maria Padilha is free software under GPL-3.0-only. Donations are optional and
