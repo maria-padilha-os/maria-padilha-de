@@ -172,6 +172,7 @@ Item {
                             text: message.modelData.text || ""
                             streaming: message.modelData.streaming === true
                             fontScale: root.fontScale
+                            allowPrivileged: !bubble.fromUser
 
                             onCopyRequested: text => root.copyRequested(text)
                         }
