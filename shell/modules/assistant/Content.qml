@@ -30,6 +30,20 @@ Item {
     property string renameTargetId: ""
     property bool sidebarOpen: false
     property bool sessionPickerOpen: false
+    property int sessionPickIndex: 0
+
+    onSessionPickIndexChanged: {
+        if (sessionsList && sessionsList.currentIndex !== sessionPickIndex)
+            sessionsList.currentIndex = sessionPickIndex;
+    }
+    onPickerSessionsChanged: {
+        if (pickerSessions.length === 0) {
+            sessionPickIndex = 0;
+            return;
+        }
+        if (sessionPickIndex >= pickerSessions.length)
+            sessionPickIndex = pickerSessions.length - 1;
+    }
     property var openTabs: []
     property string maintenanceSessionId: ""
     readonly property real sidebarWidth: {
@@ -37,8 +51,45 @@ Item {
         return Math.min(total, Math.min(300, Math.max(220, total * 0.36)));
     }
 
+    readonly property var pickerSessions: {
+        Assistant.pinned;
+        const query = sessionSearch.text.trim().toLowerCase();
+        const visible = Assistant.sessions.filter(session => root.showArchived || !Assistant.isArchived(session.id));
+        const filtered = query.length === 0 ? visible : visible.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
+        return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
+    }
+
     function toggleSidebar(): void {
         root.sidebarOpen = !root.sidebarOpen;
+    }
+
+    function resetSessionPick(): void {
+        root.sessionPickIndex = 0;
+        if (sessionsList)
+            sessionsList.currentIndex = 0;
+    }
+
+    function moveSessionPick(delta: int): void {
+        const count = root.pickerSessions.length;
+        if (count === 0)
+            return;
+        const next = Math.max(0, Math.min(count - 1, root.sessionPickIndex + delta));
+        root.sessionPickIndex = next;
+        sessionsList.currentIndex = next;
+        sessionsList.positionViewAtIndex(next, ListView.Contain);
+    }
+
+    function chooseSessionPick(index: int): void {
+        const session = root.pickerSessions[index];
+        if (!session)
+            return;
+        root.sessionPickIndex = index;
+        Assistant.selectSession(session.id);
+        sessionsPopup.close();
+    }
+
+    function chooseCurrentSessionPick(): void {
+        root.chooseSessionPick(root.sessionPickIndex);
     }
 
     function statusText(): string {
@@ -614,6 +665,7 @@ Item {
                 closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
                 onOpened: {
                     sessionSearch.text = "";
+                    root.resetSessionPick();
                     Qt.callLater(() => sessionSearch.forceActiveFocus());
                 }
 
@@ -650,6 +702,32 @@ Item {
                             radius: Tokens.rounding.small
                             color: Colours.tPalette.m3surfaceContainerHighest
                         }
+
+                        onTextChanged: root.resetSessionPick()
+                        onAccepted: root.chooseCurrentSessionPick()
+
+                        Keys.onPressed: event => {
+                            const plain = !(event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
+                            if (event.key === Qt.Key_Up && plain) {
+                                root.moveSessionPick(-1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_Down && plain) {
+                                root.moveSessionPick(1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                root.chooseCurrentSessionPick();
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_J && (event.modifiers & Qt.ControlModifier)) {
+                                root.moveSessionPick(1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_K && (event.modifiers & Qt.ControlModifier)) {
+                                root.moveSessionPick(-1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_Escape) {
+                                sessionsPopup.close();
+                                event.accepted = true;
+                            }
+                        }
                     }
 
                     ListView {
@@ -658,12 +736,11 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
-                    model: {
-                        Assistant.pinned; // Re-sort when a pin changes.
-                        const query = sessionSearch.text.trim().toLowerCase();
-                        const visible = Assistant.sessions.filter(session => root.showArchived || !Assistant.isArchived(session.id));
-                        const filtered = query.length === 0 ? visible : visible.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
-                        return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
+                    model: root.pickerSessions
+                    currentIndex: root.sessionPickIndex
+                    onCurrentIndexChanged: {
+                        if (currentIndex !== root.sessionPickIndex)
+                            root.sessionPickIndex = currentIndex;
                     }
                     spacing: 2
                     boundsBehavior: Flickable.StopAtBounds
@@ -672,18 +749,21 @@ Item {
                         id: sessionDelegate
 
                         required property var modelData
+                        required property int index
+                        readonly property bool selected: index === root.sessionPickIndex
 
                         width: sessionsList.width
                         height: 56
                         padding: 0
                         onClicked: {
+                            root.sessionPickIndex = index;
                             Assistant.selectSession(modelData.id);
                             sessionsPopup.close();
                         }
 
                         background: StyledRect {
                             radius: Tokens.rounding.small
-                            color: sessionDelegate.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent"
+                            color: sessionDelegate.selected ? Qt.alpha(Colours.palette.m3primary, 0.16) : (sessionDelegate.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
                         }
 
                         contentItem: StyledText {
@@ -694,7 +774,7 @@ Item {
                             text: Assistant.sessionTitleFor(sessionDelegate.modelData.id, sessionDelegate.modelData.title) + (sessionDelegate.modelData.owned ? " · live" : "")
                             elide: Text.ElideRight
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
-                            color: Colours.palette.m3onSurface
+                            color: sessionDelegate.selected ? Colours.palette.m3primary : Colours.palette.m3onSurface
                         }
 
                         RowLayout {
