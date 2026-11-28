@@ -31,6 +31,8 @@ Singleton {
     property bool sessionOwned: false
     property string draft: ""
     property list<var> messages: []
+    property var sessionCache: ({})
+    property var sessionCacheOrder: []
     property int nextId: 1
     property int activeId: -1
     property bool started: false
@@ -176,6 +178,7 @@ Singleton {
             root.setHistory(event.history, true);
             root.streaming = false;
             root.activeId = -1;
+            root.snapshotSession();
             break;
         case "new":
             root.activity = "";
@@ -264,6 +267,7 @@ Singleton {
             root.streaming = false;
             root.activeId = -1;
             root.activity = "";
+            root.snapshotSession();
             root.refreshSessions();
             root.refreshAgents();
             if (event.stop !== "cancelled" && (event.text || "").trim().length > 0)
@@ -413,6 +417,49 @@ Singleton {
         onTextChanged: root.loadSessionMeta()
     }
 
+    function snapshotSession(): void {
+        if (root.sessionId.length === 0)
+            return;
+        const cache = Object.assign({}, root.sessionCache);
+        cache[root.sessionId] = {
+            messages: root.messages,
+            sessionTitle: root.sessionTitle,
+            sessionOwned: root.sessionOwned,
+            contextTokens: root.contextTokens,
+            contextWindow: root.contextWindow,
+            lastUsage: root.lastUsage,
+        };
+        let order = root.sessionCacheOrder.filter(id => id !== root.sessionId);
+        order.push(root.sessionId);
+        while (order.length > 10) {
+            const oldest = order.shift();
+            delete cache[oldest];
+        }
+        root.sessionCache = cache;
+        root.sessionCacheOrder = order;
+    }
+
+    function restoreSession(id: string): bool {
+        const entry = root.sessionCache[id];
+        if (!entry)
+            return false;
+        root.sessionId = id;
+        root.sessionTitle = entry.sessionTitle || "";
+        root.sessionOwned = !!entry.sessionOwned;
+        root.messages = entry.messages ? entry.messages : [];
+        root.contextTokens = Number(entry.contextTokens || 0);
+        root.contextWindow = Number(entry.contextWindow || 0);
+        root.lastUsage = entry.lastUsage || ({});
+        root.error = "";
+        root.activity = "";
+        root.activityLog = [];
+        root.lastStop = "";
+        let order = root.sessionCacheOrder.filter(item => item !== id);
+        order.push(id);
+        root.sessionCacheOrder = order;
+        return true;
+    }
+
     function setHistory(entries: var, replace: bool): void {
         if (!replace && root.messages.length > 0)
             return;
@@ -421,7 +468,7 @@ Singleton {
         // The drawer is opened synchronously; rendering every archived message
         // with rich Markdown blocks makes that first open several seconds long.
         // Keep the recent working set and let the rest stay in the session log.
-        const restored = entries.slice(-15)
+        const restored = entries.slice(-8)
             .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
             .map((entry, index) => ({
                 id: "history-" + index,
@@ -528,6 +575,7 @@ Singleton {
     }
 
     function newChat(): void {
+        root.snapshotSession();
         Quickshell.execDetached(["padilha-voice", "stop"]);
         if (root.streaming)
             root.cancel();
@@ -547,14 +595,17 @@ Singleton {
         root.viewingAgent = false;
     }
 
-    function selectSession(id: string): void {
+    function selectSession(id: string, asAgent): void {
         if (!id)
             return;
         AssistantSettings.lastSessionId = id;
         if (root.streaming || id === root.sessionId)
             return;
-        if (id === root.defaultSessionId)
-            root.viewingAgent = false;
+        root.snapshotSession();
+        const isAgent = asAgent === undefined ? root.agentSessions.some(agent => agent.id === id) : !!asAgent;
+        root.viewingAgent = isAgent;
+        if (root.restoreSession(id))
+            return;
         root.sessionId = id;
         root.sessionTitle = "";
         root.sessionOwned = false;
@@ -594,14 +645,14 @@ Singleton {
         if (!id || root.streaming)
             return;
         root.viewingAgent = true;
-        root.selectSession(id);
+        root.selectSession(id, true);
     }
 
     function viewHome(): void {
         if (!root.defaultSessionId || root.streaming)
             return;
         root.viewingAgent = false;
-        root.selectSession(root.defaultSessionId);
+        root.selectSession(root.defaultSessionId, false);
     }
 
     function reloadCurrent(): void {
