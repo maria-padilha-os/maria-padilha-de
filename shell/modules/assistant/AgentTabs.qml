@@ -15,6 +15,7 @@ Item {
     property string activeId: ""
     property string activeTitle: ""
     property bool viewingAgent: false
+    property real uiScale: 1
 
     signal homeRequested()
     signal agentRequested(string id)
@@ -50,7 +51,7 @@ Item {
     }
 
     visible: true
-    readonly property int tabBarHeight: 55
+    readonly property int tabBarHeight: Math.round(55 * uiScale)
     implicitHeight: tabBarHeight + Tokens.sizes.dashboard.tabIndicatorSpacing * 2 + Tokens.sizes.dashboard.tabIndicatorHeight
     property Item activeTabItem: null
 
@@ -136,7 +137,7 @@ Item {
                         text: modelData.home ? "home" : "smart_toy"
                         color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
                         fill: tab.active ? 1 : 0
-                        fontStyle: Tokens.font.icon.medium
+                        font: Tokens.font.icon.builders.medium.scale(root.uiScale).build()
                     }
 
                     StyledText {
@@ -146,7 +147,7 @@ Item {
                         Layout.maximumWidth: tab.width - 12
                         text: modelData.title
                         color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
-                        font: Tokens.font.label.builders.small.scale(0.9).build()
+                        font: Tokens.font.label.builders.small.scale(root.uiScale).build()
                         elide: Text.ElideRight
                         maximumLineCount: 1
                     }
@@ -186,7 +187,7 @@ Item {
                         anchors.centerIn: parent
                         text: "close"
                         color: tab.active ? Colours.palette.m3primary : Colours.palette.m3onSurfaceVariant
-                        fontStyle: Tokens.font.icon.small
+                        font: Tokens.font.icon.builders.small.scale(root.uiScale).build()
                     }
 
                     MouseArea {

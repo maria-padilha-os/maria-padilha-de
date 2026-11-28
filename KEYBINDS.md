@@ -104,9 +104,11 @@ reachable with `Tab` from an open panel. See the
 | --- | --- |
 | `Alt + N` | new chat / new session |
 | `Alt + L` | focus the composer |
-| `Alt + 1` | return to the OS-maintenance tab |
+| `Alt + 1` | return to the Padilha tab |
 | `Alt + 2…9` | open the corresponding agent tab |
 | `Alt + Left` / `Right` | previous / next section |
+| `Alt + +` / `Alt + -` | increase / decrease UI size |
+| `Alt + Ctrl + +` / `Alt + Ctrl + -` | increase / decrease text size |
 | `Esc` | cancel the current stream / close the assistant |
 
 The **Padilha** tab is always visible; agent tabs appear only for subagents

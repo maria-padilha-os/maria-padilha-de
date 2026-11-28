@@ -8,6 +8,8 @@ PersistentProperties {
     property bool showIndicator: true
     property bool speakReplies: false
     property bool wakeEnabled: false
+    property real uiScale: 0.86
+    property real textScale: 0.92
     // Remember whether the drawer was open, so a shell restart does not
     // silently cut the user off from the conversation.
     property bool open: false

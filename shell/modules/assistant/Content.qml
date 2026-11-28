@@ -16,8 +16,9 @@ Item {
 
     required property ScreenState screenState
 
-    // Slightly smaller than the shell default so the transcript fits more text.
-    readonly property real fontScale: 0.92
+    // Text and controls scale independently; Alt+=/Alt+- and Alt+Shift+=/Alt+Shift+-.
+    readonly property real fontScale: AssistantSettings.textScale
+    readonly property real uiScale: AssistantSettings.uiScale
     property int historyIndex: -1
     property string historyDraft: ""
     property string queuedText: ""
@@ -55,6 +56,14 @@ Item {
         else if (Assistant.sessionOwned)
             parts.push(Tr.tr("owned by dsh-tui"));
         return parts.join(" · ");
+    }
+
+    function adjustUiScale(delta: real): void {
+        AssistantSettings.uiScale = Math.round(Math.max(0.72, Math.min(1.15, AssistantSettings.uiScale + delta)) * 100) / 100;
+    }
+
+    function adjustTextScale(delta: real): void {
+        AssistantSettings.textScale = Math.round(Math.max(0.75, Math.min(1.25, AssistantSettings.textScale + delta)) * 100) / 100;
     }
 
     function focusSessionSearch(): void {
@@ -465,12 +474,16 @@ Item {
                 Item { Layout.fillWidth: true }
 
                 IconTextButton {
+
+                    scale: root.uiScale
                     icon: "close"
                     text: Tr.tr("Cancel")
                     onClicked: renamePopup.close()
                 }
 
                 IconTextButton {
+
+                    scale: root.uiScale
                     icon: "check"
                     text: Tr.tr("Save")
                     onClicked: root.saveRename()
@@ -513,9 +526,12 @@ Item {
                 spacing: Tokens.spacing.small
 
                 AgentTabs {
+                    id: agentTabs
+
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 68
-                    Layout.maximumHeight: 68
+                    Layout.preferredHeight: implicitHeight
+                    Layout.maximumHeight: implicitHeight
+                    uiScale: root.uiScale
                     agents: Assistant.agentSessions
                     homeId: Assistant.defaultSessionId
                     activeId: Assistant.sessionId
@@ -533,6 +549,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     id: historyButton
 
                     visible: false
@@ -542,6 +560,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     id: sessionButton
 
                     icon: "add_comment"
@@ -577,6 +597,8 @@ Item {
                     spacing: Tokens.spacing.extraSmall
 
                     IconTextButton {
+
+                        scale: root.uiScale
                         Layout.fillWidth: true
                         icon: "add"
                         text: Tr.tr("New session")
@@ -652,18 +674,24 @@ Item {
                             spacing: 0
 
                             IconButton {
+
+                                scale: root.uiScale
                                 icon: "edit"
                                 accessibleName: Tr.tr("Rename session")
                                 onClicked: root.openRename(sessionDelegate.modelData.id, Assistant.sessionTitleFor(sessionDelegate.modelData.id, sessionDelegate.modelData.title))
                             }
 
                             IconButton {
+
+                                scale: root.uiScale
                                 icon: Assistant.isArchived(sessionDelegate.modelData.id) ? "unarchive" : "archive"
                                 accessibleName: Assistant.isArchived(sessionDelegate.modelData.id) ? Tr.tr("Unarchive session") : Tr.tr("Archive session")
                                 onClicked: Assistant.toggleArchived(sessionDelegate.modelData.id)
                             }
 
                             IconButton {
+
+                                scale: root.uiScale
                                 icon: Assistant.isPinned(sessionDelegate.modelData.id) ? "star" : "star_border"
                                 accessibleName: Assistant.isPinned(sessionDelegate.modelData.id) ? Tr.tr("Unpin session") : Tr.tr("Pin session")
                                 onClicked: Assistant.togglePin(sessionDelegate.modelData.id)
@@ -690,6 +718,8 @@ Item {
                     spacing: Tokens.spacing.small
 
                     IconButton {
+
+                        scale: root.uiScale
                         icon: root.showArchived ? "visibility_off" : "visibility"
                         accessibleName: root.showArchived ? Tr.tr("Hide archived sessions") : Tr.tr("Show archived sessions")
                         onClicked: root.showArchived = !root.showArchived
@@ -857,6 +887,8 @@ Item {
                             }
 
                             IconButton {
+
+                                scale: root.uiScale
                                 icon: "close"
                                 accessibleName: Tr.tr("Remove attachment")
                                 onClicked: root.removeAttachment(index)
@@ -888,6 +920,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     visible: !Assistant.streaming
                     icon: "send"
                     accessibleName: Tr.tr("Send queued message")
@@ -895,6 +929,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     icon: "close"
                     accessibleName: Tr.tr("Discard queued message")
                     onClicked: root.queuedText = ""
@@ -907,7 +943,7 @@ Item {
 
                 StyledRect {
                     Layout.fillWidth: true
-                    implicitHeight: Math.max(composer.implicitHeight, 40) + Tokens.padding.medium * 2
+                    implicitHeight: Math.max(composer.implicitHeight, 40 * root.uiScale) + Tokens.padding.medium * 2 * root.uiScale
                     radius: Tokens.rounding.medium
                     color: Colours.tPalette.m3surfaceContainerHigh
                     border.width: root.dropActive ? 2 : 0
@@ -952,6 +988,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     icon: "attach_file"
                     accessibleName: Tr.tr("Attach images")
                     enabled: !Assistant.sessionOwned && !root.viewingAgent
@@ -963,6 +1001,8 @@ Item {
                     implicitHeight: micButton.implicitHeight
 
                     IconButton {
+
+                        scale: root.uiScale
                         id: micButton
 
                         icon: VoiceInput.dictating ? "stop_circle" : (AssistantSettings.wakeEnabled ? "graphic_eq" : "mic")
@@ -992,6 +1032,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     visible: Assistant.streaming && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0)
                     icon: "schedule"
                     accessibleName: Tr.tr("Queue this message for after the current turn")
@@ -999,12 +1041,16 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     icon: AssistantSettings.speakReplies ? "volume_up" : "volume_off"
                     accessibleName: AssistantSettings.speakReplies ? Tr.tr("Disable spoken replies") : Tr.tr("Speak replies")
                     onClicked: AssistantSettings.speakReplies = !AssistantSettings.speakReplies
                 }
 
                 IconTextButton {
+
+                    scale: root.uiScale
                     icon: Assistant.streaming ? "stop" : "send"
                     text: Assistant.streaming ? Tr.tr("Stop") : Tr.tr("Send")
                     enabled: Assistant.streaming || (Assistant.ready && !Assistant.sessionOwned && !root.viewingAgent && (composer.text.trim().length > 0 || root.attachmentPaths.length > 0))
@@ -1086,6 +1132,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     icon: "add"
                     accessibleName: Tr.tr("New session")
                     onClicked: {
@@ -1095,6 +1143,8 @@ Item {
                 }
 
                 IconButton {
+
+                    scale: root.uiScale
                     icon: "close"
                     accessibleName: Tr.tr("Close session picker")
                     onClicked: root.sessionPickerOpen = false
@@ -1270,6 +1320,36 @@ Item {
     Shortcut {
         sequence: "Alt+Right"
         onActivated: root.cycleAgent(1)
+    }
+
+    Shortcut {
+        sequence: "Alt+="
+        onActivated: root.adjustUiScale(0.04)
+    }
+
+    Shortcut {
+        sequence: "Alt+Shift+="
+        onActivated: root.adjustUiScale(0.04)
+    }
+
+    Shortcut {
+        sequence: "Alt+-"
+        onActivated: root.adjustUiScale(-0.04)
+    }
+
+    Shortcut {
+        sequence: "Alt+Shift+-"
+        onActivated: root.adjustUiScale(-0.04)
+    }
+
+    Shortcut {
+        sequence: "Alt+Ctrl+="
+        onActivated: root.adjustTextScale(0.04)
+    }
+
+    Shortcut {
+        sequence: "Alt+Ctrl+-"
+        onActivated: root.adjustTextScale(-0.04)
     }
 
     Keys.onEscapePressed: Assistant.cancelOrClose()
