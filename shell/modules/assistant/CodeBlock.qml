@@ -19,6 +19,7 @@ ColumnLayout {
     property string runOutput: ""
     property string runStatus: ""
     property int runCode: -1
+    property string pendingPassword: ""
 
     readonly property bool privileged: allowPrivileged && ["root", "sudo", "privileged", "sh-root"].indexOf(language.toLowerCase()) !== -1
     readonly property var highlightPalette: ({
@@ -46,11 +47,18 @@ ColumnLayout {
     }
 
     function runRoot(): void {
+        const secret = passwordField.text;
+        if (secret.length === 0) {
+            root.runStatus = Tr.tr("Enter the administrator password");
+            return;
+        }
+        root.pendingPassword = secret;
+        passwordField.text = "";
         confirmPopup.close();
         root.runOutput = "";
         root.runCode = -1;
         root.runStatus = Tr.tr("Waiting for authentication…");
-        runner.command = ["pkexec", "/bin/sh", "-c", "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; " + root.code];
+        runner.command = ["/usr/bin/sudo", "-k", "-S", "-p", "", "--", "/bin/sh", "-c", "export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; " + root.code];
         runner.running = true;
     }
 
@@ -193,6 +201,10 @@ ColumnLayout {
         modal: true
         focus: true
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        onOpened: Qt.callLater(() => passwordField.forceActiveFocus())
+        onClosed: {
+            passwordField.text = "";
+        }
 
         background: StyledRect {
             radius: Tokens.rounding.medium
@@ -211,7 +223,7 @@ ColumnLayout {
 
             StyledText {
                 Layout.fillWidth: true
-                text: Tr.tr("This command runs with administrator privileges. Review it carefully. The password is requested by polkit and is never stored by Maria Padilha.")
+                text: Tr.tr("This command runs with administrator privileges. Review it carefully. The password is used only for this command and is never stored by Maria Padilha.")
                 color: Colours.palette.m3onSurfaceVariant
                 wrapMode: Text.Wrap
                 font: Tokens.font.label.builders.small.scale(0.86).build()
@@ -241,6 +253,17 @@ ColumnLayout {
                 }
             }
 
+            StyledTextField {
+                id: passwordField
+
+                Layout.fillWidth: true
+                placeholderText: Tr.tr("Administrator password")
+                leadingIcon: "lock"
+                echoMode: TextInput.Password
+                focus: true
+                onAccepted: root.runRoot()
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Tokens.spacing.small
@@ -268,6 +291,7 @@ ColumnLayout {
         id: runner
 
         running: false
+        stdinEnabled: true
 
         stdout: SplitParser {
             onRead: line => root.appendOutput(line)
@@ -278,11 +302,17 @@ ColumnLayout {
         }
 
         onRunningChanged: {
-            if (running)
+            if (running) {
+                if (root.pendingPassword.length > 0) {
+                    runner.write(root.pendingPassword + "\n");
+                    root.pendingPassword = "";
+                }
                 root.runStatus = Tr.tr("Running as root…");
+            }
         }
 
         onExited: code => {
+            root.pendingPassword = "";
             root.runCode = code;
             if (code === 0)
                 root.runStatus = Tr.tr("Finished · exit 0");
@@ -290,6 +320,8 @@ ColumnLayout {
                 root.runStatus = Tr.tr("Authentication cancelled");
             else if (code === 127)
                 root.runStatus = Tr.tr("Not authorized");
+            else if (code === 1)
+                root.runStatus = Tr.tr("Authentication failed");
             else
                 root.runStatus = Tr.tr("Failed · exit %1").arg(code);
         }

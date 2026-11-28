@@ -187,11 +187,11 @@ msgstr "Executar como root?"
 #: modules/assistant/CodeBlock.qml
 msgid ""
 "This command runs with administrator privileges. Review it carefully. The "
-"password is requested by polkit and is never stored by Maria Padilha."
+"password is used only for this command and is never stored by Maria Padilha."
 msgstr ""
 "Este comando é executado com privilégios de administrador. Revise-o com "
-"cuidado. A senha é solicitada pelo polkit e nunca é armazenada pela Maria "
-"Padilha."
+"cuidado. A senha é usada apenas para este comando e nunca é armazenada pela "
+"Maria Padilha."
 
 #: modules/assistant/CodeBlock.qml modules/assistant/Content.qml
 #: modules/nexus/SettingsCatalog.qml
@@ -8962,3 +8962,12 @@ msgstr "%1 na fila · %2"
 
 msgid "anexo"
 msgstr "anexo"
+
+msgid "Administrator password"
+msgstr "Senha do administrador"
+
+msgid "Authentication failed"
+msgstr "Falha na autenticação"
+
+msgid "Enter the administrator password"
+msgstr "Digite a senha do administrador"
