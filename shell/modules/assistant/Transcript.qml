@@ -88,6 +88,7 @@ Item {
 
                     width: column.width
                     spacing: Tokens.spacing.extraSmall
+                    visible: modelData.role === "user" || String(modelData.text || "").trim().length > 0
 
                     StyledRect {
                         id: bubble
