@@ -88,7 +88,7 @@ Item {
 
                     width: column.width
                     spacing: Tokens.spacing.extraSmall
-                    visible: modelData.role === "user" || String(modelData.text || "").trim().length > 0
+                    visible: String(modelData.text || "").trim().length > 0
 
                     StyledRect {
                         id: bubble
@@ -101,7 +101,7 @@ Item {
                         Layout.maximumWidth: fromUser ? maxBubbleWidth : column.width
                         Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.contentWidth + Tokens.padding.medium * 2) : column.width
                         Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
-                        visible: fromUser || String(message.modelData.text || "").trim().length > 0
+                        visible: String(message.modelData.text || "").trim().length > 0
                         implicitHeight: (hasCode ? richBody.implicitHeight : body.contentHeight) + Tokens.padding.medium * 2
                         radius: Tokens.rounding.medium
                         color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
