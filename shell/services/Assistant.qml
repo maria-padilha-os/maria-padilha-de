@@ -16,6 +16,7 @@ Singleton {
     property string error: ""
     property string activity: ""
     property string pendingQuestion: ""
+    property var pendingQuestionOptions: []
     property var activityLog: []
     property string lastStop: ""
     property string selectedModel: ""
@@ -244,8 +245,10 @@ Singleton {
             }
             break;
         case "question":
-            if (event.id === root.activeId)
+            if (event.id === root.activeId) {
                 root.pendingQuestion = String(event.text || "").trim();
+                root.pendingQuestionOptions = event.options || [];
+            }
             break;
         case "assistant": {
             if (event.id !== root.activeId)
@@ -555,6 +558,7 @@ Singleton {
         root.activity = Tr.tr("Thinking…");
         root.activityLog = [root.activity];
         root.pendingQuestion = "";
+        root.pendingQuestionOptions = [];
         root.lastStop = "";
         root.error = "";
         process.write(JSON.stringify({

@@ -13,6 +13,7 @@ import fcntl
 import json
 import mimetypes
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -165,15 +166,24 @@ def text_blocks(content: Any) -> str:
     return "\n\n".join(parts).strip()
 
 
-def split_question(text: str) -> tuple[str, str]:
-    """Split the explicit agent question marker from the visible answer."""
+def split_question(text: str) -> tuple[str, str, list[dict[str, str]]]:
+    """Split the explicit agent question marker and its numbered options."""
     start = text.find("[[question]]")
     end = text.find("[[/question]]", start + 12) if start >= 0 else -1
     if start < 0 or end < 0:
-        return text, ""
-    question = text[start + 12:end].strip()
+        return text, "", []
+    raw = text[start + 12:end].strip()
+    lines: list[str] = []
+    options: list[dict[str, str]] = []
+    for line in raw.splitlines():
+        match = re.match(r"^\s*(\d+)[.)]\s+(.+?)\s*$", line)
+        if match:
+            options.append({"id": match.group(1), "label": match.group(2)})
+        else:
+            lines.append(line)
+    question = "\n".join(lines).strip() or ("Escolha uma opção:" if options else "")
     clean = (text[:start] + text[end + 13:]).strip()
-    return clean, question
+    return clean, question, options
 
 
 
@@ -739,15 +749,15 @@ def main() -> int:
                             emit({"type": "activity", "id": request_id, "text": item["text"]})
                         elif item["kind"] == "done":
                             completed = True
-                            clean, question = split_question(last)
+                            clean, question, options = split_question(last)
                             if question:
-                                emit({"type": "question", "id": request_id, "text": question})
+                                emit({"type": "question", "id": request_id, "text": question, "options": options})
                             emit({"type": "done", "id": request_id, "text": clean, "stop": "complete"})
                             break
                     if not completed:
-                        clean, question = split_question(last)
+                        clean, question, options = split_question(last)
                         if question:
-                            emit({"type": "question", "id": request_id, "text": question})
+                            emit({"type": "question", "id": request_id, "text": question, "options": options})
                         emit({"type": "done", "id": request_id, "text": clean, "stop": "complete"})
                 except Cancelled:
                     emit({"type": "done", "id": request_id, "text": "", "stop": "cancelled"})

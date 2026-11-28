@@ -344,6 +344,13 @@ Item {
         root.resetHistory();
     }
 
+    function answerQuestion(answer: string): void {
+        if (Assistant.streaming || answer.length === 0)
+            return;
+        Assistant.send(answer);
+        root.resetHistory();
+    }
+
     function queueComposer(): void {
         if (root.viewingAgent)
             return;
@@ -1101,6 +1108,23 @@ Item {
                         color: Colours.palette.m3onSecondaryContainer
                         font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                         wrapMode: Text.WordWrap
+                    }
+
+                    Repeater {
+                        model: Assistant.pendingQuestionOptions
+
+                        delegate: IconTextButton {
+                            required property var modelData
+
+                            Layout.fillWidth: true
+                            Layout.topMargin: 2
+                            scale: root.uiScale
+                            type: IconTextButton.Tonal
+                            icon: "arrow_right"
+                            text: modelData.id + ". " + modelData.label
+                            enabled: !Assistant.streaming
+                            onClicked: root.answerQuestion(modelData.id)
+                        }
                     }
                 }
             }
