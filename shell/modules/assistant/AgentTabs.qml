@@ -11,6 +11,7 @@ Item {
     id: root
 
     property var agents: []
+    property var extraTabs: []
     property string homeId: ""
     property string activeId: ""
     property string activeTitle: ""
@@ -20,30 +21,51 @@ Item {
     signal homeRequested()
     signal agentRequested(string id)
     signal closeRequested(string id)
+    signal sessionCloseRequested(string id)
     property var closedIds: []
 
     readonly property var tabsModel: {
         const out = [{
                 id: root.homeId,
-                title: Tr.tr("Padilha"),
+                title: "Padilha",
                 home: true,
                 owned: false
             }];
+        for (const tab of root.extraTabs) {
+            if (!tab.id || tab.id === root.homeId || out.some(item => item.id === tab.id))
+                continue;
+            out.push({
+                id: tab.id,
+                title: tab.title || Tr.tr("Chat"),
+                home: false,
+                agent: false,
+                owned: false
+            });
+        }
         for (const agent of root.agents) {
             if (root.closedIds.indexOf(agent.id) >= 0)
                 continue;
-            out.push({
-                id: agent.id,
-                title: agent.label || ("Agent " + String(agent.id).substring(0, 8)),
-                home: false,
-                owned: !!agent.owned
-            });
+            const existing = out.find(item => item.id === agent.id);
+            if (existing) {
+                existing.agent = true;
+                existing.owned = !!agent.owned;
+                existing.title = agent.label || existing.title;
+            } else {
+                out.push({
+                    id: agent.id,
+                    title: agent.label || (Tr.tr("Agent") + " " + String(agent.id).substring(0, 8)),
+                    home: false,
+                    agent: true,
+                    owned: !!agent.owned
+                });
+            }
         }
-        if (!root.viewingAgent && root.activeId.length > 0 && root.activeId !== root.homeId && !out.some(item => item.id === root.activeId)) {
+        if (root.activeId.length > 0 && root.activeId !== root.homeId && !out.some(item => item.id === root.activeId)) {
             out.push({
                 id: root.activeId,
                 title: root.activeTitle || Tr.tr("Chat"),
                 home: false,
+                agent: false,
                 owned: false
             });
         }
@@ -74,7 +96,7 @@ Item {
 
             required property var modelData
 
-            readonly property bool active: modelData.home ? (!root.viewingAgent && modelData.id === root.activeId) : (root.viewingAgent && modelData.id === root.activeId)
+            readonly property bool active: modelData.home ? (!root.viewingAgent && modelData.id === root.activeId) : (modelData.id === root.activeId)
 
             width: list.width / Math.max(1, root.tabsModel.length)
             height: list.height
@@ -106,6 +128,7 @@ Item {
                 if (!isAgent) {
                     if (root.activeId === id)
                         root.homeRequested();
+                    root.sessionCloseRequested(id);
                     return;
                 }
                 if (root.closedIds.indexOf(id) < 0)

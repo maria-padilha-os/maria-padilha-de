@@ -585,9 +585,9 @@ Singleton {
     }
 
     function handleSubagents(agents: var): void {
+        // Keep the open conversation even when its agent stops being live.
+        // The tab/session remains readable; switching away is the user's choice.
         root.agentSessions = agents || [];
-        if (root.viewingAgent && !root.agentSessions.some(agent => agent.id === root.sessionId))
-            root.viewHome();
     }
 
     function viewAgent(id: string): void {

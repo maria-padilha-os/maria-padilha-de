@@ -533,6 +533,7 @@ Item {
                     Layout.maximumHeight: implicitHeight
                     uiScale: root.uiScale
                     agents: Assistant.agentSessions
+                    extraTabs: root.openTabs
                     homeId: Assistant.defaultSessionId
                     activeId: Assistant.sessionId
                     activeTitle: Assistant.sessionTitle || Assistant.sessionLabel
@@ -540,11 +541,22 @@ Item {
 
                     onHomeRequested: Assistant.viewHome()
                     onAgentRequested: function (id) {
-                        Assistant.viewAgent(id);
+                        if (Assistant.agentSessions.some(agent => agent.id === id))
+                            Assistant.viewAgent(id);
+                        else
+                            Assistant.selectSession(id);
                     }
                     onCloseRequested: function (id) {
                         if (id === Assistant.defaultSessionId)
                             root.screenState.assistant = false;
+                    }
+                    onSessionCloseRequested: function (id) {
+                        const index = root.openTabs.findIndex(tab => tab.id === id);
+                        if (index < 0)
+                            return;
+                        const next = root.openTabs.slice();
+                        next.splice(index, 1);
+                        root.openTabs = next;
                     }
                 }
 
