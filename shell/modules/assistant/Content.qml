@@ -21,8 +21,7 @@ Item {
     readonly property real uiScale: AssistantSettings.uiScale
     property int historyIndex: -1
     property string historyDraft: ""
-    property string queuedText: ""
-    property var queuedAttachments: []
+    property var queuedMessages: []
     property var attachmentPaths: []
     property bool activityExpanded: false
     property bool showArchived: false
@@ -357,21 +356,29 @@ Item {
         const text = composer.text.trim();
         if (text.length === 0 && root.attachmentPaths.length === 0)
             return;
-        root.queuedText = text;
-        root.queuedAttachments = root.attachmentPaths.slice();
+        const next = root.queuedMessages.slice();
+        next.push({ text: text, attachments: root.attachmentPaths.slice() });
+        root.queuedMessages = next;
         composer.text = "";
         root.attachmentPaths = [];
         root.resetHistory();
     }
 
+    function queuedLabel(): string {
+        const count = root.queuedMessages.length;
+        if (count === 0)
+            return "";
+        const last = root.queuedMessages[count - 1];
+        return Tr.tr("%1 na fila · %2").arg(count).arg(last.text || Tr.tr("anexo"));
+    }
+
     function sendQueued(): void {
-        if ((root.queuedText.length === 0 && root.queuedAttachments.length === 0) || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned || root.viewingAgent)
+        if (root.queuedMessages.length === 0 || Assistant.streaming || !Assistant.ready || Assistant.sessionOwned || root.viewingAgent)
             return;
-        const text = root.queuedText;
-        const attachments = root.queuedAttachments.slice();
-        root.queuedText = "";
-        root.queuedAttachments = [];
-        Assistant.send(text, attachments);
+        const next = root.queuedMessages.slice();
+        const item = next.shift();
+        root.queuedMessages = next;
+        Assistant.send(item.text || "", item.attachments || []);
     }
 
     function addAttachment(path: string): void {
@@ -436,7 +443,7 @@ Item {
             if (Assistant.streaming)
                 return;
             root.focusComposer();
-            if (Assistant.lastStop === "complete" && root.queuedText.length > 0)
+            if (Assistant.lastStop === "complete" && root.queuedMessages.length > 0)
                 Qt.callLater(() => root.sendQueued());
         }
 
@@ -459,8 +466,7 @@ Item {
 
         function onSessionIdChanged(): void {
             root.resetHistory();
-            root.queuedText = "";
-            root.queuedAttachments = [];
+            root.queuedMessages = [];
             root.attachmentPaths = [];
             root.activityExpanded = false;
             transcript.follow = true;
@@ -1044,7 +1050,7 @@ Item {
                 id: queuedRow
 
                 Layout.fillWidth: true
-                visible: root.queuedText.length > 0
+                visible: root.queuedMessages.length > 0
                 spacing: Tokens.spacing.small
 
                 MaterialIcon {
@@ -1055,7 +1061,7 @@ Item {
 
                 StyledText {
                     Layout.fillWidth: true
-                    text: Tr.tr("Queued · sends after this turn: %1").arg(root.queuedText + (root.queuedAttachments.length > 0 ? (root.queuedText.length > 0 ? " " : "") + Tr.trN("[%n image]", "[%n images]", root.queuedAttachments.length) : ""))
+                    text: root.queuedLabel()
                     color: Colours.palette.m3onSurfaceVariant
                     font: Tokens.font.label.builders.small.scale(root.fontScale).build()
                     elide: Text.ElideRight
@@ -1075,7 +1081,7 @@ Item {
                     scale: root.uiScale
                     icon: "close"
                     accessibleName: Tr.tr("Discard queued message")
-                    onClicked: root.queuedText = ""
+                    onClicked: root.queuedMessages = []
                 }
             }
 

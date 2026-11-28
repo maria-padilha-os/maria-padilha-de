@@ -328,18 +328,6 @@ msgid "Remove attachment"
 msgstr "Remove attachment"
 
 #: modules/assistant/Content.qml
-#, qt-format
-msgid "Queued · sends after this turn: %1"
-msgstr "Queued · sends after this turn: %1"
-
-#: modules/assistant/Content.qml
-#, qt-plural-format
-msgid "[%n image]"
-msgid_plural "[%n images]"
-msgstr[0] "[%n image]"
-msgstr[1] "[%n images]"
-
-#: modules/assistant/Content.qml
 msgid "Send queued message"
 msgstr "Send queued message"
 
@@ -8937,3 +8925,9 @@ msgstr "Agent question"
 
 msgid "Responda para retomar o agente"
 msgstr "Reply to resume the agent"
+
+msgid "%1 na fila · %2"
+msgstr "%1 queued · %2"
+
+msgid "anexo"
+msgstr "attachment"
