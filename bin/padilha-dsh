@@ -187,7 +187,7 @@ def split_question(text: str) -> tuple[str, str, list[dict[str, str]]]:
 
 
 
-def history(path: Path, max_messages: int = MAX_HISTORY) -> list[dict[str, str]]:
+def all_history(path: Path) -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
     for event in events(path):
         kind = event.get("type")
@@ -208,7 +208,22 @@ def history(path: Path, max_messages: int = MAX_HISTORY) -> list[dict[str, str]]
             text = text_blocks(message.get("content"))
             if text:
                 out.append({"role": "assistant", "text": text})
-    return out[-max_messages:]
+    return out
+
+
+def history_page(path: Path, max_messages: int = MAX_HISTORY) -> tuple[list[dict[str, Any]], int, int]:
+    items = all_history(path)
+    start = max(0, len(items) - max_messages)
+    page = [
+        {"role": item["role"], "text": item["text"], "index": index}
+        for index, item in enumerate(items[start:], start)
+    ]
+    return page, start, len(items)
+
+
+def history(path: Path, max_messages: int = MAX_HISTORY) -> list[dict[str, str]]:
+    page, _start, _total = history_page(path, max_messages)
+    return [{"role": item["role"], "text": item["text"]} for item in page]
 
 
 def context_pressure(usage: Any) -> int:
@@ -652,7 +667,7 @@ def main() -> int:
     active_id = active["id"] if active else ""
     active_path = find_session(active_id) if active_id else None
     active_log = log_path(active_path) if active_path else None
-    active_history = history(active_log) if active_log else []
+    active_history, active_before, active_total = history_page(active_log) if active_log else ([], 0, 0)
     active_context = session_context(active_log)
     emit(
         {
@@ -661,6 +676,8 @@ def main() -> int:
             "models": [{"id": MODEL, "name": "DeepSeek Flash"}],
             "roots": [],
             "history": active_history,
+            "historyBefore": active_before,
+            "historyTotal": active_total,
             "sessionId": active_id,
             "sessionTitle": active["title"] if active else "",
             "sessionOwned": bool(active and active.get("owned")),
@@ -696,15 +713,42 @@ def main() -> int:
                 title = "Padilha"
             else:
                 title = summary["title"] if summary else ""
+            page, before, total = history_page(log) if log else ([], 0, 0)
             emit(
                 {
                     "type": "history",
                     "sessionId": session_id,
                     "sessionTitle": title,
                     "sessionOwned": summary["owned"] if summary else False,
-                    "history": history(log) if log else [],
+                    "history": page,
+                    "historyBefore": before,
+                    "historyTotal": total,
                     "context": session_context(log),
                     "reasoningEffort": reasoning_effort(),
+                }
+            )
+        elif command == "older":
+            session_id = str(request.get("sessionId") or "")
+            path = find_session(session_id)
+            if path is None:
+                emit({"type": "error", "message": "DSH session not found"})
+                continue
+            log = log_path(path)
+            items = all_history(log) if log else []
+            before = max(0, min(len(items), int(request.get("before") or 0)))
+            limit = max(1, min(100, int(request.get("limit") or 40)))
+            start = max(0, before - limit)
+            page = [
+                {"role": item["role"], "text": item["text"], "index": index}
+                for index, item in enumerate(items[start:before], start)
+            ]
+            emit(
+                {
+                    "type": "historyOlder",
+                    "sessionId": session_id,
+                    "history": page,
+                    "historyBefore": start,
+                    "historyTotal": len(items),
                 }
             )
         elif command == "new_chat":

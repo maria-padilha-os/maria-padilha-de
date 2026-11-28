@@ -22,6 +22,7 @@ suites=(
     "$root/tests/screens/run.sh"
     "$root/tests/localization/run.sh"
     "$root/tests/ai/run.sh"
+    "$root/tests/chat/run.sh"
     "$root/tests/greeter/run.sh"
     "$root/tests/voice/run.sh"
     "$root/tests/performance/run.sh"

@@ -8972,3 +8972,12 @@ msgstr "Falha na autenticação"
 msgid "Enter the administrator password"
 msgstr "Digite a senha do administrador"
 
+#: modules/assistant/Content.qml
+#: modules/assistant/Transcript.qml
+msgid "Carregar mensagens anteriores"
+msgstr "Carregar mensagens anteriores"
+
+#: modules/assistant/Content.qml
+#: modules/assistant/Transcript.qml
+msgid "Abrir código executável"
+msgstr "Abrir código executável"

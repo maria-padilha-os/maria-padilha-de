@@ -35,6 +35,9 @@ Singleton {
     property list<var> messages: []
     property var allMessages: []
     property int visibleHistory: 8
+    property int historyBefore: 0
+    property int historyTotal: 0
+    property bool loadingOlder: false
     property var sessionCache: ({})
     property var sessionCacheOrder: []
     property int nextId: 1
@@ -51,6 +54,7 @@ Singleton {
 
     signal sessionsRequested()
     signal closeRequested()
+    signal historyOlderLoaded()
 
     readonly property bool configured: models.length > 0
     readonly property string rootsLabel: roots.length === 0 ? Tr.tr("No folders granted") : Tr.trN("%n folder granted", "%n folders granted", roots.length)
@@ -150,7 +154,7 @@ Singleton {
             root.contextWindow = Number(event.context?.window || 0);
             root.reasoningEffort = event.reasoningEffort || root.reasoningEffort;
             root.lastUsage = event.context?.usage || ({});
-            root.setHistory(event.history, true);
+            root.setHistory(event.history, true, Number(event.historyBefore || 0), Number(event.historyTotal || 0));
             const savedSession = AssistantSettings.lastSessionId;
             if (savedSession.length > 0 && savedSession !== root.sessionId && root.sessions.some(session => session.id === savedSession)) {
                 root.viewingAgent = savedSession !== root.defaultSessionId;
@@ -164,6 +168,31 @@ Singleton {
         case "subagents":
             root.handleSubagents(event.agents || []);
             break;
+        case "historyOlder": {
+            if (event.sessionId && event.sessionId !== root.sessionId)
+                break;
+            const older = Array.isArray(event.history) ? event.history : [];
+            const mapped = older
+                .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
+                .map(entry => ({
+                    id: "history-" + (Number.isInteger(entry.index) ? entry.index : 0),
+                    historyIndex: Number.isInteger(entry.index) ? entry.index : 0,
+                    role: entry.role,
+                    text: entry.text,
+                    streaming: false,
+                    rich: false,
+                }));
+            const known = new Set(root.allMessages.map(message => message.id));
+            const merged = mapped.filter(message => !known.has(message.id)).concat(root.allMessages);
+            root.allMessages = merged;
+            root.visibleHistory = merged.length;
+            root.historyBefore = Number(event.historyBefore || 0);
+            root.historyTotal = Number(event.historyTotal || merged.length);
+            root.loadingOlder = false;
+            root.messages = merged;
+            root.historyOlderLoaded();
+            break;
+        }
         case "history":
             // A load for a tab that was just closed can arrive after the user
             // moved back to Padilha. It must not replace the active transcript.
@@ -185,7 +214,7 @@ Singleton {
             root.contextWindow = Number(event.context?.window || 0);
             root.reasoningEffort = event.reasoningEffort || root.reasoningEffort;
             root.lastUsage = event.context?.usage || ({});
-            root.setHistory(event.history, true);
+            root.setHistory(event.history, true, Number(event.historyBefore || 0), Number(event.historyTotal || 0));
             root.streaming = false;
             root.activeId = -1;
             root.snapshotSession();
@@ -203,6 +232,9 @@ Singleton {
             root.messages = [];
             root.allMessages = [];
             root.visibleHistory = 8;
+            root.historyBefore = 0;
+            root.historyTotal = 0;
+            root.loadingOlder = false;
             root.contextTokens = 0;
             root.contextWindow = 0;
             root.error = "";
@@ -438,11 +470,22 @@ Singleton {
         root.messages = all.slice(-root.visibleHistory);
     }
 
-    function loadEarlier(): void {
-        if (root.visibleHistory >= root.allMessages.length)
+    function expandMessage(id): void {
+        if (!id)
             return;
-        root.visibleHistory = Math.min(root.allMessages.length, root.visibleHistory + 8);
-        root.messages = root.allMessages.slice(-root.visibleHistory);
+        root.updateMessage(id, { rich: true });
+    }
+
+    function loadOlder(): void {
+        if (root.historyBefore <= 0 || root.loadingOlder || root.sessionId.length === 0)
+            return;
+        root.loadingOlder = true;
+        process.write(JSON.stringify({
+            cmd: "older",
+            sessionId: root.sessionId,
+            before: root.historyBefore,
+            limit: 40,
+        }) + "\n");
     }
 
     function snapshotSession(): void {
@@ -453,6 +496,8 @@ Singleton {
             messages: root.messages,
             allMessages: root.allMessages,
             visibleHistory: root.visibleHistory,
+            historyBefore: root.historyBefore,
+            historyTotal: root.historyTotal,
             sessionTitle: root.sessionTitle,
             sessionOwned: root.sessionOwned,
             contextTokens: root.contextTokens,
@@ -478,6 +523,8 @@ Singleton {
         root.sessionOwned = !!entry.sessionOwned;
         root.allMessages = entry.allMessages ? entry.allMessages : (entry.messages ? entry.messages : []);
         root.visibleHistory = Number(entry.visibleHistory || Math.max(8, root.allMessages.length));
+        root.historyBefore = Number(entry.historyBefore || 0);
+        root.historyTotal = Number(entry.historyTotal || root.allMessages.length);
         root.messages = root.allMessages.slice(-root.visibleHistory);
         root.contextTokens = Number(entry.contextTokens || 0);
         root.contextWindow = Number(entry.contextWindow || 0);
@@ -492,7 +539,7 @@ Singleton {
         return true;
     }
 
-    function setHistory(entries: var, replace: bool): void {
+    function setHistory(entries: var, replace: bool, before: int, total: int): void {
         if (!replace && root.messages.length > 0)
             return;
         if (!Array.isArray(entries))
@@ -502,7 +549,8 @@ Singleton {
         const restored = entries
             .filter(entry => entry && (entry.role === "user" || entry.role === "assistant") && typeof entry.text === "string" && entry.text.length > 0)
             .map((entry, index) => ({
-                id: "history-" + index,
+                id: "history-" + (Number.isInteger(entry.index) ? entry.index : index),
+                historyIndex: Number.isInteger(entry.index) ? entry.index : index,
                 role: entry.role,
                 text: entry.text,
                 streaming: false,
@@ -510,6 +558,8 @@ Singleton {
             }));
         root.allMessages = restored;
         root.visibleHistory = restored.length;
+        root.historyBefore = Number(before || 0);
+        root.historyTotal = Number(total || restored.length);
         root.syncVisibleMessages();
     }
 
@@ -625,6 +675,9 @@ Singleton {
         root.messages = [];
         root.allMessages = [];
         root.visibleHistory = 8;
+        root.historyBefore = 0;
+        root.historyTotal = 0;
+        root.loadingOlder = false;
         AssistantSettings.lastSessionId = "";
         root.contextTokens = 0;
         root.contextWindow = 0;
@@ -653,6 +706,9 @@ Singleton {
         root.messages = [];
         root.allMessages = [];
         root.visibleHistory = 8;
+        root.historyBefore = 0;
+        root.historyTotal = 0;
+        root.loadingOlder = false;
         root.contextTokens = 0;
         root.contextWindow = 0;
         root.error = "";

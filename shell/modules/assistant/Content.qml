@@ -433,6 +433,13 @@ Item {
         root.focusComposer();
     }
 
+    function loadOlderMessages(): void {
+        if (Assistant.historyBefore <= 0 || Assistant.loadingOlder || !transcript)
+            return;
+        transcript.follow = false;
+        Assistant.loadOlder();
+    }
+
     function copyMessage(text: string): void {
         if (!text)
             return;
@@ -484,6 +491,10 @@ Item {
         function onMessagesChanged(): void {
             if (Assistant.streaming)
                 streamWatchdog.restart();
+        }
+
+        function onHistoryOlderLoaded(): void {
+            transcript.preserveIndex(0);
         }
 
         function onActivityChanged(): void {
@@ -938,6 +949,15 @@ Item {
                 target: VoiceInput
             }
 
+            IconTextButton {
+                Layout.fillWidth: true
+                visible: Assistant.historyBefore > 0
+                enabled: !Assistant.loadingOlder
+                icon: "expand_less"
+                text: Tr.tr("Carregar mensagens anteriores")
+                onClicked: root.loadOlderMessages()
+            }
+
             Transcript {
                 id: transcript
                 objectName: "transcript"
@@ -949,6 +969,7 @@ Item {
                 fontScale: root.fontScale
 
                 onCopyRequested: text => root.copyMessage(text)
+                onExpandRequested: id => Assistant.expandMessage(id)
             }
 
             RowLayout {

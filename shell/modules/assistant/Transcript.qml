@@ -19,6 +19,9 @@ Item {
     property bool positioning: false
     property string sessionKey: ""
     property real lastContentY: 0
+    property real prependY: 0
+    property real prependHeight: 0
+    property int prependIndex: -1
 
     readonly property ListView view: list
     readonly property real maxY: Math.max(0, list.contentHeight - list.height)
@@ -26,6 +29,7 @@ Item {
     readonly property bool jumpVisible: jumpButton.visible
 
     signal copyRequested(string text)
+    signal expandRequested(string id)
 
     function clampBottom(): void {
         const max = Math.max(0, list.contentHeight - list.height);
@@ -100,6 +104,41 @@ Item {
         root.follow = false;
     }
 
+    function preserveIndex(index: int): void {
+        if (index < 0)
+            return;
+        root.prependIndex = index;
+        Qt.callLater(() => {
+            if (root.prependIndex >= 0 && root.prependIndex < list.count)
+                list.positionViewAtIndex(root.prependIndex, ListView.Beginning);
+        });
+        prependTimer.restart();
+    }
+
+    function restorePrepend(oldY: real, oldHeight: real): void {
+        root.prependY = oldY;
+        root.prependIndex = -1;
+        root.prependHeight = oldHeight;
+        const apply = () => {
+            const delta = list.contentHeight - oldHeight;
+            if (delta > 0)
+                list.contentY = oldY + delta;
+        };
+        Qt.callLater(apply);
+        prependTimer.restart();
+    }
+
+    Timer {
+        id: prependTimer
+
+        interval: 140
+        repeat: false
+        onTriggered: {
+            if (root.prependIndex >= 0 && root.prependIndex < list.count)
+                list.positionViewAtIndex(root.prependIndex, ListView.Beginning);
+        }
+    }
+
     onSessionKeyChanged: {
         root.follow = true;
         root.scheduleFollow();
@@ -129,6 +168,7 @@ Item {
             readonly property bool fromUser: modelData.role === "user"
             readonly property bool rich: !fromUser && modelData.rich === true
             readonly property string bodyText: String(modelData.text || "")
+            readonly property bool canExpand: !fromUser && !rich && bodyText.indexOf("```") >= 0
 
             width: list.width
             height: bodyText.trim().length === 0 ? 0 : bubble.height
@@ -186,6 +226,17 @@ Item {
                             onCopyRequested: text => root.copyRequested(text)
                         }
                     }
+                }
+
+                IconButton {
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 4
+                    z: 3
+                    visible: row.canExpand
+                    icon: "code"
+                    accessibleName: Tr.tr("Abrir código executável")
+                    onClicked: root.expandRequested(row.modelData.id)
                 }
 
                 Item {
