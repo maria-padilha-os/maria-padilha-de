@@ -362,25 +362,15 @@ StyledRect {
                 StateLayer {
                     radius: Tokens.rounding.full
                     color: root.modelData.urgency === NotificationUrgency.Critical ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
-                    onClicked: root.expanded = !root.expanded
+                    onClicked: root.modelData.close()
                 }
 
                 MaterialIcon {
                     id: expandIcon
 
                     anchors.centerIn: parent
-                    anchors.verticalCenterOffset: root.expanded ? -1 : 1
-                    text: "expand_more"
+                    text: "close"
                     fontStyle: Tokens.font.icon.medium
-                    rotation: root.expanded ? 180 : 0
-
-                    Behavior on anchors.verticalCenterOffset {
-                        Anim {}
-                    }
-
-                    Behavior on rotation {
-                        Anim {}
-                    }
                 }
             }
 

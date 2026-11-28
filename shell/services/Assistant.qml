@@ -99,7 +99,7 @@ Singleton {
             "--icon=" + gif,
             "--hint=string:image-path:" + gif,
             "--action=assistant-open=Open",
-            "--expire-time=8000",
+            "--expire-time=5000",
             urgent ? "--urgency=critical" : "--urgency=normal",
             "Padilha",
             title

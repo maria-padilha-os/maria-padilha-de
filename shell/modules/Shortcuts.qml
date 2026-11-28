@@ -375,9 +375,6 @@ Scope {
         onPressed: {
             if (!AssistantSettings.enabled)
                 return;
-            const screenState = ShellState.forActive();
-            if (screenState)
-                screenState.assistant = false;
             const gif = Paths.absolutePath(Config.paths.sessionGif);
             Quickshell.execDetached([
                 "notify-send",
@@ -385,7 +382,7 @@ Scope {
                 "--icon=" + gif,
                 "--hint=string:image-path:" + gif,
                 "--action=assistant-open=Open",
-                "--expire-time=15000",
+                "--expire-time=5000",
                 "Padilha",
                 "Teste de notificação"
             ]);
