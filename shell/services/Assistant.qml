@@ -649,8 +649,10 @@ Singleton {
     }
 
     function viewHome(): void {
-        if (!root.defaultSessionId || root.streaming)
+        if (!root.defaultSessionId)
             return;
+        if (root.streaming)
+            root.cancel();
         root.viewingAgent = false;
         root.selectSession(root.defaultSessionId, false);
     }

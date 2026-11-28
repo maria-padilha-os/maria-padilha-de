@@ -188,7 +188,7 @@ Item {
                 }
 
                 Item {
-                    visible: tab.hovered || tab.active
+                    visible: !modelData.home && (tab.hovered || tab.active)
                     anchors.top: parent.top
                     anchors.right: parent.right
                     anchors.margins: 4
