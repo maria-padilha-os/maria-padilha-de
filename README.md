@@ -22,10 +22,10 @@ window bolted onto the side of a desktop. It keeps DSH sessions, streams tool
 activity, queues messages, asks numbered questions, and runs reviewed root
 commands with play and copy directly in the conversation.
 
-![The Padilha assistant drawer during a working turn, with session tabs, conversation, composer and status line](docs/assets/screenshots/assistant.webp)
+![The full Maria Padilha desktop with the assistant open, showing Markdown, bash and root code cells](docs/assets/screenshots/assistant.webp)
 
-Captured from the assistant drawer during a working turn. No terminal, browser
-or private window is included.
+Captured on an empty workspace during a working turn. No terminal, browser or
+private window is included.
 
 ### What a turn looks like
 
