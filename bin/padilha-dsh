@@ -265,14 +265,14 @@ def session_summary(session: Path) -> dict[str, Any] | None:
     if path is None:
         return None
     title, cwd = first_user(path)
-    if not title:
-        return None
     try:
         updated = path.stat().st_mtime
     except OSError:
         updated = 0
-    if command_like(title):
-        title = Path(cwd).name if cwd else "DSH session"
+    if not title:
+        title = Path(cwd).name if cwd else f"Session {session.name.removeprefix('session-')[:8]}"
+    if command_like(title) or title.startswith("You are "):
+        title = Path(cwd).name if cwd else title[:72]
     return {
         "id": session.name,
         "title": title,
