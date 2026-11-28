@@ -22,6 +22,7 @@ Item {
     property real prependY: 0
     property real prependHeight: 0
     property int prependIndex: -1
+    property bool holdingPosition: false
 
     readonly property ListView view: list
     readonly property real maxY: Math.max(0, list.contentHeight - list.height)
@@ -57,6 +58,8 @@ Item {
     }
 
     function scrollToBottom(): void {
+        if (!root.follow)
+            return;
         root.positioning = true;
         root.forceEnd();
         settle.restart();
@@ -110,7 +113,16 @@ Item {
         root.follow = false;
     }
 
+    function beginPrepend(): void {
+        root.holdingPosition = true;
+        root.follow = false;
+        settle.stop();
+        slowSettle.stop();
+        chase.stop();
+    }
+
     function preserveIndex(index: int): void {
+        root.holdingPosition = true;
         if (index < 0)
             return;
         root.prependIndex = index;
@@ -137,11 +149,13 @@ Item {
     Timer {
         id: prependTimer
 
-        interval: 140
+        interval: 360
         repeat: false
         onTriggered: {
             if (root.prependIndex >= 0 && root.prependIndex < list.count)
                 list.positionViewAtIndex(root.prependIndex, ListView.Beginning);
+            root.prependIndex = -1;
+            root.holdingPosition = false;
         }
     }
 
@@ -297,9 +311,12 @@ Item {
         }
         onContentYChanged: {
             const y = list.contentY;
-            if (!root.positioning && y < root.lastContentY - 2)
-                root.breakFollow();
+            const previousY = root.lastContentY;
             root.lastContentY = y;
+            if (root.holdingPosition)
+                return;
+            if (!root.positioning && y < previousY - 2)
+                root.breakFollow();
             if (root.positioning)
                 return;
             if (root.atBottom)

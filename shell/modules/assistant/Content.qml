@@ -436,7 +436,7 @@ Item {
     function loadOlderMessages(): void {
         if (Assistant.historyBefore <= 0 || Assistant.loadingOlder || !transcript)
             return;
-        transcript.follow = false;
+        transcript.beginPrepend();
         Assistant.loadOlder();
     }
 
