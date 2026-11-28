@@ -1111,7 +1111,7 @@ Item {
         StyledRect {
             anchors.fill: parent
             radius: Tokens.rounding.large
-            color: Colours.tPalette.m3surfaceContainerLow
+            color: Qt.alpha(Colours.palette.m3surface, 1)
         }
 
         ColumnLayout {
@@ -1161,7 +1161,7 @@ Item {
                 font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                 background: StyledRect {
                     radius: Tokens.rounding.small
-                    color: Colours.tPalette.m3surfaceContainerHighest
+                    color: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 1)
                 }
             }
 
@@ -1186,7 +1186,7 @@ Item {
                     required property var modelData
 
                     width: pickerList.width
-                    height: 54
+                    height: 62
                     padding: 0
                     onClicked: {
                         Assistant.selectSession(modelData.id);
@@ -1195,31 +1195,32 @@ Item {
 
                     background: StyledRect {
                         radius: Tokens.rounding.small
-                        color: pickerRow.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent"
+                        color: pickerRow.hovered ? Qt.alpha(Colours.palette.m3surfaceContainerHighest, 1) : "transparent"
                     }
 
-                    contentItem: StyledText {
+                    contentItem: ColumnLayout {
                         anchors.fill: parent
                         anchors.leftMargin: Tokens.padding.small
                         anchors.rightMargin: Tokens.padding.small
-                        verticalAlignment: Text.AlignVCenter
-                        text: Assistant.sessionTitleFor(pickerRow.modelData.id, pickerRow.modelData.title) + (pickerRow.modelData.owned ? " · live" : "")
-                        elide: Text.ElideRight
-                        font: Tokens.font.body.builders.small.scale(root.fontScale).build()
-                        color: Colours.palette.m3onSurface
-                    }
-
-                    StyledText {
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.bottom: parent.bottom
-                        anchors.leftMargin: Tokens.padding.small
-                        anchors.rightMargin: Tokens.padding.small
+                        anchors.topMargin: Tokens.padding.extraSmall
                         anchors.bottomMargin: Tokens.padding.extraSmall
-                        text: Qt.formatDateTime(new Date(pickerRow.modelData.updated), "dd/MM HH:mm")
-                        elide: Text.ElideRight
-                        font: Tokens.font.label.builders.small.scale(root.fontScale).build()
-                        color: Colours.palette.m3onSurfaceVariant
+                        spacing: 0
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: Assistant.sessionTitleFor(pickerRow.modelData.id, pickerRow.modelData.title) + (pickerRow.modelData.owned ? " · live" : "")
+                            elide: Text.ElideRight
+                            font: Tokens.font.body.builders.medium.scale(root.fontScale).build()
+                            color: Colours.palette.m3onSurface
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: Qt.formatDateTime(new Date(pickerRow.modelData.updated), "dd/MM HH:mm")
+                            elide: Text.ElideRight
+                            font: Tokens.font.label.builders.small.scale(root.fontScale).build()
+                            color: Colours.palette.m3onSurfaceVariant
+                        }
                     }
                 }
             }
