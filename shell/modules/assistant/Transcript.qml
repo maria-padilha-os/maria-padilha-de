@@ -52,7 +52,6 @@ Item {
     }
 
     onMessagesChanged: root.scheduleFollow()
-    onMaxYChanged: root.scheduleFollow()
 
     Component.onCompleted: root.scheduleFollow()
 
@@ -198,7 +197,6 @@ Item {
                 root.breakFollow();
         }
         onContentHeightChanged: root.scheduleFollow()
-        onHeightChanged: root.scheduleFollow()
     }
 
     IconButton {
