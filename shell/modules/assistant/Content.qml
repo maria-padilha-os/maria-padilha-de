@@ -1144,8 +1144,8 @@ Item {
                     implicitHeight: Math.max(composer.implicitHeight, 40 * root.uiScale) + Tokens.padding.medium * 2 * root.uiScale
                     radius: Tokens.rounding.medium
                     color: Colours.tPalette.m3surfaceContainerHigh
-                    border.width: root.dropActive ? 2 : 0
-                    border.color: Colours.palette.m3primary
+                    border.width: root.dropActive ? 2 : 1
+                    border.color: root.dropActive || composer.activeFocus ? Colours.palette.m3primary : Colours.palette.m3outline
 
                     TextArea {
                         id: composer
