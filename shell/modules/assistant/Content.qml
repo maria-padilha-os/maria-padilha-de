@@ -1289,6 +1289,8 @@ Item {
                 placeholderTextColor: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                 onAccepted: root.submitPickerSearch()
+                Keys.onReturnPressed: root.submitPickerSearch()
+                Keys.onEnterPressed: root.submitPickerSearch()
                 background: StyledRect {
                     radius: Tokens.rounding.small
                     color: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 1)
