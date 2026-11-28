@@ -1176,7 +1176,8 @@ Item {
                 model: {
                     Assistant.pinned;
                     const query = pickerSearch.text.trim().toLowerCase();
-                    const filtered = query.length === 0 ? Assistant.sessions : Assistant.sessions.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
+                    const visible = Assistant.sessions.filter(session => root.showArchived || !Assistant.isArchived(session.id));
+                    const filtered = query.length === 0 ? visible : visible.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
                     return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
                 }
 
