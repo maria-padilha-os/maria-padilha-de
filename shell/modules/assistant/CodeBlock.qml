@@ -95,6 +95,11 @@ ColumnLayout {
                 }
 
                 IconButton {
+                    type: IconButton.Text
+                    implicitWidth: 22
+                    implicitHeight: 22
+                    padding: 0
+                    font: Tokens.font.icon.builders.small.build()
                     icon: "content_copy"
                     accessibleName: Tr.tr("Copy code")
                     onClicked: root.copyRequested(root.code)
@@ -148,7 +153,12 @@ ColumnLayout {
                 }
 
                 IconButton {
+                    type: IconButton.Text
                     visible: root.runOutput.length > 0
+                    implicitWidth: 22
+                    implicitHeight: 22
+                    padding: 0
+                    font: Tokens.font.icon.builders.small.build()
                     icon: "content_copy"
                     accessibleName: Tr.tr("Copy output")
                     onClicked: root.copyRequested(root.runOutput)
