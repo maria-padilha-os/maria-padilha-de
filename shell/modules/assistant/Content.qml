@@ -662,7 +662,7 @@ Item {
 
                     icon: "add_comment"
                     accessibleName: Tr.tr("New or resume DSH session")
-                    onClicked: sessionsPopup.open()
+                    onClicked: sessionsPopup.opened ? sessionsPopup.close() : sessionsPopup.open()
                 }
             }
 
@@ -678,7 +678,7 @@ Item {
                 padding: 8
                 modal: false
                 focus: true
-                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+                closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
                 onOpened: {
                     sessionSearch.text = "";
                     root.sessionPickId = Assistant.sessionId;
