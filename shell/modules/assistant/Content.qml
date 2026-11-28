@@ -71,6 +71,21 @@ Item {
         Qt.callLater(() => sidebar.focusSearch());
     }
 
+    function pickerMatches(): var {
+        const query = pickerSearch.text.trim().toLowerCase();
+        const visible = Assistant.sessions.filter(session => root.showArchived || !Assistant.isArchived(session.id));
+        const filtered = query.length === 0 ? visible : visible.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
+        return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
+    }
+
+    function submitPickerSearch(): void {
+        const matches = root.pickerMatches();
+        if (matches.length !== 1)
+            return;
+        Assistant.selectSession(matches[0].id);
+        root.sessionPickerOpen = false;
+    }
+
     function selectRelativeSession(delta: int): void {
         const ids = sidebar.visibleIds;
         if (ids.length === 0)
@@ -1171,6 +1186,7 @@ Item {
                 color: Colours.palette.m3onSurface
                 placeholderTextColor: Colours.palette.m3onSurfaceVariant
                 font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                onAccepted: root.submitPickerSearch()
                 background: StyledRect {
                     radius: Tokens.rounding.small
                     color: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 1)
@@ -1185,13 +1201,7 @@ Item {
                 clip: true
                 spacing: 2
                 boundsBehavior: Flickable.StopAtBounds
-                model: {
-                    Assistant.pinned;
-                    const query = pickerSearch.text.trim().toLowerCase();
-                    const visible = Assistant.sessions.filter(session => root.showArchived || !Assistant.isArchived(session.id));
-                    const filtered = query.length === 0 ? visible : visible.filter(session => String(Assistant.sessionTitleFor(session.id, session.title)).toLowerCase().includes(query));
-                    return filtered.slice().sort((a, b) => Number(Assistant.isPinned(b.id)) - Number(Assistant.isPinned(a.id)));
-                }
+                model: root.pickerMatches()
 
                 delegate: ItemDelegate {
                     id: pickerRow
