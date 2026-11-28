@@ -673,8 +673,8 @@ Item {
                 parent: sessionButton
                 x: sessionButton.width - width
                 y: sessionButton.height + 6
-                width: 360
-                height: 360
+                width: 460
+                height: 520
                 padding: 8
                 modal: false
                 focus: true
