@@ -688,7 +688,7 @@ Item {
 
                 background: StyledRect {
                     radius: Tokens.rounding.medium
-                    color: Colours.tPalette.m3surfaceContainerHigh
+                    color: Qt.alpha(Colours.palette.m3surfaceContainerHigh, 1)
                 }
 
                 contentItem: ColumnLayout {
@@ -717,7 +717,7 @@ Item {
                         font: Tokens.font.body.builders.small.scale(root.fontScale).build()
                         background: StyledRect {
                             radius: Tokens.rounding.small
-                            color: Colours.tPalette.m3surfaceContainerHighest
+                            color: Qt.alpha(Colours.palette.m3surfaceContainerHighest, 1)
                         }
 
                         onTextChanged: root.resetSessionPick()
@@ -782,7 +782,7 @@ Item {
 
                         background: StyledRect {
                             radius: Tokens.rounding.small
-                            color: sessionDelegate.selected ? Colours.palette.m3primaryContainer : (sessionDelegate.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
+                            color: sessionDelegate.selected ? Colours.palette.m3primaryContainer : (sessionDelegate.hovered ? Qt.alpha(Colours.palette.m3surfaceContainerHighest, 1) : "transparent")
                             border.width: sessionDelegate.selected ? 2 : 0
                             border.color: Colours.palette.m3primary
                         }
