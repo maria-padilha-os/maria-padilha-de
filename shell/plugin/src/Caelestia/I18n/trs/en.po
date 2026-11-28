@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maria-padilha-de\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 21:15-0300\n"
+"POT-Creation-Date: 2026-11-28 09:04-0300\n"
 "PO-Revision-Date: 2026-11-18 00:00+0000\n"
 "Last-Translator: Maria Padilha contributors\n"
 "Language-Team: English\n"
@@ -149,9 +149,18 @@ msgstr "Screenshot taken"
 msgid "Screenshot copied to clipboard"
 msgstr "Screenshot copied to clipboard"
 
+#: modules/assistant/AgentTabs.qml modules/assistant/Content.qml
+msgid "Chat"
+msgstr "Chat"
+
 #: modules/assistant/AgentTabs.qml
-msgid "OS maintenance"
-msgstr "OS maintenance"
+#: modules/nexus/pages/panels/AssistantPanel.qml
+msgid "Agent"
+msgstr "Agent"
+
+#: modules/assistant/AgentTabs.qml
+msgid "Close tab"
+msgstr "Close tab"
 
 #: modules/assistant/CodeBlock.qml
 msgid "Waiting for authentication…"
@@ -177,7 +186,9 @@ msgstr "Run as root?"
 msgid ""
 "This command runs with administrator privileges. Review it carefully. The "
 "password is requested by polkit and is never stored by Maria Padilha."
-msgstr "This command runs with administrator privileges. Review it carefully. The password is requested by polkit and is never stored by Maria Padilha."
+msgstr ""
+"This command runs with administrator privileges. Review it carefully. The "
+"password is requested by polkit and is never stored by Maria Padilha."
 
 #: modules/assistant/CodeBlock.qml modules/assistant/Content.qml
 #: modules/nexus/SettingsCatalog.qml
@@ -206,12 +217,42 @@ msgid "Failed · exit %1"
 msgstr "Failed · exit %1"
 
 #: modules/assistant/Content.qml
+msgid "DeepSeek Harness is not ready"
+msgstr "DeepSeek Harness is not ready"
+
+#: modules/assistant/Content.qml
+#, qt-format
+msgid "thinking %1"
+msgstr "thinking %1"
+
+#: modules/assistant/Content.qml
+#, qt-format
+msgid "ctx %1%"
+msgstr "ctx %1%"
+
+#: modules/assistant/Content.qml
+msgid "working"
+msgstr "working"
+
+#: modules/assistant/Content.qml
+msgid "idle"
+msgstr "idle"
+
+#: modules/assistant/Content.qml
+msgid "read-only"
+msgstr "read-only"
+
+#: modules/assistant/Content.qml
+msgid "owned by dsh-tui"
+msgstr "owned by dsh-tui"
+
+#: modules/assistant/Content.qml
 msgid "New chat"
 msgstr "New chat"
 
 #: modules/assistant/Content.qml
-msgid "Chat"
-msgstr "Chat"
+msgid "Padilha"
+msgstr "Padilha"
 
 #: modules/assistant/Content.qml
 msgid "DSH stopped responding; the turn was cancelled."
@@ -234,23 +275,17 @@ msgstr "Attach files"
 msgid "Files"
 msgstr "Files"
 
-#: modules/assistant/Content.qml modules/bar/components/AssistantButton.qml
-#: modules/nexus/pages/panels/AssistantPanel.qml
-#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
-msgid "Assistant"
-msgstr "Assistant"
-
 #: modules/assistant/Content.qml
 msgid "DSH sessions"
 msgstr "DSH sessions"
 
 #: modules/assistant/Content.qml
-msgid "New DSH session"
-msgstr "New DSH session"
+msgid "New or resume DSH session"
+msgstr "New or resume DSH session"
 
 #: modules/assistant/Content.qml
-msgid "Close assistant"
-msgstr "Close assistant"
+msgid "New session"
+msgstr "New session"
 
 #: modules/assistant/Content.qml
 msgid "Search sessions"
@@ -283,10 +318,6 @@ msgstr "Show archived sessions"
 #: modules/assistant/Content.qml
 msgid "Archived sessions shown"
 msgstr "Archived sessions shown"
-
-#: modules/assistant/Content.qml
-msgid "Copy message"
-msgstr "Copy message"
 
 #: modules/assistant/Content.qml services/Assistant.qml
 msgid "Thinking…"
@@ -345,6 +376,10 @@ msgid "Stop dictation"
 msgstr "Stop dictation"
 
 #: modules/assistant/Content.qml
+msgid "Disable wake mode"
+msgstr "Disable wake mode"
+
+#: modules/assistant/Content.qml
 msgid "Dictate a message"
 msgstr "Dictate a message"
 
@@ -370,20 +405,20 @@ msgid "Send"
 msgstr "Send"
 
 #: modules/assistant/Content.qml
-msgid "Agent session · read-only"
-msgstr "Agent session · read-only"
+msgid "Sessions"
+msgstr "Sessions"
 
 #: modules/assistant/Content.qml
-msgid "Read-only · this session is open in dsh-tui"
-msgstr "Read-only · this session is open in dsh-tui"
+msgid "Close session picker"
+msgstr "Close session picker"
 
-#: modules/assistant/Content.qml
-msgid "Local DeepSeek Harness session"
-msgstr "Local DeepSeek Harness session"
+#: modules/assistant/Transcript.qml
+msgid "Copy message"
+msgstr "Copy message"
 
-#: modules/assistant/Content.qml
-msgid "DeepSeek Harness is not ready"
-msgstr "DeepSeek Harness is not ready"
+#: modules/assistant/Transcript.qml
+msgid "Scroll to bottom"
+msgstr "Scroll to bottom"
 
 #: modules/background/Wallpaper.qml
 msgid "Wallpaper missing?"
@@ -423,6 +458,12 @@ msgstr "Assistant is responding"
 #: modules/bar/components/AssistantButton.qml
 msgid "Open the assistant"
 msgstr "Open the assistant"
+
+#: modules/bar/components/AssistantButton.qml
+#: modules/nexus/pages/panels/AssistantPanel.qml
+#: modules/nexus/pages/PanelsPage.qml modules/nexus/SettingsCatalog.qml
+msgid "Assistant"
+msgstr "Assistant"
 
 #: modules/bar/components/Clock.qml
 msgctxt "clock accessible date format"
@@ -3352,10 +3393,6 @@ msgid "Lower is slower and warmer"
 msgstr "Lower is slower and warmer"
 
 #: modules/nexus/pages/panels/AssistantPanel.qml
-msgid "Agent"
-msgstr "Agent"
-
-#: modules/nexus/pages/panels/AssistantPanel.qml
 #: modules/nexus/SettingsCatalog.qml
 msgid "Current session"
 msgstr "Current session"
@@ -6016,6 +6053,10 @@ msgid "Toggle assistant"
 msgstr "Toggle assistant"
 
 #: modules/Shortcuts.qml
+msgid "Send a test Padilha notification"
+msgstr "Send a test Padilha notification"
+
+#: modules/Shortcuts.qml
 msgid "Toggle utilities"
 msgstr "Toggle utilities"
 
@@ -6527,12 +6568,25 @@ msgid "Estimated context: %1%"
 msgstr "Estimated context: %1%"
 
 #: services/Assistant.qml
+#, qt-format
+msgid "cache %1%"
+msgstr "cache %1%"
+
+#: services/Assistant.qml
 msgid "Writing the answer…"
 msgstr "Writing the answer…"
 
 #: services/Assistant.qml
+msgid "Resposta pronta"
+msgstr "Resposta pronta"
+
+#: services/Assistant.qml
 msgid "DSH request failed"
 msgstr "DSH request failed"
+
+#: services/Assistant.qml
+msgid "Padilha precisa de atenção"
+msgstr "Padilha precisa de atenção"
 
 #: services/Assistant.qml
 msgid ""
