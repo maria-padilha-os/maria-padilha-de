@@ -369,6 +369,10 @@ Item {
         composer.text = "";
         root.attachmentPaths = [];
         root.resetHistory();
+        Qt.callLater(() => {
+            transcript.follow = true;
+            transcript.scrollToBottom();
+        });
     }
 
     function answerQuestion(answer: string): void {
