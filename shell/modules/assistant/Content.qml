@@ -662,7 +662,7 @@ Item {
 
                     icon: "add_comment"
                     accessibleName: Tr.tr("New or resume DSH session")
-                    onClicked: root.sessionPickerOpen = !root.sessionPickerOpen
+                    onClicked: sessionsPopup.open()
                 }
             }
 
