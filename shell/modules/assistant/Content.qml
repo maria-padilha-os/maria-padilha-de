@@ -31,18 +31,14 @@ Item {
     property bool sidebarOpen: false
     property bool sessionPickerOpen: false
     property int sessionPickIndex: 0
+    property string sessionPickId: ""
 
     onSessionPickIndexChanged: {
         if (sessionsList && sessionsList.currentIndex !== sessionPickIndex)
             sessionsList.currentIndex = sessionPickIndex;
     }
     onPickerSessionsChanged: {
-        if (pickerSessions.length === 0) {
-            sessionPickIndex = 0;
-            return;
-        }
-        if (sessionPickIndex >= pickerSessions.length)
-            sessionPickIndex = pickerSessions.length - 1;
+        root.syncSessionPick(false);
     }
     property var openTabs: []
     property string maintenanceSessionId: ""
@@ -63,10 +59,28 @@ Item {
         root.sidebarOpen = !root.sidebarOpen;
     }
 
+    function syncSessionPick(preferCurrent: bool): void {
+        const count = root.pickerSessions.length;
+        if (count === 0) {
+            root.sessionPickIndex = 0;
+            root.sessionPickId = "";
+            return;
+        }
+        let index = root.pickerSessions.findIndex(session => session.id === root.sessionPickId);
+        if (index < 0 && preferCurrent)
+            index = root.pickerSessions.findIndex(session => session.id === Assistant.sessionId);
+        if (index < 0)
+            index = 0;
+        root.sessionPickIndex = index;
+        root.sessionPickId = root.pickerSessions[index].id;
+        if (sessionsList) {
+            sessionsList.currentIndex = index;
+            sessionsList.positionViewAtIndex(index, ListView.Contain);
+        }
+    }
+
     function resetSessionPick(): void {
-        root.sessionPickIndex = 0;
-        if (sessionsList)
-            sessionsList.currentIndex = 0;
+        root.syncSessionPick(false);
     }
 
     function moveSessionPick(delta: int): void {
@@ -75,6 +89,7 @@ Item {
             return;
         const next = Math.max(0, Math.min(count - 1, root.sessionPickIndex + delta));
         root.sessionPickIndex = next;
+        root.sessionPickId = root.pickerSessions[next].id;
         sessionsList.currentIndex = next;
         sessionsList.positionViewAtIndex(next, ListView.Contain);
     }
@@ -84,6 +99,7 @@ Item {
         if (!session)
             return;
         root.sessionPickIndex = index;
+        root.sessionPickId = session.id;
         Assistant.selectSession(session.id);
         sessionsPopup.close();
     }
@@ -665,7 +681,8 @@ Item {
                 closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
                 onOpened: {
                     sessionSearch.text = "";
-                    root.resetSessionPick();
+                    root.sessionPickId = Assistant.sessionId;
+                    root.syncSessionPick(true);
                     Qt.callLater(() => sessionSearch.forceActiveFocus());
                 }
 
@@ -757,13 +774,16 @@ Item {
                         padding: 0
                         onClicked: {
                             root.sessionPickIndex = index;
+                            root.sessionPickId = modelData.id;
                             Assistant.selectSession(modelData.id);
                             sessionsPopup.close();
                         }
 
                         background: StyledRect {
                             radius: Tokens.rounding.small
-                            color: sessionDelegate.selected ? Qt.alpha(Colours.palette.m3primary, 0.16) : (sessionDelegate.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
+                            color: sessionDelegate.selected ? Colours.palette.m3primaryContainer : (sessionDelegate.hovered ? Colours.tPalette.m3surfaceContainerHighest : "transparent")
+                            border.width: sessionDelegate.selected ? 2 : 0
+                            border.color: Colours.palette.m3primary
                         }
 
                         contentItem: StyledText {
@@ -774,7 +794,7 @@ Item {
                             text: Assistant.sessionTitleFor(sessionDelegate.modelData.id, sessionDelegate.modelData.title) + (sessionDelegate.modelData.owned ? " · live" : "")
                             elide: Text.ElideRight
                             font: Tokens.font.body.builders.small.scale(root.fontScale).build()
-                            color: sessionDelegate.selected ? Colours.palette.m3primary : Colours.palette.m3onSurface
+                            color: sessionDelegate.selected ? Colours.palette.m3onPrimaryContainer : Colours.palette.m3onSurface
                         }
 
                         RowLayout {
