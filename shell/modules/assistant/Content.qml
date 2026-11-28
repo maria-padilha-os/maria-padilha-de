@@ -572,6 +572,8 @@ Item {
                         const next = root.openTabs.slice();
                         next.splice(index, 1);
                         root.openTabs = next;
+                        if (Assistant.sessionId === id)
+                            Assistant.viewHome();
                     }
                 }
 

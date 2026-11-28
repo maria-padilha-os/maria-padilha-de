@@ -160,6 +160,10 @@ Singleton {
             root.handleSubagents(event.agents || []);
             break;
         case "history":
+            // A load for a tab that was just closed can arrive after the user
+            // moved back to Padilha. It must not replace the active transcript.
+            if (event.sessionId && event.sessionId !== root.sessionId)
+                break;
             // A session load can be slower than the user's next prompt. Its
             // snapshot must not wipe the user message that is already streaming.
             if (root.streaming)
