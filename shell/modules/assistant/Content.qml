@@ -938,18 +938,6 @@ Item {
                 target: VoiceInput
             }
 
-            IconTextButton {
-                Layout.fillWidth: true
-                visible: Assistant.allMessages.length > Assistant.messages.length
-                icon: "expand_less"
-                text: Tr.tr("Carregar mensagens anteriores")
-                onClicked: {
-                    transcript.follow = false;
-                    Assistant.loadEarlier();
-                    Qt.callLater(() => transcript.view.contentY = 0);
-                }
-            }
-
             Transcript {
                 id: transcript
                 objectName: "transcript"
@@ -957,6 +945,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 messages: Assistant.messages
+                sessionKey: Assistant.sessionId
                 fontScale: root.fontScale
 
                 onCopyRequested: text => root.copyMessage(text)

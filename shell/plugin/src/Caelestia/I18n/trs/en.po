@@ -8941,6 +8941,3 @@ msgstr "Authentication failed"
 msgid "Enter the administrator password"
 msgstr "Enter the administrator password"
 
-#: modules/assistant/Content.qml
-msgid "Carregar mensagens anteriores"
-msgstr "Load earlier messages"

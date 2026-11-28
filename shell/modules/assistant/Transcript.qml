@@ -7,8 +7,9 @@ import qs.components
 import qs.components.controls
 import qs.services
 
-// Exact-height transcript. Unlike ListView, the content height is the sum of
-// the actual delegates, so auto-follow can never position past the last item.
+// Virtualized message stack. Historical messages use a lightweight Markdown
+// text delegate; only the current assistant answer gets the rich code/copy
+// renderer. ListView only instantiates the rows near the viewport.
 Item {
     id: root
 
@@ -16,171 +17,219 @@ Item {
     property real fontScale: 0.92
     property bool follow: true
     property bool positioning: false
+    property string sessionKey: ""
+    property real lastContentY: 0
 
-    readonly property Flickable view: flick
-    readonly property real maxY: Math.max(0, flick.contentHeight - flick.height)
-    readonly property bool atBottom: flick.contentY >= maxY - 2
+    readonly property ListView view: list
+    readonly property real maxY: Math.max(0, list.contentHeight - list.height)
+    readonly property bool atBottom: list.contentY >= maxY - 2
     readonly property bool jumpVisible: jumpButton.visible
 
     signal copyRequested(string text)
 
+    function clampBottom(): void {
+        const max = Math.max(0, list.contentHeight - list.height);
+        if (list.contentY > max)
+            list.contentY = max;
+        else if (list.contentY < 0)
+            list.contentY = 0;
+    }
+
+    function forceEnd(): void {
+        list.positionViewAtEnd();
+        const max = Math.max(0, list.contentHeight - list.height);
+        if (list.contentY < max)
+            list.contentY = max;
+    }
+
     function scrollToBottom(): void {
         root.positioning = true;
-        flick.contentY = root.maxY;
-        Qt.callLater(() => root.positioning = false);
-    }
-
-    function scheduleFollow(): void {
-        if (root.follow)
-            settle.restart();
-    }
-
-    function breakFollow(): void {
-        root.follow = false;
-        settle.stop();
+        list.positionViewAtEnd();
+        Qt.callLater(root.clampBottom);
+        settle.restart();
     }
 
     Timer {
         id: settle
 
-        interval: 80
+        interval: 220
         repeat: false
         onTriggered: {
-            if (root.follow)
-                root.scrollToBottom();
+            if (root.follow) {
+                root.forceEnd();
+                Qt.callLater(root.clampBottom);
+            }
         }
     }
 
-    onMessagesChanged: root.scheduleFollow()
+    Timer {
+        id: chase
 
+        interval: 80
+        repeat: false
+        onTriggered: {
+            if (!root.follow)
+                return;
+            root.forceEnd();
+            root.clampBottom();
+        }
+    }
+
+    Timer {
+        id: slowSettle
+
+        interval: 900
+        repeat: false
+        onTriggered: {
+            if (root.follow) {
+                root.forceEnd();
+                Qt.callLater(root.clampBottom);
+            }
+            root.positioning = false;
+        }
+    }
+
+    function scheduleFollow(): void {
+        if (!root.follow)
+            return;
+        Qt.callLater(() => root.scrollToBottom());
+        slowSettle.restart();
+    }
+
+    function breakFollow(): void {
+        root.follow = false;
+    }
+
+    onSessionKeyChanged: {
+        root.follow = true;
+        root.scheduleFollow();
+    }
     Component.onCompleted: root.scheduleFollow()
 
-    Flickable {
-        id: flick
+    ListView {
+        id: list
 
         anchors.fill: parent
-        contentWidth: width
-        contentHeight: column.implicitHeight
         clip: true
+        spacing: Tokens.spacing.small
         boundsBehavior: Flickable.StopAtBounds
         maximumFlickVelocity: 3000
-        flickableDirection: Flickable.VerticalFlick
+        model: root.messages
+        cacheBuffer: 120
 
         StyledScrollBar.vertical: StyledScrollBar {
-            flickable: flick
+            flickable: list
         }
 
-        Column {
-            id: column
+        delegate: Item {
+            id: row
 
-            width: flick.width
-            spacing: Tokens.spacing.small
+            required property var modelData
 
-            onImplicitHeightChanged: root.scheduleFollow()
+            readonly property bool fromUser: modelData.role === "user"
+            readonly property bool rich: !fromUser && modelData.rich === true
+            readonly property string bodyText: String(modelData.text || "")
 
-            Repeater {
-                model: root.messages
+            width: list.width
+            height: bodyText.trim().length === 0 ? 0 : bubble.height
 
-                delegate: ColumnLayout {
-                    id: message
+            StyledRect {
+                id: bubble
 
-                    required property var modelData
+                width: row.width
+                height: (row.rich ? richLoader.height : plainBody.implicitHeight) + Tokens.padding.medium * 2
+                radius: Tokens.rounding.medium
+                color: row.fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
 
-                    width: column.width
-                    spacing: Tokens.spacing.extraSmall
-                    visible: String(modelData.text || "").trim().length > 0
+                HoverHandler {
+                    id: bubbleHover
+                }
 
-                    StyledRect {
-                        id: bubble
+                TextEdit {
+                    id: plainBody
 
-                        readonly property bool fromUser: message.modelData.role === "user"
-                        readonly property bool hasCode: !fromUser && (message.modelData.text || "").indexOf("```") !== -1
-                        readonly property real maxBubbleWidth: column.width * 0.82
+                    x: Tokens.padding.medium
+                    y: Tokens.padding.medium
+                    width: bubble.width - Tokens.padding.medium * 2
+                    height: implicitHeight
+                    visible: !row.rich
+                    readOnly: true
+                    selectByMouse: true
+                    persistentSelection: true
+                    font: Tokens.font.body.builders.small.scale(root.fontScale).build()
+                    text: row.bodyText
+                    wrapMode: TextEdit.Wrap
+                    textFormat: row.fromUser ? TextEdit.PlainText : TextEdit.MarkdownText
+                    color: row.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
+                    selectionColor: Colours.palette.m3primary
+                    selectedTextColor: Colours.palette.m3onPrimary
+                }
 
-                        Layout.fillWidth: !fromUser
-                        Layout.maximumWidth: fromUser ? maxBubbleWidth : column.width
-                        Layout.preferredWidth: fromUser ? Math.min(maxBubbleWidth, body.contentWidth + Tokens.padding.medium * 2) : column.width
-                        Layout.alignment: fromUser ? Qt.AlignRight : Qt.AlignLeft
-                        visible: String(message.modelData.text || "").trim().length > 0
-                        implicitHeight: (hasCode ? richBody.implicitHeight : body.contentHeight) + Tokens.padding.medium * 2
-                        radius: Tokens.rounding.medium
-                        color: fromUser ? Colours.palette.m3secondaryContainer : Colours.tPalette.m3surfaceContainerHigh
+                Loader {
+                    id: richLoader
 
-                        HoverHandler {
-                            id: bubbleHover
-                        }
+                    x: Tokens.padding.medium
+                    y: Tokens.padding.medium
+                    width: bubble.width - Tokens.padding.medium * 2
+                    height: item ? item.implicitHeight : 0
+                    active: row.rich
+                    visible: row.rich
 
-                        Item {
-                            anchors.bottom: parent.bottom
-                            anchors.right: parent.right
-                            anchors.margins: 4
-                            implicitWidth: 22
-                            implicitHeight: 22
-                            z: 2
-                            visible: bubbleHover.hovered && message.modelData.text.length > 0
-
-                            Accessible.role: Accessible.Button
-                            Accessible.name: Tr.tr("Copy message")
-                            Accessible.onPressAction: root.copyRequested(message.modelData.text)
-
-                            StyledRect {
-                                anchors.fill: parent
-                                radius: Tokens.rounding.full
-                                color: copyMouse.containsMouse ? Qt.alpha(Colours.palette.m3onSurface, copyMouse.pressed ? 0.2 : 0.12) : "transparent"
-                            }
-
-                            MaterialIcon {
-                                anchors.centerIn: parent
-                                text: "content_copy"
-                                color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
-                                fontStyle: Tokens.font.icon.small
-                            }
-
-                            MouseArea {
-                                id: copyMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: root.copyRequested(message.modelData.text)
-                            }
-                        }
-
-                        TextEdit {
-                            id: body
-
-                            anchors.fill: parent
-                            anchors.margins: Tokens.padding.medium
-                            visible: !bubble.hasCode
-                            readOnly: true
-                            selectByMouse: true
-                            persistentSelection: true
-                            font: Tokens.font.body.builders.small.scale(root.fontScale).build()
-                            text: message.modelData.text || ""
-                            wrapMode: TextEdit.Wrap
-                            textFormat: bubble.fromUser ? TextEdit.PlainText : TextEdit.MarkdownText
-                            color: bubble.fromUser ? Colours.palette.m3onSecondaryContainer : Colours.palette.m3onSurface
-                            selectionColor: Colours.palette.m3primary
-                            selectedTextColor: Colours.palette.m3onPrimary
-                        }
-
+                    sourceComponent: Component {
                         MarkdownBody {
-                            id: richBody
-
-                            anchors.fill: parent
-                            anchors.margins: Tokens.padding.medium
-                            visible: bubble.hasCode
-                            text: message.modelData.text || ""
-                            streaming: message.modelData.streaming === true
+                            width: richLoader.width
+                            text: row.bodyText
+                            streaming: row.modelData.streaming === true
                             fontScale: root.fontScale
-                            allowPrivileged: !bubble.fromUser
+                            allowPrivileged: !row.fromUser
 
                             onCopyRequested: text => root.copyRequested(text)
                         }
                     }
                 }
+
+                Item {
+                    anchors.bottom: parent.bottom
+                    anchors.right: parent.right
+                    anchors.margins: 4
+                    implicitWidth: 22
+                    implicitHeight: 22
+                    z: 2
+                    visible: bubbleHover.hovered && row.bodyText.length > 0
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: Tr.tr("Copy message")
+                    Accessible.onPressAction: root.copyRequested(row.bodyText)
+
+                    StyledRect {
+                        anchors.fill: parent
+                        radius: Tokens.rounding.full
+                        color: copyMouse.containsMouse ? Qt.alpha(Colours.palette.m3onSurface, copyMouse.pressed ? 0.2 : 0.12) : "transparent"
+                    }
+
+                    MaterialIcon {
+                        anchors.centerIn: parent
+                        text: "content_copy"
+                        color: Colours.palette.m3onSurface
+                        fontStyle: Tokens.font.icon.small
+                    }
+
+                    MouseArea {
+                        id: copyMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.copyRequested(row.bodyText)
+                    }
+                }
             }
         }
 
+        onCountChanged: root.scheduleFollow()
+        onContentHeightChanged: {
+            if (root.follow)
+                chase.restart();
+        }
         onMovementStarted: {
             if (!root.positioning)
                 root.breakFollow();
@@ -190,14 +239,18 @@ Item {
                 root.follow = root.atBottom;
         }
         onContentYChanged: {
+            const y = list.contentY;
+            if (!root.positioning && y < root.lastContentY - 2)
+                root.breakFollow();
+            root.lastContentY = y;
             if (root.positioning)
                 return;
             if (root.atBottom)
                 root.follow = true;
-            else
-                root.breakFollow();
+            // A changing contentHeight can temporarily move contentY away from
+            // the end while delegates are still being created. Only an actual
+            // user movement (or an upward wheel/drag) breaks follow.
         }
-        onContentHeightChanged: root.scheduleFollow()
     }
 
     IconButton {
@@ -215,7 +268,7 @@ Item {
 
         onClicked: {
             root.follow = true;
-            root.scheduleFollow();
+            root.scrollToBottom();
         }
     }
 }

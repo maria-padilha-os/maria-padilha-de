@@ -506,9 +506,10 @@ Singleton {
                 role: entry.role,
                 text: entry.text,
                 streaming: false,
+                rich: false,
             }));
         root.allMessages = restored;
-        root.visibleHistory = Math.min(8, restored.length);
+        root.visibleHistory = restored.length;
         root.syncVisibleMessages();
     }
 
@@ -567,11 +568,13 @@ Singleton {
         const id = root.nextId++;
         const names = attachments.map(path => String(path).split("/").pop());
         const shown = text + (names.length > 0 ? (text.length > 0 ? "\n\n" : "") + Tr.tr("Attached: %1").arg(names.join(", ")) : "");
-        root.allMessages = root.allMessages.concat([
-            { id: id + "-user", role: "user", text: shown, streaming: false, attachments: attachments },
-            { id: id, role: "assistant", text: "", streaming: true },
-        ]);
-        root.visibleHistory = Math.max(root.visibleHistory, 8);
+        root.allMessages = root.allMessages
+            .map(message => message.role === "assistant" ? Object.assign({}, message, { rich: false }) : message)
+            .concat([
+                { id: id + "-user", role: "user", text: shown, streaming: false, attachments: attachments, rich: false },
+                { id: id, role: "assistant", text: "", streaming: true, rich: true },
+            ]);
+        root.visibleHistory = root.allMessages.length;
         root.syncVisibleMessages();
         root.activeId = id;
         root.streaming = true;
