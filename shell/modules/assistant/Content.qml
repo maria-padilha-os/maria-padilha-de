@@ -725,6 +725,7 @@ Item {
 
                         Keys.onPressed: event => {
                             const plain = !(event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
+                            const vim = (event.modifiers & (Qt.AltModifier | Qt.ControlModifier)) !== 0;
                             if (event.key === Qt.Key_Up && plain) {
                                 root.moveSessionPick(-1);
                                 event.accepted = true;
@@ -734,10 +735,10 @@ Item {
                             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                 root.chooseCurrentSessionPick();
                                 event.accepted = true;
-                            } else if (event.key === Qt.Key_J && (event.modifiers & Qt.ControlModifier)) {
+                            } else if (event.key === Qt.Key_J && vim) {
                                 root.moveSessionPick(1);
                                 event.accepted = true;
-                            } else if (event.key === Qt.Key_K && (event.modifiers & Qt.ControlModifier)) {
+                            } else if (event.key === Qt.Key_K && vim) {
                                 root.moveSessionPick(-1);
                                 event.accepted = true;
                             } else if (event.key === Qt.Key_Escape) {
