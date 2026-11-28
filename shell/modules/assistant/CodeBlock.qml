@@ -196,7 +196,7 @@ ColumnLayout {
 
         background: StyledRect {
             radius: Tokens.rounding.medium
-            color: Colours.tPalette.m3surfaceContainerHigh
+            color: Qt.alpha(Colours.palette.m3surfaceContainerHigh, 1)
         }
 
         contentItem: ColumnLayout {
@@ -221,7 +221,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 implicitHeight: Math.min(preview.contentHeight, 180) + Tokens.padding.small * 2
                 radius: Tokens.rounding.small
-                color: Colours.tPalette.m3surfaceContainer
+                color: Qt.alpha(Colours.palette.m3surfaceContainer, 1)
 
                 TextEdit {
                     id: preview
