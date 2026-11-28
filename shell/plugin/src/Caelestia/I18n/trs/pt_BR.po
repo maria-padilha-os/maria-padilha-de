@@ -8962,3 +8962,9 @@ msgstr "Conversor de unidades"
 
 msgid "Offline length, mass, temperature, data and time conversions"
 msgstr "Conversões offline de comprimento, massa, temperatura, dados e tempo"
+
+msgid "Pergunta do agente"
+msgstr "Pergunta do agente"
+
+msgid "Responda para retomar o agente"
+msgstr "Responda para retomar o agente"
